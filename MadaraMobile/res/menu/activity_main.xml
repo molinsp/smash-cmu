@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/menu_settings"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/menu_settings"/>
+    <item android:id="@+id/center_map" android:title="Center"></item>
+    <item android:id="@+id/satellite" android:title="Satellite" android:checkable="true"></item>
+    <item android:id="@+id/bounding_box" android:title="Bounding Box"></item>
+    <item android:id="@+id/crosshair_menu" android:checkable="true" android:title="Crosshair" android:checked="true"></item>
+    <item android:id="@+id/log_viewer" android:title="Logs"></item>
+
+</menu>
