@@ -1,0 +1,50 @@
+######################################################################
+# Usage of this software requires acceptance of the SMASH-CMU License,
+# which can be found at the following URL:
+#
+# https://code.google.com/p/smash-cmu/wiki/License
+######################################################################
+
+Before doing any of the following setup, please make sure you have the following
+packages installed on your system:
+cmake
+git
+subversion
+ia32-libs (if you are on a 64-bit system)
+
+
+In order to use this build framework to build for the AR Drone 2 (only supported
+platform at the time of writing), you must first obtain the Arm7 toolchain from:
+http://www.mentor.com/embedded-software/sourcery-tools/sourcery-codebench/editions/lite-edition/request?id=478dff82-62bc-44b2-afe2-4684d83b19b9&downloadlite=scblite2012&fmpath=/embedded-software/sourcery-tools/sourcery-codebench/editions/lite-edition/form
+
+We have only tested with the G++ Lite 2009q1-176 arm-none-linux-gnueabi binaries
+that are provided at the above link.
+
+Next, modify toolchain.mk to change "LOCAL_CROSS" to be the location of your
+toolchain. Congratulations, you are now configured to start compiling.
+
+
+The first thing to do is to build Ace and Madara. In the root directory (where
+this readme is located), execute the following:
+$ make ace
+$ make madara
+
+The other packages can be built in the same fashion.
+
+To install the created libraries on to the drone, use FTP to transfer libACE.so.x.x.x
+and libMADARA.so.x.x.x to the AR Drone 2. Then use telnet to open a shell on the
+drone and execute the following commands (replace Xs with actual version #s):
+$ chmod 755 /data/video/lib*
+$ cd /lib
+$ ln -s /data/video/lib/libACE.so.x.x.x
+$ ln -s /data/video/lib/libACE.so.x.x.x libACE.so
+$ ln -s /data/video/lib/libMADARA.so.x.x.x
+$ ln -s /data/video/lib/libMADARA.so.x.x.x libMADARA.so
+
+NOTE: I like to move the libraries to /data/lib to keep my /data/video folder
+      a little less messy. If you do this, make sure you update the links created
+      by the above command.
+     
+You are now ready to execute Madara applications on the AR Drone 2!
+
+
