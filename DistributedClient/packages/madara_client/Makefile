@@ -19,19 +19,34 @@ include platforms/$(PLATFORM).mk
 
 LOCAL_OBJ = $(LOCAL_SOURCES:.cpp=.o)
 
+BOLD  = $(shell tput bold)
+RED   = $(shell tput setaf 1)
+GREEN = $(shell tput setaf 2)
+RESET = $(shell tput sgr0)
+
+OK    = $(BOLD)$(GREEN)[OK]$(RESET)
+FAIL  = $(BOLD)$(RED)[FAIL]$(RESET)
+
 default: $(LOCAL_EXECUTABLE)
 
-$(LOCAL_EXECUTABLE): $(LOCAL_OBJ)
-	mkdir -p bin
-	$(CC) $(LOCAL_OBJ) $(LOCAL_CFLAGS) $(LOCAL_LD_PATH) -o bin/$@
-	mkdir -p $(INSTALL_ROOT)/bin
-	cp bin/$(LOCAL_EXECUTABLE) $(INSTALL_ROOT)/bin/
-	chmod 755 $(INSTALL_ROOT)/bin/$(EXECUTABLE)
+$(LOCAL_EXECUTABLE): $(LOCAL_SOURCES) $(LOCAL_OBJ)
+	@echo -n "$(BOLD)Linking $(LOCAL_EXECUTABLE)...$(RESET)"
+	@mkdir -p bin
+	@_ERROR=$$($(CC) $(LOCAL_LD_PATH) $(LOCAL_CFLAGS) $(LOCAL_OBJ) -o bin/$@ 2>&1); \
+	if [ $$? -eq 0 ]; then echo "$(OK)"; \
+	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
+	@mkdir -p $(INSTALL_ROOT)/bin
+	@cp bin/$(LOCAL_EXECUTABLE) $(INSTALL_ROOT)/bin/
+	@chmod 755 $(INSTALL_ROOT)/bin/$(EXECUTABLE)
 
 .cpp.o:
-	$(CC) $(LOCAL_LD_PATH) $(LOCAL_INCLUDES) $(LOCAL_CFLAGS) -c $< -o $@
+	@echo -n "$(BOLD)Compiling $<...$(RESET)"
+	@_ERROR=$$($(CC) $(LOCAL_LD_PATH) $(LOCAL_INCLUDES) $(LOCAL_CFLAGS) -c $< -o $@ 2>&1); \
+	if [ $$? -eq 0 ]; then echo "$(OK)"; \
+	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
 
+.PHONY: clean
 clean:
-	rm -rf $(LOCAL_EXECUTABLE)
+	rm -rf bin
 	rm -rf $(LOCAL_OBJ)
 

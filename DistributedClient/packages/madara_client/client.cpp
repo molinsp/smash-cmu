@@ -23,7 +23,6 @@
 #define NUM_TASKS 	1
 #define MAIN_LOGIC 	0
 
-
 //Inturupt handling
 volatile bool terminated = false;
 extern "C" void terminate (int)
@@ -71,7 +70,7 @@ int main (int argc, char** argv)
 
 	Madara::Knowledge_Engine::Knowledge_Base knowledge ("", settings);
 	
-	init_control_functions(knowledge);
+	init_madara_control_functions(knowledge);
 	compile_expressions(knowledge);
 
 	Madara::Knowledge_Engine::Eval_Settings eval_settings;

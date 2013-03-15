@@ -8,5 +8,5 @@
 
 LOCAL_SOURCES += platforms/ar_drone_2/ardrone2_control_functions.cpp
 
-LOCAL_CFLAGS += -DAR_DRONE_2
+LOCAL_CFLAGS += -DAR_DRONE_2 -ldrk
 

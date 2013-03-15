@@ -8,7 +8,14 @@
 #ifndef _CONTROL_FUNCTIONS_H
 #define _CONTROL_FUNCTIONS_H
 
-void execute_takeoff();
-void execute_land();
+bool init_control_functions();
+
+void takeoff();
+void land();
+
+void move_up();
+void move_down();
+void move_left();
+void move_right();
 
 #endif
