@@ -5,46 +5,62 @@
 # https://code.google.com/p/smash-cmu/wiki/License
 ######################################################################
 
-Before doing any of the following setup, please make sure you have the following
-packages installed on your system:
-cmake
-git
-subversion
-ia32-libs (if you are on a 64-bit system)
+
+The DroneController folder is a collection of Makefiles and source code to act
+as a build framework for ACE and MADARA as well as facilitate the connection
+between MADARA and the AR.Drone 2.
+
+Included in DroneController:
+1) Makefile to cross-compile ACE
+2) Makefile to cross-compile MADARA
+3) Makefile to cross-compile OpenCV (Currently Broken)
+4) Makefile to cross-compile OpenSSH
+5) Makefile to cross-compile WPA Supplicant
+6) Code to test OpenCV
+7) madara_client
 
 
-In order to use this build framework to build for the AR Drone 2 (only supported
-platform at the time of writing), you must first obtain the Arm7 toolchain from:
+===========================
+Setup / Installation
+===========================
+
+NOTE: DroneController is intended for use only on Linux, and has only been
+      tested on Ubuntu
+
+1) Ensure the following packages are installed on your system:
+	cmake
+	git
+	subversion
+	ia32-libs (if on a 64-bit system)
+
+2) Obtain the arm-2009q1-176 toolchain from the following URL (you will have
+   to register):
 http://www.mentor.com/embedded-software/sourcery-tools/sourcery-codebench/editions/lite-edition/request?id=478dff82-62bc-44b2-afe2-4684d83b19b9&downloadlite=scblite2012&fmpath=/embedded-software/sourcery-tools/sourcery-codebench/editions/lite-edition/form
 
-We have only tested with the G++ Lite 2009q1-176 arm-none-linux-gnueabi binaries
-that are provided at the above link.
+3) Modify the LOCAL_CROSS variable in toolchain.mk to point to the folder you
+   placed the cross compiler in
 
-Next, modify toolchain.mk to change "LOCAL_CROSS" to be the location of your
-toolchain. Congratulations, you are now configured to start compiling.
+4) Build a package with the following command executed from the DroneController
+   directory:
+	make <package name>
+
+5) After building a package, you will need to deploy it on the AR.Drone 2:
+	a) Connect to the drone's WiFi network
+	b) Use FTP to push any libraries or binaries to the drone
+	c) Use Telnet to open a shell on the drone.
+	d) Create the /data/lib directory
+	e) Create the /data/bin
+	f) Move any libraries to /data/lib and any executables to /data/bin
+	g) Change the permissions to 755 on all of the libraries and executables
+	h) Link the libraries to the /lib directory with "ln -s"
+	i) Link the executables to the /bin directory with "ln -s"
 
 
-The first thing to do is to build Ace and Madara. In the root directory (where
-this readme is located), execute the following:
-$ make ace
-$ make madara
+===========================
+Using madara_client
+===========================
 
-The other packages can be built in the same fashion.
+TODO
 
-To install the created libraries on to the drone, use FTP to transfer libACE.so.x.x.x
-and libMADARA.so.x.x.x to the AR Drone 2. Then use telnet to open a shell on the
-drone and execute the following commands (replace Xs with actual version #s):
-$ chmod 755 /data/video/lib*
-$ cd /lib
-$ ln -s /data/video/lib/libACE.so.x.x.x
-$ ln -s /data/video/lib/libACE.so.x.x.x libACE.so
-$ ln -s /data/video/lib/libMADARA.so.x.x.x
-$ ln -s /data/video/lib/libMADARA.so.x.x.x libMADARA.so
-
-NOTE: I like to move the libraries to /data/lib to keep my /data/video folder
-      a little less messy. If you do this, make sure you update the links created
-      by the above command.
-     
-You are now ready to execute Madara applications on the AR Drone 2!
 
 
