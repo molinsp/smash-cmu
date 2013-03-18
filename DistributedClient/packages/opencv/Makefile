@@ -9,6 +9,10 @@ OPENCV_ROOT=$(PACKAGES_ROOT)/opencv/opencv
 
 all:
 
+	@echo "This makefile is broken at the moment and needs some work"
+
+old:
+
 	@echo "Starting OpenCV"
 
 ifeq ($(wildcard $(OPENCV_ROOT)),)
@@ -45,7 +49,7 @@ ifeq ($(wildcard $(OPENCV_ROOT)/Makefile),)
 	@echo "set ( BUILD_TESTS OFF )" >> $(OPENCV_ROOT)/toolchain.cmake
 	@echo "set ( BUILD_JPEG ON )" >> $(OPENCV_ROOT)/toolchain.cmake
 	@echo "set ( WITH_GTK OFF )" >> $(OPENCV_ROOT)/toolchain.cmake
-	@echo "set ( BUILD_ZLIB OFF )" >> $(OPENCV_ROOT)/toolchain.cmake
+	@echo "set ( BUILD_ZLIB ON )" >> $(OPENCV_ROOT)/toolchain.cmake
 	@echo "set ( WITH_PNG OFF )" >> $(OPENCV_ROOT)/toolchain.cmake
 	@echo "SET ( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER )" >> $(OPENCV_ROOT)/toolchain.cmake
 	@echo "SET ( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )" >> $(OPENCV_ROOT)/toolchain.cmake

@@ -57,6 +57,20 @@ Madara::Knowledge_Record control_functions_move_right (Madara::Knowledge_Engine:
 	return "";
 }
 
+//Madara function to interface with move_forward()
+Madara::Knowledge_Record control_functions_move_forward (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
+{
+	move_forward();
+	return "";
+}
+
+//Madara function to interface with move_backward()
+Madara::Knowledge_Record control_functions_move_backward (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
+{
+	move_backward();
+	return "";
+}
+
 Madara::Knowledge_Record evaluate_control_functions (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
 	printf("evaluate_control_functions();\n");
@@ -72,6 +86,8 @@ void define_control_functions (Madara::Knowledge_Engine::Knowledge_Base & knowle
 	knowledge.define_function ("move_up",      control_functions_move_up);
 	knowledge.define_function ("move_down",    control_functions_move_down);
 	knowledge.define_function ("move_left",    control_functions_move_left);
+	knowledge.define_function ("move_forward",    control_functions_move_forward);
+	knowledge.define_function ("move_backward",    control_functions_move_backward);
 	knowledge.define_function ("move_right",   control_functions_move_right);
 	knowledge.define_function ("evaluate_control_functions", evaluate_control_functions);
 }
@@ -89,6 +105,8 @@ void compile_control_function_expressions (Madara::Knowledge_Engine::Knowledge_B
     		"swarm.down || drone{.id}.down => (swarm.down = 0; drone.{.id}.down = 0; move_down(););" //Down
     		"swarm.left || drone{.id}.left => (swarm.left = 0; drone.{.id}.left = 0; move_left(););" //Left
     		"swarm.right || drone{.id}.right => (swarm.right = 0; drone.{.id}.right = 0; move_right(););" //Right
+		"swarm.forward || drone{.id}.forward => (swarm.forward = 0; drone.{.id}.forward = 0; move_forward(););" //Forward
+		"swarm.backward || drone{.id}.backward => (swarm.backward = 0; drone.{.id}.backward = 0; move_backward(););" //Backward
 	);
 }
 

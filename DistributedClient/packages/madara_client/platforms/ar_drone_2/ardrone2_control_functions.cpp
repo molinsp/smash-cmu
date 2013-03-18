@@ -31,22 +31,38 @@ void land()
 
 void move_up()
 {
+	printf("In AR_DRDONE_2 move_up()\n");
 	drk_move_up(0.5, 1000, DRK_HOVER);
 }
 
 void move_down()
 {
+	printf("In AR_DRDONE_2 move_down()\n");
 	drk_move_down(0.5, 1000, DRK_HOVER);
 }
 
 void move_left()
 {
+	printf("In AR_DRDONE_2 move_left()\n");
 	drk_move_left(0.5, 1000, DRK_HOVER);
 }
 
 void move_right()
 {
+	printf("In AR_DRDONE_2 move_right()\n");
 	drk_move_right(0.5, 1000, DRK_HOVER);
+}
+
+void move_forward()
+{
+	printf("In AR_DRDONE_2 move_forward()\n");
+	drk_move_forward(0.5, 1000, DRK_HOVER);
+}
+
+void move_backward()
+{
+	printf("In AR_DRDONE_2 move_backward()\n");
+	drk_move_backward(0.5, 1000, DRK_HOVER);
 }
 
 
