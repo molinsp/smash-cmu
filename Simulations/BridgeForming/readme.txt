@@ -20,6 +20,14 @@ will have to move to create a bridge between the static drone and the laptop
 The current simulation attemps to create a line-bridge (which may not be the
 optimal way of creating a bridge) that minimizes the distances that the drones
 have to move, in order to reduce the amount of battery they spend to do this.
+One of its assumptions is that there are going to be enough drones to create
+a bridge.
+
+The method it uses is brute force, calculating all distances from all drones
+to all locations, sorting them, and using the smaller distances to chose which
+drone to send to each location. The complexity should O(n*m), where n is the
+number of drones, and m the number of drones needed for the bridge, so it can be
+O(n^2) in the worst case.
 
 Main simulation parameters:
  - numberOfDrones: the number of drones in the simulation
