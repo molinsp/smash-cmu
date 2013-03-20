@@ -28,14 +28,19 @@ to create a bridge.
 
 The method it uses is brute force, calculating all distances from all drones
 to all locations, sorting them, and using the smaller distances to chose which
-drone to send to each location. The complexity should O(n*m), where n is the
+drone to send to each location. The complexity should O(n*m*log(n*m)), where n is the
 number of drones, and m the number of drones needed for the bridge, so it can be
-O(n^2) in the worst case.
+O(n^2*log(n^2)) in the worst case.
 
-Main simulation parameters:
+There are some simulation parameters that have to match the physical objects in
+the scene. They have to be changed if these objects are changed. The parameters are:
  - numberOfDrones: the number of drones in the simulation
  - numberOfPeople: the number of people in the simulation
+ - (x1,y1) to (x2,y2): bounding box of area being covered.
+
+The following are parameters that can be used to play with the simulation: 
  - radioRange: the range (radius) of the Wi-Fi radio on the drones,
    required to calculate how many drones are needed for the bridge.
    
-   
+Moving the locations of the laptop and the people on the scene can also be useful
+to check different behaviors.   
