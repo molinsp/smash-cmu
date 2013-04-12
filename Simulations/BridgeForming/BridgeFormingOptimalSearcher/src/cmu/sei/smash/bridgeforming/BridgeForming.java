@@ -7,6 +7,8 @@ import java.io.IOException;
 
 public class BridgeForming 
 {
+	private static String csvFile = "optimalInput.csv";	
+	
 	// Information about the distances between all drones to all locations in the bridge.
 	private static int numDrones = 0;	
 	private static int numLocations = 0;	
@@ -35,7 +37,6 @@ public class BridgeForming
 	 */
 	private static void searchFromFile()
 	{
-		String csvFile = "scenarios.csv";
 		try 
 		{
 			BufferedReader br = new BufferedReader(new FileReader(csvFile));
@@ -46,10 +47,18 @@ public class BridgeForming
 				// First we have to take the initial setup lines, before we can actually get to the matrix.
 				if(currDrone == -1 || currDrone == numDrones-1)
 				{
-					String scenario = line;
-					numDrones = Integer.parseInt(br.readLine());
-					numLocations = Integer.parseInt(br.readLine());
-					int range = Integer.parseInt(br.readLine());
+					char separator = ',';
+					String scenario = line.substring(0, line.indexOf(separator));
+					
+					line = br.readLine();
+					numDrones = Integer.parseInt(line.substring(0, line.indexOf(separator)));
+					numDrones = numDrones - 1; // One less as one got stopped looking at the person.
+					
+					line = br.readLine();
+					numLocations = Integer.parseInt(line.substring(0, line.indexOf(separator)));
+					
+					line = br.readLine();
+					int range = Integer.parseInt(line.substring(0, line.indexOf(separator)));
 					distances = new double[numDrones][numLocations];
 					currDrone = -1;
 					System.out.println("*******************************************************************************");
@@ -99,13 +108,13 @@ public class BridgeForming
 		bestIndividualDistance = -1;
 		totalDistanceOnBestTotalTime = -1;
 				
-        long initTime = System.currentTimeMillis();
+        long initTime = System.nanoTime();
         String baseString = generateBaseString(numDrones);
         combinations(baseString);
 
-        long endTime = System.currentTimeMillis();
+        long endTime = System.nanoTime();
         long timeElapsed = endTime - initTime;
-        System.out.println("Elapsed time: " + timeElapsed/1000.0 + "s");
+        System.out.println("Elapsed time: " + timeElapsed/1000000.0 + " ms");
         System.out.println("Best permutation in total distance: " + bestTotalDistancePermutation + " with total distance " + bestTotalDistance + " (and worst individual distance " + largestIndividualDistanceOnBestTotalDistance + ")");
         System.out.println("Best permutation in minimum total time: " + bestTotalTimePermutation + " with worst individual distance " + bestIndividualDistance + " (and total distance " + totalDistanceOnBestTotalTime + ")");
 	}	
