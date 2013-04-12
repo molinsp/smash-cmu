@@ -4,6 +4,9 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
 
 public class BridgeForming 
 {
@@ -80,7 +83,10 @@ public class BridgeForming
 		        // When we have loaded all lines from the matrix, find the best solution for that scenario.
 		        if(currDrone == numDrones-1)
 		        {
-		        	findBestPermutation();		        	
+		        	findBestPermutation();
+		        	
+		        	// Also calculate the approximation.
+		        	calculateNonOptimalSolution();		        	
 		        }
 			}
 		} 
@@ -131,7 +137,7 @@ public class BridgeForming
 		String baseString = "";
 		for(int i=0; i <numDrones; i++)
 		{
-			baseString += Character.toString ((char) (i + (int) 'A'));
+			baseString += getLetterFromNumberId(i);
 		}
 		System.out.println("Base string: " + baseString);
 		return baseString;
@@ -246,5 +252,78 @@ public class BridgeForming
 		int dronePos = droneId - ((int)'A');
 		//System.out.println(location + " , " + dronePos + " = " +  distances[dronePos][location]);
 		return distances[dronePos][location];
+	}
+	
+	private static void calculateNonOptimalSolution()
+	{
+		// Move everything from the matrix into one big array.
+		Tuple[] allDistances = new Tuple[numDrones*numLocations];
+		int tupleNum = 0;
+		for(int currDrone=0; currDrone<numDrones; currDrone++)
+		{
+			for(int currLocation=0; currLocation<numLocations;currLocation++)
+			{
+				Tuple currTuple = new Tuple();
+				currTuple.dronePos = currDrone;
+				currTuple.locationPos = currLocation;
+				currTuple.distance = distances[currDrone][currLocation];
+				allDistances[tupleNum++] = currTuple;
+			}
+		}
+		
+        long initTime = System.nanoTime();		
+		
+		// Sort the big array.
+		Arrays.sort(allDistances, new Comparator<Tuple>() {
+            public int compare(Tuple tuple, Tuple otherTuple) {
+                return Double.compare(tuple.distance, otherTuple.distance);
+            }});
+		
+		// Loop over the sorted array to find results.
+		HashSet<Integer> usedDrones = new HashSet<Integer>();
+		HashSet<Integer> usedLocations = new HashSet<Integer>();
+		int[] assignedDrones = new int[numLocations];
+		double totalDistance = 0;
+		for(int i=0; i<allDistances.length; i++)
+		{
+			Tuple currTuple = allDistances[i];
+			if(!usedDrones.contains(currTuple.dronePos) && !usedLocations.contains(currTuple.locationPos))
+			{
+				usedDrones.add(currTuple.dronePos);
+				usedLocations.add(currTuple.locationPos);
+				assignedDrones[currTuple.locationPos] = currTuple.dronePos;
+				totalDistance += currTuple.distance;
+			}
+		}
+		
+        long endTime = System.nanoTime();
+        long timeElapsed = endTime - initTime;
+		String permutation = generateStringId(assignedDrones);        
+        System.out.println("Heuristic- Elapsed time: " + timeElapsed/1000000.0 + " ms");
+        System.out.println("Heuristic- Best permutation: " + permutation + " with total distance " + totalDistance);
+	}
+	
+	private static String getLetterFromNumberId(int i)
+	{
+		return Character.toString ((char) (i + (int) 'A'));
+	}
+	
+	private static String generateStringId(int[] drones)
+	{
+		String idString = "";
+		
+		for(int i=0; i<drones.length; i++)
+		{
+			idString += getLetterFromNumberId(drones[i]);
+		}
+		
+		return idString;
+	}
+	
+	public static class Tuple
+	{
+		public int dronePos;
+		public int locationPos;
+		public double distance;
 	}
 }
