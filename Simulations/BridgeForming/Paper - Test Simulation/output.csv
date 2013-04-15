@@ -1,0 +1,35 @@
+ 
+Scenario #1
+Sink Location,0.5, 0.5
+Source Location,9.0000200271606, 8.8000154495239
+Drones required,2
+Radio range,4
+
+Drone Quadricopter# location,3.4857800006866, 6.9078726768494
+Distance from drone Quadricopter# to location 1,3.3333400090535, 3.266671816508 , 3.6443904368769
+Distance from drone Quadricopter# to location 2,6.1666800181071, 6.033343633016 , 2.8199336786373
+Drone Quadricopter#0 location,8.9919805526733, 3.6877930164337
+Distance from drone Quadricopter#0 to location 1,3.3333400090535, 3.266671816508 , 5.6742890186282
+Distance from drone Quadricopter#0 to location 2,6.1666800181071, 6.033343633016 , 3.672047222677
+Drone Quadricopter#1 location,8.991662979126, 8.7114915847778
+Drone Quadricopter#2 location,3.9882202148438, 3.6670441627502
+Distance from drone Quadricopter#2 to location 1,3.3333400090535, 3.266671816508 , 0.76757155990263
+Distance from drone Quadricopter#2 to location 2,6.1666800181071, 6.033343633016 , 3.2163737807372
+
+Quadricopter#2
+Current location,3.9882202148438, 3.6670441627502
+Bridge point    ,3.3333400090535, 3.266671816508
+Distance to     ,0.76757155990263
+Time to solve   ,1264,ms
+Time to bridge  ,1652,ms
+Total Distance to bridge,3.58750523854
+
+Quadricopter#
+Current location,3.4858639240265, 6.8871393203735
+Bridge point    ,6.1666800181071, 6.033343633016
+Distance to     ,2.8134928480506
+Time to solve   ,0,ms
+Time to bridge  ,7148,ms
+Total Distance to bridge,3.5920791270568
+
+Scenario #2
