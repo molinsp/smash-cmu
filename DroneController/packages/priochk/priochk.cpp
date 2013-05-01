@@ -43,7 +43,6 @@ int setMaxPriority(int type)
 	struct sched_param p;
 	int max = sched_get_priority_max(type);
 	p.sched_priority = max;
-	
 	return sched_setscheduler(getpid(), type, &p);
 }
 

@@ -83,6 +83,7 @@ ifeq ($(wildcard $(ACE_TARGET_GNU)),)
 	@echo "CROSS_COMPILE=$(LOCAL_CROSS_PREFIX)" >> $(ACE_TARGET_GNU)
 	@echo "INSTALL_PREFIX=$(INSTALL_ROOT)" >> $(ACE_TARGET_GNU)
 	@echo "no_hidden_visibility=1" >> $(ACE_TARGET_GNU)
+	@echo "OCFLAGS=-Os" >> $(ACE_TARGET_GNU)
 	@echo "include $(ACE_ROOT)/include/makeinclude/platform_linux.GNU" >> $(ACE_TARGET_GNU)
 else
 	@echo "platform_$(TARGET).GNU already exists"

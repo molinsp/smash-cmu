@@ -9,8 +9,11 @@
 CC = $(LOCAL_GPLUSPLUS)
 
 LOCAL_EXECUTABLE = madara_client
+
 LOCAL_SOURCES = client.cpp \
-		madara_control_functions.cpp
+		madara_control_functions.cpp \
+		madara_sensor_functions.cpp
+		
 LOCAL_CFLAGS = -lMADARA -lACE
 LOCAL_LD_PATH = -L$(INSTALL_ROOT)/lib
 LOCAL_INCLUDES = -I$(INSTALL_ROOT)/include -I$(CURDIR)
@@ -35,10 +38,11 @@ $(LOCAL_EXECUTABLE): $(LOCAL_SOURCES) $(LOCAL_OBJ)
 	@_ERROR=$$($(CC) $(LOCAL_LD_PATH) $(LOCAL_CFLAGS) $(LOCAL_OBJ) -o bin/$@ 2>&1); \
 	if [ $$? -eq 0 ]; then echo "$(OK)"; \
 	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
-	@mkdir -p $(INSTALL_ROOT)/bin
-	@cp bin/$(LOCAL_EXECUTABLE) $(INSTALL_ROOT)/bin/
-	@chmod 755 $(INSTALL_ROOT)/bin/$(EXECUTABLE)
-
+	
+	@echo -n "$(BOLD)Installing $(LOCAL_EXECUTABLE)...$(RESET)"
+	@_ERROR=$$(mkdir -p $(INSTALL_ROOT)/bin; cp bin/$(LOCAL_EXECUTABLE) $(INSTALL_ROOT)/bin/; chmod 755 $(INSTALL_ROOT)/bin/$(EXECUTABLE)); \
+	if [ $$? -eq 0 ]; then echo "$(OK)"; \
+	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
 .cpp.o:
 	@echo -n "$(BOLD)Compiling $<...$(RESET)"
 	@_ERROR=$$($(CC) $(LOCAL_LD_PATH) $(LOCAL_INCLUDES) $(LOCAL_CFLAGS) -c $< -o $@ 2>&1); \

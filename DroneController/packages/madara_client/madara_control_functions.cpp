@@ -8,7 +8,7 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include "madara_control_functions.h"
 
-#include "control_functions.h"
+#include "platform_functions.h"
 
 #define TASK_COUNT		1
 #define EVALUATE_CONTROL	0
