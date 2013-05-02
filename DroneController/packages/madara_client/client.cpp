@@ -52,43 +52,54 @@ void compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 	
 	expressions[MAIN_LOGIC] = knowledge.compile
 	(
-		EVALUATE_CONTROL_FUNCTIONS
-		EVALUATE_SENSOR_FUNCTIONS
+		"(" EVALUATE_CONTROL_FUNCTIONS "||"
+		    "bridge()" "||"
+		    "area_coverage()"
+		"), "
+		EVALUATE_SENSOR_FUNCTIONS 
 	);
 
 }
 
 int main (int argc, char** argv)
 {
-
+	
+	ACE_Sig_Action sa ((ACE_SignalHandler) terminate, SIGINT);
+	
 	int local_debug_level = 0;
 	if (argc > 1)
 		local_debug_level = atoi(argv[1]);
 		
+		
+	//We call platform init early incase it has to fork()
 	if (!init_platform())
 	{
 		printf("Failed to initialize the platform\n");
 		return 1;
 	}
 
-	ACE_Sig_Action sa ((ACE_SignalHandler) terminate, SIGINT);
+	
 	MADARA_debug_level = local_debug_level;
+	
 	
 	Madara::Transport::Settings settings;
 	settings.hosts_.resize (1);
 	settings.hosts_[0] = "228.5.6.7:5500";
 	settings.type = Madara::Transport::MULTICAST;
-	settings.queue_length = 1024;
+	settings.queue_length = 1024; //Smaller queue len to preserve memory
 	Madara::Knowledge_Engine::Knowledge_Base knowledge ("", settings);
 	
+	//Let the other components define their functionality
 	init_madara_control_functions(knowledge);
 	init_madara_sensor_functions(knowledge);
 	
+	//Compile the main logic
 	compile_expressions(knowledge);
 
+	//Set our ID
 	Madara::Knowledge_Engine::Eval_Settings eval_settings;
-
 	knowledge.evaluate(".id = 0;", eval_settings);
+
 
 	while (!terminated)
 	{

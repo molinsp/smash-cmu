@@ -10,7 +10,7 @@
 
 #include "madara/knowledge_engine/Knowledge_Base.h"
 
-#define EVALUATE_SENSOR_FUNCTIONS "evaluate_sensor_functions();"
+#define EVALUATE_SENSOR_FUNCTIONS "evaluate_sensor_functions()"
 
 void init_madara_sensor_functions(Madara::Knowledge_Engine::Knowledge_Base&);
 

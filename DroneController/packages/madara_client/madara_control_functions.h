@@ -10,7 +10,7 @@
 
 #include "madara/knowledge_engine/Knowledge_Base.h"
 
-#define EVALUATE_CONTROL_FUNCTIONS "evaluate_control_functions();"
+#define EVALUATE_CONTROL_FUNCTIONS "evaluate_control_functions()"
 
 void init_madara_control_functions(Madara::Knowledge_Engine::Knowledge_Base&);
 
