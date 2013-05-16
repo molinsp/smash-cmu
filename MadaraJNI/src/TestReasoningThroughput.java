@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.madara.KnowledgeBase;
 import com.madara.KnowledgeBase.CompiledExpression;
+import com.madara.KnowledgeBase.KnowledgeBaseLockedException;
 import com.madara.KnowledgeRecord;
 
 public class TestReasoningThroughput
@@ -32,7 +33,7 @@ public class TestReasoningThroughput
 		public long elapsed = 0;
 		public long hertz = 0;
 		
-		public abstract long test(KnowledgeBase knowledge);
+		public abstract long test(KnowledgeBase knowledge) throws KnowledgeBaseLockedException;
 		public abstract String name();
 	}
 	
@@ -45,7 +46,7 @@ public class TestReasoningThroughput
 			return "KaRL: Simple Reinforcements";
 		}
 		@Override
-		public long test(KnowledgeBase knowledge)
+		public long test(KnowledgeBase knowledge) throws KnowledgeBaseLockedException
 		{
 			knowledge.clear();
 			Timer timer = new Timer();
@@ -73,7 +74,7 @@ public class TestReasoningThroughput
 			return "KaRL: Large Reinforcements";
 		}
 		@Override
-		public long test(KnowledgeBase knowledge)
+		public long test(KnowledgeBase knowledge) throws KnowledgeBaseLockedException
 		{
 			knowledge.clear();
 			Timer timer = new Timer();
@@ -110,7 +111,7 @@ public class TestReasoningThroughput
 			return "KaRL: Simple Inference    ";
 		}
 		@Override
-		public long test(KnowledgeBase knowledge)
+		public long test(KnowledgeBase knowledge) throws KnowledgeBaseLockedException
 		{
 			knowledge.clear();
 			Timer timer = new Timer();
@@ -138,7 +139,7 @@ public class TestReasoningThroughput
 			return "KaRL: Large Inference     ";
 		}
 		@Override
-		public long test(KnowledgeBase knowledge)
+		public long test(KnowledgeBase knowledge) throws KnowledgeBaseLockedException
 		{
 			knowledge.clear();
 			Timer timer = new Timer();
@@ -175,7 +176,7 @@ public class TestReasoningThroughput
 			return "KaRL: Compiled SR         ";
 		}
 		@Override
-		public long test(KnowledgeBase knowledge)
+		public long test(KnowledgeBase knowledge) throws KnowledgeBaseLockedException
 		{
 			knowledge.clear();
 			Timer timer = new Timer();
@@ -207,7 +208,7 @@ public class TestReasoningThroughput
 			return "KaRL: Compiled LR         ";
 		}
 		@Override
-		public long test(KnowledgeBase knowledge)
+		public long test(KnowledgeBase knowledge) throws KnowledgeBaseLockedException
 		{
 			knowledge.clear();
 			Timer timer = new Timer();
@@ -246,7 +247,7 @@ public class TestReasoningThroughput
 			return "KaRL: Compiled SI        ";
 		}
 		@Override
-		public long test(KnowledgeBase knowledge)
+		public long test(KnowledgeBase knowledge) throws KnowledgeBaseLockedException
 		{
 			knowledge.clear();
 			Timer timer = new Timer();
@@ -278,7 +279,7 @@ public class TestReasoningThroughput
 			return "KaRL: Compiled LI         ";
 		}
 		@Override
-		public long test(KnowledgeBase knowledge)
+		public long test(KnowledgeBase knowledge) throws KnowledgeBaseLockedException
 		{
 			knowledge.clear();
 			Timer timer = new Timer();
@@ -317,7 +318,7 @@ public class TestReasoningThroughput
 			return "KaRL: Looped SR         ";
 		}
 		@Override
-		public long test(KnowledgeBase knowledge)
+		public long test(KnowledgeBase knowledge) throws KnowledgeBaseLockedException
 		{
 			knowledge.clear();
 			Timer timer = new Timer();
@@ -349,7 +350,7 @@ public class TestReasoningThroughput
 			return "KaRL: Optimal Loop      ";
 		}
 		@Override
-		public long test(KnowledgeBase knowledge)
+		public long test(KnowledgeBase knowledge) throws KnowledgeBaseLockedException
 		{
 			knowledge.clear();
 			Timer timer = new Timer();
@@ -381,7 +382,7 @@ public class TestReasoningThroughput
 			return "KaRL: Looped SI         ";
 		}
 		@Override
-		public long test(KnowledgeBase knowledge)
+		public long test(KnowledgeBase knowledge) throws KnowledgeBaseLockedException
 		{
 			knowledge.clear();
 			Timer timer = new Timer();
@@ -415,7 +416,7 @@ public class TestReasoningThroughput
 		}
 		
 		@Override
-		public long test(KnowledgeBase knowledge)
+		public long test(KnowledgeBase knowledge) throws KnowledgeBaseLockedException
 		{
 			knowledge.clear();
 			Timer timer = new Timer();
@@ -468,7 +469,7 @@ public class TestReasoningThroughput
 		return "" + (Math.round(freq * 100.0) / 100.0) + " hz";
 	}
 	
-	public static void main (String...args)
+	public static void main (String...args) throws KnowledgeBaseLockedException
 	{
 		KnowledgeBase knowledge = new KnowledgeBase();
 		
