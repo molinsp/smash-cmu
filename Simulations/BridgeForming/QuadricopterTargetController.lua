@@ -135,7 +135,7 @@ function runMainLogic()
 
         -- Get position of sink.
         laptopHandle = simGetObjectHandle('laptop#')
-        sinkPosition = simGetObjectPosition(laptopHandle, -1)
+        local sinkPosition = simGetObjectPosition(laptopHandle, -1)
         simAddStatusbarMessage('Sink at '  .. sinkPosition[1] .. ', ' .. sinkPosition[2])
 
         -- Get position of source
@@ -150,30 +150,19 @@ function runMainLogic()
         end
 
         sourceHandle = simGetObjectHandle(sourceName)
-        sourcePosition = simGetObjectPosition(sourceHandle, -1)
+        local sourcePosition = simGetObjectPosition(sourceHandle, -1)
+
         simAddStatusbarMessage('Source at '  .. sourcePosition[1] .. ', ' .. sourcePosition[2])
-
-        --/////////////////////////////////////////////////////////////////////////////////////////////
-        -- Calculate which drones have to move where.
         
-        -- Calculate how many drones are required for the bridge.
-        radioRange = simGetScriptSimulationParameter(sim_handle_main_script,'radioRange')
-        distanceSourceSink = math.sqrt((sourcePosition[1] - sinkPosition[1])^2 + (sourcePosition[2] - sinkPosition[2])^2)
-        dronesNeededForBridge = math.ceil(distanceSourceSink/radioRange - 1)
-        --simAddStatusbarMessage('Distance source-sink: ' .. distanceSourceSink)
-        simAddStatusbarMessage('Drones required: ' .. dronesNeededForBridge .. ' for radio range ' .. radioRange)
+        -- Get the radio range
+        local radioRange = simGetScriptSimulationParameter(sim_handle_main_script,'radioRange')   
 
-        -- Calculate the locations for each drone to form the bridge.
-        relayCoords = {}
-        for i=1, dronesNeededForBridge, 1 do
-            relayCoords[i] = {}
-            relayCoords[i][1] = sinkPosition[1] + (sourcePosition[1] - sinkPosition[1])/(dronesNeededForBridge+1)*(i)
-            relayCoords[i][2] = sinkPosition[2] + (sourcePosition[2] - sinkPosition[2])/(dronesNeededForBridge+1)*(i)
-            simAddStatusbarMessage('Location ' .. i .. ': ' .. relayCoords[i][1] ..','..relayCoords[i][2])
-        end
-        
-        -- Calculate distances from all drones to each relay position.
-        distanceTuples = {}
+        -- Get all drone positions
+        local myDroneId = mySuffix + 1
+        local availableDroneIdsIdx = 1;
+        availableDroneIds = {}
+        availableDronePositionsMap = {}
+        availableDronePositionsArray = {}
         for i=1, numDrones, 1 do
             droneName = ''
             if (i == 1) then
@@ -184,75 +173,45 @@ function runMainLogic()
 
             currentDroneHandle = simGetObjectHandle(droneName)
             currentDronePos = simGetObjectPosition(currentDroneHandle, -1)
-            --simAddStatusbarMessage('Drone ' .. droneName .. ' at ' .. currentDronePos[1] ..','..currentDronePos[2])
-
-            -- Ignore the drone that found the person, since it won't have to move; only calculate distances for the rest.
+            
             if(droneName ~= droneSourceName) then
-                -- Go over each relay location.
-                for j=1,dronesNeededForBridge,1 do
-                    currRelayCoords = relayCoords[j]
-                    distanceToLocation = math.sqrt((currentDronePos[1] - currRelayCoords[1])^2 + (currentDronePos[2] - currRelayCoords[2])^2)
-                    --simAddStatusbarMessage('Distance from drone ' .. droneName .. ' to location ' .. currRelayCoords[1] ..','..currRelayCoords[2] .. ' is ' .. distanceToLocation)
-
-                    -- Store everything in a table.
-                    distanceTuple = {droneName, j, distanceToLocation}
-                    table.insert(distanceTuples,distanceTuple)
-                end
+                -- We have to store the IDs in a separate, simple table to be able to pass this to the C function in the plugin (which doesnt accept nested tables).
+                local currDroneId = i-1
+                availableDroneIds[availableDroneIdsIdx] = currDroneId
+                
+                -- We have to store the positions in a single-level array to pass this to the C function in the plugin (which doesnt accept nested tables).
+                availableDronePositionsArray[2*availableDroneIdsIdx-1] = currentDronePos[1]
+                availableDronePositionsArray[2*availableDroneIdsIdx-1+1] = currentDronePos[2]
+                
+                -- This array is only used by the internal implementation of the algorithm if enabled.
+                availableDronePositionsMap[droneName] = currentDronePos
+                
+                availableDroneIdsIdx = availableDroneIdsIdx + 1                
             end
-        end	
-
-        -- Sort the table with all the distances (from all drones to all relay locations) in ascending order by distance.
-        --simAddStatusbarMessage("Sorting")
-        table.sort(distanceTuples, compare)
-
-        --simAddStatusbarMessage("Sorted values:")
-        --for index, val in ipairs(distanceTuples) do
-        --	simAddStatusbarMessage(index.." : "..val[1]..", loc: "..val[2]..", distance: "..val[3])
-        --end
-
-        -- Find the best drone-location pairs
-        local usedDrones = {}
-        local usedLocations = {}
-        for index, val in ipairs(distanceTuples) do
-            currDrone = val[1]
-            currLocationIdx = val[2]
-            currDistance = val[3]
-
-            -- Ignore drones that have already been assigned to a location, and locations which already have drones assigned to them.
-            if(not usedDrones[currDrone] and not usedLocations[currLocationIdx]) then
-                -- Mark this drone and this location as assigned.
-                usedDrones[currDrone] = true
-                usedLocations[currLocationIdx] = true
-                simAddStatusbarMessage("Selected drone "..currDrone.." to move to location "..currLocationIdx)
-
-                -- If I am the drone that has just been selected, the update my new target location.
-                if myDroneName == currDrone then
-                    -- Get the location coords to set as my future target.
-                    myNewX = relayCoords[currLocationIdx][1]
-                    myNewY = relayCoords[currLocationIdx][2]
-                    simAddStatusbarMessage('I am ' .. myDroneName .. ' going to form bridge at ' .. myNewX .. ', ' .. myNewY)
-                    endTime = simGetSimulationTime()
-                    elapsedTime = endTime - startTime
-                    endSystemTime = simGetSystemTimeInMilliseconds()
-                    elapsedSystemTime = endSystemTime - startSystemTime
-                    simAddStatusbarMessage(myDroneName .. ' took ' .. elapsedTime .. 's and ' .. elapsedSystemTime .. ' system ms')
-
-                    -- Overwrite the next and final destination variables to make the drone move to its brige location.
-                    destinationx = myNewX
-                    destinationy = myNewY
-
-                    endx = myNewX
-                    endy = myNewY
-
-                    -- Indicate that we will stop patrolling and start bridge-forming.
-                    patrolling = false
-                    bridging = true
-                    
-                    -- Stop the loop since we only care about where we have to go.
-                    break
-                end
-            end
+        end
         
+        -- Obtains the position I have to go to to form the bridge, if I am best suited to help with the bridge.
+        local useExternalPlugin = simGetScriptSimulationParameter(sim_handle_main_script, 'useExternalPlugin')
+        if(useExternalPlugin) then        
+            -- Call external C function to calculate the position.
+            myNewX, myNewY = simExtGetPositionInBridge(myDroneId, radioRange, sourcePosition, sinkPosition, availableDroneIds, availableDronePositionsArray)        
+        else        
+            -- Call internal function to calculate bridge position.        
+            myNewX, myNewY = getPositionInBridge(myDroneName, radioRange, sourcePosition, sinkPosition, availableDronePositionsMap)
+        end
+
+        if(myNewX ~= nil) then
+            simAddStatusbarMessage('In Lua, position found: ' .. myNewX .. ',' .. myNewY)
+            -- Overwrite the next destination variables to make the drone move to its brige location.
+            destinationx = myNewX
+            destinationy = myNewY
+
+            -- Overwrite the final destination variable so the drone will just stop there.
+            endx = myNewX
+            endy = myNewY        
+        
+            patrolling = false
+            bridging = true            
         end
 
         personChecked = true
@@ -343,6 +302,81 @@ function runMainLogic()
         -- Actually move the object to the new position.
         simSetObjectPosition(handle, -1, position)
     end
+
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Calculate if this drone has to move somewhere, and if so where, to be part of a bridge.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function getPositionInBridge(myId, radioRange, sourcePosition, sinkPosition, availableDronePositions)   
+    -- Calculate how many drones are required for the bridge.
+    distanceSourceSink = math.sqrt((sourcePosition[1] - sinkPosition[1])^2 + (sourcePosition[2] - sinkPosition[2])^2)
+    dronesNeededForBridge = math.ceil(distanceSourceSink/radioRange - 1)
+    --simAddStatusbarMessage('Distance source sink ' .. sourcePosition[1] .. ',' ..  sinkPosition[1])
+    simAddStatusbarMessage('Drones required: ' .. dronesNeededForBridge .. ' for radio range ' .. radioRange)
+
+    -- Calculate the locations for each drone to form the bridge.
+    relayCoords = {}
+    for i=1, dronesNeededForBridge, 1 do
+        relayCoords[i] = {}
+        relayCoords[i][1] = sinkPosition[1] + (sourcePosition[1] - sinkPosition[1])/(dronesNeededForBridge+1)*(i)
+        relayCoords[i][2] = sinkPosition[2] + (sourcePosition[2] - sinkPosition[2])/(dronesNeededForBridge+1)*(i)
+        simAddStatusbarMessage('Location ' .. i .. ': ' .. relayCoords[i][1] ..','..relayCoords[i][2])
+    end
+    
+    -- Calculate distances from all drones to each relay position.
+    distanceTuples = {}
+    for currDroneId, currentDronePos in pairs(availableDronePositions) do
+        -- Go over each relay location.
+        for j=1,dronesNeededForBridge,1 do
+            currRelayCoords = relayCoords[j]
+            distanceToLocation = math.sqrt((currentDronePos[1] - currRelayCoords[1])^2 + (currentDronePos[2] - currRelayCoords[2])^2)
+            --simAddStatusbarMessage('Distance from drone ' .. droneName .. ' to location ' .. currRelayCoords[1] ..','..currRelayCoords[2] .. ' is ' .. distanceToLocation)
+
+            -- Store everything in a table.
+            distanceTuple = {currDroneId, j, distanceToLocation}
+            table.insert(distanceTuples,distanceTuple)
+        end
+    end	
+
+    -- Sort the table with all the distances (from all drones to all relay locations) in ascending order by distance.
+    table.sort(distanceTuples, compare)
+
+    -- Find the best drone-location pairs
+    local usedDrones = {}
+    local usedLocations = {}
+    for index, val in ipairs(distanceTuples) do
+        currDroneId = val[1]
+        currLocationIdx = val[2]
+        currDistance = val[3]
+
+        -- Ignore drones that have already been assigned to a location, and locations which already have drones assigned to them.
+        if(not usedDrones[currDroneId] and not usedLocations[currLocationIdx]) then
+            -- Mark this drone and this location as assigned.
+            usedDrones[currDroneId] = true
+            usedLocations[currLocationIdx] = true
+            simAddStatusbarMessage("Selected drone "..currDroneId.." to move to location "..currLocationIdx)
+
+            -- If I am the drone that has just been selected, the update my new target location.
+            if myId == currDroneId then
+                -- Get the location coords to set as my future target.
+                myNewX = relayCoords[currLocationIdx][1]
+                myNewY = relayCoords[currLocationIdx][2]
+                --simAddStatusbarMessage('I am ' .. myDroneName .. ' going to form bridge at ' .. myNewX .. ', ' .. myNewY)
+                endTime = simGetSimulationTime()
+                elapsedTime = endTime - startTime
+                endSystemTime = simGetSystemTimeInMilliseconds()
+                elapsedSystemTime = endSystemTime - startSystemTime
+                simAddStatusbarMessage('Drone ' .. currDroneId .. ' took ' .. elapsedTime .. 's and ' .. elapsedSystemTime .. ' system ms')
+                
+                -- Stop the loop since we only care about where we have to go.
+                return myNewX, myNewY
+            end
+        end
+    
+    end
+    
+    return nil, nil
 
 end
 

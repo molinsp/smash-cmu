@@ -1,3 +1,10 @@
+//####################################################################
+//# Usage of this software requires acceptance of the SMASH-CMU License,
+//# which can be found at the following URL:
+//#
+//# https://code.google.com/p/smash-cmu/wiki/License
+//######################################################################
+
 package cmu.sei.smash.bridgeforming;
 
 import java.io.BufferedReader;
@@ -8,6 +15,11 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 
+/**
+ * Class that calculates the optimal solution for bridge forming, as well as a
+ * simplified version of the BridgeForming algorithm in order to compare the time
+ * it takes to complete.
+ */
 public class BridgeForming 
 {
 	private static String csvFile = "optimalInput.csv";	
