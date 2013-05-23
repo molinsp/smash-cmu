@@ -5,8 +5,8 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
-#include "madara/jni/com.madara.transport.Settings_Glue.h"
-#include "madara/jni/com.madara.transport.Settings_Impl.h"
+#include "com.madara.transport.Settings_Glue.h"
+#include "com.madara.transport.Settings_Impl.h"
 
 #include <stdio.h>
 

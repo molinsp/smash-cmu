@@ -5,7 +5,7 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
  
-#include "madara/jni/com.madara.KnowledgeRecord_Impl.h"
+#include "com.madara.KnowledgeRecord_Impl.h"
 #include "madara/knowledge_engine/Knowledge_Record.h"
 
 void jni_KnowledgeRecord_impl_RS(void** ret, const char * data)

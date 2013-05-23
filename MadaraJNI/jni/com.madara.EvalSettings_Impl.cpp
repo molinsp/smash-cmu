@@ -5,7 +5,7 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
  
-#include "madara/jni/com.madara.EvalSettings_Impl.h"
+#include "com.madara.EvalSettings_Impl.h"
 #include "madara/knowledge_engine/Eval_Settings.h"
 
 #include <stdio.h>

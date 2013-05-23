@@ -5,7 +5,7 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
  
-#include "madara/jni/com.madara.MadaraVariables_Impl.h"
+#include "com.madara.MadaraVariables_Impl.h"
 #include "madara/knowledge_engine/Knowledge_Base.h"
 
 //===================================================================================

@@ -5,8 +5,8 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
-#include "madara/jni/com.madara.Debug_Glue.h"
-#include "madara/jni/com.madara.Debug_Impl.h"
+#include "com.madara.Debug_Glue.h"
+#include "com.madara.Debug_Impl.h"
 
 /*
  * Class:     com_madara_Debug

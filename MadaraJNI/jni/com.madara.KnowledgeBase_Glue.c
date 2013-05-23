@@ -5,8 +5,8 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
-#include "madara/jni/com.madara.KnowledgeBase_Glue.h"
-#include "madara/jni/com.madara.KnowledgeBase_Impl.h"
+#include "com.madara.KnowledgeBase_Glue.h"
+#include "com.madara.KnowledgeBase_Impl.h"
 
 
 static jclass knowledgeBaseClass = 0;

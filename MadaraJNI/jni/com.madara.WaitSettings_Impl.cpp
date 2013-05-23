@@ -5,7 +5,7 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
  
-#include "madara/jni/com.madara.WaitSettings_Impl.h"
+#include "com.madara.WaitSettings_Impl.h"
 #include "madara/knowledge_engine/Wait_Settings.h"
 
 

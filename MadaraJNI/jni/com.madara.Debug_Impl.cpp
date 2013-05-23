@@ -5,7 +5,7 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
  
-#include "madara/jni/com.madara.Debug_Impl.h"
+#include "com.madara.Debug_Impl.h"
 #include "madara/utility/Log_Macros.h"
 
 

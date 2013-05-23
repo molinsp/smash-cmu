@@ -13,6 +13,7 @@ import java.util.List;
 import com.madara.EvalSettings;
 import com.madara.KnowledgeBase;
 import com.madara.KnowledgeBase.CompiledExpression;
+import com.madara.KnowledgeBase.KnowledgeBaseLockedException;
 import com.madara.KnowledgeRecord;
 
 
@@ -22,7 +23,7 @@ public class ProfileArchitecture
 	
 	private static final List<Test> tests = new ArrayList<Test>();
 	
-	private static void warmup (KnowledgeBase knowledge)
+	private static void warmup (KnowledgeBase knowledge) throws KnowledgeBaseLockedException
 	{
 		System.out.println("Warming up compilation and evaluation caches...");
 		
@@ -38,7 +39,7 @@ public class ProfileArchitecture
 			knowledge.evaluate("var2 += 1").free();
 	}
 	
-	private static void compileExpressions(KnowledgeBase knowledge)
+	private static void compileExpressions(KnowledgeBase knowledge) throws KnowledgeBaseLockedException
 	{
 		System.out.println("Compiling all expressions...");
 		Timer timer = new Timer();
@@ -54,7 +55,7 @@ public class ProfileArchitecture
 		
 	}
 	
-	private static void evaluateExpressions(KnowledgeBase knowledge)
+	private static void evaluateExpressions(KnowledgeBase knowledge) throws KnowledgeBaseLockedException
 	{
 		System.out.println("Evaluating all expressions 10,000 times...");
 		

@@ -5,8 +5,8 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
  
-#include "madara/jni/com.madara.WaitSettings_Glue.h"
-#include "madara/jni/com.madara.WaitSettings_Impl.h"
+#include "com.madara.WaitSettings_Glue.h"
+#include "com.madara.WaitSettings_Impl.h"
 
 /*
  * Class:     com_madara_WaitSettings

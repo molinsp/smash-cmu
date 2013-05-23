@@ -52,11 +52,11 @@ void compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 	
 	expressions[MAIN_LOGIC] = knowledge.compile
 	(
-		"(" EVALUATE_CONTROL_FUNCTIONS "||"
+		"evaluate_sensor_functions(), "
+		"( evalute_control_functions() ||"
 		    "bridge()" "||"
 		    "area_coverage()"
-		"), "
-		EVALUATE_SENSOR_FUNCTIONS 
+		")"
 	);
 
 }
