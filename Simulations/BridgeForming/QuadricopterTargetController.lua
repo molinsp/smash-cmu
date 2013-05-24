@@ -5,6 +5,8 @@
 --# https://code.google.com/p/smash-cmu/wiki/License
 --######################################################################
 
+require("Utils")
+
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Method called when the simulation starts.
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,14 +34,7 @@ function doInitialSetup()
     loadPeoplePositions()
     
     -- Indicates if we are using the Madara client for communication with external "drones".
-    g_madaraClientEnabled = simGetScriptSimulationParameter(sim_handle_main_script, 'madaraClientOn')      
-    
-    -- Setup Madara client.
-    local myControllerId = 100
-    if(g_madaraClientEnabled) then  
-        local radioRange = simGetScriptSimulationParameter(sim_handle_main_script, 'radioRange')      
-        simExtMadaraClientSetup(myControllerId, radioRange)
-    end
+    g_madaraClientEnabled = simGetScriptSimulationParameter(sim_handle_main_script, 'madaraClientOn')       
 
 end
 
@@ -152,11 +147,6 @@ end
 -- Method called in each step of the simulation.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function runMainLogic()
-    -- If enabled, update the status in each step through Madara.
-    if(g_madaraClientEnabled) then  
-        simExtMadaraClientUpdateStatus()
-    end
-
     -- If a person was found by someone else, recalculate new location so that we create a bridge to the sink.
     local personHasBeenFound = simGetScriptSimulationParameter(sim_handle_main_script, 'personFound')
     if(g_patrolling and personHasBeenFound and not g_personChecked) then
@@ -200,13 +190,13 @@ function lookForPersonBelow()
                 simAddStatusbarMessage('By ' ..sourceSuffix)
                 
                 -- If enabled, notify through Madara that we need a bridge.
-                if(g_madaraClientEnabled) then
+                --if(g_madaraClientEnabled) then
                     -- Madara Drone IDs start at 0, and V-Rep suffixes start at -1.
-                    local sourceDroneId = sourceSuffix + 1
+                --    local sourceDroneId = sourceSuffix + 1
                     
                     -- Do the actual call to Madara.
-                    simExtMadaraClientBridgeRequest(sourceDroneId)
-                end
+                    --simExtMadaraClientBridgeRequest(sourceDroneId)
+                --end
 
                 break
             end
@@ -220,53 +210,67 @@ end
 -- my location.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function buildBridge()
-    simAddStatusbarMessage('(In ' .. g_myDroneName .. ') Someone found a person, check if I have to stop g_patrolling and move into bridge-forming mode')
-    g_startTime = simGetSimulationTime()
-    g_startSystemTime = simGetSystemTimeInMilliseconds()
-
-    -- Get position of sink and source
-    local sinkPosition = getSinkPosition()
-    local droneSourceName, sourcePosition = getSourceInfo()
-    simAddStatusbarMessage('Source at '  .. sourcePosition[1] .. ', ' .. sourcePosition[2])
+    simAddStatusbarMessage('(In ' .. g_myDroneName .. ') Someone found a person, check if I have to stop patrolling and move into bridge-forming mode')
+    local myNewX = nil
+    local myNewY = nill
     
-    -- Get the radio range
-    local radioRange = simGetScriptSimulationParameter(sim_handle_main_script,'radioRange')   
+    -- Behavior will depend on whether external Madara drones perform the calculations, or not.
+    if(g_madaraClientEnabled) then  
+        -- We wait to get the coordinates of our new position, if any, from the external drones.
+        simAddStatusbarMessage('Calling external, C++ Madara plugin to get remotely calculated position.')
+        --myNewX, myNewY = simExtMadaraClientGetPositionInBridge(myDroneId)
+    else
+        -- In this case we will not be using the external Madara drones to build the bridge, we will make the call locally for each drone.
+        g_startTime = simGetSimulationTime()
+        g_startSystemTime = simGetSystemTimeInMilliseconds()
 
-    -- Get all drone positions
-    local myDroneId = g_mySuffix + 1
-    local availableDroneIdsIdx = 1;
-    local availableDroneIds = {}
-    local availableDronePositionsMap = {}
-    local availableDronePositionsArray = {}
-    for i=1, g_numDrones, 1 do
-        local currDroneId = i-1         -- Actual drone IDs start at 0, but Lua table indexes start at 1.
-        local curentDroneName, currentDronePos = getDroneInfoFromId(currDroneId)
+        -- Get position of sink and source
+        local sinkPosition = getSinkPosition()
+        local droneSourceName, sourcePosition = getSourceInfo()
+        simAddStatusbarMessage('Source at '  .. sourcePosition[1] .. ', ' .. sourcePosition[2])
         
-        if(curentDroneName ~= droneSourceName) then
-            -- We have to store the IDs in a separate, simple table to be able to pass this to the C function in the plugin (which doesnt accept nested tables).
-            availableDroneIds[availableDroneIdsIdx] = currDroneId
+        -- Get the radio range
+        local radioRange = simGetScriptSimulationParameter(sim_handle_main_script,'radioRange')   
+
+        -- Get all drone positions
+        local myDroneId = g_mySuffix + 1
+        local availableDroneIdsIdx = 1;
+        local availableDroneIds = {}
+        local availableDronePositionsMap = {}
+        local availableDronePositionsArray = {}
+        for i=1, g_numDrones, 1 do
+            local currDroneId = i-1         -- Actual drone IDs start at 0, but Lua table indexes start at 1.
+            local curentDroneName, currentDronePos = getDroneInfoFromId(currDroneId)
             
-            -- We have to store the positions in a single-level array to pass this to the C function in the plugin (which doesnt accept nested tables).
-            availableDronePositionsArray[2*availableDroneIdsIdx-1] = currentDronePos[1]
-            availableDronePositionsArray[2*availableDroneIdsIdx-1+1] = currentDronePos[2]
-            
-            -- This array is only used by the internal implementation of the algorithm if enabled.
-            availableDronePositionsMap[curentDroneName] = currentDronePos
-            
-            availableDroneIdsIdx = availableDroneIdsIdx + 1                
+            if(curentDroneName ~= droneSourceName) then
+                -- We have to store the IDs in a separate, simple table to be able to pass this to the C function in the plugin (which doesnt accept nested tables).
+                availableDroneIds[availableDroneIdsIdx] = currDroneId
+                
+                -- We have to store the positions in a single-level array to pass this to the C function in the plugin (which doesnt accept nested tables).
+                availableDronePositionsArray[2*availableDroneIdsIdx-1] = currentDronePos[1]
+                availableDronePositionsArray[2*availableDroneIdsIdx-1+1] = currentDronePos[2]
+                
+                -- This array is only used by the internal implementation of the algorithm if enabled.
+                availableDronePositionsMap[curentDroneName] = currentDronePos
+                
+                availableDroneIdsIdx = availableDroneIdsIdx + 1                
+            end
+        end
+        
+        -- Obtains the position I have to go to to form the bridge, if I am best suited to help with the bridge.
+        local useExternalPlugin = simGetScriptSimulationParameter(sim_handle_main_script, 'useExternalPlugin')
+        if(useExternalPlugin) then        
+            -- Call external C function to calculate the position.
+            simAddStatusbarMessage('Calling internal bridge-building function.')
+            myNewX, myNewY = simExtGetPositionInBridge(myDroneId, radioRange, sourcePosition, sinkPosition, availableDroneIds, availableDronePositionsArray)        
+        else        
+            -- Call internal function to calculate bridge position.        
+            simAddStatusbarMessage('Calling external, C++ bridge-building function.')
+            myNewX, myNewY = getPositionInBridge(g_myDroneName, radioRange, sourcePosition, sinkPosition, availableDronePositionsMap)
         end
     end
-    
-    -- Obtains the position I have to go to to form the bridge, if I am best suited to help with the bridge.
-    local useExternalPlugin = simGetScriptSimulationParameter(sim_handle_main_script, 'useExternalPlugin')
-    if(useExternalPlugin) then        
-        -- Call external C function to calculate the position.
-        myNewX, myNewY = simExtGetPositionInBridge(myDroneId, radioRange, sourcePosition, sinkPosition, availableDroneIds, availableDronePositionsArray)        
-    else        
-        -- Call internal function to calculate bridge position.        
-        myNewX, myNewY = getPositionInBridge(g_myDroneName, radioRange, sourcePosition, sinkPosition, availableDronePositionsMap)
-    end
 
+    -- If we are part of the new bridge, set everything to move to our position in it.
     if(myNewX ~= nil) then
         simAddStatusbarMessage('In Lua, position found: ' .. myNewX .. ',' .. myNewY)
         -- Overwrite the next destination variables to make the drone move to its brige location.
@@ -281,8 +285,10 @@ function buildBridge()
         g_bridging = true            
     end
 
-    g_personChecked = true
-    --/////////////////////////////////////////////////////////////////////////////////////////////
+    --if(not g_madaraClientEnabled) then  
+        -- Flag to mark that bridges will only be made for the first person found.
+        g_personChecked = true
+    --end
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -436,69 +442,4 @@ function getPositionInBridge(myId, radioRange, sourcePosition, sinkPosition, ava
     end
     
     return nil, nil
-
 end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
--- Returns the position of the sink as a table with x,y,z
---/////////////////////////////////////////////////////////////////////////////////////////////
-function getSinkPosition()
-    -- Get position of sink.
-    laptopHandle = simGetObjectHandle('laptop#')
-    local sinkPosition = simGetObjectPosition(laptopHandle, -1)
-    simAddStatusbarMessage('Sink at '  .. sinkPosition[1] .. ', ' .. sinkPosition[2])
-    
-    return sinkPosition
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
--- Returns the position of the source drone as a table with x,y,z, as well as the drone's name.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function getSourceInfo()
-    local sourceSuffix = simGetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound')
-    return getDroneInfoFromSuffix(sourceSuffix)
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
--- Returns the name and position (as a x,y,x table) of a drone with a given suffix.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function getDroneInfoFromSuffix(suffix)
-    local droneObjectName = 'Quadricopter#'
-
-    -- For all drones but the first one (suffix -1), we have to add the suffix, which starts at 0.
-    if(suffix ~= -1) then
-        droneObjectName = droneObjectName .. suffix
-    end
-    
-    -- Get the position from the drone object.
-    local droneHandle = simGetObjectHandle(droneObjectName)
-    local dronePosition = simGetObjectPosition(droneHandle, -1)    
-    
-    return droneObjectName, dronePosition    
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
--- Returns the name and position (as a x,y,x table) of a drone with a given id (starting at 0).
---/////////////////////////////////////////////////////////////////////////////////////////////
-function getDroneInfoFromId(id)
-    local droneObjectName = 'Quadricopter#'
-
-    -- For all drones but the first one (id 0), we have to add the suffix, which starts at 0 (id-1).
-    if(id ~= 0) then
-        droneObjectName = droneObjectName .. (id-1)
-    end
-    
-    -- Get the position from the drone object.
-    local droneHandle = simGetObjectHandle(droneObjectName)
-    local dronePosition = simGetObjectPosition(droneHandle, -1)    
-    
-    return droneObjectName, dronePosition    
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
--- Helper function used to sort a table by the third value in each tuple.
-function compare(a,b)
-  return a[3] < b[3]
-end
---/////////////////////////////////////////////////////////////////////////////////////////////
-
