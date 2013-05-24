@@ -14,16 +14,12 @@ function doInitialSetup()
 	bridging = false
 
 	-- Get general parameters and current object values
-	handle=simGetObjectHandle('Quadricopter_target')
-	name=simGetObjectName(handle)
+	handle = simGetObjectHandle('Quadricopter_target')
+	name = simGetObjectName(handle)
 
 	-- Get my name
 	mySuffix = simGetNameSuffix(nil)
-	if(mySuffix == -1) then
-		myDroneName = 'Quadricopter#'
-	else
-		myDroneName = 'Quadricopter#' .. mySuffix
-	end
+    myDroneName = getDroneInfoFromSuffix(mySuffix)
 
 	x1=simGetScriptSimulationParameter(sim_handle_main_script,'x1')
 	y1=simGetScriptSimulationParameter(sim_handle_main_script,'y1')
@@ -121,10 +117,25 @@ function doInitialSetup()
 		counter=counter+2
 	end
 	--/////////////////////////////////////////////////////////////////////////////////////////////
+    
+    -- Indicates if we are using the Madara client for communication with external "drones".
+    madaraClientEnabled = simGetScriptSimulationParameter(sim_handle_main_script, 'madaraClientOn')      
+    
+    -- Setup Madara client.
+    myControllerId = 100
+    if(madaraClientEnabled) then  
+        local radioRange = simGetScriptSimulationParameter(sim_handle_main_script, 'radioRange')      
+        simExtMadaraClientSetup(myControllerId, radioRange)
+    end
 
 end
 
 function runMainLogic()
+    -- If enabled, update the status in each step through Madara.
+    if(madaraClientEnabled) then  
+        simExtMadaraClientUpdateStatus()
+    end
+
     --/////////////////////////////////////////////////////////////////////////////////////////////
     -- If a person was found by someone else, recalculate new location so that we create a bridge to the sink.
     personHasBeenFound = simGetScriptSimulationParameter(sim_handle_main_script,'personFound')
@@ -133,25 +144,9 @@ function runMainLogic()
         startTime = simGetSimulationTime()
         startSystemTime = simGetSystemTimeInMilliseconds()
 
-        -- Get position of sink.
-        laptopHandle = simGetObjectHandle('laptop#')
-        local sinkPosition = simGetObjectPosition(laptopHandle, -1)
-        simAddStatusbarMessage('Sink at '  .. sinkPosition[1] .. ', ' .. sinkPosition[2])
-
-        -- Get position of source
-        sourceSuffix = simGetScriptSimulationParameter(sim_handle_main_script,'droneThatFound')
-
-        if(sourceSuffix == -1) then
-            sourceName = 'Quadricopter_target#'
-            droneSourceName = 'Quadricopter#'
-        else
-            sourceName = 'Quadricopter_target#' .. sourceSuffix
-            droneSourceName = 'Quadricopter#' .. sourceSuffix
-        end
-
-        sourceHandle = simGetObjectHandle(sourceName)
-        local sourcePosition = simGetObjectPosition(sourceHandle, -1)
-
+        -- Get position of sink and source
+        local sinkPosition = getSinkPosition()
+        local droneSourceName, sourcePosition = getSourceInfo()
         simAddStatusbarMessage('Source at '  .. sourcePosition[1] .. ', ' .. sourcePosition[2])
         
         -- Get the radio range
@@ -378,6 +373,62 @@ function getPositionInBridge(myId, radioRange, sourcePosition, sinkPosition, ava
     
     return nil, nil
 
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Returns the position of the sink as a table with x,y,z
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function getSinkPosition()
+    -- Get position of sink.
+    laptopHandle = simGetObjectHandle('laptop#')
+    local sinkPosition = simGetObjectPosition(laptopHandle, -1)
+    simAddStatusbarMessage('Sink at '  .. sinkPosition[1] .. ', ' .. sinkPosition[2])
+    
+    return sinkPosition
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Returns the position of the source drone as a table with x,y,z, as well as the drone's name.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function getSourceInfo()
+    local sourceSuffix = simGetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound')
+    return getDroneInfoFromSuffix(sourceSuffix)
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Returns the name and position (as a x,y,x table) of a drone with a given suffix.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function getDroneInfoFromSuffix(suffix)
+    local droneObjectName = 'Quadricopter#'
+
+    -- For all drones but the first one (suffix -1), we have to add the suffix, which starts at 0.
+    if(suffix ~= -1) then
+        droneObjectName = droneObjectName .. suffix
+    end
+    
+    -- Get the position from the drone object.
+    local droneHandle = simGetObjectHandle(droneObjectName)
+    local dronePosition = simGetObjectPosition(droneHandle, -1)    
+    
+    return droneObjectName, dronePosition    
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Returns the name and position (as a x,y,x table) of a drone with a given index (starting at 1).
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function getDroneInfoFromIndex(index)
+    local droneObjectName = 'Quadricopter#'
+
+    -- For all drones but the first one (index 1), we have to add the suffix, which starts at 0 (index-2).
+    if(suffix ~= 1) then
+        droneObjectName = droneObjectName .. (index-2)
+    end
+    
+    -- Get the position from the drone object.
+    local droneHandle = simGetObjectHandle(droneObjectName)
+    local dronePosition = simGetObjectPosition(droneHandle, -1)    
+    
+    return droneObjectName, dronePosition    
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
