@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4EA7BB85-62DF-432B-88EE-F64EF341107C}</ProjectGuid>
     <RootNamespace>v_repExtBridgeAlgorithm</RootNamespace>
-    <ProjectName>V-RepPlugin</ProjectName>
+    <ProjectName>V-RepAlgorithmPlugin</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -47,7 +47,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\BridgeAlgorithm;.\vrep;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\BridgeAlgorithm;..\V-RepImports;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -71,14 +71,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\BridgeAlgorithm\BridgeAlgorithm.h" />
-    <ClInclude Include="vrep\extApiCustomConst.h" />
-    <ClInclude Include="vrep\v_repConst.h" />
-    <ClInclude Include="vrep\v_repLib.h" />
+    <ClInclude Include="..\V-RepImports\extApiCustomConst.h" />
+    <ClInclude Include="..\V-RepImports\v_repConst.h" />
+    <ClInclude Include="..\V-RepImports\v_repLib.h" />
     <ClInclude Include="v_repExtBridgeAlgorithm.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\BridgeAlgorithm\BridgeAlgorithm.cpp" />
-    <ClCompile Include="vrep\v_repLib.cpp" />
+    <ClCompile Include="..\V-RepImports\v_repLib.cpp" />
     <ClCompile Include="v_repExtBridgeAlgorithm.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -34,6 +34,7 @@ private:
 	// Map of Madara expressions used in bridge building.
 	std::map<BridgeMadaraExpressionId, Madara::Knowledge_Engine::Compiled_Expression> m_expressions;
 
+    // Private methods used to setup internal functions and compiled expressions.
 	void compileExpressions();
 	void defineFunctions();
 
@@ -51,11 +52,14 @@ public:
 	 **/
 	void initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
 
+    // Method used to get a string with the main call to the bridge funtionality.
 	std::string getMainLogicMadaraCall();
 
+    // Method that invocates the bridge position finding functionality, which will be called from Madara when required.
 	Madara::Knowledge_Record findPositionInBridge (Madara::Knowledge_Engine::Function_Arguments &args,
              Madara::Knowledge_Engine::Variables &variables);
 
+    // Method used to set up a simple test scenario.
 	void setupBridgeTest();
 };
 
