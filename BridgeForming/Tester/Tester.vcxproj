@@ -14,8 +14,8 @@
     <ClInclude Include="..\V-RepMadaraClientPlugin\MadaraController.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\BridgeAlgorithm\Main.cpp" />
     <ClCompile Include="..\V-RepMadaraClientPlugin\MadaraController.cpp" />
+    <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1B593657-8C9C-40C0-A692-E064B852A0EE}</ProjectGuid>
