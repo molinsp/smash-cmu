@@ -277,7 +277,7 @@ void simExtMadaraClientUpdateStatus(SLuaCallBack* p)
             sstm << "Drone " << it->id << " with pos " << it->posx << "," << it->posy << ", flying:" << it->flying << std::endl;
         }
         std::string message = sstm.str();
-        simAddStatusbarMessage(message.c_str());
+        //simAddStatusbarMessage(message.c_str());
 
         // Propagate the status information through the network.
         madaraController->updateNetworkStatus(controllerPosx, controllerPosy, droneStatusList);

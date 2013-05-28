@@ -93,6 +93,7 @@ VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer,int reservedInt)
     registerMadaraClientSetupLuaCallback();
     registerMadaraClientBridgeRequestLuaCallback();
     registerMadaraClientUpdateStatusLuaCallback();
+    registerMadaraClientGetPositionInBridge();
 
     simLockInterface(0);
     return(PLUGIN_VERSION); // initialization went fine, we return the version number of this plugin (can be queried with simGetModuleName)

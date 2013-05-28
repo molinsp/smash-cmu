@@ -65,8 +65,8 @@ MadaraController::MadaraController(int id, double commRange)
     m_settings.id = id;
 
     // Create the knowledge base.
-    Madara::Knowledge_Engine::Knowledge_Base* m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base(m_host, m_settings);
-    
+    m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base(m_host, m_settings);
+   
     // Set our id and comm range.
     m_id = id;
     m_knowledge->set (MV_MY_ID, (Madara::Knowledge_Record::Integer) m_id);
