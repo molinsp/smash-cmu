@@ -190,13 +190,13 @@ function lookForPersonBelow()
                 simAddStatusbarMessage('By ' ..sourceSuffix)
                 
                 -- If enabled, notify through Madara that we need a bridge.
-                --if(g_madaraClientEnabled) then
+                if(g_madaraClientEnabled) then
                     -- Madara Drone IDs start at 0, and V-Rep suffixes start at -1.
-                --    local sourceDroneId = sourceSuffix + 1
+                    local sourceDroneId = sourceSuffix + 1
                     
                     -- Do the actual call to Madara.
-                    --simExtMadaraClientBridgeRequest(sourceDroneId)
-                --end
+                    simExtMadaraClientBridgeRequest(sourceDroneId)
+                end
 
                 break
             end
@@ -212,13 +212,18 @@ end
 function buildBridge()
     simAddStatusbarMessage('(In ' .. g_myDroneName .. ') Someone found a person, check if I have to stop patrolling and move into bridge-forming mode')
     local myNewX = nil
-    local myNewY = nill
+    local myNewY = nil
+
+    local myDroneId = g_mySuffix + 1   
     
     -- Behavior will depend on whether external Madara drones perform the calculations, or not.
     if(g_madaraClientEnabled) then  
         -- We wait to get the coordinates of our new position, if any, from the external drones.
         simAddStatusbarMessage('Calling external, C++ Madara plugin to get remotely calculated position.')
-        --myNewX, myNewY = simExtMadaraClientGetPositionInBridge(myDroneId)
+        myNewX, myNewY = simExtMadaraClientGetPositionInBridge(myDroneId)
+        if(myNewX == nil and myNewY == nil) then
+            simAddStatusbarMessage('Returned position is nil.')
+        end
     else
         -- In this case we will not be using the external Madara drones to build the bridge, we will make the call locally for each drone.
         g_startTime = simGetSimulationTime()
@@ -233,7 +238,6 @@ function buildBridge()
         local radioRange = simGetScriptSimulationParameter(sim_handle_main_script,'radioRange')   
 
         -- Get all drone positions
-        local myDroneId = g_mySuffix + 1
         local availableDroneIdsIdx = 1;
         local availableDroneIds = {}
         local availableDronePositionsMap = {}

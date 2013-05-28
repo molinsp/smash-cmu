@@ -49,7 +49,7 @@ function runMainLogic()
         --    simAddStatusbarMessage('Drone index ' .. key .. ' flying ' .. tostring(value))
         --end       
         
-        --simExtMadaraClientUpdateStatus(g_sinkPosition[1], g_sinkPosition[2], droneIds, dronePositions, droneFlyingStatus)    
+        simExtMadaraClientUpdateStatus(g_sinkPosition[1], g_sinkPosition[2], droneIds, dronePositions, droneFlyingStatus)    
     end
 end
 
