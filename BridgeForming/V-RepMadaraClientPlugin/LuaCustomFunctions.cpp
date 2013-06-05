@@ -5,6 +5,7 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
+#include "MadaraController.h"
 #include "LuaCustomFunctions.h"
 
 // The actual controller to manage the Madara stuff.
@@ -84,12 +85,14 @@ void simExtMadaraClientSetup(SLuaCallBack* p)
 void registerMadaraClientBridgeRequestLuaCallback()
 {
     // Define the LUA function input parameters.
-    int inArgs[] = {1, sim_lua_arg_int,					  // Source ID.
+    int inArgs[] = {2, sim_lua_arg_int,					  // Request ID.
+                       sim_lua_arg_int,					  // Source ID.
                    };
 
     // Register the simExtGetPositionInBridge function.
     simRegisterCustomLuaFunction("simExtMadaraClientBridgeRequest",                         // The Lua function name.
-                                 "simExtMadaraClientBridgeRequest(int sourceId) ",          // A tooltip to be shown to help the user know how to call it.
+                                 "simExtMadaraClientBridgeRequest(int requestId, "          // A tooltip to be shown to help the user know how to call it.
+                                                                 "int sourceId)",
                                  inArgs,                                                    // The argument types.
                                  simExtMadaraClientBridgeRequest);                          // The C function that will be called by the Lua function.
 }
@@ -105,7 +108,7 @@ void simExtMadaraClientBridgeRequest(SLuaCallBack* p)
     bool paramsOk = true;
 
     // Check we have to correct amount of parameters.
-    if (p->inputArgCount != 1)
+    if (p->inputArgCount != 2)
     { 
         simSetLastError("simExtMadaraClientBridgeRequest", "Not enough arguments.");
         paramsOk = false;
@@ -113,6 +116,13 @@ void simExtMadaraClientBridgeRequest(SLuaCallBack* p)
 
     // Check we have the correct type of arguments.
     if ( p->inputArgTypeAndSize[0*2+0] != sim_lua_arg_int )
+    {
+        simSetLastError("simExtMadaraClientBridgeRequest", "RequestId parameter is not an int.");
+        paramsOk = false;
+    }
+
+    // Check we have the correct type of arguments.
+    if ( p->inputArgTypeAndSize[1*2+0] != sim_lua_arg_int )
     {
         simSetLastError("simExtMadaraClientBridgeRequest", "SourceId parameter is not an int.");
         paramsOk = false;
@@ -122,7 +132,8 @@ void simExtMadaraClientBridgeRequest(SLuaCallBack* p)
     if(paramsOk)
     { 
         // Get the simple input values.
-        int sourceId = p->inputInt[0];
+        int requestId = p->inputInt[0];
+        int sourceId = p->inputInt[1];
 
         // For debugging, print out what we received.
         std::stringstream sstm; 
@@ -131,7 +142,7 @@ void simExtMadaraClientBridgeRequest(SLuaCallBack* p)
         simAddStatusbarMessage(message.c_str());
 
         // Make the controller set up the bridge request through the knowledge base.
-        madaraController->setupBridgeRequest(sourceId);
+        madaraController->setupBridgeRequest(requestId, sourceId);
     }
 
     simLockInterface(0);
@@ -289,7 +300,7 @@ void simExtMadaraClientUpdateStatus(SLuaCallBack* p)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Registers the Lua simExtMadaraClientGetPositionInBridge command.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void registerMadaraClientGetPositionInBridge()
+void registerMadaraClientGetPositionInBridgeLuaCallback()
 {
     // Define the LUA function input parameters.
     int inArgs[] = {1, sim_lua_arg_int,					  // Drone ID for which we want the position in bridge, if any.
@@ -336,10 +347,10 @@ void simExtMadaraClientGetPositionInBridge(SLuaCallBack* p)
         int droneId = p->inputInt[0];
 
         // For debugging, print out what we received.
-        std::stringstream sstm; 
-        sstm << "Values received inside simExtMadaraClientBridgeRequest function: droneId:" << droneId << std::endl;
-        std::string message = sstm.str();
-        simAddStatusbarMessage(message.c_str());
+        //std::stringstream sstm; 
+        //sstm << "Values received inside simExtMadaraClientGetPositionInBridge function: droneId:" << droneId << std::endl;
+        //std::string message = sstm.str();
+        //simAddStatusbarMessage(message.c_str());
 
         // Make the controller set up the bridge request through the knowledge base.
         bridgePosition = madaraController->getBridgePosition(droneId);
@@ -376,6 +387,101 @@ void simExtMadaraClientGetPositionInBridge(SLuaCallBack* p)
     if(bridgePosition != NULL)
     {
         delete bridgePosition;
+    }
+
+    simLockInterface(0);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Registers the Lua simExtMadaraClientStopDrone command.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void registerMadaraClientStopDroneLuaCallback()
+{
+    // Define the LUA function input parameters.
+    int inArgs[] = {1, sim_lua_arg_int					  // Drone ID.
+                   };
+
+    // Register the simExtGetPositionInBridge function.
+    simRegisterCustomLuaFunction("simExtMadaraClientStopDrone",                             // The Lua function name.
+                                 "simExtMadaraClientStopDrone(int droneId)",                // A tooltip to be shown to help the user know how to call it.
+                                 inArgs,                                                    // The argument types.
+                                 simExtMadaraClientStopDrone);                              // The C function that will be called by the Lua function.
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Callback of the Lua simExtMadaraClientStopDrone command.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void simExtMadaraClientStopDrone(SLuaCallBack* p)
+{
+    //WIN_AFX_MANAGE_STATE;
+    simLockInterface(1);
+
+    bool paramsOk = true;
+
+    // Check we have to correct amount of parameters.
+    if (p->inputArgCount != 1)
+    { 
+        simSetLastError("simExtMadaraClientStopDrone", "Not enough arguments.");
+        paramsOk = false;
+    }
+
+    // Check we have the correct type of arguments.
+    if ( p->inputArgTypeAndSize[0*2+0] != sim_lua_arg_int )
+    {
+        simSetLastError("simExtMadaraClientStopDrone", "DroneId parameter is not an int.");
+        paramsOk = false;
+    }
+
+    // Continue forward calling the external functions only if we have all parameters ok.
+    if(paramsOk)
+    { 
+        // Get the simple input values.
+        int droneId = p->inputInt[0];
+
+        // For debugging, print out what we received.
+        std::stringstream sstm; 
+        sstm << "Values received inside simExtMadaraClientStopDrone function: droneId:" << droneId << std::endl;
+        std::string message = sstm.str();
+        simAddStatusbarMessage(message.c_str());
+
+        // Make the controller set up the bridge request through the knowledge base.
+        madaraController->stopDrone(droneId);
+    }
+
+    simLockInterface(0);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Registers the Lua simExtMadaraClientCleanup command.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void registerMadaraClientCleanupLuaCallback()
+{
+    // Define the LUA function input parameters.
+    int inArgs[] = {0
+                   };
+
+    // Register the simExtGetPositionInBridge function.
+    simRegisterCustomLuaFunction("simExtMadaraClientCleanup",                         // The Lua function name.
+                                 "simExtMadaraClientCleanup()",                       // A tooltip to be shown to help the user know how to call it.
+                                 inArgs,                                              // The argument types.
+                                 simExtMadaraClientCleanup);                            // The C function that will be called by the Lua function.
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Callback of the Lua simExtMadaraClientCleanup command.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void simExtMadaraClientCleanup(SLuaCallBack* p)
+{
+    //WIN_AFX_MANAGE_STATE;
+    simLockInterface(1);
+
+    // Simply cleanup the madara controller.
+    simAddStatusbarMessage("simExtMadaraClientCleanup: cleaning up");
+    if(madaraController != NULL)
+    {
+        madaraController->terminate();
+        delete madaraController;
+        madaraController = NULL;
     }
 
     simLockInterface(0);

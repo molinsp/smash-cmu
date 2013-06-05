@@ -18,8 +18,6 @@
 #include <vector>
 #include <string>
 
-#define DEFAULT_MULTICAST_ADDRESS "239.255.0.1:4150"
-
 // Class that has information about drones that has to be updated periodically.
 struct DroneStatus
 {
@@ -56,10 +54,10 @@ private:
     std::string m_host;
 
     // Used for updating various transport settings
-    Madara::Transport::Settings m_settings;
+    Madara::Transport::Settings m_transportSettings;
 
     // The controller's id.
-    Madara::Knowledge_Record::Integer m_id;
+    int m_id;
 
     // The communications range for the network.
     double m_commRange;
@@ -71,10 +69,13 @@ private:
     void updateDroneStatus(std::vector<DroneStatus> droneStatus);
 public:
     MadaraController(int id, double commRange);
+    ~MadaraController();
     MadaraController(Madara::Knowledge_Engine::Knowledge_Base* knowledge, int id, double commRange);
-    void setupBridgeRequest(int sourceId);
+    void setupBridgeRequest(int requestId, int sourceId);
     void updateNetworkStatus(double controllerPosx, double controllerPosy, std::vector<DroneStatus> droneStatusList);
     Position* getBridgePosition(int droneId);
+    void stopDrone(int droneId);
+    void terminate();
 };
 
 #endif

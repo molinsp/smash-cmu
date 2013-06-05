@@ -12,25 +12,25 @@
 
 #pragma once
 
-#ifndef _LUA_CUSTOM_FUNCTIONS_H
-#define _LUA_CUSTOM_FUNCTIONS_H
-
-#include "MadaraController.h"
 #include "v_repLib.h"
 
-// The actual controller to manage the Madara stuff.
-extern MadaraController* madaraController;
+#ifndef _LUA_CUSTOM_FUNCTIONS_H
+#define _LUA_CUSTOM_FUNCTIONS_H
 
 // Functions to register the callbacks to the custom Lua functions.
 void registerMadaraClientSetupLuaCallback();
 void registerMadaraClientBridgeRequestLuaCallback();
 void registerMadaraClientUpdateStatusLuaCallback();
-void registerMadaraClientGetPositionInBridge();
+void registerMadaraClientGetPositionInBridgeLuaCallback();
+void registerMadaraClientStopDroneLuaCallback();
+void registerMadaraClientCleanupLuaCallback();
 
 // The actual callbacks implementing the custom Lua functions.
 void simExtMadaraClientSetup(SLuaCallBack* p);
 void simExtMadaraClientBridgeRequest(SLuaCallBack* p);
 void simExtMadaraClientUpdateStatus(SLuaCallBack* p);
 void simExtMadaraClientGetPositionInBridge(SLuaCallBack* p);
+void simExtMadaraClientStopDrone(SLuaCallBack* p);
+void simExtMadaraClientCleanup(SLuaCallBack* p);
 
 #endif

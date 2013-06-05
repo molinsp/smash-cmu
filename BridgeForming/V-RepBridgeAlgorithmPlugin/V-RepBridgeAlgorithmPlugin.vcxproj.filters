@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\BridgeAlgorithm\BridgeAlgorithm.h">
+    <ClInclude Include="..\BridgeAlgorithmTester\BridgeAlgorithm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="v_repExtBridgeAlgorithm.h">
@@ -35,7 +35,7 @@
     <ClCompile Include="v_repExtBridgeAlgorithm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\BridgeAlgorithm\BridgeAlgorithm.cpp">
+    <ClCompile Include="..\BridgeAlgorithmTester\BridgeAlgorithm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\V-RepImports\v_repLib.cpp">

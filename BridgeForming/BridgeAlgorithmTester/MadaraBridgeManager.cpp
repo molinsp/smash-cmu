@@ -32,6 +32,7 @@
 #define MF_FIND_POS_IN_BRIDGE		"findPositionInBridge"						/* Function that finds and sets the position in the bridge for this drone, if any. */
 
 // Main Input:
+#define MV_USER_BRIDGE_REQUEST_ID	"user_bridge_request.request_id"			/* Identifies a unique bridge request, along with its bridge. */
 #define MV_USER_BRIDGE_REQUEST_ON	"user_bridge_request.enabled"				/* Being true triggers the bridge behavior. */
 #define MV_BRIDGE_SOURCE_ID			"user_bridge_request.source_id"				/* Contains the ID of the drone acting as source. */
 #define MV_BRIDGE_SINK_ID			"user_bridge_request.sink_id"				/* Containts the ID of the controller acting as sink.*/
@@ -40,7 +41,7 @@
 #define MV_TOTAL_DRONES		        "controller.max_drones"						/* The total amount of drones in the system. */
 #define MV_COMM_RANGE				"controller.high_bw_comm_range"				/* The range of the high-banwidth radio, in meters. */
 #define MV_SINK_X					"controller{" MV_BRIDGE_SINK_ID "}.pos.x"	/* The x position of controller with ID MV_BRIDGE_SINK_ID, in meters. */
-#define MV_SINK_Y					"controller{" MV_BRIDGE_SINK_ID "}.pox.y"	/* The y position of controller with ID MV_BRIDGE_SINK_ID, in meters */
+#define MV_SINK_Y					"controller{" MV_BRIDGE_SINK_ID "}.pos.y"	/* The y position of controller with ID MV_BRIDGE_SINK_ID, in meters */
 
 #define MV_MY_ID					".id"										/* The id of this drone. */
 #define MV_SOURCE_X					"drone{" MV_BRIDGE_SOURCE_ID "}.pos.x"		/* The x position of the drone acting as a source, in meters. */
@@ -50,6 +51,7 @@
 #define MV_DRONE_POSY(i)			"drone" i ".pos.y"							/* The y position of a drone with ID i, in meters. */
 #define MV_MOBILE(i)				"drone" i ".mobile"							/* True of drone with ID i is flying and available for bridging. */
 #define MV_BRIDGING(i)				"drone" i ".bridging"						/* True if drone with ID i is bridging. */
+#define MV_BRIDGE_ID(i)				"drone" i ".bride_id"						/* If bridging, indicates the ID of the associated request or bridge. */
 
 // Output
 // The following parameters are always modified:
@@ -100,6 +102,9 @@ void MadaraBridgeManager::initialize(Madara::Knowledge_Engine::Knowledge_Base &k
 
     // Registers all default expressions, to have them compiled for faster access.
     compileExpressions();
+
+    // Indicate we start moving.
+    m_knowledge.set(MV_MOBILE("{" MV_MY_ID "}"), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,7 +134,11 @@ void MadaraBridgeManager::defineFunctions()
     // Function to broadcast the bridge-related state of this drone to the network.
     m_knowledge.define_function(MF_SEND_BRIDGE_STATE, 
         // Dummy variable set for the bridging flag to ensure it is continously propagated, even to new drones.
+        "("
         MV_BRIDGING("{" MV_MY_ID "}") "=" MV_BRIDGING("{" MV_MY_ID "}") ";"
+        MV_DRONE_TARGET_POSX("{" MV_MY_ID "}") "=" MV_DRONE_TARGET_POSX("{" MV_MY_ID "}") ";"
+        MV_DRONE_TARGET_POSY("{" MV_MY_ID "}") "=" MV_DRONE_TARGET_POSY("{" MV_MY_ID "}") ";"
+        ")"
     );
 
     // Function that actually performs bridge building for this drone.
@@ -143,8 +152,11 @@ void MadaraBridgeManager::defineFunctions()
         // Loop over all the drones to find the available ones.
         ".i[0->" MV_TOTAL_DRONES ")"
         "("
-            // A drone is available if it is mobile and it is not bridging.
-            "((" MV_MOBILE("{.i}") " && !" MV_BRIDGING("{.i}") ") => ("
+            // A drone is available if it is mobile and it is not bridging THIS bridge 
+            // (include drones that are actually bridging this bridge because they responded faster).
+            "(((" MV_MOBILE("{.i}") " && !" MV_BRIDGING("{.i}") ") || "
+              "(" MV_BRIDGING("{.i}") " && (" MV_BRIDGE_ID("{.i}") " == " MV_USER_BRIDGE_REQUEST_ID ") )"
+             ") => ("
                 // If so, increase the amount of available drones, and store its id, x position, and y position in arrays.
                 MV_AVAILABLE_DRONES_IDS "{" MV_AVAILABLE_DRONES_AMOUNT "} = .i;"
                 MV_AVAILABLE_DRONES_POSX "{" MV_AVAILABLE_DRONES_AMOUNT "} = " MV_DRONE_POSX("{.i}") ";"
@@ -179,6 +191,7 @@ Madara::Knowledge_Record MadaraBridgeManager::findPositionInBridge (Madara::Know
     // Get the basic info: source and sink positions, my id and the comm range.
     int myId = (int) variables.get(MV_MY_ID).to_integer();
     double commRange = variables.get(MV_COMM_RANGE).to_double();
+    int bridgeRequestId = (int) variables.get(MV_USER_BRIDGE_REQUEST_ID).to_integer();
     double sourceX = variables.get(MV_SOURCE_X).to_double();
     double sourceY = variables.get(MV_SOURCE_Y).to_double();
     Position sourcePosition(sourceX, sourceY);
@@ -187,7 +200,7 @@ Madara::Knowledge_Record MadaraBridgeManager::findPositionInBridge (Madara::Know
     Position sinkPosition(sinkX, sinkY);
 
     // Find all the available drones and their positions, called here to ensure atomicity and we have the most up to date data.
-    variables.evaluate(m_expressions[BE_FIND_AVAILABLE_DRONES_POSITIONS]);
+    variables.evaluate(m_expressions[BE_FIND_AVAILABLE_DRONES_POSITIONS], Madara::Knowledge_Engine::DELAY_AND_TREAT_AS_LOCAL_EVAL_SETTINGS);
 
     // Obtain the ids, and x and y parts of the available drone's positions from Madara.
     int availableDrones = (int) variables.get(MV_AVAILABLE_DRONES_AMOUNT).to_integer();
@@ -217,8 +230,9 @@ Madara::Knowledge_Record MadaraBridgeManager::findPositionInBridge (Madara::Know
     if(iHaveToGoToBridge)
     {
         // Update the drone status now that we are going to build a bridge.
-        variables.set(MV_BRIDGING("{" MV_MY_ID "}"), 1.0);
-        variables.set(MV_DRONE_TARGET_POSX("{" MV_MY_ID "}"), myNewPosition->x);	// TODO: how to make it move over there?
+        variables.set(MV_BRIDGING("{" MV_MY_ID "}"), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+        variables.set(MV_BRIDGE_ID("{" MV_MY_ID "}"), (Madara::Knowledge_Record::Integer) bridgeRequestId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+        variables.set(MV_DRONE_TARGET_POSX("{" MV_MY_ID "}"), myNewPosition->x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
         variables.set(MV_DRONE_TARGET_POSY("{" MV_MY_ID "}"), myNewPosition->y);
     }
 
@@ -266,6 +280,7 @@ void MadaraBridgeManager::setupBridgeTest()
     // Generate information that should be set by sink when sending command for bridge.
     m_knowledge.set(MV_TOTAL_DRONES, 9.0);
     m_knowledge.set(MV_COMM_RANGE, commRange);
+    m_knowledge.set(MV_USER_BRIDGE_REQUEST_ID, (Madara::Knowledge_Record::Integer) 1);
     m_knowledge.set(MV_BRIDGE_SOURCE_ID, (Madara::Knowledge_Record::Integer) 1);
     m_knowledge.set(MV_BRIDGE_SINK_ID, (Madara::Knowledge_Record::Integer) 1);
 

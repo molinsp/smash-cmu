@@ -16,6 +16,13 @@
 #include <map>
 #include "BridgeAlgorithm.h"
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
+#define SSTR( x ) dynamic_cast< std::ostringstream & >( \
+        ( std::ostringstream() << std::dec << x ) ).str()
+
 using namespace std;
 
 // Compares two distance tuples by the distance field.
@@ -26,14 +33,19 @@ bool compareByDistance(DistanceTuple first, DistanceTuple second)
 
 // Creates a bridge given the source, sink, and available drone locations. 
 // Returns the position this drone should go to, or NULL if this drone was not selected for the bridge.
-Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Position sourcePosition, Position sinkPosition, map<int, Position> availableDronePositions)
+Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Position sourcePosition, Position sinkPosition, 
+                                               map<int, Position> availableDronePositions)
 {
+    std::ofstream outputFile;
+    outputFile.open(std::string("algorithm" + SSTR(myId) + ".txt").c_str());
+
 	Position* myNewPosition = NULL;
 
 	// Calculate how many drones we need for the bridge.
 	double bridgeLength = sqrt(pow(sourcePosition.x - sinkPosition.x, 2) + pow(sourcePosition.y - sinkPosition.y, 2));
 	int numberOfRelays = (int) ceil(bridgeLength/commRange - 1);
-	//printf("test");
+    outputFile << "Source: (" << sourcePosition.x << ", " << sourcePosition.y  << "), sink: (" << sinkPosition.x << ", " << sinkPosition.y << ")" << endl;
+	outputFile << "Num Relays " << numberOfRelays << endl;
 
 	// Calculate the locations of each relay drone.
 	vector<Position> relayList(numberOfRelays);
@@ -43,6 +55,8 @@ Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Posit
 		relayPosition.x = sinkPosition.x + (sourcePosition.x - sinkPosition.x)/(numberOfRelays + 1)*(i+1);
 		relayPosition.y = sinkPosition.y + (sourcePosition.y - sinkPosition.y)/(numberOfRelays + 1)*(i+1);
 		relayList[i] = relayPosition;
+
+        //outputFile << "Relay " << i << ", pos " << relayPosition.x << ", " << relayPosition.y << ")" << endl;
 	}
 
 	// List to mark when a drone has been assigned.
@@ -70,6 +84,7 @@ Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Posit
 			currentDistanceTuple.relayLocationId = j;
 			currentDistanceTuple.distance = distanceToLocation;
 			distanceTuples.push_back(currentDistanceTuple);
+            outputFile << "Drone " << currentDroneId << ", to loc " << j << ", distance " << distanceToLocation << "" << endl;
 		}
 	}
 
@@ -94,6 +109,7 @@ Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Posit
 			// Mark this drone as assigned, and store the drone assigned to that location.
 			assignedDrones[currentTuple->droneId] = true;
 			droneAssignedToLocation[currentTuple->relayLocationId] = currentTuple->droneId;
+            outputFile << "Loc " << currentTuple->relayLocationId << ", drone " << currentTuple->droneId << std::endl;
 
 			// Check if this is me to stop search right away?
 			if(currentTuple->droneId == myId)
@@ -106,6 +122,8 @@ Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Posit
 			}
 		}
 	}
+
+    outputFile.close();
 
 	// This will be null if I didnt end up inside the bridge.
 	return myNewPosition;

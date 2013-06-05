@@ -31,9 +31,11 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="VRepEnvironment.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="VRepEnvironment.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -51,6 +53,9 @@
       <AdditionalDependencies>MADARAd.lib;ACEd.lib;shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(MADARA_ROOT)\lib;</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y $(TargetPath) $(VRepPath)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -58,15 +63,22 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>..\V-RepImports;$(MADARA_ROOT)/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>MADARAd.lib;ACEd.lib;shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y $(TargetPath) $(VRepPath)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\V-RepImports\v_repLib.cpp" />
+    <ClCompile Include="Custom_Transport.cpp" />
+    <ClCompile Include="Custom_Transport_Read_Thread.cpp" />
     <ClCompile Include="LuaCustomFunctions.cpp" />
     <ClCompile Include="MadaraController.cpp" />
     <ClCompile Include="v_repExtBridgeMadaraClient.cpp" />
@@ -75,6 +87,8 @@
     <ClInclude Include="..\V-RepImports\extApiCustomConst.h" />
     <ClInclude Include="..\V-RepImports\v_repConst.h" />
     <ClInclude Include="..\V-RepImports\v_repLib.h" />
+    <ClInclude Include="Custom_Transport.h" />
+    <ClInclude Include="Custom_Transport_Read_Thread.h" />
     <ClInclude Include="LuaCustomFunctions.h" />
     <ClInclude Include="MadaraController.h" />
     <ClInclude Include="v_repExtBridgeMadaraClient.h" />

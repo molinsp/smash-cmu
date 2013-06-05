@@ -6,6 +6,7 @@
  *********************************************************************/
  
 #include "madara/knowledge_engine/Knowledge_Base.h"
+#include "madara/transport/multicast/Multicast_Transport.h"
 #include "madara/utility/Log_Macros.h"
 #include "ace/Signal.h"
 #include "ace/High_Res_Timer.h"
@@ -14,6 +15,11 @@
 //#include "DroneActions.h"
 #include "BridgeAlgorithm.h"
 #include "MadaraBridgeManager.h"
+
+#include "Custom_Transport.h"
+
+#define SSTR( x ) dynamic_cast< std::ostringstream & >( \
+        ( std::ostringstream() << std::dec << x ) ).str()
 
 //Inturupt handling
 volatile bool g_terminated = false;
@@ -37,6 +43,9 @@ Madara::Transport::Settings g_settings;
 
 Madara::Knowledge_Record::Integer g_id;
 
+// Flag to indicate if we want to run an internal test configuration.
+bool g_setupTest;
+
 
 int main (int argc, char** argv)
 {
@@ -46,35 +55,45 @@ int main (int argc, char** argv)
     // Define the transport.
     g_settings.hosts_.resize (1);
     g_settings.hosts_[0] = DEFAULT_MULTICAST_ADDRESS;
-    g_settings.type = Madara::Transport::MULTICAST;
+    //g_settings.type = Madara::Transport::MULTICAST;
+    g_settings.delay_launch = true;
 
     // Handle arguments, if any (include recieving an external ID).
-    handle_arguments (argc, argv);    
+    g_setupTest = false;
+    handle_arguments (argc, argv);
+    g_settings.id = (int) g_id;
     
     // Create the knowledge base.
     Madara::Knowledge_Engine::Knowledge_Base knowledge (g_host, g_settings);
-    
-    // Set our id.
     knowledge.set (".id", (Madara::Knowledge_Record::Integer) g_id);
     
-	// Setup everything related to the drones.
-	//setupDroidActions(knowledge);
-	//Madara::Knowledge_Engine::Compiled_Expression mainLogic = getMainLogic();
+    //knowledge.log_to_file(string("madaralog" + SSTR(g_id) + ".txt").c_str(), false);
+    //knowledge.evaluate("#log_level(10)");
 
-	Madara::Knowledge_Engine::Eval_Settings eval_settings;
-	eval_settings.pre_print_statement =
-		"Mobile drones: {.available_drones}/{controller.max_drones}\n"
-		"Current drone {.id} position: {drone{.id}.pos.x},{drone{.id}.pos.y}\n"
-		"Drone {.id} is bridging: {drone{.id}.bridging}\n"
-		"Target pos for {.id}: {drone{.id}.target_pos.x},{drone{.id}.target_pos.y}\n\n"
-		;
+    // Start the transport.
+    knowledge.attach_transport(new Custom_Transport (knowledge.get_id (), knowledge.get_context (), g_settings, true));
 
-	// Setup bridge building.
+    // Startup the bridge manager.
 	MadaraBridgeManager::getInstance().initialize(knowledge);
 	std::string buildingMainLogicCall = MadaraBridgeManager::getInstance().getMainLogicMadaraCall();
 
 	// Setup a simple test since we are not inside actual drones.
-	MadaraBridgeManager::getInstance().setupBridgeTest();    
+    if(g_setupTest)
+    {
+    	MadaraBridgeManager::getInstance().setupBridgeTest();    
+    }
+
+    // Visual settings to show console output.
+	Madara::Knowledge_Engine::Eval_Settings eval_settings;
+	eval_settings.pre_print_statement =
+        "Drone {.id}\n"
+		"Available:\t{.available_drones}/{controller.max_drones}\n"
+		"Position:\t{drone{.id}.pos.x},{drone{.id}.pos.y}\n"
+		"Mobile:\t\t{drone{.id}.mobile}\n"
+		"Bridging:\t{drone{.id}.bridging}\n"
+		"Bridge request:\t{user_bridge_request.enabled}\n"
+		"Target pos:\t{drone{.id}.target_pos.x},{drone{.id}.target_pos.y}\n\n"
+		;
 
     // Until the user presses ctrl+c in this terminal, check for input.
     while (!g_terminated)
@@ -89,6 +108,9 @@ int main (int argc, char** argv)
     }
 
     knowledge.print_knowledge ();
+
+    knowledge.close_transport();
+    knowledge.clear();
 
     return 0;
 }
@@ -141,6 +163,10 @@ void handle_arguments (int argc, char ** argv)
 
         ++i;
     }
+    else if (arg1 == "-t" || arg1 == "--test")
+    {
+        g_setupTest = true;
+    }
     else
     {
         MADARA_DEBUG (MADARA_LOG_EMERGENCY, (LM_DEBUG,
@@ -152,6 +178,7 @@ void handle_arguments (int argc, char ** argv)
             " [-d|--domain domain]     the knowledge domain to send and listen to\n" \
             " [-i|--id id]             the id of this agent (should be non-negative)\n" \
             " [-l|--level level]       the logger level (0+, higher is higher detail)\n" \
+            " [-t|--test]              setup a test configuration of drones\n" \
             "\n",
             argv[0]));
         exit (0);
