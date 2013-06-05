@@ -20,19 +20,23 @@
 #include <fstream>
 #include <sstream>
 
+// Internal macro to convert from an integer to a std::string.
 #define SSTR( x ) dynamic_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << x ) ).str()
 
 using namespace std;
 
-// Compares two distance tuples by the distance field.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Compares two distance tuples by the distance field. It is not a class method, as a simple function is required.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool compareByDistance(DistanceTuple first, DistanceTuple second)
 {
 	return first.distance < second.distance;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Creates a bridge given the source, sink, and available drone locations. 
-// Returns the position this drone should go to, or NULL if this drone was not selected for the bridge.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Position sourcePosition, Position sinkPosition, 
                                                map<int, Position> availableDronePositions)
 {
@@ -125,6 +129,6 @@ Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Posit
 
     outputFile.close();
 
-	// This will be null if I didnt end up inside the bridge.
+	// This will be null if I didn't end up inside the bridge.
 	return myNewPosition;
 }

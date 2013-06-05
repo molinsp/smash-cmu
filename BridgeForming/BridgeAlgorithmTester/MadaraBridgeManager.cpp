@@ -7,14 +7,6 @@
 
 /*********************************************************************
  * MadaraBridgeManager.cpp - Defines the manager for bulding a bridge.
- *
- * ASSUMPTIONS:
- * - The current logic assumes that when a drone doing area coverage
- *   finds a person, it stops there.
- * - The logic also assumes that when the user asks the network to form
- *   a bridge, the user will indicate the ID of the stopped drone that 
- *   is to be used as a source. The controller should also provide its
- *   ID, or let the user select one (see Main Input section below).
  *********************************************************************/
 
 #include <vector>
@@ -82,7 +74,7 @@ Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::F
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Method to get singleton.
+// Method to get the singleton.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 MadaraBridgeManager& MadaraBridgeManager::getInstance()
 {

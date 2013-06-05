@@ -8,7 +8,7 @@
 #include "MadaraController.h"
 #include "LuaCustomFunctions.h"
 
-// The actual controller to manage the Madara stuff.
+// The controller used to manage the Madara stuff.
 MadaraController* madaraController;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
