@@ -45,11 +45,21 @@ The following are parameters that can be used to play with the simulation:
 The following parameters control where the bridge forming is made:
  - useExternalPlugin: when false, it uses an internal Lua function to form the bridge
    and find the new positions for the drones in the bridge. When true, it uses the
-   v_repExtBridgeAlgorithm.dll plugin (which has to be copied to the main folder of
+   v_repExtBridgeAlgorithm.dll plugin (which has to be in the main folder of
    V-Rep before V-Rep is started to be loaded) to access the C++ implementation
    of the bridge algorithm calculation. The results should be the same. The source
    code for the plugin is in the BridgeForming folder/solution at the root level of
    this repository.
+ - madaraClientEnabled: when false, the Madara plugin will not be used, and the behavior
+   will be defined by the useExternalPlugin variable. If true, it overrides the value
+   of the useExternalPlugin variable, which will be ignored. In this case, the simulation
+   will only calculate the movements required for area coverage and move the drones,
+   but it will not calculate anything related to bridge building. Instead, it will
+   continously disseminate the position and information of the simulated drones through
+   Madara, and send bridge requests when required (as well as handling the results to
+   order the drones to move to form a bridge). By default it is "true". Note that
+   it requires the v_repExtBridgeMadaraClient.dll (which has to be in the main folder of
+   V-Rep before V-Rep is started to be loaded) to access the Madara client.
    
 Moving the locations of the laptop and the people on the scene can also be useful
 to check different behaviors.   
