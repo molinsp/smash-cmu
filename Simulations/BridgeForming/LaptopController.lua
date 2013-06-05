@@ -18,7 +18,7 @@ function doInitialSetup()
     g_madaraClientEnabled = simGetScriptSimulationParameter(sim_handle_main_script, 'madaraClientOn')      
     
     -- Setup Madara client.
-    local myControllerId = 100
+    local myControllerId = 10
     if(g_madaraClientEnabled) then  
         local radioRange = simGetScriptSimulationParameter(sim_handle_main_script, 'radioRange')
         simAddStatusbarMessage('Calling external method to set up Madara.')
@@ -75,6 +75,13 @@ function getDronesInfo(numDrones)
     end
     
     return droneIds, dronePositionsArray, droneFlyingStatus
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Method called when the simulation ends.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function doCleanup()
+    simExtMadaraClientCleanup()
 end
 
 
