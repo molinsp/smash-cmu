@@ -63,3 +63,12 @@ The following parameters control where the bridge forming is made:
    
 Moving the locations of the laptop and the people on the scene can also be useful
 to check different behaviors.   
+
+NOTES:
+ * This simulation relies on several external .lua files which are present in this folder,
+   the same one where the main simulation is (bridge_forming.ttt). However, V-Rep needs to
+   find these .lua files, and will only look in the current folder or its internal folders.
+   These external .lua files will only be loaded correctly in one of two cases:
+   > If the simulation is started by double-clicking on the .ttt file, having this extension
+   associated with V-Rep,
+   > If the .lua files are copied over to the main folder of V-Rep, or to its \lua subfolder.
