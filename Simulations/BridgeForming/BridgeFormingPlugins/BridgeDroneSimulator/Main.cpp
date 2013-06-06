@@ -16,7 +16,7 @@
 #include "BridgeAlgorithm.h"
 #include "MadaraBridgeManager.h"
 
-#include "Custom_Transport.h"
+//#include "Custom_Transport.h"
 
 #define SSTR( x ) dynamic_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << x ) ).str()
@@ -55,8 +55,8 @@ int main (int argc, char** argv)
     // Define the transport.
     g_settings.hosts_.resize (1);
     g_settings.hosts_[0] = DEFAULT_MULTICAST_ADDRESS;
-    //g_settings.type = Madara::Transport::MULTICAST;
-    g_settings.delay_launch = true;
+    g_settings.type = Madara::Transport::MULTICAST;
+    //g_settings.delay_launch = true;
 
     // Handle arguments, if any (include recieving an external ID).
     g_setupTest = false;
@@ -71,7 +71,7 @@ int main (int argc, char** argv)
     //knowledge.evaluate("#log_level(10)");
 
     // Start the transport.
-    knowledge.attach_transport(new Custom_Transport (knowledge.get_id (), knowledge.get_context (), g_settings, true));
+    //knowledge.attach_transport(new Custom_Transport (knowledge.get_id (), knowledge.get_context (), g_settings, true));
 
     // Startup the bridge manager.
 	MadaraBridgeManager::getInstance().initialize(knowledge);

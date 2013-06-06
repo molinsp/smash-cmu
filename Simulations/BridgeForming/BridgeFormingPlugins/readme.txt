@@ -8,21 +8,27 @@
 This folder contains the code for the simple Bridge Algorithm, as well as testers
 for that code, and plugins to use it in V-Rep. The projects are:
 
- - BridgeAlgorithmTester
+ - BridgeDroneSimulator
  
-     Includes the actual Bride Algorithm code and an object to handle access to the 
+     References the actual Bride Algorithm code and an object to handle access to the 
      algorithm through Madara logic which coordinates with the rest of the distributed 
-     system. Also contains a simple main program that runs a loop to test out the bridge 
-     functionality, assuming the V-Rep simulator does the rest (act as a controller and 
-     disseminate position information). 
+     system. This code is actually located in the DroneController/packages/madara_client 
+     folder or the repository.
      
-     To execute, the "-i" option, followed by an integer number starting from 0, has to be
-     added. This indicates the id that this pseudo-drone will have. Running this in multiple
+     Only contains a simple main program that runs a loop to test out the bridge 
+     functionality, assuming the V-Rep simulator does the rest (act as a controller and 
+     disseminate position information). This is supposed to be used with the V-RepMadaraClientPlugin
+     installed in the V-Rep main executable folder, as they communicate with each other
+     through Madara.
+     
+     To execute, add the "-i" option, followed by an integer number starting from 0. 
+     This indicates the id that this pseudo-drone will have. Running this in multiple
      consoles with different ids allows to simluate multiple pseudo-drones.
      
      The main program can also be run independently of V-Rep with the "-t" option to 
-     create a simple of drones and see the interaction of multiple drones in different
-     consoles.
+     populate the knowledge base with a predefined test state of drone positions and
+     a bridge request, to see the interaction of multiple drones in different consoles
+     and the results of the bridge algorithm.
      
  - V-RepBridgeAlgorithmPlugin
  
@@ -43,7 +49,7 @@ for that code, and plugins to use it in V-Rep. The projects are:
 
     A plugin that acts as the Controller of the network, as well as disseminating the positioning 
     information of the drones obtained from V-Rep. This is done through Madara to communicate 
-    with simulated pseudo-drones running with the BridgeAlgorithmTester project described above.
+    with simulated pseudo-drones running with the BridgeDroneSimulator project described above.
     It defines several Lua functions that can be used by a simulation to setup and cleanup the Madara
     interface, as well as send and receive the state of different variables in the Knowledge Base, 
     including bridge requests and bridge target positions for a drone.
