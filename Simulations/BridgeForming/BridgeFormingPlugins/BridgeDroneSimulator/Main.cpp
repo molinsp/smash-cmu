@@ -87,12 +87,12 @@ int main (int argc, char** argv)
 	Madara::Knowledge_Engine::Eval_Settings eval_settings;
 	eval_settings.pre_print_statement =
         "Drone {.id}\n"
-		"Available:\t{.available_drones}/{controller.max_drones}\n"
-		"Position:\t{drone{.id}.pos.x},{drone{.id}.pos.y}\n"
-		"Mobile:\t\t{drone{.id}.mobile}\n"
-		"Bridging:\t{drone{.id}.bridging}\n"
+		"Available:\t{.available_drones}/{devices}\n"
+		"Position:\t{device.{.id}.latitude},{device.{.id}.longitude}\n"
+		"Mobile:\t\t{device.{.id}.mobile}\n"
+		"Bridging:\t{device.{.id}.bridging}\n"
 		"Bridge request:\t{user_bridge_request.enabled}\n"
-		"Target pos:\t{drone{.id}.target_pos.x},{drone{.id}.target_pos.y}\n\n"
+		"Target pos:\t{device.{.id}.target_pos.x},{device.{.id}.target_pos.y}\n\n"
 		;
 
     // Until the user presses ctrl+c in this terminal, check for input.

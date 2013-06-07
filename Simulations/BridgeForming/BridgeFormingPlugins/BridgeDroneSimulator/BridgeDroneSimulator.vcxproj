@@ -45,7 +45,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\..\DroneController\packages\madara_client;$(MADARA_ROOT)/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\DroneController\packages\madara_client\bridge_forming;$(MADARA_ROOT)/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -63,7 +63,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\..\DroneController\packages\madara_client;$(MADARA_ROOT)/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\DroneController\packages\madara_client\bridge_forming;$(MADARA_ROOT)/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -75,13 +75,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\BridgeAlgorithm.cpp" />
-    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\MadaraBridgeManager.cpp" />
+    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\BridgeAlgorithm.cpp" />
+    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\MadaraBridgeManager.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\BridgeAlgorithm.h" />
-    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\MadaraBridgeManager.h" />
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\BridgeAlgorithm.h" />
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\CommonMadaraBridgeVariables.h" />
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\MadaraBridgeManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -202,7 +202,8 @@ function lookForPersonBelow()
                     simExtMadaraClientStopDrone(myDroneId)
                     
                     -- Do the actual call to Madara.
-                    simExtMadaraClientBridgeRequest(g_bridgeRequestId, sourceDroneId)
+                    local sinkPosition = getSinkPosition()
+                    simExtMadaraClientBridgeRequest(g_bridgeRequestId, dronePos[1], dronePos[2], dronePos[1], dronePos[2], sinkPosition[1], sinkPosition[2], sinkPosition[1], sinkPosition[2])
                     g_bridgeRequestId = g_bridgeRequestId + 1
                 end
 

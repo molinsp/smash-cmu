@@ -8,41 +8,14 @@
 #include "MadaraController.h"
 
 #include "Custom_Transport.h"
+#include "CommonMadaraBridgeVariables.h"
 
 #include <vector>
 
 #define DEFAULT_MULTICAST_ADDRESS "239.255.0.1:4150"
 
-#define SSTR( x ) dynamic_cast< std::ostringstream & >( \
+#define INT_TO_STR( x ) dynamic_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << x ) ).str()
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Madara Variable Definitions
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Controller variables.
-#define MV_MY_ID					".id"								    /* The id of this drone. */
-#define MV_CONTROLLER_POSX(i)   	"controller" + SSTR(i) + ".pos.x"       /* The x position of controller with ID i, in meters. */
-#define MV_CONTROLLER_POSY(i)   	"controller" + SSTR(i) + ".pos.y"       /* The x position of controller with ID i, in meters. */
-
-// General drone variables.
-#define MV_TOTAL_DRONES				"controller.max_drones"					/* The total amount of drones in the system. */
-#define MV_COMM_RANGE				"controller.high_bw_comm_range"			/* The range of the high-banwidth radio, in meters. */
-
-// Individual drone variables.
-#define MV_DRONE_POSX(i)			"drone" + SSTR(i) + ".pos.x"			/* The x position of a drone with ID i, in meters. */
-#define MV_DRONE_POSY(i)			"drone" + SSTR(i) + ".pos.y"			/* The y position of a drone with ID i, in meters. */
-#define MV_MOBILE(i)				"drone" + SSTR(i) + ".mobile"			/* True of drone with ID i is flying and available for bridging. */
-
-// Bridge request variables,
-#define MV_USER_BRIDGE_REQUEST_ID	"user_bridge_request.request_id"		/* Identifies a unique bridge request, along with its bridge. */
-#define MV_USER_BRIDGE_REQUEST_ON	"user_bridge_request.enabled"			/* Being true triggers the bridge behavior. */
-#define MV_BRIDGE_SOURCE_ID			"user_bridge_request.source_id"			/* Contains the ID of the drone acting as source. */
-#define MV_BRIDGE_SINK_ID			"user_bridge_request.sink_id"			/* Containts the ID of the controller acting as sink.*/
-
-// Bridge input from drones.
-#define MV_BRIDGING(i)				"drone" + SSTR(i) + ".bridging"		    /* True if drone with ID i is bridging. */
-#define MV_DRONE_TARGET_POSX(i)		"drone" + SSTR(i) + ".target_pos.x"	    /* The x target position of a drone with ID i, where it should head to, in meters. */
-#define MV_DRONE_TARGET_POSY(i)		"drone" + SSTR(i) + ".target_pos.y"	    /* The y target position of a drone with ID i, where it should head to, in meters. */
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constructor, sets up a Madara knowledge base and basic values.
@@ -51,10 +24,13 @@ MadaraController::MadaraController(Madara::Knowledge_Engine::Knowledge_Base* kno
 {
     // Set the knowledge base.
     m_knowledge = knowledge;
+
+    // Start the counter at 0.
+    m_regionId = 0;
     
     // Set our id and comm range.
     m_id = id;
-    m_knowledge->set (MV_MY_ID, (Madara::Knowledge_Record::Integer) m_id);
+    //m_knowledge->set (MV_MY_ID, (Madara::Knowledge_Record::Integer) m_id);
     m_commRange = commRange;
     m_knowledge->set (MV_COMM_RANGE, m_commRange);
 
@@ -74,6 +50,9 @@ MadaraController::~MadaraController()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 MadaraController::MadaraController(int id, double commRange)
 {
+    // Start the counter at 0.
+    m_regionId = 0;
+
     // Define the transport.
     m_host = "";
     m_transportSettings.hosts_.resize (1);
@@ -94,7 +73,7 @@ MadaraController::MadaraController(int id, double commRange)
    
     // Set our id and comm range.
     m_id = id;
-    m_knowledge->set (MV_MY_ID, (Madara::Knowledge_Record::Integer) m_id);
+    //m_knowledge->set (MV_MY_ID, (Madara::Knowledge_Record::Integer) m_id);
     m_commRange = commRange;
     m_knowledge->set (MV_COMM_RANGE, m_commRange);
 
@@ -104,12 +83,37 @@ MadaraController::MadaraController(int id, double commRange)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Sets up all the variables required for a bridge request.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraController::setupBridgeRequest(int requestId, int sourceId)
+void MadaraController::setupBridgeRequest(int bridgeId, Position sourceTopLeft, Position sourceBottomRight, Position sinkTopLeft, Position sinkBottomRight)
 {
     // Simulate the sink actually sending the command to bridge.
-    m_knowledge->set(MV_USER_BRIDGE_REQUEST_ID, (Madara::Knowledge_Record::Integer) requestId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set(MV_BRIDGE_SOURCE_ID, (Madara::Knowledge_Record::Integer) sourceId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set(MV_BRIDGE_SINK_ID, (Madara::Knowledge_Record::Integer) m_id, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set(MV_USER_BRIDGE_REQUEST_ID, (Madara::Knowledge_Record::Integer) bridgeId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+
+    int rectangleType = 0;
+    std::string bridgeIdString = INT_TO_STR(bridgeId);
+
+    // Store the id of the source region for this bridge.
+    int sourceRegionId = m_regionId++;
+    std::string sourceRegionIdString = INT_TO_STR(sourceRegionId);
+    m_knowledge->set(MV_BRIDGE_SOURCE_REGION_ID(bridgeIdString), (Madara::Knowledge_Record::Integer) sourceRegionId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set(MV_REGION_TYPE(sourceRegionIdString), (Madara::Knowledge_Record::Integer) rectangleType, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+
+    // Set the bounding box of the regions. For now, the rectangle will actually just be a point.
+    m_knowledge->set(MV_REGION_TOPLEFT_LAT(sourceRegionIdString), sourceTopLeft.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set(MV_REGION_TOPLEFT_LON(sourceRegionIdString), sourceTopLeft.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set(MV_REGION_BOTRIGHT_LAT(sourceRegionIdString), sourceBottomRight.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set(MV_REGION_BOTRIGHT_LON(sourceRegionIdString), sourceBottomRight.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+
+    // Store the id of the sink region for this bridge.
+    int sinkRegionId = m_regionId++;
+    std::string sinkRegionIdString = INT_TO_STR(sinkRegionId);
+    m_knowledge->set(MV_BRIDGE_SINK_REGION_ID(bridgeIdString), (Madara::Knowledge_Record::Integer) sinkRegionId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set(MV_REGION_TYPE(sinkRegionIdString), (Madara::Knowledge_Record::Integer) rectangleType, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+
+    // Set the bounding box of the regions. For now, the rectangle will actually just be a point.
+    m_knowledge->set(MV_REGION_TOPLEFT_LAT(sinkRegionIdString), sinkTopLeft.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set(MV_REGION_TOPLEFT_LON(sinkRegionIdString), sinkTopLeft.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set(MV_REGION_BOTRIGHT_LAT(sinkRegionIdString), sinkBottomRight.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set(MV_REGION_BOTRIGHT_LON(sinkRegionIdString), sinkBottomRight.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
     // This call has no delay to flush all past changes.
     m_knowledge->set(MV_USER_BRIDGE_REQUEST_ON, 1.0);
@@ -121,7 +125,8 @@ void MadaraController::setupBridgeRequest(int requestId, int sourceId)
 void MadaraController::stopDrone(int droneId)
 {
     // Simulate the sink actually sending the command to bridge.
-    m_knowledge->set(MV_MOBILE(droneId), (Madara::Knowledge_Record::Integer) 0);
+    std::string droneIdString = INT_TO_STR(droneId);
+    m_knowledge->set(MV_MOBILE(droneIdString), (Madara::Knowledge_Record::Integer) 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -146,8 +151,8 @@ void MadaraController::updateNetworkStatus(double controllerPosx, double control
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MadaraController::updateMyStatus(double posx, double posy)
 {
-    m_knowledge->set(MV_CONTROLLER_POSX(m_id), posx, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set(MV_CONTROLLER_POSY(m_id), posy, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    //m_knowledge->set(MV_CONTROLLER_POSX(m_id), posx, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    //m_knowledge->set(MV_CONTROLLER_POSY(m_id), posy, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -160,8 +165,9 @@ void MadaraController::updateDroneStatus(std::vector<DroneStatus> droneStatusLis
     for (std::vector<DroneStatus>::iterator it = droneStatusList.begin() ; it != droneStatusList.end(); ++it)
     {
         // Update the overall status of this drone.
-        m_knowledge->set(MV_DRONE_POSX(it->id), it->posx, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-        m_knowledge->set(MV_DRONE_POSY(it->id), it->posy, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+        std::string droneIdString = INT_TO_STR(it->id);
+        m_knowledge->set(MV_DRONE_POSX(droneIdString), it->posx, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+        m_knowledge->set(MV_DRONE_POSY(droneIdString), it->posy, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
         //if(it->flying)
         //    m_knowledge->set(MV_MOBILE(it->id), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
         //else
@@ -175,7 +181,8 @@ void MadaraController::updateDroneStatus(std::vector<DroneStatus> droneStatusLis
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 Position* MadaraController::getBridgePosition(int droneId)
 {
-    int isDroneInBridge = (int) m_knowledge->get(MV_BRIDGING(droneId)).to_integer();
+    std::string droneIdString = INT_TO_STR(droneId);
+    int isDroneInBridge = (int) m_knowledge->get(MV_BRIDGING(droneIdString)).to_integer();
     if(isDroneInBridge == 0)
     {
         // No position to return since drone has not joined the bridge process.
@@ -183,8 +190,8 @@ Position* MadaraController::getBridgePosition(int droneId)
     }
 
     // Get the targeted positions this drone want to go to in the bridge.
-    double targetPosX = m_knowledge->get(MV_DRONE_TARGET_POSX(droneId)).to_double();
-    double targetPosY = m_knowledge->get(MV_DRONE_TARGET_POSY(droneId)).to_double();
+    double targetPosX = m_knowledge->get(MV_DRONE_TARGET_POSX(droneIdString)).to_double();
+    double targetPosY = m_knowledge->get(MV_DRONE_TARGET_POSY(droneIdString)).to_double();
 
     // Return it as a position object.
     Position* targetPosition = new Position(targetPosX, targetPosY);

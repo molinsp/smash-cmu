@@ -45,7 +45,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\V-RepImports;$(MADARA_ROOT)/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\V-RepImports;$(MADARA_ROOT)/include;..\..\..\..\DroneController\packages\madara_client\bridge_forming;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -63,7 +63,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\V-RepImports;$(MADARA_ROOT)/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\V-RepImports;$(MADARA_ROOT)/include;..\..\..\..\DroneController\packages\madara_client\bridge_forming;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -84,6 +84,7 @@
     <ClCompile Include="v_repExtBridgeMadaraClient.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\CommonMadaraBridgeVariables.h" />
     <ClInclude Include="..\V-RepImports\extApiCustomConst.h" />
     <ClInclude Include="..\V-RepImports\v_repConst.h" />
     <ClInclude Include="..\V-RepImports\v_repLib.h" />

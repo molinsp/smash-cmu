@@ -41,7 +41,7 @@ public:
 	Position(double newX, double newY)
 	{
 		x = newX;
-		y= newY;
+		y = newY;
 	}
 };
 
@@ -65,13 +65,16 @@ private:
     // The actual knowledge base.
     Madara::Knowledge_Engine::Knowledge_Base* m_knowledge;
 
+    // A counter for the regions created.
+    int m_regionId;
+
     void updateMyStatus(double posx, double posy);
     void updateDroneStatus(std::vector<DroneStatus> droneStatus);
 public:
     MadaraController(int id, double commRange);
     ~MadaraController();
     MadaraController(Madara::Knowledge_Engine::Knowledge_Base* knowledge, int id, double commRange);
-    void setupBridgeRequest(int requestId, int sourceId);
+    void setupBridgeRequest(int bridgeId, Position sourceTopLeft, Position sourceBottomRight, Position sinkTopLeft, Position sinkBottomRight);
     void updateNetworkStatus(double controllerPosx, double controllerPosy, std::vector<DroneStatus> droneStatusList);
     Position* getBridgePosition(int droneId);
     void stopDrone(int droneId);

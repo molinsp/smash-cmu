@@ -59,5 +59,8 @@
     <ClInclude Include="Custom_Transport_Read_Thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\CommonMadaraBridgeVariables.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

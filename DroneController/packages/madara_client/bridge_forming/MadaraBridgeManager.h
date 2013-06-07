@@ -24,6 +24,7 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include <map>
 #include <string>
+#include "BridgeAlgorithm.h"
 
 /**
  * @brief Define the ids for the expressions that will exist to accomplish different aspects of bridge building.
@@ -60,7 +61,7 @@ public:
 	/**
      * Method that invocates the functionality of finding our position in a bridge, which will be called from Madara when required.
      * Will be called from an external Madara function.
-     * @return  Always returns true (1).
+     * @return  Returns true (1) if it can calculate the bridge, or false (0) if it couldn't find all required data.
      **/
 	Madara::Knowledge_Record findPositionInBridge (Madara::Knowledge_Engine::Function_Arguments &args,
              Madara::Knowledge_Engine::Variables &variables);
@@ -79,6 +80,9 @@ private:
     // Private methods used to setup internal functions and compiled expressions.
 	void compileExpressions();
 	void defineFunctions();
+
+    // Method that calculates the middle point of a given region.
+    Position* calculateMiddlePoint(Madara::Knowledge_Engine::Variables &variables, std::string regionId);
 
 	// Private methods to allow singleton to exist.
 	MadaraBridgeManager() {};

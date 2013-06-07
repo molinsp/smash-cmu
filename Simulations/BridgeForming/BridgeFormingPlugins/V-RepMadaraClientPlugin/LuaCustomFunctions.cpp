@@ -85,14 +85,29 @@ void simExtMadaraClientSetup(SLuaCallBack* p)
 void registerMadaraClientBridgeRequestLuaCallback()
 {
     // Define the LUA function input parameters.
-    int inArgs[] = {2, sim_lua_arg_int,					  // Request ID.
-                       sim_lua_arg_int,					  // Source ID.
+    int inArgs[] = {9, sim_lua_arg_int,					    // Bridge ID.
+                       sim_lua_arg_float,					// The X position of the top left corner of the source.
+                       sim_lua_arg_float,					// The Y position of the top left corner of the source.
+                       sim_lua_arg_float,					// The X position of the bottom right corner of the source.
+                       sim_lua_arg_float,					// The Y position of the bottom right corner of the source.
+                       sim_lua_arg_float,					// The X position of the top left corner of the sink.
+                       sim_lua_arg_float,					// The Y position of the top left corner of the sink.
+                       sim_lua_arg_float,					// The X position of the bottom right corner of the sink.
+                       sim_lua_arg_float,					// The Y position of the bottom right corner of the sink.
+
                    };
 
     // Register the simExtGetPositionInBridge function.
     simRegisterCustomLuaFunction("simExtMadaraClientBridgeRequest",                         // The Lua function name.
-                                 "simExtMadaraClientBridgeRequest(int requestId, "          // A tooltip to be shown to help the user know how to call it.
-                                                                 "int sourceId)",
+                                 "simExtMadaraClientBridgeRequest(int bridgeId, "          // A tooltip to be shown to help the user know how to call it.
+                                                                 "float sourceTopleftX,"
+                                                                 "float sourceTopleftY,"
+                                                                 "float sourceBottomrightX,"
+                                                                 "float sourceBottomrightY,"
+                                                                 "float sinkTopleftX,"
+                                                                 "float sinkTopleftY,"
+                                                                 "float sinkBottomrightX,"
+                                                                 "float sinkBottomrightY)",
                                  inArgs,                                                    // The argument types.
                                  simExtMadaraClientBridgeRequest);                          // The C function that will be called by the Lua function.
 }
@@ -108,7 +123,7 @@ void simExtMadaraClientBridgeRequest(SLuaCallBack* p)
     bool paramsOk = true;
 
     // Check we have to correct amount of parameters.
-    if (p->inputArgCount != 2)
+    if (p->inputArgCount != 9)
     { 
         simSetLastError("simExtMadaraClientBridgeRequest", "Not enough arguments.");
         paramsOk = false;
@@ -122,9 +137,56 @@ void simExtMadaraClientBridgeRequest(SLuaCallBack* p)
     }
 
     // Check we have the correct type of arguments.
-    if ( p->inputArgTypeAndSize[1*2+0] != sim_lua_arg_int )
+    if ( p->inputArgTypeAndSize[1*2+0] != sim_lua_arg_float )
     {
-        simSetLastError("simExtMadaraClientBridgeRequest", "SourceId parameter is not an int.");
+        simSetLastError("simExtMadaraClientBridgeRequest", "sourceTopleftX parameter is not an int.");
+        paramsOk = false;
+    }
+
+    // Check we have the correct type of arguments.
+    if ( p->inputArgTypeAndSize[2*2+0] != sim_lua_arg_float )
+    {
+        simSetLastError("simExtMadaraClientBridgeRequest", "sourceTopleftY parameter is not an int.");
+        paramsOk = false;
+    }
+
+    // Check we have the correct type of arguments.
+    if ( p->inputArgTypeAndSize[3*2+0] != sim_lua_arg_float )
+    {
+        simSetLastError("simExtMadaraClientBridgeRequest", "sourceBottomrightX parameter is not an int.");
+        paramsOk = false;
+    }
+
+    // Check we have the correct type of arguments.
+    if ( p->inputArgTypeAndSize[4*2+0] != sim_lua_arg_float )
+    {
+        simSetLastError("simExtMadaraClientBridgeRequest", "sourceBottomrightY parameter is not an int.");
+        paramsOk = false;
+    }
+
+    // Check we have the correct type of arguments.
+    if ( p->inputArgTypeAndSize[5*2+0] != sim_lua_arg_float )
+    {
+        simSetLastError("simExtMadaraClientBridgeRequest", "sinkTopleftX parameter is not an int.");
+        paramsOk = false;
+    } 
+    // Check we have the correct type of arguments.
+    if ( p->inputArgTypeAndSize[6*2+0] != sim_lua_arg_float )
+    {
+        simSetLastError("simExtMadaraClientBridgeRequest", "sinkTopleftY parameter is not an int.");
+        paramsOk = false;
+    } 
+    // Check we have the correct type of arguments.
+    if ( p->inputArgTypeAndSize[7*2+0] != sim_lua_arg_float )
+    {
+        simSetLastError("simExtMadaraClientBridgeRequest", "sinkBottomrightX parameter is not an int.");
+        paramsOk = false;
+    }
+
+    // Check we have the correct type of arguments.
+    if ( p->inputArgTypeAndSize[8*2+0] != sim_lua_arg_float )
+    {
+        simSetLastError("simExtMadaraClientBridgeRequest", "sinkBottomrightY parameter is not an int.");
         paramsOk = false;
     }
 
@@ -132,17 +194,28 @@ void simExtMadaraClientBridgeRequest(SLuaCallBack* p)
     if(paramsOk)
     { 
         // Get the simple input values.
-        int requestId = p->inputInt[0];
-        int sourceId = p->inputInt[1];
+        int bridgeId = p->inputInt[0];
+
+        // Get the float values.
+        int floatArrayIdx = 0;
+        Position sourceTopLeft(p->inputFloat[floatArrayIdx+0], p->inputFloat[floatArrayIdx+1]);
+        Position sourceBottomRight(p->inputFloat[floatArrayIdx+2], p->inputFloat[floatArrayIdx+3]);
+        Position sinkTopLeft(p->inputFloat[floatArrayIdx+4], p->inputFloat[floatArrayIdx+5]);
+        Position sinkBottomRight(p->inputFloat[floatArrayIdx+6], p->inputFloat[floatArrayIdx+7]);
 
         // For debugging, print out what we received.
         std::stringstream sstm; 
-        sstm << "Values received inside simExtMadaraClientBridgeRequest function: sourceId:" << sourceId << std::endl;
+        sstm << "Values received inside simExtMadaraClientBridgeRequest function: bridgeId:" << bridgeId << ", "
+            << " (" << sourceTopLeft.x << "," << sourceTopLeft.y << ")"
+            << " (" << sourceBottomRight.x << "," << sourceBottomRight.y << ")"
+            << " (" << sinkTopLeft.x << "," << sinkTopLeft.y << ")"
+            << " (" << sinkBottomRight.x << "," << sinkBottomRight.y << ")"
+            << std::endl;
         std::string message = sstm.str();
         simAddStatusbarMessage(message.c_str());
 
         // Make the controller set up the bridge request through the knowledge base.
-        madaraController->setupBridgeRequest(requestId, sourceId);
+        madaraController->setupBridgeRequest(bridgeId, sourceTopLeft, sourceBottomRight, sinkTopLeft, sinkBottomRight);
     }
 
     simLockInterface(0);

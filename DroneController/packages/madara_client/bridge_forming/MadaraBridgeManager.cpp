@@ -12,49 +12,21 @@
 #include <vector>
 #include <map>
 #include "MadaraBridgeManager.h"
-#include "BridgeAlgorithm.h"
+#include "CommonMadaraBridgeVariables.h"
+
+#define INT_TO_STR( x ) dynamic_cast< std::ostringstream & >( \
+        ( std::ostringstream() << std::dec << x ) ).str()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Madara Variable Definitions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions
-#define MF_MAIN_LOGIC				"doBridgeBuilding"							/* Function that checks if there is bridge building to be done, and does it.  */
-#define MF_SEND_BRIDGE_STATE		"sendBridgeState"							/* Function that sends an update about internal bridge status, to allow new drones to always know this state about. */
-#define MF_UPDATE_AVAILABLE_DRONES	"updateAvailableDrones"						/* Function that checks the amount and positions of drones ready for bridging.  */
-#define MF_FIND_POS_IN_BRIDGE		"findPositionInBridge"						/* Function that finds and sets the position in the bridge for this drone, if any. */
+#define MF_MAIN_LOGIC				"doBridgeBuilding"					/* Function that checks if there is bridge building to be done, and does it.  */
+#define MF_SEND_BRIDGE_STATE		"sendBridgeState"					/* Function that sends an update about internal bridge status, to allow new drones to always know this state about. */
+#define MF_UPDATE_AVAILABLE_DRONES	"updateAvailableDrones"				/* Function that checks the amount and positions of drones ready for bridging.  */
+#define MF_FIND_POS_IN_BRIDGE		"findPositionInBridge"				/* Function that finds and sets the position in the bridge for this drone, if any. */
 
-// Main Input:
-#define MV_USER_BRIDGE_REQUEST_ID	"user_bridge_request.request_id"			/* Identifies a unique bridge request, along with its bridge. */
-#define MV_USER_BRIDGE_REQUEST_ON	"user_bridge_request.enabled"				/* Being true triggers the bridge behavior. */
-#define MV_BRIDGE_SOURCE_ID			"user_bridge_request.source_id"				/* Contains the ID of the drone acting as source. */
-#define MV_BRIDGE_SINK_ID			"user_bridge_request.sink_id"				/* Containts the ID of the controller acting as sink.*/
-
-// Other Expected Input:
-#define MV_TOTAL_DRONES		        "controller.max_drones"						/* The total amount of drones in the system. */
-#define MV_COMM_RANGE				"controller.high_bw_comm_range"				/* The range of the high-banwidth radio, in meters. */
-#define MV_SINK_X					"controller{" MV_BRIDGE_SINK_ID "}.pos.x"	/* The x position of controller with ID MV_BRIDGE_SINK_ID, in meters. */
-#define MV_SINK_Y					"controller{" MV_BRIDGE_SINK_ID "}.pos.y"	/* The y position of controller with ID MV_BRIDGE_SINK_ID, in meters */
-
-#define MV_MY_ID					".id"										/* The id of this drone. */
-#define MV_SOURCE_X					"drone{" MV_BRIDGE_SOURCE_ID "}.pos.x"		/* The x position of the drone acting as a source, in meters. */
-#define MV_SOURCE_Y					"drone{" MV_BRIDGE_SOURCE_ID "}.pos.y"		/* The y position of the drone acting as a source, in meters. */
-
-#define MV_DRONE_POSX(i)			"drone" i ".pos.x"							/* The x position of a drone with ID i, in meters. */
-#define MV_DRONE_POSY(i)			"drone" i ".pos.y"							/* The y position of a drone with ID i, in meters. */
-#define MV_MOBILE(i)				"drone" i ".mobile"							/* True of drone with ID i is flying and available for bridging. */
-#define MV_BRIDGING(i)				"drone" i ".bridging"						/* True if drone with ID i is bridging. */
-#define MV_BRIDGE_ID(i)				"drone" i ".bride_id"						/* If bridging, indicates the ID of the associated request or bridge. */
-
-// Output
-// The following parameters are always modified:
-// - user_bridge_request.enabled: it is turned to false locally, to ensure a request is processed only once.
-// The following parameters are set only if the drone decides it has to become part of a bridge:
-// - drone{.i}.bridging: set up as explained above.
-// As well as:
-#define MV_DRONE_TARGET_POSX(i)		"drone" i ".target_pos.x"					/* The x target position of a drone with ID i, where it should head to, in meters. */
-#define MV_DRONE_TARGET_POSY(i)		"drone" i ".target_pos.y"					/* The y target position of a drone with ID i, where it should head to, in meters. */
-
-// Internal variables:
+// Internal variables
 #define MV_AVAILABLE_DRONES_AMOUNT	".available_drones"					// The amount of available drones.
 #define MV_AVAILABLE_DRONES_IDS		".available_drones_ids"				// Array of the ids of the available drones.
 #define MV_AVAILABLE_DRONES_POSX	".available_drones_position_x"		// Array of the x part of the position of the drones indicated by .available_drones_ids.
@@ -128,6 +100,7 @@ void MadaraBridgeManager::defineFunctions()
         // Dummy variable set for the bridging flag to ensure it is continously propagated, even to new drones.
         "("
         MV_BRIDGING("{" MV_MY_ID "}") "=" MV_BRIDGING("{" MV_MY_ID "}") ";"
+        MV_MOBILE("{" MV_MY_ID "}") "=" MV_MOBILE("{" MV_MY_ID "}") ";"
         MV_DRONE_TARGET_POSX("{" MV_MY_ID "}") "=" MV_DRONE_TARGET_POSX("{" MV_MY_ID "}") ";"
         MV_DRONE_TARGET_POSY("{" MV_MY_ID "}") "=" MV_DRONE_TARGET_POSY("{" MV_MY_ID "}") ";"
         ")"
@@ -157,8 +130,7 @@ void MadaraBridgeManager::defineFunctions()
             "));"
         ")"
     );
-
-}
+    }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Compiles all expressions to be used by this class.
@@ -180,16 +152,34 @@ void MadaraBridgeManager::compileExpressions()
 Madara::Knowledge_Record MadaraBridgeManager::findPositionInBridge (Madara::Knowledge_Engine::Function_Arguments &args,
              Madara::Knowledge_Engine::Variables &variables)
 {
-    // Get the basic info: source and sink positions, my id and the comm range.
+    // Get the basic info: local id, range, and bridge id.
     int myId = (int) variables.get(MV_MY_ID).to_integer();
     double commRange = variables.get(MV_COMM_RANGE).to_double();
-    int bridgeRequestId = (int) variables.get(MV_USER_BRIDGE_REQUEST_ID).to_integer();
-    double sourceX = variables.get(MV_SOURCE_X).to_double();
-    double sourceY = variables.get(MV_SOURCE_Y).to_double();
-    Position sourcePosition(sourceX, sourceY);
-    double sinkX = variables.get(MV_SINK_X).to_double();
-    double sinkY = variables.get(MV_SINK_Y).to_double();
-    Position sinkPosition(sinkX, sinkY);
+    int bridgeId = (int) variables.get(MV_USER_BRIDGE_REQUEST_ID).to_integer();
+
+    // Simplify the source region for now, treating it as a point by calculating the middle point.
+    std::string bridgeSourceRegionId = variables.get(MV_BRIDGE_SOURCE_REGION_ID("{" MV_USER_BRIDGE_REQUEST_ID "}")).to_string();
+    Position* sourcePosition = calculateMiddlePoint(variables, bridgeSourceRegionId);
+   
+    // Simplify the sink region for now, treating it as a point by calculating the middle point.
+    std::string bridgeSinkRegionId = variables.get(MV_BRIDGE_SINK_REGION_ID("{" MV_USER_BRIDGE_REQUEST_ID "}")).to_string();
+    Position* sinkPosition = calculateMiddlePoint(variables, bridgeSinkRegionId);
+
+    // Check if we couldn't find the required positions, returning immediately with false.
+    if(sourcePosition == NULL || sinkPosition == NULL)
+    {
+        if(sourcePosition != NULL)
+        {
+            delete sourcePosition;
+        }
+
+        if(sinkPosition != NULL)
+        {
+            delete sinkPosition;
+        }
+
+        return Madara::Knowledge_Record(0.0);
+    }
 
     // Find all the available drones and their positions, called here to ensure atomicity and we have the most up to date data.
     variables.evaluate(m_expressions[BE_FIND_AVAILABLE_DRONES_POSITIONS], Madara::Knowledge_Engine::DELAY_AND_TREAT_AS_LOCAL_EVAL_SETTINGS);
@@ -215,7 +205,7 @@ Madara::Knowledge_Record MadaraBridgeManager::findPositionInBridge (Madara::Know
 
     // Call the bridge algorithm to find out if I have to move to help witht the bridge.
     BridgeAlgorithm algorithm;
-    Position* myNewPosition = algorithm.getPositionInBridge(myId, commRange, sourcePosition, sinkPosition, availableDronePositions);
+    Position* myNewPosition = algorithm.getPositionInBridge(myId, commRange, *sourcePosition, *sinkPosition, availableDronePositions);
 
     // If I have to move, tell Madara that I am in bridging mode, and set my final destination.
     bool iHaveToGoToBridge = myNewPosition != NULL;
@@ -223,7 +213,7 @@ Madara::Knowledge_Record MadaraBridgeManager::findPositionInBridge (Madara::Know
     {
         // Update the drone status now that we are going to build a bridge.
         variables.set(MV_BRIDGING("{" MV_MY_ID "}"), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-        variables.set(MV_BRIDGE_ID("{" MV_MY_ID "}"), (Madara::Knowledge_Record::Integer) bridgeRequestId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+        variables.set(MV_BRIDGE_ID("{" MV_MY_ID "}"), (Madara::Knowledge_Record::Integer) bridgeId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
         variables.set(MV_DRONE_TARGET_POSX("{" MV_MY_ID "}"), myNewPosition->x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
         variables.set(MV_DRONE_TARGET_POSY("{" MV_MY_ID "}"), myNewPosition->y);
     }
@@ -231,7 +221,44 @@ Madara::Knowledge_Record MadaraBridgeManager::findPositionInBridge (Madara::Know
     // Indicate, locally, that we already addressed this request, so we don't get stuck recalculating everything each cycle.
     variables.set(MV_USER_BRIDGE_REQUEST_ON, 0.0, Madara::Knowledge_Engine::TREAT_AS_LOCAL_UPDATE_SETTINGS);
 
+    // Cleanup.
+    delete sourcePosition;
+    delete sinkPosition;
+    if(myNewPosition != NULL)
+    {
+        delete myNewPosition;
+    }
+
     return Madara::Knowledge_Record(1.0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Test method used to setup drones in certain locations and issue a bridging request.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Position* MadaraBridgeManager::calculateMiddlePoint(Madara::Knowledge_Engine::Variables &variables, std::string regionId)
+{
+    Position* middlePoint = NULL;
+
+    // Calculate the mid point depending on the region type obtained from Madara.
+    int regionType = (int) variables.get(MV_REGION_TYPE(regionId)).to_integer();   
+    switch(regionType)
+    {
+        case 0: // Rectangle.
+        {
+            // Get the bounding box from Madara.
+            double topLeftX = variables.get(MV_REGION_TOPLEFT_LAT(regionId)).to_double();
+            double topLeftY = variables.get(MV_REGION_TOPLEFT_LON(regionId) ).to_double();
+            double bottomRightX = variables.get(MV_REGION_BOTRIGHT_LAT(regionId)).to_double();
+            double bottomRightY = variables.get(MV_REGION_BOTRIGHT_LON(regionId) ).to_double();
+
+            // Just find the middle point of the diagonal between the two border points.
+            middlePoint = new Position();
+            middlePoint->x = (bottomRightX - topLeftX)/2.0 + topLeftX;
+            middlePoint->y = (topLeftY - bottomRightY)/2.0 + bottomRightY;
+        }
+    }
+
+    return middlePoint;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -273,12 +300,12 @@ void MadaraBridgeManager::setupBridgeTest()
     m_knowledge.set(MV_TOTAL_DRONES, 9.0);
     m_knowledge.set(MV_COMM_RANGE, commRange);
     m_knowledge.set(MV_USER_BRIDGE_REQUEST_ID, (Madara::Knowledge_Record::Integer) 1);
-    m_knowledge.set(MV_BRIDGE_SOURCE_ID, (Madara::Knowledge_Record::Integer) 1);
-    m_knowledge.set(MV_BRIDGE_SINK_ID, (Madara::Knowledge_Record::Integer) 1);
+    //m_knowledge.set(MV_BRIDGE_SOURCE_ID, (Madara::Knowledge_Record::Integer) 1);
+    //m_knowledge.set(MV_BRIDGE_SINK_ID, (Madara::Knowledge_Record::Integer) 1);
 
     // Generate pos for sink (id = 1)
-    m_knowledge.set(m_knowledge.expand_statement(MV_SINK_X), sinkPosition.x);
-    m_knowledge.set(m_knowledge.expand_statement(MV_SINK_Y), sinkPosition.y);
+   // m_knowledge.set(m_knowledge.expand_statement(MV_SINK_X), sinkPosition.x);
+    //m_knowledge.set(m_knowledge.expand_statement(MV_SINK_Y), sinkPosition.y);
 
     // Simulate the sink actually sending the command to bridge.
     m_knowledge.set(MV_USER_BRIDGE_REQUEST_ON, 1.0);
