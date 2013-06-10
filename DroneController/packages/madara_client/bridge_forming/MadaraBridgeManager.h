@@ -32,7 +32,7 @@
 enum BridgeMadaraExpressionId 
 {
     // Expression to call function to update the positions of the drones available for a bridge.
-	BE_FIND_AVAILABLE_DRONES_POSITIONS
+	BE_FIND_AVAILABLE_DRONES_POSITIONS,
 };
 
 /**
@@ -65,6 +65,12 @@ public:
      **/
 	Madara::Knowledge_Record findPositionInBridge (Madara::Knowledge_Engine::Function_Arguments &args,
              Madara::Knowledge_Engine::Variables &variables);
+
+	/**
+     * Method used to return a Madara function call used to setup any simulated data required to connect with simulator.
+     * @return  A string that can be evaluted to call the logic to prepare data from the simulator.
+     **/
+    std::string getSimulationLogicMadaraCall();
 
 	/**
      * Method used to set up a simple test scenario.

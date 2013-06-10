@@ -26,7 +26,7 @@ function doInitialSetup()
     end
         
     -- Used to identify each bridge request.
-    g_bridgeRequestId = 1    
+    g_bridgeRequestId = 0
     
     -- Array used to ensure that we automatically request a bridge for a certain person only once. Only useful to simplify the simulation.
     g_peopleFound = {}

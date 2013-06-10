@@ -76,6 +76,7 @@ int main (int argc, char** argv)
     // Startup the bridge manager.
 	MadaraBridgeManager::getInstance().initialize(knowledge);
 	std::string buildingMainLogicCall = MadaraBridgeManager::getInstance().getMainLogicMadaraCall();
+    std::string preprocessLogicCall = MadaraBridgeManager::getInstance().getSimulationLogicMadaraCall();
 
 	// Setup a simple test since we are not inside actual drones.
     if(g_setupTest)
@@ -98,7 +99,7 @@ int main (int argc, char** argv)
     // Until the user presses ctrl+c in this terminal, check for input.
     while (!g_terminated)
     {
-        knowledge.evaluate (buildingMainLogicCall, eval_settings);
+        knowledge.evaluate (preprocessLogicCall + ";" + buildingMainLogicCall + ";", eval_settings);
         ACE_OS::sleep (1);
 
 		double myX = knowledge.get("drone{.id}.pos.x").to_double();

@@ -85,9 +85,6 @@ MadaraController::MadaraController(int id, double commRange)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MadaraController::setupBridgeRequest(int bridgeId, Position sourceTopLeft, Position sourceBottomRight, Position sinkTopLeft, Position sinkBottomRight)
 {
-    // Simulate the sink actually sending the command to bridge.
-    m_knowledge->set(MV_USER_BRIDGE_REQUEST_ID, (Madara::Knowledge_Record::Integer) bridgeId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-
     int rectangleType = 0;
     std::string bridgeIdString = INT_TO_STR(bridgeId);
 
@@ -98,10 +95,11 @@ void MadaraController::setupBridgeRequest(int bridgeId, Position sourceTopLeft, 
     m_knowledge->set(MV_REGION_TYPE(sourceRegionIdString), (Madara::Knowledge_Record::Integer) rectangleType, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
     // Set the bounding box of the regions. For now, the rectangle will actually just be a point.
-    m_knowledge->set(MV_REGION_TOPLEFT_LAT(sourceRegionIdString), sourceTopLeft.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set(MV_REGION_TOPLEFT_LON(sourceRegionIdString), sourceTopLeft.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set(MV_REGION_BOTRIGHT_LAT(sourceRegionIdString), sourceBottomRight.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set(MV_REGION_BOTRIGHT_LON(sourceRegionIdString), sourceBottomRight.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    // NOTE: we use substring below to store the information not in the local but a global variable, which is only needed in a simulation.
+    m_knowledge->set((MV_REGION_TOPLEFT_LAT(sourceRegionIdString)).substr(1), sourceTopLeft.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set((MV_REGION_TOPLEFT_LON(sourceRegionIdString)).substr(1), sourceTopLeft.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set((MV_REGION_BOTRIGHT_LAT(sourceRegionIdString)).substr(1), sourceBottomRight.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set((MV_REGION_BOTRIGHT_LON(sourceRegionIdString)).substr(1), sourceBottomRight.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
     // Store the id of the sink region for this bridge.
     int sinkRegionId = m_regionId++;
@@ -110,13 +108,16 @@ void MadaraController::setupBridgeRequest(int bridgeId, Position sourceTopLeft, 
     m_knowledge->set(MV_REGION_TYPE(sinkRegionIdString), (Madara::Knowledge_Record::Integer) rectangleType, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
     // Set the bounding box of the regions. For now, the rectangle will actually just be a point.
-    m_knowledge->set(MV_REGION_TOPLEFT_LAT(sinkRegionIdString), sinkTopLeft.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set(MV_REGION_TOPLEFT_LON(sinkRegionIdString), sinkTopLeft.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set(MV_REGION_BOTRIGHT_LAT(sinkRegionIdString), sinkBottomRight.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set(MV_REGION_BOTRIGHT_LON(sinkRegionIdString), sinkBottomRight.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    // NOTE: we use substring below to store the information not in the local but a global variable, which is only needed in a simulation.
+    m_knowledge->set((MV_REGION_TOPLEFT_LAT(sinkRegionIdString)).substr(1), sinkTopLeft.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set((MV_REGION_TOPLEFT_LON(sinkRegionIdString)).substr(1), sinkTopLeft.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set((MV_REGION_BOTRIGHT_LAT(sinkRegionIdString)).substr(1), sinkBottomRight.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set((MV_REGION_BOTRIGHT_LON(sinkRegionIdString)).substr(1), sinkBottomRight.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
+    // We set the total bridges to the bridge id + 1, since it starts at 0.
     // This call has no delay to flush all past changes.
-    m_knowledge->set(MV_USER_BRIDGE_REQUEST_ON, 1.0);
+    int totalBridges = bridgeId + 1;
+    m_knowledge->set(MV_TOTAL_BRIDGES, (Madara::Knowledge_Record::Integer) totalBridges);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -165,9 +166,11 @@ void MadaraController::updateDroneStatus(std::vector<DroneStatus> droneStatusLis
     for (std::vector<DroneStatus>::iterator it = droneStatusList.begin() ; it != droneStatusList.end(); ++it)
     {
         // Update the overall status of this drone.
+        // NOTE: we use substring below to store the information not in the local but a global variable, which is only needed in a simulation.
         std::string droneIdString = INT_TO_STR(it->id);
-        m_knowledge->set(MV_DRONE_POSX(droneIdString), it->posx, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-        m_knowledge->set(MV_DRONE_POSY(droneIdString), it->posy, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+        m_knowledge->set((MV_DRONE_POSX(droneIdString)).substr(1), it->posx, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+        m_knowledge->set((MV_DRONE_POSY(droneIdString)).substr(1), it->posy, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+
         //if(it->flying)
         //    m_knowledge->set(MV_MOBILE(it->id), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
         //else
@@ -182,7 +185,7 @@ void MadaraController::updateDroneStatus(std::vector<DroneStatus> droneStatusLis
 Position* MadaraController::getBridgePosition(int droneId)
 {
     std::string droneIdString = INT_TO_STR(droneId);
-    int isDroneInBridge = (int) m_knowledge->get(MV_BRIDGING(droneIdString)).to_integer();
+    int isDroneInBridge = (int) m_knowledge->get(MV_BUSY(droneIdString)).to_integer();
     if(isDroneInBridge == 0)
     {
         // No position to return since drone has not joined the bridge process.
