@@ -27,9 +27,6 @@ function doInitialSetup()
     -- Get the total number of drones.
 	g_numDrones = simGetScriptSimulationParameter(sim_handle_main_script, 'numberOfDrones')
     
-    -- Used to identify each bridge request.
-    g_bridgeRequestId = 1
-    
     -- Flag to indicate whether it is flying or not.
     --g_flying = true
 
@@ -154,11 +151,11 @@ end
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function runMainLogic()
     if(g_patrolling) then
-        -- Check if we got new bridge status, or if we have to calculate our position in the bridge.
-        checkBridgeStatus()
-        
         -- Check if we have found a person to stop on top of it (only if we are patrolling).
         lookForPersonBelow()
+    
+        -- Check if we got new bridge status, or if we have to calculate our position in the bridge.
+        checkBridgeStatus()        
     end
 
     -- If we are still patrolling or bridging, move to next scheduled position.
@@ -181,33 +178,12 @@ function lookForPersonBelow()
     for i=1, g_numPeople, 1 do
         if( (dronePos[1] >= g_personCoords[counter] - margin) and (dronePos[1] <= g_personCoords[counter] + margin) ) then
             if((dronePos[2] >= g_personCoords[counter + 1] - margin) and (dronePos[2] <= g_personCoords[counter + 1] + margin)) then
-                -- We found someone. First mark area coverage as done, to prevent further movements.
-                g_patrolling = false
-                g_bridging = false
-
                 -- Notifiy our shared memory that a person was found, and that I was the one to find it.
                 local sourceSuffix, sourceName = simGetNameSuffix(nil)
                 simSetScriptSimulationParameter(sim_handle_main_script, 'personFound', 'true')
                 simSetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound', sourceSuffix)
-                simAddStatusbarMessage('Person found! ' .. tostring(simGetScriptSimulationParameter(sim_handle_main_script, 'personFound')))
-                simAddStatusbarMessage('By ' ..sourceSuffix)
-                
-                -- If enabled, notify through Madara that we need a bridge.
-                if(g_madaraClientEnabled) then
-                    -- Madara Drone IDs start at 0, and V-Rep suffixes start at -1.
-                    local sourceDroneId = sourceSuffix + 1
-                    
-                    -- Mark this drone as stopped.
-                    local myDroneId = g_mySuffix + 1  
-                    simExtMadaraClientStopDrone(myDroneId)
-                    
-                    -- Do the actual call to Madara.
-                    local sinkPosition = getSinkPosition()
-                    simExtMadaraClientBridgeRequest(g_bridgeRequestId, dronePos[1], dronePos[2], dronePos[1], dronePos[2], sinkPosition[1], sinkPosition[2], sinkPosition[1], sinkPosition[2])
-                    g_bridgeRequestId = g_bridgeRequestId + 1
-                end
-
-                break
+                simSetScriptSimulationParameter(sim_handle_main_script, 'personFoundId', i)
+                simAddStatusbarMessage('Drone with suffix ' .. sourceSuffix .. ' found person ' .. i .. '!')
             end
         end
         counter = counter + 2
@@ -234,7 +210,7 @@ function checkBridgeStatus()
             --simAddStatusbarMessage('Got target position for drone ' .. g_myDroneName .. ' with id ' .. myDroneId .. ' is nil.')
         end
     else
-        -- If a person was found by someone else, recalculate new location so that we create a bridge to the sink.
+        -- If a person was found, recalculate new location so that we create a bridge to the sink.
         local personHasBeenFound = simGetScriptSimulationParameter(sim_handle_main_script, 'personFound')
     
         -- Actually calculate if we are in the bridge.
@@ -277,7 +253,7 @@ function buildBridge()
     g_startSystemTime = simGetSystemTimeInMilliseconds()
 
     -- Get position of sink and source
-    local sinkPosition = getSinkPosition()
+    local sinkName, sinkPosition = getSinkInfo()
     local droneSourceName, sourcePosition = getSourceInfo()
     simAddStatusbarMessage('Source at '  .. sourcePosition[1] .. ', ' .. sourcePosition[2])
     

@@ -8,13 +8,14 @@
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Returns the position of the sink as a table with x,y,z
 --/////////////////////////////////////////////////////////////////////////////////////////////
-function getSinkPosition()
+function getSinkInfo()
     -- Get position of sink.
-    laptopHandle = simGetObjectHandle('laptop#')
+    local sinkName = 'laptop'
+    laptopHandle = simGetObjectHandle(sinkName .. '#')
     local sinkPosition = simGetObjectPosition(laptopHandle, -1)
-    simAddStatusbarMessage('Sink at '  .. sinkPosition[1] .. ', ' .. sinkPosition[2])
+    --simAddStatusbarMessage('Sink at '  .. sinkPosition[1] .. ', ' .. sinkPosition[2])
     
-    return sinkPosition
+    return sinkName, sinkPosition
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////

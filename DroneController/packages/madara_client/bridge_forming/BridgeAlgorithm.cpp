@@ -47,12 +47,12 @@ Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Posit
 
 	// Calculate how many drones we need for the bridge.
 	double bridgeLength = sqrt(pow(sourcePosition.x - sinkPosition.x, 2) + pow(sourcePosition.y - sinkPosition.y, 2));
-	int numberOfRelays = (int) ceil(bridgeLength/commRange - 1);    // +1 to add a relay in each end point.
+	int numberOfRelays = (int) ceil(bridgeLength/commRange + 1);    // +1 to add a relay in each end point.
     outputFile << "Source: (" << sourcePosition.x << ", " << sourcePosition.y  << "), sink: (" << sinkPosition.x << ", " << sinkPosition.y << ")" << endl;
 	outputFile << "Num Relays " << numberOfRelays << endl;
 
     // If no relays are required, return NULL.
-    if(numberOfRelays < 1)
+    if(numberOfRelays < 2)
     {
         return myNewPosition;
     }
@@ -62,8 +62,10 @@ Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Posit
 	for(int i=0; i<numberOfRelays; i++)
 	{
 		Position relayPosition;
-		relayPosition.x = sinkPosition.x + (sourcePosition.x - sinkPosition.x)/(numberOfRelays + 1)*(i+1);
-		relayPosition.y = sinkPosition.y + (sourcePosition.y - sinkPosition.y)/(numberOfRelays + 1)*(i+1);
+		//relayPosition.x = sinkPosition.x + (sourcePosition.x - sinkPosition.x)/(numberOfRelays + 1)*(i+1);
+		//relayPosition.y = sinkPosition.y + (sourcePosition.y - sinkPosition.y)/(numberOfRelays + 1)*(i+1);
+        relayPosition.x = sinkPosition.x + (sourcePosition.x - sinkPosition.x)/(numberOfRelays - 1)*(i);
+		relayPosition.y = sinkPosition.y + (sourcePosition.y - sinkPosition.y)/(numberOfRelays - 1)*(i);
 		relayList[i] = relayPosition;
 
         //outputFile << "Relay " << i << ", pos " << relayPosition.x << ", " << relayPosition.y << ")" << endl;

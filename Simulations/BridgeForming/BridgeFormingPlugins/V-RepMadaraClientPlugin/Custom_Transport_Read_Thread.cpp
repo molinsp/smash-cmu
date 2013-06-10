@@ -140,31 +140,31 @@ unsigned __stdcall threadfunc(void * param)
       " entering message iteration "<<std::endl; outputFile.flush();
     
     // Wait until timeout or data received.
-    //fd_set fds;
-    //FD_ZERO(&fds);
-    //FD_SET(trt->socket_, &fds);
-    //timeval timeout;
-    //timeout.tv_sec = 5;
-    //timeout.tv_usec = 0;
-    //int success = select(trt->socket_, &fds, NULL, NULL, &timeout) ;
-    //if (success == 0)
-    //{ 
-    //    outputFile << "Custom_Transport_Read_Thread::svc:" \
-    //      " timeout waiting for messages "<<std::endl; outputFile.flush();
-    //}
-    //else if(success == SOCKET_ERROR)
-    //{
-    //    outputFile << "Custom_Transport_Read_Thread::svc:" \
-    //      " error ocurred waiting for messages "<<std::endl; outputFile.flush();
-    //}
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(trt->socket_, &fds);
+    timeval timeout;
+    timeout.tv_sec = 2;
+    timeout.tv_usec = 0;
+    int success = select(trt->socket_, &fds, NULL, NULL, &timeout) ;
+    if (success == 0)
+    { 
+        outputFile << "Custom_Transport_Read_Thread::svc:" \
+          " timeout waiting for messages "<<std::endl; outputFile.flush();
+    }
+    else if(success == SOCKET_ERROR)
+    {
+        outputFile << "Custom_Transport_Read_Thread::svc:" \
+          " error ocurred waiting for messages "<<std::endl; outputFile.flush();
+    }
 
     // read the message
     sockaddr_in from_addr;
+    int from_len = sizeof(from_addr);
+    memset(&from_addr, 0, from_len);
     int bytes_read = 0;
-    //if(success > 0)
-    {
-        int from_len = sizeof(from_addr);
-        memset(&from_addr, 0, from_len);
+    if(success > 0)
+    {        
         memset(buffer, 0, sizeof(buffer));
         bytes_read = recvfrom(trt->socket_, buffer, sizeof(buffer), 0, (sockaddr *) &from_addr, &from_len);
     }
@@ -172,21 +172,21 @@ unsigned __stdcall threadfunc(void * param)
   //ACE_Time_Value wait_time (1);
   //ACE_INET_Addr  remote;
   //ssize_t bytes_read = trt->socket_.recv ((void *)buffer, trt->settings_.queue_length, remote, 0, &wait_time);
-
-    int from_port = ntohs(from_addr.sin_port);
      
     if (bytes_read <= 0)
     {
       MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
         DLINFO "Custom_Transport_Read_Thread::svc:" \
-        " received %d bytes from %s:%d. Proceeding to next wait\n", bytes_read, inet_ntoa(from_addr.sin_addr),from_port));
+        " received %d bytes. Proceeding to next wait\n", bytes_read));
 
         outputFile << "Custom_Transport_Read_Thread::svc:" \
-              " received " << bytes_read << " bytes. Proceeding to next wait. ("<< inet_ntoa(from_addr.sin_addr) <<":" <<from_port << ")" <<std::endl;outputFile.flush();
+              " received " << bytes_read << " bytes. Proceeding to next wait." <<std::endl;outputFile.flush();
 
     }
     else
     {
+        int from_port = ntohs(from_addr.sin_port);
+
         MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
           DLINFO "Custom_Transport_Read_Thread::svc:" \
           " received a message header of %d bytes from %s:%d\n",
