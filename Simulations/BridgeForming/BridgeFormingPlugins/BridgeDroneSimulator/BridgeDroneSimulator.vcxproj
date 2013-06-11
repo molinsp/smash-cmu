@@ -76,13 +76,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\BridgeAlgorithm.cpp" />
-    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\MadaraBridgeManager.cpp" />
+    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\bridge_module.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\BridgeAlgorithm.h" />
     <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\CommonMadaraBridgeVariables.h" />
-    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\MadaraBridgeManager.h" />
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\bridge_module.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

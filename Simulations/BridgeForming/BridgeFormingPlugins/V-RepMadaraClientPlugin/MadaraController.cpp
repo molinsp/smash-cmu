@@ -12,8 +12,10 @@
 
 #include <vector>
 
+// Multicast address.
 #define DEFAULT_MULTICAST_ADDRESS "239.255.0.1:4150"
 
+// Macro to convert from int to std::string.
 #define INT_TO_STR( x ) dynamic_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << x ) ).str()
 
@@ -144,7 +146,7 @@ void MadaraController::updateNetworkStatus(double controllerPosx, double control
     m_knowledge->set (MV_COMM_RANGE, m_commRange, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
     // This call has no delay to flush all past changes, and updates the total of drones in the system.
-    m_knowledge->set(MV_TOTAL_DRONES, (Madara::Knowledge_Record::Integer) droneStatusList.size());
+    m_knowledge->set(MV_TOTAL_DEVICES, (Madara::Knowledge_Record::Integer) droneStatusList.size());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -168,8 +170,8 @@ void MadaraController::updateDroneStatus(std::vector<DroneStatus> droneStatusLis
         // Update the overall status of this drone.
         // NOTE: we use substring below to store the information not in the local but a global variable, which is only needed in a simulation.
         std::string droneIdString = INT_TO_STR(it->id);
-        m_knowledge->set((MV_DRONE_POSX(droneIdString)).substr(1), it->posx, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-        m_knowledge->set((MV_DRONE_POSY(droneIdString)).substr(1), it->posy, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+        m_knowledge->set((MV_DEVICE_LAT(droneIdString)).substr(1), it->posx, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+        m_knowledge->set((MV_DEVICE_LON(droneIdString)).substr(1), it->posy, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
         //if(it->flying)
         //    m_knowledge->set(MV_MOBILE(it->id), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
@@ -193,8 +195,8 @@ Position* MadaraController::getBridgePosition(int droneId)
     }
 
     // Get the targeted positions this drone want to go to in the bridge.
-    double targetPosX = m_knowledge->get(MV_DRONE_TARGET_POSX(droneIdString)).to_double();
-    double targetPosY = m_knowledge->get(MV_DRONE_TARGET_POSY(droneIdString)).to_double();
+    double targetPosX = m_knowledge->get(MV_DEVICE_TARGET_LAT(droneIdString)).to_double();
+    double targetPosY = m_knowledge->get(MV_DEVICE_TARGET_LON(droneIdString)).to_double();
 
     // Return it as a position object.
     Position* targetPosition = new Position(targetPosX, targetPosY);

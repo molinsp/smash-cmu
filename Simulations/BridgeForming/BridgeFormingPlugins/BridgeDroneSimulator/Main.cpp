@@ -13,8 +13,7 @@
 #include "ace/OS_NS_Thread.h"
 
 //#include "DroneActions.h"
-#include "BridgeAlgorithm.h"
-#include "MadaraBridgeManager.h"
+#include "bridge_module.h"
 
 //#include "Custom_Transport.h"
 
@@ -74,14 +73,14 @@ int main (int argc, char** argv)
     //knowledge.attach_transport(new Custom_Transport (knowledge.get_id (), knowledge.get_context (), g_settings, true));
 
     // Startup the bridge manager.
-	MadaraBridgeManager::getInstance().initialize(knowledge);
-	std::string buildingMainLogicCall = MadaraBridgeManager::getInstance().getMainLogicMadaraCall();
-    std::string preprocessLogicCall = MadaraBridgeManager::getInstance().getSimulationLogicMadaraCall();
+    SMASH::Bridge::initialize(knowledge);
+	std::string buildingMainLogicCall = SMASH::Bridge::getMainLogic();
+    std::string preprocessLogicCall = SMASH::Bridge::getSimulationLogic();
 
 	// Setup a simple test since we are not inside actual drones.
     if(g_setupTest)
     {
-    	MadaraBridgeManager::getInstance().setupBridgeTest();    
+    	SMASH::Bridge::setupBridgeTest();    
     }
 
     // Visual settings to show console output.

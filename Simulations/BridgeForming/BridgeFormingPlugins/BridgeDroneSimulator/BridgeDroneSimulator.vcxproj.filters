@@ -21,7 +21,7 @@
     <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\BridgeAlgorithm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\MadaraBridgeManager.cpp">
+    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\bridge_module.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -29,10 +29,10 @@
     <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\BridgeAlgorithm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\MadaraBridgeManager.h">
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\CommonMadaraBridgeVariables.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\CommonMadaraBridgeVariables.h">
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge_forming\bridge_module.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
