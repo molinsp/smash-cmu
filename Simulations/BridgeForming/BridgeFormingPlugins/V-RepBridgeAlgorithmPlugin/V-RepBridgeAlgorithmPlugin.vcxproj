@@ -49,7 +49,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\..\DroneController\packages\madara_client\bridge_forming;..\V-RepImports;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\DroneController\packages\madara_client\bridge;..\V-RepImports;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -67,7 +67,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\..\..\DroneController\packages\madara_client\bridge_forming;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\DroneController\packages\madara_client\bridge;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -80,14 +80,14 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\BridgeAlgorithm.h" />
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.h" />
     <ClInclude Include="..\V-RepImports\extApiCustomConst.h" />
     <ClInclude Include="..\V-RepImports\v_repConst.h" />
     <ClInclude Include="..\V-RepImports\v_repLib.h" />
     <ClInclude Include="v_repExtBridgeAlgorithm.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\BridgeAlgorithm.cpp" />
+    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.cpp" />
     <ClCompile Include="..\V-RepImports\v_repLib.cpp" />
     <ClCompile Include="v_repExtBridgeAlgorithm.cpp" />
   </ItemGroup>

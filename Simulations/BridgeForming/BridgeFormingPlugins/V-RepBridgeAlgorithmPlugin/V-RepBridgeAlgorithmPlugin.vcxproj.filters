@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\BridgeAlgorithm.h">
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="v_repExtBridgeAlgorithm.h">
@@ -35,7 +35,7 @@
     <ClCompile Include="v_repExtBridgeAlgorithm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\BridgeAlgorithm.cpp">
+    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\V-RepImports\v_repLib.cpp">
