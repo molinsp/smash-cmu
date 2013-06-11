@@ -18,6 +18,7 @@ LOCAL_INCLUDES = -I$(INSTALL_ROOT)/include -I$(CURDIR)
 
 include movement/movement_module.mk
 include sensors/sensors_module.mk
+include bridge/bridge_module.mk
 include utilities/utilities_module.mk
 include platforms/$(PLATFORM).mk
 
