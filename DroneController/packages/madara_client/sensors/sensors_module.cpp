@@ -5,10 +5,8 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
  
-#include "madara/knowledge_engine/Knowledge_Base.h"
-#include "madara_sensor_functions.h"
-
-#include "platform_functions.h"
+#include "sensors/sensors_module.h"
+#include "platform_sensors.h"
 
 #define TASK_COUNT		1
 #define EVALUATE_SENSORS	0
@@ -23,9 +21,9 @@ Madara::Knowledge_Record read_highest_thermal (Madara::Knowledge_Engine::Functio
 	return val;
 }
 
-Madara::Knowledge_Record evaluate_sensor_functions (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
+Madara::Knowledge_Record read_sensors (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-	printf("evaluate_sensor_functions();\n");
+	printf("read_sensors();\n");
 	return variables.evaluate(expressions2[EVALUATE_SENSORS], Madara::Knowledge_Engine::TREAT_AS_LOCAL_UPDATE_SETTINGS);
 }
 
@@ -34,7 +32,7 @@ Madara::Knowledge_Record evaluate_sensor_functions (Madara::Knowledge_Engine::Fu
 void define_sensor_functions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 {
 	knowledge.define_function ("read_highest_thermal", read_highest_thermal);
-	knowledge.define_function ("evaluate_sensor_functions", evaluate_sensor_functions);
+	knowledge.define_function ("read_sensors", read_sensors);
 }
 
 
@@ -47,10 +45,15 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
 	);
 }
 
-void init_madara_sensor_functions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
+void SMASH::Sensors::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
 	init_sensor_functions();
 
 	define_sensor_functions(knowledge);
 	compile_sensor_function_expressions(knowledge);
 }
+std::string SMASH::Sensors::main_logic()
+{
+	return "read_sensors()";
+}
+
