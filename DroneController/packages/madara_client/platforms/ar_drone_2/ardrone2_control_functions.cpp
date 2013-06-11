@@ -10,12 +10,14 @@
 #include <stdio.h>
 #include <drk.h>
 
-#include "platform_functions.h"
+#include "platforms/platform.h"
+#include "movement/platform_movement.h"
+#include "sensors/platform_sensors.h"
 
 static bool drk_init_status = false;
 
-static int frame_number;
-static double thermal_data[8][8];
+int frame_number;
+double thermal_data[8][8];
 
 bool init_platform()
 {
@@ -84,35 +86,35 @@ void move_backward()
 	drk_move_backward(0.5, 1000, DRK_HOVER);
 }
 
-void read_thermal()
+double read_thermal()
 {
-	printf("in read_thermal()\n");
-	sem_wait(serial_buf->semaphore);
-	memcpy(&thermal_data, &((serial_buf->grideye_buf).temperature), sizeof(thermal_data));
-	frame_number = serial_buf->grideye_buf.index;
-	sem_post(serial_buf->semaphore);
-	printf("done in read_thermal()\n");
+	double buffer[8][8];
+        sem_wait(serial_buf->semaphore);
+        memcpy(&buffer, &((serial_buf->grideye_buf).temperature), sizeof(buffer));
+        sem_post(serial_buf->semaphore);
+        
+        int x, y;
+        double ret = 0.0;
+        for (y = 0; y < 8; y++)
+        {
+		for (x = 0; x < 8; x++)
+		{
+		
+			printf("%02f ", buffer[x][y]);
+		
+			if (buffer[x][y] > ret)
+			{
+				ret = buffer[x][y];
+			}
+		}
+		printf("\n");
+	}
+	return ret;
 }
 
 double human_detected()
 {
-
-	printf("in human_detected()\n");
-
-	read_thermal();
-	double max = 0.0;
-	for (int x = 0; x < 8; ++x)
-	{
-		for (int y = 0; y < 8; ++y)
-		{
-			printf("%f ", thermal_data[x][y]);
-		
-			if(thermal_data[x][y] > max)
-				max = thermal_data[x][y];
-		}
-		printf("\n");
-	}
-	return max;
+	return read_thermal();
 }
 
 

@@ -5,10 +5,9 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
  
-#include "madara/knowledge_engine/Knowledge_Base.h"
-#include "madara_control_functions.h"
 
-#include "platform_functions.h"
+#include "movement/movement_module.h"
+#include "platform_movement.h"
 
 #define TASK_COUNT		1
 #define EVALUATE_CONTROL	0
@@ -18,6 +17,7 @@ static Madara::Knowledge_Engine::Compiled_Expression expressions [TASK_COUNT];
 //Madara function to interface with takeoff()
 Madara::Knowledge_Record control_functions_takeoff (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
+	printf("In Madara::takeoff()\n");
 	takeoff();
 	return "";
 }
@@ -71,9 +71,9 @@ Madara::Knowledge_Record control_functions_move_backward (Madara::Knowledge_Engi
 	return "";
 }
 
-Madara::Knowledge_Record evaluate_control_functions (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
+Madara::Knowledge_Record process_movement_commands (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-	printf("evaluate_control_functions();\n");
+	printf("process_movement_commands();\n");
 	return variables.evaluate(expressions[EVALUATE_CONTROL], Madara::Knowledge_Engine::TREAT_AS_LOCAL_UPDATE_SETTINGS);
 }
 
@@ -89,7 +89,7 @@ void define_control_functions (Madara::Knowledge_Engine::Knowledge_Base & knowle
 	knowledge.define_function ("move_forward",    control_functions_move_forward);
 	knowledge.define_function ("move_backward",    control_functions_move_backward);
 	knowledge.define_function ("move_right",   control_functions_move_right);
-	knowledge.define_function ("evaluate_control_functions", evaluate_control_functions);
+	knowledge.define_function ("process_movement_commands", process_movement_commands);
 }
 
 
@@ -110,10 +110,15 @@ void compile_control_function_expressions (Madara::Knowledge_Engine::Knowledge_B
 	);
 }
 
-void init_madara_control_functions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
+void SMASH::Movement::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
 	init_control_functions();
 
 	define_control_functions(knowledge);
 	compile_control_function_expressions(knowledge);
+}
+
+std::string SMASH::Movement::main_logic()
+{
+	return "process_movement_commands()";
 }

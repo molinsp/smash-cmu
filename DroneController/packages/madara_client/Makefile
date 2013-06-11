@@ -10,14 +10,15 @@ CC = $(LOCAL_GPLUSPLUS)
 
 LOCAL_EXECUTABLE = madara_client
 
-LOCAL_SOURCES = client.cpp \
-		madara_control_functions.cpp \
-		madara_sensor_functions.cpp
+LOCAL_SOURCES = madara_client.cpp
 		
 LOCAL_CFLAGS = -lMADARA -lACE
 LOCAL_LD_PATH = -L$(INSTALL_ROOT)/lib
 LOCAL_INCLUDES = -I$(INSTALL_ROOT)/include -I$(CURDIR)
 
+include movement/movement_module.mk
+include sensors/sensors_module.mk
+include utilities/utilities_module.mk
 include platforms/$(PLATFORM).mk
 
 LOCAL_OBJ = $(LOCAL_SOURCES:.cpp=.o)

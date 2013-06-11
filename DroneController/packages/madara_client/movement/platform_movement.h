@@ -4,14 +4,20 @@
  *
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
- 
-#ifndef _MADARA_SENSOR_FUNCTIONS_H
-#define _MADARA_SENSOR_FUNCTIONS_H
 
-#include "madara/knowledge_engine/Knowledge_Base.h"
+#ifndef _PLATFORM_MOVEMENT_H
+#define _PLATFORM_MOVEMENT_H
 
-#define EVALUATE_SENSOR_FUNCTIONS "evaluate_sensor_functions()"
+bool init_control_functions();
 
-void init_madara_sensor_functions(Madara::Knowledge_Engine::Knowledge_Base&);
+void takeoff();
+void land();
+
+void move_up();
+void move_down();
+void move_left();
+void move_right();
+void move_forward();
+void move_backward();
 
 #endif

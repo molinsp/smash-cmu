@@ -4,26 +4,20 @@
  *
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
+ 
+#ifndef _SENSORS_MODULE_H
+#define _SENSORS_MODULE_H
 
-#ifndef _PLATFORM_FUNCTIONS_H
-#define _PLATFORM_FUNCTIONS_H
+#include <stdlib.h>
+#include "madara/knowledge_engine/Knowledge_Base.h"
 
-bool init_platform();
-
-bool init_control_functions();
-
-void takeoff();
-void land();
-
-void move_up();
-void move_down();
-void move_left();
-void move_right();
-void move_forward();
-void move_backward();
-
-bool init_sensor_functions();
-
-double human_detected();
+namespace SMASH
+{
+	namespace Sensors
+	{
+		void initialize(Madara::Knowledge_Engine::Knowledge_Base&);
+		std::string main_logic();
+	}
+}
 
 #endif
