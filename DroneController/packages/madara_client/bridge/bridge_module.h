@@ -36,18 +36,18 @@ namespace SMASH
          * Method used to get a string with the main call to the bridge funtionality.
          * @return  A string that can be evaluted to call the logic to check and do bridge building.
          **/
-	    std::string getMainLogic();
+	    std::string get_core_function();
 
 	    /**
          * Method used to return a Madara function call used to setup any simulated data required to connect with simulator.
          * @return  A string that can be evaluted to call the logic to prepare data from the simulator.
          **/
-        std::string getSimulationLogic();
+        std::string get_sim_setup_function();
 
 	    /**
          * Method used to set up a simple test scenario.
          **/
-	    void setupBridgeTest();
+	    void setupBridgeTest(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
     }
 }
 

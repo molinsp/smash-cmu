@@ -12,10 +12,8 @@
 #include "ace/High_Res_Timer.h"
 #include "ace/OS_NS_Thread.h"
 
-//#include "DroneActions.h"
 #include "bridge_module.h"
-
-//#include "Custom_Transport.h"
+#include "CommonMadaraBridgeVariables.h"
 
 #define SSTR( x ) dynamic_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << x ) ).str()
@@ -45,7 +43,6 @@ Madara::Knowledge_Record::Integer g_id;
 // Flag to indicate if we want to run an internal test configuration.
 bool g_setupTest;
 
-
 int main (int argc, char** argv)
 {
     // Set the use of Ctrl+C to terminate.
@@ -55,7 +52,6 @@ int main (int argc, char** argv)
     g_settings.hosts_.resize (1);
     g_settings.hosts_[0] = DEFAULT_MULTICAST_ADDRESS;
     g_settings.type = Madara::Transport::MULTICAST;
-    //g_settings.delay_launch = true;
 
     // Handle arguments, if any (include recieving an external ID).
     g_setupTest = false;
@@ -69,30 +65,26 @@ int main (int argc, char** argv)
     //knowledge.log_to_file(string("madaralog" + SSTR(g_id) + ".txt").c_str(), false);
     //knowledge.evaluate("#log_level(10)");
 
-    // Start the transport.
-    //knowledge.attach_transport(new Custom_Transport (knowledge.get_id (), knowledge.get_context (), g_settings, true));
-
     // Startup the bridge manager.
     SMASH::Bridge::initialize(knowledge);
-	std::string buildingMainLogicCall = SMASH::Bridge::getMainLogic();
-    std::string preprocessLogicCall = SMASH::Bridge::getSimulationLogic();
+	std::string buildingMainLogicCall = SMASH::Bridge::get_core_function();
+    std::string preprocessLogicCall = SMASH::Bridge::get_sim_setup_function();
 
 	// Setup a simple test since we are not inside actual drones.
     if(g_setupTest)
     {
-    	SMASH::Bridge::setupBridgeTest();    
+    	SMASH::Bridge::setupBridgeTest(knowledge);    
     }
 
     // Visual settings to show console output.
 	Madara::Knowledge_Engine::Eval_Settings eval_settings;
 	eval_settings.pre_print_statement =
-        "Drone {.id}\n"
-		"Available:\t{.available_drones}/{devices}\n"
-		"Position:\t{device.{.id}.latitude},{device.{.id}.longitude}\n"
-		"Mobile:\t\t{device.{.id}.mobile}\n"
-		"Bridging:\t{device.{.id}.bridging}\n"
-		"Bridge request:\t{user_bridge_request.enabled}\n"
-		"Target pos:\t{device.{.id}.target_pos.x},{device.{.id}.target_pos.y}\n\n"
+        "Drone {" MV_MY_ID "}\n"
+		"Total:\t\t{" MV_TOTAL_DEVICES "}\n"
+		"Position:\t{" MV_DEVICE_LAT("{.id}") "},{" MV_DEVICE_LON("{.id}") "}\n"
+		"Mobile:\t\t{" MV_MOBILE("{.id}") "}\n"
+		"Bridging:\t{" MV_BUSY("{.id}") ".bridging}\n"
+		"Target pos:\t{" MV_DEVICE_TARGET_LAT("{.id}") "},{" MV_DEVICE_TARGET_LAT("{.id}") "}\n\n"
 		;
 
     // Until the user presses ctrl+c in this terminal, check for input.
