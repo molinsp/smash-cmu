@@ -11,6 +11,10 @@
 #include <stdlib.h>
 #include "madara/knowledge_engine/Knowledge_Base.h"
 
+
+#define STRING_ENDS_WITH(str, end) (str.length() >= end.length() ? (0 == str.compare (str.length() - end.length(), end.length(), end)) : false)
+
+
 namespace SMASH
 {
 	namespace Utilities

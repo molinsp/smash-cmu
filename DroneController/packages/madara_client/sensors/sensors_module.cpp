@@ -13,12 +13,36 @@
 
 static Madara::Knowledge_Engine::Compiled_Expression expressions2 [TASK_COUNT];
 
-Madara::Knowledge_Record read_highest_thermal (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
+
+Madara::Knowledge_Record read_thermal_sensor (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-	printf("read_highest_thermal();\n");
-	double val = human_detected();
-	printf("Read Thermal Value: %f\n", val);
-	return val;
+	printf("read_thermal();\n");
+	double buffer[8][8];
+	read_thermal(buffer);
+	int x, y;
+	for (x = 0; x < 8; x++)
+	{
+		for (y = 0; y < 8; y++)
+		{
+			std::stringstream strBuffer;
+			strBuffer << ".sensors.thermal." << x << "." << y;
+			variables.set(strBuffer.str(), Madara::Knowledge_Record(buffer[x][y]));
+		}
+	}
+	return Madara::Knowledge_Record::Integer(1);
+}
+
+Madara::Knowledge_Record read_gps_sensor (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
+{
+	printf("in Madara::read_gps\n");
+	struct madara_gps gps;
+	read_gps(&gps);
+	std::stringstream buffer;
+	buffer << gps.latitude << "," << gps.longitude;
+	variables.set(".location", buffer.str());
+	variables.set(".location.gps.locks", Madara::Knowledge_Record::Integer(gps.num_sats));
+	
+	return Madara::Knowledge_Record::Integer(1);
 }
 
 Madara::Knowledge_Record read_sensors (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
@@ -31,7 +55,8 @@ Madara::Knowledge_Record read_sensors (Madara::Knowledge_Engine::Function_Argume
 //Define the functions provided by the sensor_functions module
 void define_sensor_functions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 {
-	knowledge.define_function ("read_highest_thermal", read_highest_thermal);
+	knowledge.define_function ("read_thermal", read_thermal_sensor);
+	knowledge.define_function ("read_gps", read_gps_sensor);
 	knowledge.define_function ("read_sensors", read_sensors);
 }
 
@@ -41,7 +66,8 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
 {	
 	expressions2[EVALUATE_SENSORS] = knowledge.compile
 	(
-		"drone.{.id}.thermal=read_highest_thermal();"
+		//"read_thermal();"
+		"read_gps();"
 	);
 }
 

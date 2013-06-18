@@ -86,36 +86,38 @@ void move_backward()
 	drk_move_backward(0.5, 1000, DRK_HOVER);
 }
 
-double read_thermal()
+void read_thermal(double buffer[8][8])
 {
-	double buffer[8][8];
+	printf("in read_thermal()\n");
         sem_wait(serial_buf->semaphore);
         memcpy(&buffer, &((serial_buf->grideye_buf).temperature), sizeof(buffer));
         sem_post(serial_buf->semaphore);
+        printf("done copying\n");
         
         int x, y;
-        double ret = 0.0;
         for (y = 0; y < 8; y++)
         {
 		for (x = 0; x < 8; x++)
 		{
-		
+			printf("in loop %d, %d\n", x, y);
 			printf("%02f ", buffer[x][y]);
-		
-			if (buffer[x][y] > ret)
-			{
-				ret = buffer[x][y];
-			}
 		}
-		printf("\n");
 	}
-	return ret;
 }
 
-double human_detected()
+void read_gps(struct madara_gps * ret)
 {
-	return read_thermal();
+	printf("In DRK read gps\n");
+	struct gps gps= drk_gps_data();
+	ret->latitude = gps.latitude;
+	ret->longitude = gps.longitude;
+	ret->num_sats = gps.num_sats;
+	printf("done in DRK read\n");
 }
 
+void move_to_location(double lat, double lon)
+{
+	printf("In platform move_to_location(%02f, %02f)\n", lat, lon);
+}
 
 #endif

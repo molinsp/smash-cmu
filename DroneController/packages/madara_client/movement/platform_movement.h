@@ -20,4 +20,6 @@ void move_right();
 void move_forward();
 void move_backward();
 
+void move_to_location(double, double);
+
 #endif

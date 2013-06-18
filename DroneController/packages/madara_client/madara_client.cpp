@@ -46,19 +46,15 @@ void compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 	(
 		knowledge.expand_statement
 		(
-			"(inflate_coords(.location, '.location'));"
-			"inflate_regions();"
-			".movement_command = determine_movement_command()"
-			//Set up .movement_command
-			"(.movement_command=0;"
-			"(swarm.takeoff || drone.{.id}.takeoff => (swarm.takeoff = 0; drone.{.id}.takeoff = 0; .movement_command='takeoff')) || " //Takeoff
-    			"(swarm.land || drone.{.id}.land => (swarm.land = 0; drone.{.id}.land = 0; .movement_command='land')) ||" //Land
-    			"(swarm.up || drone.{.id}.up => (swarm.up = 0; drone.{.id}.up = 0; .movement_command='move_up')) ||" //Up
-    			"(swarm.down || drone.{.id}.down => (swarm.down = 0; drone.{.id}.down = 0; .movement_command='move_down')) ||" //Down
-    			"(swarm.left || drone.{.id}.left => (swarm.left = 0; drone.{.id}.left = 0; .movement_command='move_left')) ||" //Left
-    			"(swarm.right || drone.{.id}.right => (swarm.right = 0; drone.{.id}.right = 0; .movement_command='move_right')) ||" //Right
-			"(swarm.forward || drone.{.id}.forward => (swarm.forward = 0; drone.{.id}.forward = 0; .movement_command='move_forward')) ||" //Forward
-			"(swarm.backward || drone.{.id}.backward => (swarm.backward = 0; drone.{.id}.backward = 0; .movement_command='move_backward')));" //Backward
+			"device.{.id}.location=.location;"
+			"inflate_coords(.location, '.location');"
+			"inflate_coord_array_to_local('device.*');"
+			"inflate_coord_array_to_local('region.*');"
+
+
+			"((swarm.movement_command || device.{.id}.movement_command) =>"
+				"(.movement_command=swarm.movement_command; .movement_command => .movement_command=device.{.id}.movement_command;" 
+				"swarm.movement_command = 0; device.{.id}.movement_command=0));"
 		)
 	);
 	knowledge.define_function("process_state", expressions[PROCESS_STATE]);
@@ -74,7 +70,7 @@ void compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 		"(.needs_bridge => process_bridge_building ())"
 		"||"
 		"process_area_coverage ());"
-		".movement_command => " + SMASH::Movement::main_logic() + ";"
+		//".movement_command => " + SMASH::Movement::main_logic() + ";"
 	);
 
 }
@@ -118,7 +114,7 @@ int main (int argc, char** argv)
 	
 	//First thing we do is set our ID, this needs to be changed to actually set it
 	//Set our ID
-	knowledge.set(".id", Madara::Knowledge_Record::Integer(0));
+	knowledge.set(".id", Madara::Knowledge_Record::Integer(id));
 
 	
 	SMASH::Movement::initialize(knowledge);
@@ -129,8 +125,6 @@ int main (int argc, char** argv)
 	
 	//Compile the main logic
 	compile_expressions(knowledge);
-	
-	knowledge.set(".location", "55,12");
 
 	Madara::Knowledge_Engine::Eval_Settings eval_settings;
 

@@ -48,32 +48,31 @@ Madara::Knowledge_Record inflate_coords (Madara::Knowledge_Engine::Function_Argu
 	return Madara::Knowledge_Record::Integer(1);
 }
 
-Madara::Knowledge_Record inflate_regions (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
+Madara::Knowledge_Record inflate_coord_array_to_local (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
+	if (args.size() != 1)
+		return Madara::Knowledge_Record::Integer(0);
 	std::map<std::string, Madara::Knowledge_Record> map;
-	variables.to_map("region.*", map);
+	variables.to_map(args[0].to_string(), map);
 	
 	std::map<std::string, Madara::Knowledge_Record>::iterator iter;
 	for (iter = map.begin(); iter != map.end(); ++iter)
 	{
-		std::stringstream varBuffer;
-		varBuffer << "." << iter->first; //create .region.{X}.[top_left || bottom_right]
-		variables.set(varBuffer.str(), iter->second.to_string()); //copy it into its . version
-		//var buffer = ".region.{X}.[top_left|bottom_right]
-		
 		std::stringstream evalBuffer;
+		if (STRING_ENDS_WITH(iter->first, std::string(".location")))
+		{
+			
+			evalBuffer << "." << iter->first << "=" << iter->first << ";inflate_coords(." << iter->first << ",'." << iter->first << "');";
+			variables.evaluate(evalBuffer.str());
+		}
 		
-		variables.evaluate(evalBuffer.str());
 	}
-	
-	return Madara::Knowledge_Record::Integer(0);
 }
-
 
 void define_utilities_functions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 {
 	knowledge.define_function("inflate_coords", inflate_coords);
-	knowledge.define_function("inflate_regions", inflate_regions);
+	knowledge.define_function("inflate_coord_array_to_local", inflate_coord_array_to_local);
 }
 
 void SMASH::Utilities::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
