@@ -76,6 +76,9 @@ int main (int argc, char** argv)
     	SMASH::Bridge::setupBridgeTest(knowledge);    
     }
 
+    // Indicate we start moving.
+    knowledge.set(MV_MOBILE("{" MV_MY_ID "}"), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+
     // Visual settings to show console output.
 	Madara::Knowledge_Engine::Eval_Settings eval_settings;
 	eval_settings.pre_print_statement =

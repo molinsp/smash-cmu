@@ -29,8 +29,8 @@ namespace SMASH
 	    void initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
 
 	    /**
-         * Method used to get a string with the main call to the bridge funtionality.
-         * @return  A string that can be evaluted to call the logic to check and do bridge building.
+         * Method used to get a string with the main call to the area coverage funtionality.
+         * @return  A string that can be evaluted to call the logic to check and do area coverage.
          **/
 	    std::string get_core_function();
 
@@ -39,11 +39,6 @@ namespace SMASH
          * @return  A string that can be evaluted to call the logic to prepare data from the simulator.
          **/
         std::string get_sim_setup_function();
-
-	    /**
-         * Method used to set up a simple test scenario.
-         **/
-	    void setupBridgeTest(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
     }
 }
 

@@ -55,11 +55,11 @@ static std::map<BridgeMadaraExpressionId, Madara::Knowledge_Engine::Compiled_Exp
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private function declarations.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
-void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
-Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::Function_Arguments &args,
+static void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
+static void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
+static Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::Function_Arguments &args,
              Madara::Knowledge_Engine::Variables &variables);
-Position* calculateMiddlePoint(Madara::Knowledge_Engine::Variables &variables, std::string regionId);
+static Position* calculateMiddlePoint(Madara::Knowledge_Engine::Variables &variables, std::string regionId);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Initializer, gets the refence to the knowledge base and compiles expressions.
@@ -71,9 +71,6 @@ void SMASH::Bridge::initialize(Madara::Knowledge_Engine::Knowledge_Base &knowled
 
     // Registers all default expressions, to have them compiled for faster access.
     compileExpressions(knowledge);
-
-    // Indicate we start moving.
-    knowledge.set(MV_MOBILE("{" MV_MY_ID "}"), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
