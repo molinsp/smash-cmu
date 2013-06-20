@@ -9,16 +9,11 @@
 #include "movement/movement_module.h"
 #include "platform_movement.h"
 
-#define TASK_COUNT		1
-#define EVALUATE_CONTROL	0
-
-static Madara::Knowledge_Engine::Compiled_Expression expressions [TASK_COUNT];
-
 //Madara function to interface with takeoff()
 Madara::Knowledge_Record control_functions_takeoff (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
 	printf("In Madara::takeoff()\n");
-	takeoff();
+	//takeoff();
 	return Madara::Knowledge_Record::Integer(1);
 }
 
@@ -86,8 +81,9 @@ Madara::Knowledge_Record madara_move_to_gps (Madara::Knowledge_Engine::Function_
 
 Madara::Knowledge_Record process_movement_commands (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-	printf("process_movement_commands();\n");
-	return variables.evaluate(expressions[EVALUATE_CONTROL], Madara::Knowledge_Engine::TREAT_AS_LOCAL_UPDATE_SETTINGS);
+	std::string expansion = variables.expand_statement("{.movement_command}();");
+	printf("Expanded Movement Command: %s\n", expansion.c_str());
+	return variables.evaluate(expansion, Madara::Knowledge_Engine::TREAT_AS_LOCAL_UPDATE_SETTINGS);
 }
 
 
@@ -102,35 +98,16 @@ void define_control_functions (Madara::Knowledge_Engine::Knowledge_Base & knowle
 	knowledge.define_function ("move_forward",    control_functions_move_forward);
 	knowledge.define_function ("move_backward",    control_functions_move_backward);
 	knowledge.define_function ("move_right",   control_functions_move_right);
-	knowledge.define_function("move_to_gps", madara_move_to_gps);
+	knowledge.define_function ("move_to_gps", madara_move_to_gps);
 	knowledge.define_function ("process_movement_commands", process_movement_commands);
 }
 
 
-//Precompile any expressions used by control_functions
-void compile_control_function_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
-{	
-	expressions[EVALUATE_CONTROL] = knowledge.compile
-	(
-		"{.movement_command}();"
-		// If the swarm is given a command, clear the flag and call said command
-		//"swarm.takeoff || drone{.id}.takeoff => (swarm.takeoff = 0; drone.{.id}.takeoff = 0; takeoff(););" //Takeoff
-    		//"swarm.land || drone{.id}.land => (swarm.land = 0; drone.{.id}.land = 0; land(););" //Land
-    		//"swarm.up || drone{.id}.up => (swarm.up = 0; drone.{.id}.up = 0; move_up(););" //Up
-    		//"swarm.down || drone{.id}.down => (swarm.down = 0; drone.{.id}.down = 0; move_down(););" //Down
-    		//"swarm.left || drone{.id}.left => (swarm.left = 0; drone.{.id}.left = 0; move_left(););" //Left
-    		//"swarm.right || drone{.id}.right => (swarm.right = 0; drone.{.id}.right = 0; move_right(););" //Right
-		//"swarm.forward || drone{.id}.forward => (swarm.forward = 0; drone.{.id}.forward = 0; move_forward(););" //Forward
-		//"swarm.backward || drone{.id}.backward => (swarm.backward = 0; drone.{.id}.backward = 0; move_backward(););" //Backward
-	);
-}
-
 void SMASH::Movement::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
+	printf("SMASH::Movement::initialize()\n");
 	init_control_functions();
-
 	define_control_functions(knowledge);
-	compile_control_function_expressions(knowledge);
 }
 
 std::string SMASH::Movement::main_logic()
