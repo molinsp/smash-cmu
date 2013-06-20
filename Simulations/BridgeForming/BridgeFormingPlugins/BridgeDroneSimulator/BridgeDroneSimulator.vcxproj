@@ -45,7 +45,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\..\DroneController\packages\madara_client\bridge;$(MADARA_ROOT)/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\DroneController\packages\madara_client\bridge;..\..\..\..\DroneController\packages\madara_client\area_coverage;$(MADARA_ROOT)/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -75,11 +75,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\area_coverage\area_coverage_module.cpp" />
     <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.cpp" />
     <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge\bridge_module.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\area_coverage\area_coverage_module.h" />
     <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.h" />
     <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge\CommonMadaraBridgeVariables.h" />
     <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge\bridge_module.h" />

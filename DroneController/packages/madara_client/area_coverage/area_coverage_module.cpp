@@ -6,15 +6,15 @@
  *********************************************************************/
 
 /*********************************************************************
- * bridge_module.cpp - Defines the manager for bulding a bridge.
+ * area_coverage_module.cpp - Defines the manager for area coverage.
  *********************************************************************/
 
 #include <vector>
 #include <map>
-#include "bridge_module.h"
+#include "area_coverage_module.h"
 #include "CommonMadaraBridgeVariables.h"
 
-using namespace SMASH::Bridge;
+using namespace SMASH::AreaCoverage;
 
 // Macro to convert from int to std::string.
 #define INT_TO_STR( x ) dynamic_cast< std::ostringstream & >( \
@@ -280,14 +280,8 @@ Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::F
             // Update the drone status now that we are going to build a bridge.
             variables.set(MV_BUSY("{" MV_MY_ID "}"), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
             variables.set(MV_BRIDGE_ID("{" MV_MY_ID "}"), (Madara::Knowledge_Record::Integer) bridgeId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-            variables.set(MV_MOVEMENT_TARGET_LAT, myNewPosition->x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-            variables.set(MV_MOVEMENT_TARGET_LON, myNewPosition->y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-
-            // For simulation.
             variables.set(MV_DEVICE_TARGET_LAT("{" MV_MY_ID "}"), myNewPosition->x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-            variables.set(MV_DEVICE_TARGET_LON("{" MV_MY_ID "}"), myNewPosition->y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-
-            variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
+            variables.set(MV_DEVICE_TARGET_LON("{" MV_MY_ID "}"), myNewPosition->y);
         }
     }
 

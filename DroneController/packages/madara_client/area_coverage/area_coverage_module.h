@@ -6,16 +6,12 @@
  *********************************************************************/
 
 /*********************************************************************
- * bridge_module.h - Declares an module to handle the Madara logic
- *   of building a bridge and finding the positions in it for drones.
- *
- * ASSUMPTIONS:
- * - Device IDs start from 0 and go up from there.
- * - Bridge IDs start from 0 and go up from there.
+ * area_coverage_module.h - Declares an module to handle the Madara logic
+ *   of covering a certain area.
  *********************************************************************/
 
-#ifndef _BRIDGE_MODULE_H
-#define _BRIDGE_MODULE_H
+#ifndef _AREA_COVERAGE_MODULE_H
+#define _AREA_COVERAGE_MODULE_H
 
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include <map>
@@ -24,7 +20,7 @@
 
 namespace SMASH
 {
-    namespace Bridge
+    namespace AreaCoverage
     {
         /**
          * Sets the knowledge base and initalizes expressions and functions. Must be called once for the module.

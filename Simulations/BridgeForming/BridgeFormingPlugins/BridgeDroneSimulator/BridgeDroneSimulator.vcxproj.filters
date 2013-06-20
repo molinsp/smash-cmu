@@ -24,6 +24,9 @@
     <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge\bridge_module.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\area_coverage\area_coverage_module.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.h">
@@ -33,6 +36,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge\bridge_module.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\area_coverage\area_coverage_module.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
