@@ -12,7 +12,7 @@
 #include <vector>
 #include <map>
 #include "area_coverage_module.h"
-#include "CommonMadaraBridgeVariables.h"
+#include "CommonMadaraVariables.h"
 
 using namespace SMASH::AreaCoverage;
 

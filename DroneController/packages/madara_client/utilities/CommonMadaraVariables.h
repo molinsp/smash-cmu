@@ -6,13 +6,13 @@
  *********************************************************************/
 
 /*********************************************************************
- * CommonMadaraBridgeVariables.h - Madara variables used by the bridge
- * control module. These include variables that are either also used
+ * CommonMadaraVariables.h - Madara variables used by the different
+ * modules. These include variables that are either also used
  * by other modules, or that are required to be known for simulations.
  *********************************************************************/
 
-#ifndef _COMMON_MADARA_BRIDGE_VARIABLES_H
-#define _COMMON_MADARA_BRIDGE_VARIABLES_H
+#ifndef _COMMON_MADARA_VARIABLES_H
+#define _COMMON_MADARA_VARIABLES_H
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Global variables.
@@ -44,8 +44,8 @@
 #define MV_BRIDGE_SINK_REGION_ID(bridgeId)      "bridge." + std::string(bridgeId) + ".endpoint.2"   // The region where the other endpoint of the bridge is.
 
 // Necessary for simulation, at least for now.
-#define MV_DEVICE_TARGET_LAT(i)	    "device." + std::string(i) + ".target.latitude" // The latitude of the position the device is headed towards.
-#define MV_DEVICE_TARGET_LON(i)	    "device." + std::string(i) + ".target.longitude"// The longitude of the position the device is headed towards.
+#define MV_DEVICE_TARGET_LAT(i)	        "device." + std::string(i) + ".target.latitude" // The latitude of the position the device is headed towards.
+#define MV_DEVICE_TARGET_LON(i)	        "device." + std::string(i) + ".target.longitude"// The longitude of the position the device is headed towards.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Local preprocessed variables, filled in by other modules in each drone.

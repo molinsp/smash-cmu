@@ -8,7 +8,7 @@
 #include "MadaraController.h"
 
 #include "Custom_Transport.h"
-#include "CommonMadaraBridgeVariables.h"
+#include "CommonMadaraVariables.h"
 
 #include <vector>
 
@@ -18,6 +18,8 @@
 // Macro to convert from int to std::string.
 #define INT_TO_STR( x ) dynamic_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << x ) ).str()
+
+using namespace SMASH::Utilities;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constructor, sets up a Madara knowledge base and basic values.

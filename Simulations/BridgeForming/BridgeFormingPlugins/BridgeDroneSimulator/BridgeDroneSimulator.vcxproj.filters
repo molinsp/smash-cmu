@@ -13,33 +13,57 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\area_coverage_module">
+      <UniqueIdentifier>{eccded00-6e27-48e7-94c8-d9349c12350e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\bridge_module">
+      <UniqueIdentifier>{bf0d2f5d-08ba-4e71-8e1d-f73d74c82c32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\utilities_module">
+      <UniqueIdentifier>{99e88af5-60e3-41cb-8daa-c3c5ce8d1eb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\bridge_module">
+      <UniqueIdentifier>{55970faa-40c5-42e5-84b2-003c0b479c4c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\area_coverage_module">
+      <UniqueIdentifier>{f5d3e9a9-52c9-497d-a5a4-a67a14fcec2d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\area_coverage\area_coverage_module.cpp">
+      <Filter>Source Files\area_coverage_module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\area_coverage\SimpleAreaCoverage.cpp">
+      <Filter>Source Files\area_coverage_module</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge\bridge_module.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\bridge_module</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\area_coverage\area_coverage_module.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.cpp">
+      <Filter>Source Files\bridge_module</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge\CommonMadaraBridgeVariables.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\area_coverage\area_coverage_module.h">
+      <Filter>Header Files\area_coverage_module</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge\bridge_module.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\bridge_module</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\area_coverage\area_coverage_module.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.h">
+      <Filter>Header Files\bridge_module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\utilities\Position.h">
+      <Filter>Header Files\utilities_module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\utilities\CommonMadaraVariables.h">
+      <Filter>Header Files\utilities_module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\area_coverage\SimpleAreaCoverage.h">
+      <Filter>Header Files\area_coverage_module</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

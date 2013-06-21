@@ -13,7 +13,7 @@
 #include "ace/OS_NS_Thread.h"
 
 #include "bridge_module.h"
-#include "CommonMadaraBridgeVariables.h"
+#include "CommonMadaraVariables.h"
 
 #define SSTR( x ) dynamic_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << x ) ).str()

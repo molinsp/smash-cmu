@@ -12,9 +12,10 @@
 #include <vector>
 #include <map>
 #include "bridge_module.h"
-#include "CommonMadaraBridgeVariables.h"
+#include "CommonMadaraVariables.h"
 
 using namespace SMASH::Bridge;
+using namespace SMASH::Utilities;
 
 // Macro to convert from int to std::string.
 #define INT_TO_STR( x ) dynamic_cast< std::ostringstream & >( \

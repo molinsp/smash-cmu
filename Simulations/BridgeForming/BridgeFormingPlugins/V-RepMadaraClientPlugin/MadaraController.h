@@ -17,6 +17,7 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include <vector>
 #include <string>
+#include "Position.h"
 
 // Class that has information about drones that has to be updated periodically.
 struct DroneStatus
@@ -25,24 +26,6 @@ struct DroneStatus
     double posx;
     double posy;
     bool flying;
-};
-
-// Represents a two dimensional position, ignoring height.
-class Position
-{
-public:
-	double x;
-	double y;
-
-	// Blank default constructor.
-	Position() {}
-
-	// Constructor from data.
-	Position(double newX, double newY)
-	{
-		x = newX;
-		y = newY;
-	}
 };
 
 // Class that simulates the Madara controller of the system (though it also acts as a bridge between
@@ -74,9 +57,10 @@ public:
     MadaraController(int id, double commRange);
     ~MadaraController();
     MadaraController(Madara::Knowledge_Engine::Knowledge_Base* knowledge, int id, double commRange);
-    void setupBridgeRequest(int bridgeId, Position sourceTopLeft, Position sourceBottomRight, Position sinkTopLeft, Position sinkBottomRight);
+    void setupBridgeRequest(int bridgeId, SMASH::Utilities::Position sourceTopLeft, SMASH::Utilities::Position sourceBottomRight, 
+                                          SMASH::Utilities::Position sinkTopLeft, SMASH::Utilities::Position sinkBottomRight);
     void updateNetworkStatus(double controllerPosx, double controllerPosy, std::vector<DroneStatus> droneStatusList);
-    Position* getBridgePosition(int droneId);
+    SMASH::Utilities::Position* getBridgePosition(int droneId);
     void stopDrone(int droneId);
     void terminate();
 };

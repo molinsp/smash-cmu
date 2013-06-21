@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\utilities_module">
+      <UniqueIdentifier>{d2d20312-574c-4ba2-97d1-01f72c27b745}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\V-RepImports\v_repLib.cpp">
@@ -59,8 +62,11 @@
     <ClInclude Include="Custom_Transport_Read_Thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\bridge\CommonMadaraBridgeVariables.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\utilities\Position.h">
+      <Filter>Header Files\utilities_module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\utilities\CommonMadaraVariables.h">
+      <Filter>Header Files\utilities_module</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
