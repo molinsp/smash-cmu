@@ -5,4 +5,4 @@
 # https://code.google.com/p/smash-cmu/wiki/License
 ######################################################################
 
-LOCAL_SOURCES += area_coverage/area_coverage_module.cpp
+LOCAL_SOURCES += area_coverage/area_coverage_module.cpp area_coverage/SimpleAreaCoverage.cpp
