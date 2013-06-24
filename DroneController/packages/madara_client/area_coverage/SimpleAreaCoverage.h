@@ -36,7 +36,24 @@ namespace SMASH
                 **/
 	        SMASH::Utilities::Region SimpleAreaCoverage::findCellBoundaries(int deviceId, SMASH::Utilities::Region grid, int numDrones);
 
+            SMASH::Utilities::Position SimpleAreaCoverage::getNextTargetLocation();
+
         private:
+            // The width of each column the device will move over when searching the area. It will roughly have the same width as the device.
+            static const double SEARCH_COLUMN_WIDTH;
+
+            // Flag to indicate if we started searching or not.
+            bool m_searchStarted;
+
+            // Stores the coordinates of the area we are searching.
+            SMASH::Utilities::Region m_cellToSearch;
+
+            // Stores the location we are currently using as our target (i.e., where we are moving towards).
+            SMASH::Utilities::Position m_targetLocation;
+
+            // Flag to check whether we are moving on the X or Y axis (to know whether we have to turn or not).
+            bool m_movingOnYAxis;
+
             // Finds the middle (closest to each other) divisors of a number.
             std::vector<int> findMiddleDivisors(int numberToEvaluate);
         };
