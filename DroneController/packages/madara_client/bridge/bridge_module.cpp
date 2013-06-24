@@ -29,9 +29,11 @@ using namespace SMASH::Utilities;
 #define MF_SEND_CURRENT_STATE		"bridge_sendCurrentState"					// Function that sends an update about internal bridge status, to allow new drones to always know this state about. */
 #define MF_UPDATE_AVAILABLE_DRONES	"bridge_updateAvailableDrones"				// Function that checks the amount and positions of drones ready for bridging.
 #define MF_FIND_POS_IN_BRIDGE		"bridge_findPositionInBridge"				// Function that finds and sets the position in the bridge for this drone, if any.
-#define MF_POPULATE_LOCAL_VARS		"bridge_populateLocalVars"				    // Function that populates local variables from global ones sent by the simulator.
 
-// Internal bridging variables.
+#define MF_POPULATE_LOCAL_VARS		"bridge_populateLocalVars"				    // Function that populates local variables from global ones sent by the simulator.
+#define MF_DISSMINATE_LOCAL_VARS	"bridge_disseminateLocalVars"				// Function that propagates local variables for a simulator.
+
+// Internal variables.
 #define MV_AVAILABLE_DRONES_AMOUNT	".bridge.devices.available.total"			    // The amount of available drones.
 #define MV_AVAILABLE_DRONES_IDS		".bridge.devices.available.ids"			        // Array of the ids of the available drones.
 #define MV_AVAILABLE_DRONES_LAT	    ".bridge.devices.available.latitudes"		    // Array of the lat part of the position of the drones indicated by MV_AVAILABLE_DRONES_IDS.
@@ -101,6 +103,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     // Assumes that MV_USER_BRIDGE_REQUEST_ON triggers the bridge building logic.
     knowledge.define_function(MF_MAIN_LOGIC, 
         "("
+            MF_DISSMINATE_LOCAL_VARS "();"      // For simulation only.
             MF_SEND_CURRENT_STATE "();"
             "(" MV_MOBILE("{" MV_MY_ID "}") " && (!" MV_BUSY("{" MV_MY_ID "}") ") && (" MV_TOTAL_BRIDGES " > 0)" ")"
                 " => " MF_FIND_POS_IN_BRIDGE "();"
@@ -113,8 +116,16 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
         "("
             MV_BUSY("{" MV_MY_ID "}") "=" MV_BUSY("{" MV_MY_ID "}") ";"
             MV_MOBILE("{" MV_MY_ID "}") "=" MV_MOBILE("{" MV_MY_ID "}") ";"
-            MV_DEVICE_TARGET_LAT("{" MV_MY_ID "}") "=" MV_DEVICE_TARGET_LAT("{" MV_MY_ID "}") ";"
-            MV_DEVICE_TARGET_LON("{" MV_MY_ID "}") "=" MV_DEVICE_TARGET_LON("{" MV_MY_ID "}") ";"
+        ")"
+    );
+
+    // Function to broadcast local variables to a simulator.
+    knowledge.define_function(MF_DISSMINATE_LOCAL_VARS, 
+        // Dummy variable set for the bridging flag to ensure it is continously propagated, even to new drones.
+        "("
+            "sim.devices.{.id}" + std::string(MV_MOVEMENT_REQUESTED) + "=" + MV_MOVEMENT_REQUESTED + ";"
+            "sim.devices.{.id}" + std::string(MV_MOVEMENT_TARGET_LAT) + "=" + MV_MOVEMENT_TARGET_LAT + ";"
+            "sim.devices.{.id}" + std::string(MV_MOVEMENT_TARGET_LON) + "=" + MV_MOVEMENT_TARGET_LON + ";"
         ")"
     );
 
@@ -179,7 +190,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 {
-    // Expression to update the list of available drone positions, simply calls the predefine function.
+    // Expression to update the list of available drone positions, simply calls the predefined function.
     m_expressions[BE_FIND_AVAILABLE_DRONES_POSITIONS] = knowledge.compile(
         MF_UPDATE_AVAILABLE_DRONES "(" MV_CURR_BRIDGE_ID ");"
     );
@@ -280,11 +291,6 @@ Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::F
             variables.set(MV_BRIDGE_ID("{" MV_MY_ID "}"), (Madara::Knowledge_Record::Integer) bridgeId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
             variables.set(MV_MOVEMENT_TARGET_LAT, myNewPosition->x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
             variables.set(MV_MOVEMENT_TARGET_LON, myNewPosition->y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-
-            // For simulation.
-            variables.set(MV_DEVICE_TARGET_LAT("{" MV_MY_ID "}"), myNewPosition->x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-            variables.set(MV_DEVICE_TARGET_LON("{" MV_MY_ID "}"), myNewPosition->y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-
             variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
         }
     }
