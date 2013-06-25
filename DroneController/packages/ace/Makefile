@@ -71,28 +71,31 @@ endif
 #check if ACE_HOST_FOLDER/ace/config.h exists
 ifeq ($(wildcard $(ACE_TARGET_CONFIG_H)),)
 	@echo "Creating config.h"
-	@echo '#include "ace/config-linux.h"' > $(ACE_TARGET_CONFIG_H)
+	@cat platforms/$(PLATFORM)_config.h > $(ACE_TARGET_CONFIG_H)
+#	@echo '#include "ace/config-linux.h"' > $(ACE_TARGET_CONFIG_H)
 else
 	@echo "config.h already created"
 endif
 
 #Setup platform_arm.GNU
-ifeq ($(wildcard $(ACE_TARGET_GNU)),)
-	@echo "Creating platform_$(TARGET).GNU"
-	@echo "ARM=1" > $(ACE_TARGET_GNU)
-	@echo "CROSS_COMPILE=$(LOCAL_CROSS_PREFIX)" >> $(ACE_TARGET_GNU)
-	@echo "INSTALL_PREFIX=$(INSTALL_ROOT)" >> $(ACE_TARGET_GNU)
-	@echo "no_hidden_visibility=1" >> $(ACE_TARGET_GNU)
-	@echo "OCFLAGS=-Os" >> $(ACE_TARGET_GNU)
-	@echo "include $(ACE_ROOT)/include/makeinclude/platform_linux.GNU" >> $(ACE_TARGET_GNU)
-else
-	@echo "platform_$(TARGET).GNU already exists"
-endif
+#ifeq ($(wildcard $(ACE_TARGET_GNU)),)
+#	@echo "Creating platform_$(TARGET).GNU"
+#	@echo "ARM=1" > $(ACE_TARGET_GNU)
+#	@echo "CROSS_COMPILE=$(LOCAL_CROSS_PREFIX)" > $(ACE_TARGET_GNU)
+#	@echo "INSTALL_PREFIX=$(INSTALL_ROOT)" >> $(ACE_TARGET_GNU)
+#	@echo "no_hidden_visibility=1" >> $(ACE_TARGET_GNU)
+#	@echo "OCFLAGS=-Os" >> $(ACE_TARGET_GNU)
+#	@echo "include $(ACE_ROOT)/include/makeinclude/platform_linux.GNU" >> $(ACE_TARGET_GNU)
+#else
+#	@echo "platform_$(TARGET).GNU already exists"
+#endif
 
 #Setup platform_macros.GNU
 ifeq ($(wildcard $(ACE_TARGET_PLATFORM_MACROS_GNU)),)
 	@echo "Creating platform_macros.GNU"
-	@echo 'include $(ACE_TARGET_ROOT)/include/makeinclude/platform_$(TARGET).GNU' > $(ACE_TARGET_PLATFORM_MACROS_GNU)
+	@cat platforms/$(PLATFORM)_macros.GNU >  $(ACE_TARGET_PLATFORM_MACROS_GNU)
+#	@echo 'include $(ACE_TARGET_ROOT)/include/makeinclude/platform_$(TARGET).GNU' > $(ACE_TARGET_PLATFORM_MACROS_GNU)
+#	@echo "INSTALL_PREFIX=$(INSTALL_ROOT)" >> $(ACE_TARGET_PLATFORM_MACROS_GNU)
 else
 	@echo "platform_macros.GNU already created"
 endif
@@ -112,7 +115,7 @@ ifeq ($(wildcard $(INSTALL_ROOT)/lib/libACE.so),)
 	@mkdir -p $(INSTALL_ROOT)/share/ace
 	@cd $(ACE_TARGET_ROOT)/ace; \
 	ACE_ROOT=$(ACE_TARGET_ROOT) \
-	make install
+	make -j8 install
 else
 	@echo "libACE already installed"
 endif
