@@ -6,15 +6,16 @@
  *********************************************************************/
 
 /*********************************************************************
- * MadaraBridgeManager.cpp - Defines the manager for bulding a bridge.
+ * bridge_module.cpp - Defines the manager for bulding a bridge.
  *********************************************************************/
 
 #include <vector>
 #include <map>
 #include "bridge_module.h"
-#include "CommonMadaraBridgeVariables.h"
+#include "CommonMadaraVariables.h"
 
 using namespace SMASH::Bridge;
+using namespace SMASH::Utilities;
 
 // Macro to convert from int to std::string.
 #define INT_TO_STR( x ) dynamic_cast< std::ostringstream & >( \
@@ -55,11 +56,11 @@ static std::map<BridgeMadaraExpressionId, Madara::Knowledge_Engine::Compiled_Exp
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private function declarations.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
-void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
-Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::Function_Arguments &args,
+static void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
+static void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
+static Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::Function_Arguments &args,
              Madara::Knowledge_Engine::Variables &variables);
-Position* calculateMiddlePoint(Madara::Knowledge_Engine::Variables &variables, std::string regionId);
+static Position* calculateMiddlePoint(Madara::Knowledge_Engine::Variables &variables, std::string regionId);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Initializer, gets the refence to the knowledge base and compiles expressions.
@@ -71,9 +72,6 @@ void SMASH::Bridge::initialize(Madara::Knowledge_Engine::Knowledge_Base &knowled
 
     // Registers all default expressions, to have them compiled for faster access.
     compileExpressions(knowledge);
-
-    // Indicate we start moving.
-    knowledge.set(MV_MOBILE("{" MV_MY_ID "}"), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -280,8 +278,14 @@ Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::F
             // Update the drone status now that we are going to build a bridge.
             variables.set(MV_BUSY("{" MV_MY_ID "}"), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
             variables.set(MV_BRIDGE_ID("{" MV_MY_ID "}"), (Madara::Knowledge_Record::Integer) bridgeId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+            variables.set(MV_MOVEMENT_TARGET_LAT, myNewPosition->x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+            variables.set(MV_MOVEMENT_TARGET_LON, myNewPosition->y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+
+            // For simulation.
             variables.set(MV_DEVICE_TARGET_LAT("{" MV_MY_ID "}"), myNewPosition->x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-            variables.set(MV_DEVICE_TARGET_LON("{" MV_MY_ID "}"), myNewPosition->y);
+            variables.set(MV_DEVICE_TARGET_LON("{" MV_MY_ID "}"), myNewPosition->y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+
+            variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
         }
     }
 

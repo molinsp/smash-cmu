@@ -13,7 +13,7 @@
 #include "ace/OS_NS_Thread.h"
 
 #include "bridge_module.h"
-#include "CommonMadaraBridgeVariables.h"
+#include "CommonMadaraVariables.h"
 
 #define SSTR( x ) dynamic_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << x ) ).str()
@@ -75,6 +75,9 @@ int main (int argc, char** argv)
     {
     	SMASH::Bridge::setupBridgeTest(knowledge);    
     }
+
+    // Indicate we start moving.
+    knowledge.set(MV_MOBILE("{" MV_MY_ID "}"), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
     // Visual settings to show console output.
 	Madara::Knowledge_Engine::Eval_Settings eval_settings;

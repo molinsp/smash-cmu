@@ -6,25 +6,19 @@
  *********************************************************************/
 
 /*********************************************************************
- * bridge_module.h - Declares an module to handle the Madara logic
- *   of building a bridge and finding the positions in it for drones.
- *
- * ASSUMPTIONS:
- * - Device IDs start from 0 and go up from there.
- * - Bridge IDs start from 0 and go up from there.
+ * area_coverage_module.h - Declares an module to handle the Madara logic
+ *   of covering a certain area.
  *********************************************************************/
 
-#ifndef _BRIDGE_MODULE_H
-#define _BRIDGE_MODULE_H
+#ifndef _AREA_COVERAGE_MODULE_H
+#define _AREA_COVERAGE_MODULE_H
 
 #include "madara/knowledge_engine/Knowledge_Base.h"
-#include <map>
 #include <string>
-#include "BridgeAlgorithm.h"
 
 namespace SMASH
 {
-    namespace Bridge
+    namespace AreaCoverage
     {
         /**
          * Sets the knowledge base and initalizes expressions and functions. Must be called once for the module.
@@ -33,8 +27,8 @@ namespace SMASH
 	    void initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
 
 	    /**
-         * Method used to get a string with the main call to the bridge funtionality.
-         * @return  A string that can be evaluted to call the logic to check and do bridge building.
+         * Method used to get a string with the main call to the area coverage funtionality.
+         * @return  A string that can be evaluted to call the logic to check and do area coverage.
          **/
 	    std::string get_core_function();
 
@@ -43,11 +37,6 @@ namespace SMASH
          * @return  A string that can be evaluted to call the logic to prepare data from the simulator.
          **/
         std::string get_sim_setup_function();
-
-	    /**
-         * Method used to set up a simple test scenario.
-         **/
-	    void setupBridgeTest(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
     }
 }
 

@@ -25,6 +25,8 @@
         ( std::ostringstream() << std::dec << x ) ).str()
 
 using namespace std;
+using namespace SMASH::Bridge;
+using namespace SMASH::Utilities;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Compares two distance tuples by the distance field. It is not a class method, as a simple function is required.

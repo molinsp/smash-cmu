@@ -8,6 +8,8 @@
 #include "MadaraController.h"
 #include "LuaCustomFunctions.h"
 
+using namespace SMASH::Utilities;
+
 // The controller used to manage the Madara stuff.
 MadaraController* madaraController;
 
