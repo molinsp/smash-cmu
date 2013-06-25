@@ -373,27 +373,27 @@ void simExtMadaraClientUpdateStatus(SLuaCallBack* p)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Registers the Lua simExtMadaraClientGetPositionInBridge command.
+// Registers the Lua simExtMadaraClientGetNewMovementCommand command.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void registerMadaraClientGetPositionInBridgeLuaCallback()
+void registerMadaraClientGetNewMovementCommandLuaCallback()
 {
     // Define the LUA function input parameters.
     int inArgs[] = {1, sim_lua_arg_int,					  // Drone ID for which we want the position in bridge, if any.
                    };
 
     // Register the simExtGetPositionInBridge function.
-    simRegisterCustomLuaFunction("simExtMadaraClientGetPositionInBridge",                   // The Lua function name.
+    simRegisterCustomLuaFunction("simExtMadaraClientGetNewMovementCommand",               // The Lua function name.
                                  "myNewX, myNewY = "                                        // A tooltip to be shown to help the user know how to call it.
-                                 "simExtMadaraClientGetPositionInBridge(int droneId) ",     
+                                 "simExtMadaraClientGetNewMovementCommand(int droneId) ",     
                                  inArgs,                                                    // The argument types.
-                                 simExtMadaraClientGetPositionInBridge                      // The C function that will be called by the Lua function.
+                                 simExtMadaraClientGetNewMovementCommand                  // The C function that will be called by the Lua function.
                                  );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Callback of the Lua simExtMadaraClientGetPositionInBridge command.
+// Callback of the Lua simExtMadaraClientGetNewMovementCommand command.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void simExtMadaraClientGetPositionInBridge(SLuaCallBack* p)
+void simExtMadaraClientGetNewMovementCommand(SLuaCallBack* p)
 {
     //WIN_AFX_MANAGE_STATE;
     simLockInterface(1);
@@ -415,7 +415,7 @@ void simExtMadaraClientGetPositionInBridge(SLuaCallBack* p)
     }
 
     // Continue forward calling the external functions only if we have all parameters ok.
-    Position* bridgePosition = NULL;
+    MovementCommand* movementCommand = NULL;
     if(paramsOk)
     { 
         // Get the simple input values.
@@ -427,8 +427,8 @@ void simExtMadaraClientGetPositionInBridge(SLuaCallBack* p)
         //std::string message = sstm.str();
         //simAddStatusbarMessage(message.c_str());
 
-        // Make the controller set up the bridge request through the knowledge base.
-        bridgePosition = madaraController->getBridgePosition(droneId);
+        // Check to see if there is a new position we want to move to.
+        movementCommand = madaraController->getNewMovementCommand(droneId);
     }
 
     // Now we prepare the return value(s):
@@ -436,7 +436,7 @@ void simExtMadaraClientGetPositionInBridge(SLuaCallBack* p)
     p->outputArgTypeAndSize = (simInt*)simCreateBuffer(p->outputArgCount*2*sizeof(simInt)); // x return values takes x*2 simInt for the type and size buffer
 
     // Set the actual return values depending on whether we found a position or not.
-    bool positionWasFound = bridgePosition != NULL;
+    bool positionWasFound = movementCommand != NULL;
     if (positionWasFound)
     {
         p->outputArgTypeAndSize[2*0+0] = sim_lua_arg_float;			 // The first return value is a float
@@ -445,9 +445,9 @@ void simExtMadaraClientGetPositionInBridge(SLuaCallBack* p)
         p->outputArgTypeAndSize[2*1+0] = sim_lua_arg_float;			 // The second return value is a float
         p->outputArgTypeAndSize[2*1+1] = 1;							 // Not used (table size if the return value was a table)
 
-        p->outputFloat=(simFloat*)simCreateBuffer(2*sizeof(bridgePosition->x)); // 2 float return value
-        p->outputFloat[0] = (float) bridgePosition->x;				 // This is the float value we want to return
-        p->outputFloat[1] = (float) bridgePosition->y;				 // This is the float value we want to return
+        p->outputFloat=(simFloat*)simCreateBuffer(2*sizeof(movementCommand->position.x)); // 2 float return value
+        p->outputFloat[0] = (float) movementCommand->position.x;				 // This is the float value we want to return
+        p->outputFloat[1] = (float) movementCommand->position.y;				 // This is the float value we want to return
     }
     else
     {
@@ -459,9 +459,9 @@ void simExtMadaraClientGetPositionInBridge(SLuaCallBack* p)
     }
 
     // Free up the memory.
-    if(bridgePosition != NULL)
+    if(movementCommand != NULL)
     {
-        delete bridgePosition;
+        delete movementCommand;
     }
 
     simLockInterface(0);

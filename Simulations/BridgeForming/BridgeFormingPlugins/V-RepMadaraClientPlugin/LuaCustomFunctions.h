@@ -21,7 +21,7 @@
 void registerMadaraClientSetupLuaCallback();
 void registerMadaraClientBridgeRequestLuaCallback();
 void registerMadaraClientUpdateStatusLuaCallback();
-void registerMadaraClientGetPositionInBridgeLuaCallback();
+void registerMadaraClientGetNewMovementCommandLuaCallback();
 void registerMadaraClientStopDroneLuaCallback();
 void registerMadaraClientCleanupLuaCallback();
 
@@ -29,7 +29,7 @@ void registerMadaraClientCleanupLuaCallback();
 void simExtMadaraClientSetup(SLuaCallBack* p);
 void simExtMadaraClientBridgeRequest(SLuaCallBack* p);
 void simExtMadaraClientUpdateStatus(SLuaCallBack* p);
-void simExtMadaraClientGetPositionInBridge(SLuaCallBack* p);
+void simExtMadaraClientGetNewMovementCommand(SLuaCallBack* p);
 void simExtMadaraClientStopDrone(SLuaCallBack* p);
 void simExtMadaraClientCleanup(SLuaCallBack* p);
 

@@ -154,8 +154,8 @@ function runMainLogic()
         -- Check if we have found a person to stop on top of it (only if we are patrolling).
         lookForPersonBelow()
     
-        -- Check if we got new bridge status, or if we have to calculate our position in the bridge.
-        checkBridgeStatus()        
+        -- Check if we got new movement target, or if we have to calculate our position in the bridge.
+        checkMovementStatus()        
     end
 
     -- If we are still patrolling or bridging, move to next scheduled position.
@@ -191,9 +191,9 @@ function lookForPersonBelow()
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
--- Checks if the drone is now part of a bridge, or builds one if required.
+-- Checks if there is movement to be done, or if a bridge has to be built.
 --/////////////////////////////////////////////////////////////////////////////////////////////
-function checkBridgeStatus()
+function checkMovementStatus()
     local myNewX = nil
     local myNewY = nil
     
@@ -203,9 +203,9 @@ function checkBridgeStatus()
     -- Behavior will depend on whether external Madara drones perform the calculations, or not.
     if(g_madaraClientEnabled) then      
         -- We wait to get the coordinates of our new position, if any, from the external drones.
-        --simAddStatusbarMessage('(In ' .. g_myDroneName .. ') Checking bridge status.')
+        --simAddStatusbarMessage('(In ' .. g_myDroneName .. ') Checking movement status.')
         --simAddStatusbarMessage('Calling external C++ Madara plugin to get remotely calculated position for drone ' .. g_myDroneName .. ' with id ' .. myDroneId .. '.')
-        myNewX, myNewY = simExtMadaraClientGetPositionInBridge(myDroneId)
+        myNewX, myNewY = simExtMadaraClientGetNewMovementCommand(myDroneId)
         if(myNewX == nil and myNewY == nil) then
             --simAddStatusbarMessage('Got target position for drone ' .. g_myDroneName .. ' with id ' .. myDroneId .. ' is nil.')
         end
@@ -223,7 +223,7 @@ function checkBridgeStatus()
         end
     end
 
-    -- If we are part of the new bridge, set everything to move to our position in it.
+    -- If we have to move to a new location, set everything to move to our position in it.
     if(myNewX ~= nil) then
         simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. myDroneId .. ') In Lua, target position for bridge found: ' .. myNewX .. ',' .. myNewY)
         -- Overwrite the next destination variables to make the drone move to its brige location.

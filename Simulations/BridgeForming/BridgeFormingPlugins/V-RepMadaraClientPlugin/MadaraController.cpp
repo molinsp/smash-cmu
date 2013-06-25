@@ -166,28 +166,38 @@ void MadaraController::setupBridgeRequest(int bridgeId, Position sourceTopLeft, 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Gets the position in the bridge where the drone with id droneId should go to, if any, or NULL if the
-// drone is not part of the bridge.
+// Gets a target position where a drone should move to.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Position* MadaraController::getBridgePosition(int droneId)
+MovementCommand* MadaraController::getNewMovementCommand(int droneId)
 {
     // Apart from checking if it is busy, we will also check if the command to move was sent.
     std::string droneIdString = INT_TO_STR(droneId);
-    int isDroneInBridge = (int) m_knowledge->get(MV_BUSY(droneIdString)).to_integer();
-    std::string movementCommand = m_knowledge->get("sim.devices." + droneIdString + MV_MOVEMENT_REQUESTED).to_string();
-    if((isDroneInBridge == 0) || (movementCommand.compare("0") == 0))
+    std::string movementCommand = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_REQUESTED).to_string();
+    bool noMovementCommandSet = movementCommand.compare("0") == 0;
+    if(noMovementCommandSet)
     {       
-        // No position to return since drone has not joined the bridge process.
+        // No position to return since there is no command yet.
         return NULL;
     }
 
-    // Get the targeted positions this drone want to go to in the bridge.
-    double targetPosX = m_knowledge->get("sim.devices." + droneIdString + MV_MOVEMENT_TARGET_LAT).to_double();
-    double targetPosY = m_knowledge->get("sim.devices." + droneIdString + MV_MOVEMENT_TARGET_LON).to_double();
+    // Create the movement command to return.
+    MovementCommand* command = new MovementCommand();
+    command->command = movementCommand;
+
+    // Depending on the command, we may need to get more parameters.
+    if(movementCommand.compare(MO_MOVE_TO_GPS_CMD) == 0)
+    {
+        // This is a move to certain location command; get the target location.
+        double targetPosX = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_TARGET_LAT).to_double();
+        double targetPosY = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_TARGET_LON).to_double();
+        Position targetPosition = Position(targetPosX, targetPosY);
+        command->position = targetPosition;
+    }
+
+    // Set the command as 0 locally, to indicate that we already read it.
+    m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_REQUESTED, "0", Madara::Knowledge_Engine::TREAT_AS_LOCAL_EVAL_SETTINGS);
 
     //m_knowledge->print_knowledge (1);
 
-    // Return it as a position object.
-    Position* targetPosition = new Position(targetPosX, targetPosY);
-    return targetPosition;
+    return command;
 }

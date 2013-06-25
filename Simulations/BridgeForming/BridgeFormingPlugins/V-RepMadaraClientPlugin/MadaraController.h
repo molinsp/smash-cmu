@@ -28,6 +28,13 @@ struct DroneStatus
     bool flying;
 };
 
+// Class that stores a movement command which will be simulated in V-Rep.
+struct MovementCommand
+{
+    std::string command;                        // The actual command.
+    SMASH::Utilities::Position position;        // The position, if any, associated to the command.
+};
+
 // Class that simulates the Madara controller of the system (though it also acts as a bridge between
 // the drone information given by the simualted drones and the Madara knowledge base).
 class MadaraController
@@ -60,7 +67,7 @@ public:
     void setupBridgeRequest(int bridgeId, SMASH::Utilities::Position sourceTopLeft, SMASH::Utilities::Position sourceBottomRight, 
                                           SMASH::Utilities::Position sinkTopLeft, SMASH::Utilities::Position sinkBottomRight);
     void updateNetworkStatus(double controllerPosx, double controllerPosy, std::vector<DroneStatus> droneStatusList);
-    SMASH::Utilities::Position* getBridgePosition(int droneId);
+    MovementCommand* getNewMovementCommand(int droneId);
     void stopDrone(int droneId);
     void terminate();
 };

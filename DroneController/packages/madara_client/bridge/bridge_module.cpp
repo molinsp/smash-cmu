@@ -50,6 +50,9 @@ enum BridgeMadaraExpressionId
 {
     // Expression to call function to update the positions of the drones available for a bridge.
 	BE_FIND_AVAILABLE_DRONES_POSITIONS,
+
+    // Expression to call function to disseminate information that the simulator needs.
+	BE_DISSEMINATE_SIMULATION_VARIABLES,
 };
 
 // Map of Madara expressions used in bridge building.
@@ -103,7 +106,6 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     // Assumes that MV_USER_BRIDGE_REQUEST_ON triggers the bridge building logic.
     knowledge.define_function(MF_MAIN_LOGIC, 
         "("
-            MF_DISSMINATE_LOCAL_VARS "();"      // For simulation only.
             MF_SEND_CURRENT_STATE "();"
             "(" MV_MOBILE("{" MV_MY_ID "}") " && (!" MV_BUSY("{" MV_MY_ID "}") ") && (" MV_TOTAL_BRIDGES " > 0)" ")"
                 " => " MF_FIND_POS_IN_BRIDGE "();"
@@ -123,9 +125,9 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     knowledge.define_function(MF_DISSMINATE_LOCAL_VARS, 
         // Dummy variable set for the bridging flag to ensure it is continously propagated, even to new drones.
         "("
-            "sim.devices.{.id}" + std::string(MV_MOVEMENT_REQUESTED) + "=" + MV_MOVEMENT_REQUESTED + ";"
-            "sim.devices.{.id}" + std::string(MV_MOVEMENT_TARGET_LAT) + "=" + MV_MOVEMENT_TARGET_LAT + ";"
-            "sim.devices.{.id}" + std::string(MV_MOVEMENT_TARGET_LON) + "=" + MV_MOVEMENT_TARGET_LON + ";"
+            MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_REQUESTED) + "=" + MV_MOVEMENT_REQUESTED + ";"
+            MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_TARGET_LAT) + "=" + MV_MOVEMENT_TARGET_LAT + ";"
+            MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_TARGET_LON) + "=" + MV_MOVEMENT_TARGET_LON + ";"
         ")"
     );
 
@@ -193,6 +195,11 @@ void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     // Expression to update the list of available drone positions, simply calls the predefined function.
     m_expressions[BE_FIND_AVAILABLE_DRONES_POSITIONS] = knowledge.compile(
         MF_UPDATE_AVAILABLE_DRONES "(" MV_CURR_BRIDGE_ID ");"
+    );
+
+    // Expression to disseminate internal information for simulation purposes.
+    m_expressions[BE_DISSEMINATE_SIMULATION_VARIABLES] = knowledge.compile(
+        MF_DISSMINATE_LOCAL_VARS "();"
     );
 }
 
@@ -292,6 +299,9 @@ Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::F
             variables.set(MV_MOVEMENT_TARGET_LAT, myNewPosition->x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
             variables.set(MV_MOVEMENT_TARGET_LON, myNewPosition->y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
             variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
+
+            // For simulation only, disseminate some of the internal information such as movement command.
+            variables.evaluate(m_expressions[BE_DISSEMINATE_SIMULATION_VARIABLES]);
         }
     }
 
