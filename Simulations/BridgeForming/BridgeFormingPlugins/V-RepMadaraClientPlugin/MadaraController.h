@@ -63,13 +63,21 @@ private:
 public:
     MadaraController(int id, double commRange);
     ~MadaraController();
-    MadaraController(Madara::Knowledge_Engine::Knowledge_Base* knowledge, int id, double commRange);
-    void setupBridgeRequest(int bridgeId, SMASH::Utilities::Position sourceTopLeft, SMASH::Utilities::Position sourceBottomRight, 
-                                          SMASH::Utilities::Position sinkTopLeft, SMASH::Utilities::Position sinkBottomRight);
+    void terminate();
+
+    // General methods.
     void updateNetworkStatus(double controllerPosx, double controllerPosy, std::vector<DroneStatus> droneStatusList);
     MovementCommand* getNewMovementCommand(int droneId);
     void stopDrone(int droneId);
-    void terminate();
+
+    // Bridge methods.
+    void setupBridgeRequest(int bridgeId, SMASH::Utilities::Position sourceTopLeft, SMASH::Utilities::Position sourceBottomRight, 
+                                          SMASH::Utilities::Position sinkTopLeft, SMASH::Utilities::Position sinkBottomRight);
+    bool MadaraController::isBridging(int droneId);
+
+    // Area coverage methods.
+    void setNewSearchArea(int searchAreaId, SMASH::Utilities::Region areaBoundaries);
+    void requestAreaCoverage(int droneId, int searchAreaId);
 };
 
 #endif

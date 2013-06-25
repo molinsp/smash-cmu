@@ -91,11 +91,15 @@ VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer,int reservedInt)
     // Here you could also register custom Lua functions or custom Lua constants
     // etc.
     registerMadaraClientSetupLuaCallback();
-    registerMadaraClientBridgeRequestLuaCallback();
+    registerMadaraClientCleanupLuaCallback();
+
     registerMadaraClientUpdateStatusLuaCallback();
     registerMadaraClientGetNewMovementCommandLuaCallback();
     registerMadaraClientStopDroneLuaCallback();
-    registerMadaraClientCleanupLuaCallback();
+
+    registerMadaraClientBridgeRequestLuaCallback();
+    registerMadaraClientSetupSearchAreaLuaCallback();
+    registerMadaraClientSearchRequestLuaCallback();
 
     simLockInterface(0);
     return(PLUGIN_VERSION); // initialization went fine, we return the version number of this plugin (can be queried with simGetModuleName)

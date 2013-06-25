@@ -20,9 +20,18 @@ function doInitialSetup()
     -- Setup Madara client.
     local myControllerId = 10
     if(g_madaraClientEnabled) then  
+        -- Setup Madara for communications.
         local radioRange = simGetScriptSimulationParameter(sim_handle_main_script, 'radioRange')
         simAddStatusbarMessage('Calling external method to set up Madara.')
         simExtMadaraClientSetup(myControllerId, radioRange)
+        
+        -- Set up the search area, getting the boundaries from the parameters.
+        g_searchAreaId = 0
+        local x1 = simGetScriptSimulationParameter(sim_handle_main_script, 'x1')
+        local y1 = simGetScriptSimulationParameter(sim_handle_main_script, 'y1')
+        local x2 = simGetScriptSimulationParameter(sim_handle_main_script, 'x2')
+        local y2 = simGetScriptSimulationParameter(sim_handle_main_script, 'y2')        
+        simExtMadaraClientSetupSearchArea(g_searchAreaId, x1, y1, x2, y2)
     end
         
     -- Used to identify each bridge request.
@@ -38,27 +47,14 @@ end
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function runMainLogic()
     -- If enabled, update the status in each step through Madara.
-    if(g_madaraClientEnabled) then  
-        droneIds, dronePositions, droneFlyingStatus = getDronesInfo(g_numDrones)
-        
-        --for key, value in pairs(droneIds) do
-        --    simAddStatusbarMessage('Drone index ' .. key .. ' id ' .. value)
-        --end
-
-        --for key, value in pairs(dronePositions) do
-        --    simAddStatusbarMessage('Drone index ' .. key .. ' position ' .. value)
-        --end
-
-        --for key, value in pairs(droneFlyingStatus) do
-        --    simAddStatusbarMessage('Drone index ' .. key .. ' flying ' .. tostring(value))
-        --end       
-        
+    if(g_madaraClientEnabled) then         
         -- NOTE: This is done here just for convinience of simulation. In reality, it would be issued by a rescuer at any moment, not when someone is found.        
         checkForBridgeRequest()
         
-        -- Update the status to the network.
+        -- Update the drone status to the network.        
+        local droneIds, dronePositions, droneFlyingStatus = getDronesInfo(g_numDrones)  
         local sinkName, sinkPosition = getSinkInfo()
-        simExtMadaraClientUpdateStatus(sinkPosition[1], sinkPosition[2], droneIds, dronePositions, droneFlyingStatus)    
+        simExtMadaraClientUpdateStatus(sinkPosition[1], sinkPosition[2], droneIds, dronePositions, droneFlyingStatus)           
     end
 end
 

@@ -86,8 +86,7 @@ void MadaraController::stopDrone(int droneId)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Convenience method that updates both the status of this controller, as well as the status of the
-// drone with the information form the simulator.
+// Convenience method that updates the status of the drones with the information form the simulator.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MadaraController::updateNetworkStatus(double controllerPosx, double controllerPosy, std::vector<DroneStatus> droneStatusList)
 {
@@ -200,4 +199,57 @@ MovementCommand* MadaraController::getNewMovementCommand(int droneId)
     //m_knowledge->print_knowledge (1);
 
     return command;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Gets a simple status of the drone: 
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool MadaraController::isBridging(int droneId)
+{
+    // For now we assume that BUSY means that it is bridging. This will change later, as it can become busy for other reasons.
+    std::string droneIdString = INT_TO_STR(droneId);
+    int isBusy = (int) m_knowledge->get(MV_BUSY(droneIdString)).to_integer();
+    if(isBusy == 1)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Requests a drone to be part of area coverage.
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MadaraController::requestAreaCoverage(int droneId, int searchAreaId)
+{
+    // Set the given search area as the area for this drone to search; and tell it to start searching.
+    std::string droneIdString = INT_TO_STR(droneId);
+    m_knowledge->set(MV_ASSIGNED_SEARCH_AREA(droneIdString), (Madara::Knowledge_Record::Integer) searchAreaId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set(MV_AREA_COVERAGE_REQUESTED(droneIdString), (Madara::Knowledge_Record::Integer) 1);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Requests a drone to be part of area coverage.
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MadaraController::setNewSearchArea(int searchAreaId, SMASH::Utilities::Region areaBoundaries)
+{
+    // Add a new search area.
+    int searchAreaRegionId = m_regionId++;
+    std::string searchAreaIdString = INT_TO_STR(searchAreaId);
+    m_knowledge->set(MV_SEARCH_AREA_REGION(searchAreaIdString), (Madara::Knowledge_Record::Integer) searchAreaRegionId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+
+    // Set the type and bounding box of the region associated with this search area.
+    int rectangleType = 0;
+    std::string sourceRegionIdString = INT_TO_STR(searchAreaRegionId);
+    m_knowledge->set(MV_REGION_TYPE(sourceRegionIdString), (Madara::Knowledge_Record::Integer) rectangleType, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set((MV_REGION_TOPLEFT_LAT(sourceRegionIdString)).substr(1), areaBoundaries.topLeftCorner.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set((MV_REGION_TOPLEFT_LON(sourceRegionIdString)).substr(1), areaBoundaries.topLeftCorner.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set((MV_REGION_BOTRIGHT_LAT(sourceRegionIdString)).substr(1), areaBoundaries.bottomRightCorner.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set((MV_REGION_BOTRIGHT_LON(sourceRegionIdString)).substr(1), areaBoundaries.bottomRightCorner.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+
+    // Update the total amount of search areas. No delay to apply all changes.
+    int totalSearchAreas = searchAreaId + 1;
+    m_knowledge->set(MV_TOTAL_SEARCH_AREAS, (Madara::Knowledge_Record::Integer) totalSearchAreas);
 }

@@ -19,18 +19,27 @@
 
 // Functions to register the callbacks to the custom Lua functions.
 void registerMadaraClientSetupLuaCallback();
-void registerMadaraClientBridgeRequestLuaCallback();
+void registerMadaraClientCleanupLuaCallback();
+
 void registerMadaraClientUpdateStatusLuaCallback();
 void registerMadaraClientGetNewMovementCommandLuaCallback();
 void registerMadaraClientStopDroneLuaCallback();
-void registerMadaraClientCleanupLuaCallback();
+
+void registerMadaraClientBridgeRequestLuaCallback();
+void registerMadaraClientSetupSearchAreaLuaCallback();
+void registerMadaraClientSearchRequestLuaCallback();
 
 // The actual callbacks implementing the custom Lua functions.
 void simExtMadaraClientSetup(SLuaCallBack* p);
-void simExtMadaraClientBridgeRequest(SLuaCallBack* p);
+void simExtMadaraClientCleanup(SLuaCallBack* p);
+
 void simExtMadaraClientUpdateStatus(SLuaCallBack* p);
 void simExtMadaraClientGetNewMovementCommand(SLuaCallBack* p);
 void simExtMadaraClientStopDrone(SLuaCallBack* p);
-void simExtMadaraClientCleanup(SLuaCallBack* p);
+
+void simExtMadaraClientBridgeRequest(SLuaCallBack* p);
+void simExtMadaraClientSetupSearchArea(SLuaCallBack* p);
+void simExtMadaraClientSearchRequest(SLuaCallBack* p);
+
 
 #endif

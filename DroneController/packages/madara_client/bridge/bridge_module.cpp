@@ -31,7 +31,7 @@ using namespace SMASH::Utilities;
 #define MF_FIND_POS_IN_BRIDGE		"bridge_findPositionInBridge"				// Function that finds and sets the position in the bridge for this drone, if any.
 
 #define MF_POPULATE_LOCAL_VARS		"bridge_populateLocalVars"				    // Function that populates local variables from global ones sent by the simulator.
-#define MF_DISSMINATE_LOCAL_VARS	"bridge_disseminateLocalVars"				// Function that propagates local variables for a simulator.
+#define MF_DISSEMINATE_LOCAL_VARS	"bridge_disseminateLocalVars"				// Function that propagates local variables for a simulator.
 
 // Internal variables.
 #define MV_AVAILABLE_DRONES_AMOUNT	".bridge.devices.available.total"			    // The amount of available drones.
@@ -122,7 +122,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     );
 
     // Function to broadcast local variables to a simulator.
-    knowledge.define_function(MF_DISSMINATE_LOCAL_VARS, 
+    knowledge.define_function(MF_DISSEMINATE_LOCAL_VARS, 
         // Dummy variable set for the bridging flag to ensure it is continously propagated, even to new drones.
         "("
             MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_REQUESTED) + "=" + MV_MOVEMENT_REQUESTED + ";"
@@ -164,11 +164,6 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     knowledge.define_function(MF_POPULATE_LOCAL_VARS, 
         // Just set certain local vars (positions) from the global simulated var with the same name, without the dot.
         "("
-            ".i[0->" MV_TOTAL_DEVICES ")"
-            "("
-                MV_DEVICE_LAT("{.i}") + "=" + (MV_DEVICE_LAT("{.i}")).substr(1) + ";"
-                MV_DEVICE_LON("{.i}") + "=" + (MV_DEVICE_LON("{.i}")).substr(1) + ";"
-            ");"
             ".i[0->" MV_TOTAL_BRIDGES ")"
             "("
                 ".curr_bridge_source_region = " MV_BRIDGE_SOURCE_REGION_ID("{.i}") ";"
@@ -199,7 +194,7 @@ void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 
     // Expression to disseminate internal information for simulation purposes.
     m_expressions[BE_DISSEMINATE_SIMULATION_VARIABLES] = knowledge.compile(
-        MF_DISSMINATE_LOCAL_VARS "();"
+        MF_DISSEMINATE_LOCAL_VARS "();"
     );
 }
 

@@ -94,14 +94,14 @@ int main (int argc, char** argv)
 		"Position:\t{" MV_DEVICE_LAT("{.id}") "},{" MV_DEVICE_LON("{.id}") "}\n"
 		"Mobile:\t\t{" MV_MOBILE("{.id}") "}\n"
 		"Bridging:\t{" MV_BUSY("{.id}") ".bridging}\n"
-		"Target pos:\t{" MV_MOVEMENT_TARGET_LON "},{" MV_MOVEMENT_TARGET_LON "}\n\n"
+		"Target pos:\t{" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n\n"
 		;
 
     // Until the user presses ctrl+c in this terminal, check for input.
     while (!g_terminated)
     {
+        knowledge.evaluate (areaPreprocessLogicCall + ";" + areaMainLogicCall + ";", eval_settings);
         knowledge.evaluate (bridgePreprocessLogicCall + ";" + bridgeMainLogicCall + ";", eval_settings);
-        //knowledge.evaluate (areaPreprocessLogicCall + ";" + areaMainLogicCall + ";", eval_settings);
         ACE_OS::sleep (1);
     }
 

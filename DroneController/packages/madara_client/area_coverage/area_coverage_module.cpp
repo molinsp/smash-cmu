@@ -27,15 +27,17 @@ using namespace SMASH::Utilities;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions.
 #define MF_MAIN_LOGIC				"area_coverage_doAreaCoverage"			// Function that checks if there is area coverage to be done, and does it.
-#define MF_POPULATE_LOCAL_VARS		"area_coverage_populateLocalVars"		// Function that populates local variables from global ones sent by the simulator.
 #define MF_INIT_SEARCH_CELL         "area_coverage_initSearchCell"          // Initializes the cell that we will be searching.
 #define MF_TARGET_REACHED           "area_coverage_checkTargetReached"      // Checks if the current target has been reached.
 #define MF_FINAL_TARGET_REACHED     "area_coverage_checkFinalTargetReached" // Checks if the final target has been reached.
 #define MF_SET_NEW_TARGET           "area_coverage_setNewTarget"            // Sets the next target.
 #define MF_UPDATE_AVAILABLE_DRONES	"area_coverage_updateAvailableDrones"   // Function that checks the amount and positions of drones ready for covering.
 
+#define MF_POPULATE_LOCAL_VARS		"area_coverage_populateLocalVars"		// Function that populates local variables from global ones sent by the simulator.
+#define MF_DISSEMINATE_LOCAL_VARS	"area_coverage_disseminateLocalVars"	// Function that propagates local variables for a simulator.
+
 // Internal variables.
-#define MV_ACCURACY	                "0.02"                                      // Used to check if we have reached a location.
+#define MV_ACCURACY	                "0.20"                                      // Used to check if we have reached a location.
 #define MV_CELL_INITIALIZED	        ".area_coverage.cell_initialized"           // Flag to check if we have initialized our cell in the search area.
 #define MV_NEXT_TARGET_LAT          ".area_coverage.target.location.latitude"   // The latitude of the next target location in our search pattern.
 #define MV_NEXT_TARGET_LON          ".area_coverage.target.location.longitude"  // The longitude of the next target location in our search pattern.
@@ -52,6 +54,9 @@ enum AreaCoverageMadaraExpressionId
 {
     // Expression to call function to update the positions of the drones available for coverage.
 	ACE_FIND_AVAILABLE_DRONES_POSITIONS,
+
+    // Expression to call function to disseminate information that the simulator needs.
+	ACE_DISSEMINATE_SIMULATION_VARIABLES,
 };
 
 // Map of Madara expressions used in bridge building.
@@ -109,13 +114,14 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
         "(" MV_AREA_COVERAGE_REQUESTED("{.id}") " => "
             "("
                 "("
+                    // If we haven't found our cell yet, do it and get an initial target (which will be one corner of that cell).
                     "(!" MV_CELL_INITIALIZED ")"
-                        " => (" MF_INIT_SEARCH_CELL "() && (" MV_CELL_INITIALIZED " = 1))"
+                        " => (" MF_INIT_SEARCH_CELL "() && (" MV_CELL_INITIALIZED " = 1) && " MF_SET_NEW_TARGET  "())"
                 ");"
                 "(" 
                     "("MV_CELL_INITIALIZED ")"
                         " => (" 
-                                // Check if we reached the next target, but not the end of the area, to set the next waypoint.
+                                // Check if we reached the next target, but not the end of the area, to set the next waypoint.                                
                                 "(" MF_TARGET_REACHED "()" " && !" MF_FINAL_TARGET_REACHED "() )"
                                     " => " MF_SET_NEW_TARGET  "()" 
                             ")"
@@ -143,21 +149,6 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
         ");"
     );
 
-    // Returns 1 if we are closer than MV_ACCURACY to the final coverage target location. 
-    knowledge.define_function(MF_FINAL_TARGET_REACHED, 
-        "("
-            "("
-                "((" MV_DEVICE_LAT("{.i}") " - " MV_REGION_BOTRIGHT_LAT("{"MV_MY_SEARCH_AREA_REGION"}") ") < " MV_ACCURACY ") && "
-                "((" MV_REGION_BOTRIGHT_LAT("{"MV_MY_SEARCH_AREA_REGION"}") " - " MV_DEVICE_LAT("{.i}") ") < " MV_ACCURACY ") "
-            ")"
-            " && "
-            "("
-            "((" MV_DEVICE_LON("{.i}") " - " MV_REGION_BOTRIGHT_LON("{"MV_MY_SEARCH_AREA_REGION"}") ") < " MV_ACCURACY ") && "
-                "((" MV_REGION_BOTRIGHT_LON("{"MV_MY_SEARCH_AREA_REGION"}") " - " MV_DEVICE_LON("{.i}") ") < " MV_ACCURACY ") "
-            ")"
-        ");"
-    );
-
     // Returns 1 if we are closer than MV_ACCURACY to the current target of our search.
     knowledge.define_function(MF_TARGET_REACHED, 
         "("
@@ -166,13 +157,28 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
             ")"
             " || "
             "("
-                "((" MV_DEVICE_LAT("{.i}") " - " MV_NEXT_TARGET_LAT ") < " MV_ACCURACY ") && "
-                "((" MV_NEXT_TARGET_LAT " - " MV_DEVICE_LAT("{.i}") ") < " MV_ACCURACY ") "
+                "((" MV_DEVICE_LAT("{.id}") " - " MV_NEXT_TARGET_LAT ") < " MV_ACCURACY ") && "
+                "((" MV_NEXT_TARGET_LAT " - " MV_DEVICE_LAT("{.id}") ") < " MV_ACCURACY ") "
             ")"
             " && "
             "("
-                "((" MV_DEVICE_LON("{.i}") " - " MV_NEXT_TARGET_LON ") < " MV_ACCURACY ") && "
-                "((" MV_NEXT_TARGET_LON " - " MV_DEVICE_LON("{.i}") ") < " MV_ACCURACY ") "
+                "((" MV_DEVICE_LON("{.id}") " - " MV_NEXT_TARGET_LON ") < " MV_ACCURACY ") && "
+                "((" MV_NEXT_TARGET_LON " - " MV_DEVICE_LON("{.id}") ") < " MV_ACCURACY ") "
+            ")"
+        ");"
+    );
+
+    // Returns 1 if we are closer than MV_ACCURACY to the final coverage target location. 
+    knowledge.define_function(MF_FINAL_TARGET_REACHED, 
+        "("
+            "("
+                "((" MV_DEVICE_LAT("{.id}") " - " MV_REGION_BOTRIGHT_LAT("{"MV_MY_SEARCH_AREA_REGION"}") ") < " MV_ACCURACY ") && "
+                "((" MV_REGION_BOTRIGHT_LAT("{"MV_MY_SEARCH_AREA_REGION"}") " - " MV_DEVICE_LAT("{.id}") ") < " MV_ACCURACY ") "
+            ")"
+            " && "
+            "("
+            "((" MV_DEVICE_LON("{.id}") " - " MV_REGION_BOTRIGHT_LON("{"MV_MY_SEARCH_AREA_REGION"}") ") < " MV_ACCURACY ") && "
+                "((" MV_REGION_BOTRIGHT_LON("{"MV_MY_SEARCH_AREA_REGION"}") " - " MV_DEVICE_LON("{.id}") ") < " MV_ACCURACY ") "
             ")"
         ");"
     );
@@ -182,6 +188,38 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 
     // Function that can be included in main loop of another method to introduce area coverage.
     knowledge.define_function(MF_SET_NEW_TARGET, madaraSetNewTarget);
+
+    // Function only used when simulating, to pass along global information sent by simulator to local variables,
+    // where the information will be for the real drones (populated by other parts of the drone).
+    knowledge.define_function(MF_POPULATE_LOCAL_VARS, 
+        // Just set certain local vars (positions) from the global simulated var with the same name, without the dot.
+        "("
+            ".i[0->" MV_TOTAL_DEVICES ")"
+            "("
+                MV_DEVICE_LAT("{.i}") + "=" + (MV_DEVICE_LAT("{.i}")).substr(1) + ";"
+                MV_DEVICE_LON("{.i}") + "=" + (MV_DEVICE_LON("{.i}")).substr(1) + ";"
+            ");"
+            ".i[0->" MV_TOTAL_SEARCH_AREAS ")"
+            "("
+                ".curr_area_region = " MV_SEARCH_AREA_REGION("{.i}") ";"
+                MV_REGION_TOPLEFT_LAT("{.curr_area_region}") + "=" + (MV_REGION_TOPLEFT_LAT("{.curr_area_region}")).substr(1) + ";"
+                MV_REGION_TOPLEFT_LON("{.curr_area_region}") + "=" + (MV_REGION_TOPLEFT_LON("{.curr_area_region}")).substr(1) + ";"
+                MV_REGION_BOTRIGHT_LAT("{.curr_area_region}") + "=" + (MV_REGION_BOTRIGHT_LAT("{.curr_area_region}")).substr(1) + ";"
+                MV_REGION_BOTRIGHT_LON("{.curr_area_region}") + "=" + (MV_REGION_BOTRIGHT_LON("{.curr_area_region}")).substr(1) + ";"
+            ")"
+        ")"
+    );
+
+
+    // Function to broadcast local variables to a simulator.
+    knowledge.define_function(MF_DISSEMINATE_LOCAL_VARS, 
+        // Dummy variable set for the bridging flag to ensure it is continously propagated, even to new drones.
+        "("
+            MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_REQUESTED) + "=" + MV_MOVEMENT_REQUESTED + ";"
+            MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_TARGET_LAT) + "=" + MV_MOVEMENT_TARGET_LAT + ";"
+            MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_TARGET_LON) + "=" + MV_MOVEMENT_TARGET_LON + ";"
+        ")"
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -192,6 +230,11 @@ void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     // Expression to update the list of available drones, simply calls the predefined function.
     m_expressions[ACE_FIND_AVAILABLE_DRONES_POSITIONS] = knowledge.compile(
         MF_UPDATE_AVAILABLE_DRONES "();"
+    );
+
+    // Expression to disseminate internal information for simulation purposes.
+    m_expressions[ACE_DISSEMINATE_SIMULATION_VARIABLES] = knowledge.compile(
+        MF_DISSEMINATE_LOCAL_VARS "();"
     );
 }
 
@@ -252,6 +295,9 @@ Madara::Knowledge_Record madaraSetNewTarget (Madara::Knowledge_Engine::Function_
     variables.set(MV_MOVEMENT_TARGET_LAT, nextTarget.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
     variables.set(MV_MOVEMENT_TARGET_LON, nextTarget.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
     variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
+
+    // For simulation only, disseminate some of the internal information such as movement command.
+    variables.evaluate(m_expressions[ACE_DISSEMINATE_SIMULATION_VARIABLES]);
 
     return Madara::Knowledge_Record(1.0);
 }
