@@ -10,7 +10,7 @@ HOME_DIR=$(CURDIR)
 PACKAGES_ROOT=$(HOME_DIR)/packages
 INSTALL_ROOT=$(HOME_DIR)/install
 
-include toolchain.mk
+include ar_drone_2.mk
 
 LOCAL_CMD = 	TARGET=$(TARGET) \
 		PLATFORM=$(PLATFORM) \
@@ -28,3 +28,6 @@ LOCAL_CMD = 	TARGET=$(TARGET) \
 
 %-clean:
 	@cd $(PACKAGES_ROOT)/$*; $(LOCAL_CMD) clean
+	
+clean:
+	rm -rf install
