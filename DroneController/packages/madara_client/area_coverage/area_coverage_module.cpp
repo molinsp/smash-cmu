@@ -38,12 +38,16 @@ using namespace SMASH::Utilities;
 
 // Internal variables.
 #define MV_ACCURACY	                "0.20"                                      // Used to check if we have reached a location.
-#define MV_CELL_INITIALIZED	        ".area_coverage.cell_initialized"           // Flag to check if we have initialized our cell in the search area.
+#define MV_CELL_INITIALIZED	        ".area_coverage.cell.initialized"           // Flag to check if we have initialized our cell in the search area.
 #define MV_NEXT_TARGET_LAT          ".area_coverage.target.location.latitude"   // The latitude of the next target location in our search pattern.
 #define MV_NEXT_TARGET_LON          ".area_coverage.target.location.longitude"  // The longitude of the next target location in our search pattern.
 #define MV_AVAILABLE_DRONES_AMOUNT	".area_coverage.devices.available.total"    // The amount of available drones.
 #define MV_AVAILABLE_DRONES_MY_IDX	".area_coverage.devices.available.my_idx"   // The index of the device in the list of available ones.
 #define MV_MY_SEARCH_AREA_REGION    ".area_coverage.search_area_region.id"      // The id of the region associated with this area.
+#define MV_MY_CELL_TOP_LEFT_LAT     ".area_coverage.cell.top_left.location.latitude"        // The x of the top left corner of the cell I am searching.
+#define MV_MY_CELL_TOP_LEFT_LON     ".area_coverage.cell.top_left.location.longitude"       // The y of the top left corner of the cell I am searching.
+#define MV_MY_CELL_BOT_RIGHT_LAT    ".area_coverage.cell.bottom_right.location.latitude"    // The x of the bottom right corner of the cell I am searching.
+#define MV_MY_CELL_BOT_RIGHT_LON    ".area_coverage.cell.bottom_right.location.longitude"   // The y of the bottom right corner of the cell I am searching.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private variables.
@@ -172,13 +176,13 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     knowledge.define_function(MF_FINAL_TARGET_REACHED, 
         "("
             "("
-                "((" MV_DEVICE_LAT("{.id}") " - " MV_REGION_BOTRIGHT_LAT("{"MV_MY_SEARCH_AREA_REGION"}") ") < " MV_ACCURACY ") && "
-                "((" MV_REGION_BOTRIGHT_LAT("{"MV_MY_SEARCH_AREA_REGION"}") " - " MV_DEVICE_LAT("{.id}") ") < " MV_ACCURACY ") "
+                "((" MV_DEVICE_LAT("{.id}") " - " MV_MY_CELL_BOT_RIGHT_LAT ") < " MV_ACCURACY ") && "
+                "((" MV_MY_CELL_BOT_RIGHT_LAT " - " MV_DEVICE_LAT("{.id}") ") < " MV_ACCURACY ") "
             ")"
             " && "
             "("
-            "((" MV_DEVICE_LON("{.id}") " - " MV_REGION_BOTRIGHT_LON("{"MV_MY_SEARCH_AREA_REGION"}") ") < " MV_ACCURACY ") && "
-                "((" MV_REGION_BOTRIGHT_LON("{"MV_MY_SEARCH_AREA_REGION"}") " - " MV_DEVICE_LON("{.id}") ") < " MV_ACCURACY ") "
+            "((" MV_DEVICE_LON("{.id}") " - " MV_MY_CELL_BOT_RIGHT_LON ") < " MV_ACCURACY ") && "
+                "((" MV_MY_CELL_BOT_RIGHT_LON " - " MV_DEVICE_LON("{.id}") ") < " MV_ACCURACY ") "
             ")"
         ");"
     );
@@ -264,9 +268,13 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
     double bottomRightY = variables.get(MV_REGION_BOTRIGHT_LON(myAssignedSearchRegion) ).to_double();
     Region searchArea = Region(Position(topLeftX, topLeftY), Position(bottomRightX, bottomRightY));
 
-    // Reset the area coverage, and calculate the actual cell I will be covering.
+    // Reset the area coverage, and calculate the actual cell I will be covering, and store it in Madara.
     m_coverageAlgorithm = SimpleAreaCoverage();
-    m_coverageAlgorithm.calculateCellToSearch(myIndexInList, searchArea, availableDrones);
+    Region myCell = m_coverageAlgorithm.calculateCellToSearch(myIndexInList, searchArea, availableDrones);
+    variables.set(MV_MY_CELL_TOP_LEFT_LAT, myCell.topLeftCorner.x);
+    variables.set(MV_MY_CELL_TOP_LEFT_LON, myCell.topLeftCorner.y);
+    variables.set(MV_MY_CELL_BOT_RIGHT_LAT, myCell.bottomRightCorner.x);
+    variables.set(MV_MY_CELL_BOT_RIGHT_LON, myCell.bottomRightCorner.y);
 
     // Store the region id in an internal variable for easier retrieval.
     variables.set(MV_MY_SEARCH_AREA_REGION, myAssignedSearchRegion);
