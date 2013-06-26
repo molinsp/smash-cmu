@@ -91,14 +91,14 @@ Custom_Transport_Read_Thread::~Custom_Transport_Read_Thread ()
 {
     // Use setsockopt() to request that the kernel leaves a multicast group.
     const char * host = inet_ntoa(socketAddress_.sin_addr);
-    struct ip_mreq mreq;
+    ip_mreq mreq;
     mreq.imr_multiaddr.s_addr = inet_addr(host);
     mreq.imr_interface.s_addr = htonl(INADDR_ANY);
     if (setsockopt(socket_, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)  &mreq, sizeof(mreq)) < 0) 
     {
-    MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-      DLINFO "Custom_Transport_Read_Thread::close:" \
-      " Error unsubscribing to multicast address\n"));
+        MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+          DLINFO "Custom_Transport_Read_Thread::close:" \
+          " Error unsubscribing to multicast address\n"));
     }
 
     closesocket (socket_);

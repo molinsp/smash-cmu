@@ -22,8 +22,15 @@ const double SimpleAreaCoverage::SEARCH_COLUMN_WIDTH = 0.5;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Finds the boundaries of the cell the given id will be covering.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Region SimpleAreaCoverage::findCellBoundaries(int deviceId, Region grid, int numDrones)
+Region SimpleAreaCoverage::calculateCellToSearch(int deviceIdx, Region grid, int numDrones)
 {
+    // This should never happen.
+    if(numDrones == 0)
+    {
+        // This means something is really bad... we don't have a way to notify of errors, so we just return an empty region.
+        return Region();
+    }
+
 	// Get the two divisors of the number of drones that are more similar to one another, 
     // to be used as the size of the grid in number of drones. This will allow us to generate 
     // a rectangular-shaped grid which is as square-like as possible.
@@ -36,9 +43,9 @@ Region SimpleAreaCoverage::findCellBoundaries(int deviceId, Region grid, int num
     double cellSizeX = (grid.bottomRightCorner.x - grid.topLeftCorner.x) / amountOfLines;
 	double cellSizeY = (grid.bottomRightCorner.y - grid.topLeftCorner.y) / amountOfColumns;
 
-    // Calculate my line and column to find my cell, based on my id.
-    int deviceLine = deviceId % amountOfLines;
-    int deviceColumn = (int) std::floor((double) (deviceId / amountOfColumns));
+    // Calculate my line and column to find my cell, based on my idx.
+    int deviceLine = deviceIdx % amountOfLines;
+    int deviceColumn = (int) std::floor((double) (deviceIdx / amountOfColumns));
 
     // Calculate the starting position based on the cell (line and column) and the cells's size.
     Position deviceCellTopLeftCorner;
@@ -97,45 +104,43 @@ std::vector<int> SimpleAreaCoverage::findMiddleDivisors(int numberToEvaluate)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Position SimpleAreaCoverage::getNextTargetLocation()
 {
-    // If we are being called for the first time to start a search; return the top left corner of the area as the next target.
+    // If we are being called for the first time to start a search, return the top left corner of the area as the next target.
     if(!m_searchStarted)
     {
         m_searchStarted = true;
         m_targetLocation = m_cellToSearch.topLeftCorner;
-        return m_targetLocation;
-    }
-
-    // This method is called when we (roughly) reach a target location.
-    Position currentPosition = m_targetLocation;
-
-    // Check if we were moving on the Y axis or not.
-    if(m_movingOnYAxis)
-    {
-        // If we were moving on the Y axis, that means that we just finished searching in the current search column.
-        // We set our next target to the right, to the start of the next column.
-        // After we reach this target, we will be ready to move down or up the search column.
-        m_targetLocation.x -= SEARCH_COLUMN_WIDTH;
-        m_movingOnYAxis = false;
     }
     else
     {
-        // If we are in here, we just moved to the beginning of a search column (either on the top or the bottom).
-
-        // Check if we reached the end of a column on the top or the bottom of the area.
-        bool bottomReached = currentPosition.y == m_cellToSearch.bottomRightCorner.y;
-        if(bottomReached)
+        // Check if we were moving on the Y axis or not.
+        if(m_movingOnYAxis)
         {
-            // Since we reached the bottom, set our next target to the top.
-            m_targetLocation.y = m_cellToSearch.topLeftCorner.y;
+            // If we were moving on the Y axis, that means that we just finished searching in the current search column.
+            // We set our next target to the right, to the start of the next column.
+            // After we reach this target, we will be ready to move down or up the search column.
+            m_targetLocation.x -= SEARCH_COLUMN_WIDTH;
+            m_movingOnYAxis = false;
         }
         else
         {
-            // Since we reached the top, set our next target to the bottom.
-            m_targetLocation.y = m_cellToSearch.bottomRightCorner.y;
-        }
+            // If we are in here, we just moved to the beginning of a search column (either on the top or the bottom).
 
-        // Indicate that now we are moving on the Y axis.
-        m_movingOnYAxis = true;
+            // Check if we are at the end of a column on the top or the bottom of the area.
+            bool bottomReached = m_targetLocation.y == m_cellToSearch.bottomRightCorner.y;
+            if(bottomReached)
+            {
+                // Since we are on the bottom, set our next target to the top.
+                m_targetLocation.y = m_cellToSearch.topLeftCorner.y;
+            }
+            else
+            {
+                // Since we are on the top, set our next target to the bottom.
+                m_targetLocation.y = m_cellToSearch.bottomRightCorner.y;
+            }
+
+            // Indicate that now we are going to be moving on the Y axis.
+            m_movingOnYAxis = true;
+        }
     }
 
     // We updated it internally, but we also return our next target it so it can be used by the movement controller.

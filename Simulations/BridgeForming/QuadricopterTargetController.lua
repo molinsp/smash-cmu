@@ -30,29 +30,214 @@ function doInitialSetup()
     -- Flag to indicate whether it is flying or not.
     --g_flying = true
 
-    -- Setup the search pattern, by defining the next and final destinations for the targets.
-    setupSearchPattern()
-
     -- Load the positions of people on the grid, so we will know when we find one.
     loadPeoplePositions()
     
     -- Indicates if we are using the Madara client for communication with external "drones".
     g_madaraClientEnabled = simGetScriptSimulationParameter(sim_handle_main_script, 'madaraClientOn')       
 
+    -- Setup the search pattern, either on the drone itself or internally.
+    if(g_madaraClientEnabled) then
+        local myDroneId = g_mySuffix + 1 
+        g_searchAreaId = 0
+        simExtMadaraClientSearchRequest(myDroneId, g_searchAreaId)
+
+        -- Set patrolling as false, as in this case we will get this value from the external drone.
+        g_patrolling = false
+    else    
+        setupSearchPattern()
+    end
+    
 end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Load the people's locations, so we are able to check when we find one.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function loadPeoplePositions()
+	g_numPeople = simGetScriptSimulationParameter(sim_handle_main_script, 'numberOfPeople')
+	g_personCoords = {}
+    
+	local counter = 1
+	for i=1, g_numPeople, 1 do
+		if(i==1) then
+			personHandle = simGetObjectHandle('Bill#')
+		else
+			personHandle = simGetObjectHandle('Bill#' .. (i-2))
+		end
+
+        local billposition = simGetObjectPosition(personHandle, -1)
+		g_personCoords[counter] = billposition[1]
+		g_personCoords[counter+1] = billposition[2]
+		--simAddStatusbarMessage('Person ' .. counter .. ' : ' .. g_personCoords[counter] .. ', ' .. counter+1 .. ' : '..g_personCoords[counter+1])
+		counter = counter + 2
+	end
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Method called in each step of the simulation.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function runMainLogic()
+    if(g_patrolling) then
+        -- Check if we have found a person to stop on top of it (only if we are patrolling).
+        lookForPersonBelow()
+
+        if(not g_madaraClientEnabled) then         
+            -- Update the waypoints if required, depending on how far we have moved on our search path.
+            updateAreaCoverageWaypoint()        
+        end
+    end
+    
+    -- Check if we got new movement target, or if we have to calculate our position in the bridge.
+    loadNewMovementCommand()    
+        
+    -- If we are still patrolling or bridging, check if we have to move and move.
+    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ') flags (p,b): ' .. tostring(g_patrolling) .. ', ' .. tostring(g_bridging) )
+    if(g_patrolling or g_bridging) then
+        if(not g_madaraClientEnabled) then      
+            -- Check if we have reached our end location.
+            checkIfEndWasReached()
+        end
+    
+        -- Move to our next waypoint.
+        moveTargetToPosition(g_nextWaypointx, g_nextWaypointy)
+    end
+
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Check if we have found a person to stop on top of it.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function lookForPersonBelow()
+    -- Get my drone position.
+    local droneName, dronePos = getDroneInfoFromSuffix(g_mySuffix)
+
+    -- Check if we found a person, to stop.
+    local counter = 1
+    local margin = 0.2
+    for i=1, g_numPeople, 1 do
+        if( (dronePos[1] >= g_personCoords[counter] - margin) and (dronePos[1] <= g_personCoords[counter] + margin) ) then
+            if((dronePos[2] >= g_personCoords[counter + 1] - margin) and (dronePos[2] <= g_personCoords[counter + 1] + margin)) then
+                -- Notifiy our shared memory that a person was found, and that I was the one to find it.
+                local sourceSuffix, sourceName = simGetNameSuffix(nil)
+                simSetScriptSimulationParameter(sim_handle_main_script, 'personFound', 'true')
+                simSetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound', sourceSuffix)
+                simSetScriptSimulationParameter(sim_handle_main_script, 'personFoundId', i)
+                simAddStatusbarMessage('Drone with suffix ' .. sourceSuffix .. ' found person ' .. i .. '!')
+            end
+        end
+        counter = counter + 2
+    end
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Checks if there is movement to be done, or if a bridge has to be built.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function loadNewMovementCommand()
+    local myNewX = nil
+    local myNewY = nil
+    
+    -- Drone ids start from 0, while suffixes start from -1.
+    local myDroneId = g_mySuffix + 1       
+    
+    -- Behavior will depend on whether external Madara drones perform the calculations, or not.
+    if(g_madaraClientEnabled) then      
+        -- We wait to get the coordinates of our new position, if any, from the external drones.
+        --simAddStatusbarMessage('(In ' .. g_myDroneName .. ') Checking movement status.')
+        --simAddStatusbarMessage('Calling external C++ Madara plugin to get remotely calculated position for drone ' .. g_myDroneName .. ' with id ' .. myDroneId .. '.')
+        myNewX, myNewY, bridging = simExtMadaraClientGetNewMovementCommand(myDroneId)
+        if(myNewX ~= nil) then
+            --simAddStatusbarMessage('(In ' .. g_myDroneName .. ') Got new movement.')
+            -- We also get the bridging status. If the device is now bridging, we set the corresponding flags for the simulation.
+            if(bridging == 1) then  
+                simAddStatusbarMessage('(In ' .. g_myDroneName .. ') Stopped patrolling, now bridging.')            
+                g_patrolling = false
+                g_bridging = true 
+            else
+                g_patrolling = true
+            end            
+        end
+    else
+        -- If a person was found, recalculate new location so that we create a bridge to the sink.
+        local personHasBeenFound = simGetScriptSimulationParameter(sim_handle_main_script, 'personFound')
+    
+        -- Actually calculate if we are in the bridge.
+        if(personHasBeenFound and not g_personChecked) then
+            simAddStatusbarMessage('(In ' .. g_myDroneName .. ') Someone found a person, check if I have to stop patrolling and move into bridge-forming mode')
+            myNewX, myNewY = buildBridge()
+
+            -- If we are going to a bridge, upate our internal flags to reflect that.
+            if(myNewX ~= nil) then
+                g_patrolling = false
+                g_bridging = true    
+
+                -- Overwrite the final destination variable so the drone will just stop there.
+                g_endx = myNewX
+                g_endy = myNewY
+            end            
+
+            -- Flag to mark that bridges will only be made for the first person found.
+            g_personChecked = true  
+        end
+    end
+
+    -- If we have to move to a new location, set everything to move to our position in it.
+    if(myNewX ~= nil) then
+        simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. myDroneId .. ') In Lua, target position found: ' .. myNewX .. ',' .. myNewY)
+        -- Overwrite the next destination variables to make the drone move to its brige location.
+        g_nextWaypointx = myNewX
+        g_nextWaypointy = myNewY
+    end
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Moves the target to a new position, so the drone will follow it there.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function moveTargetToPosition(newPositionX, newPositionY)
+    -- Get the current position of the target.
+    local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
+    local droneTargetPosition = simGetObjectPosition(droneTargetHandle, -1)
+    
+    -- The speed defines how far the target moves, and therefore how fast the drone will follow.
+	local speed = 0.02        
+    
+    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ') init target pos: ' .. droneTargetPosition[1] .. ', ' .. droneTargetPosition[2] )
+    
+    -- Check if the target is already at the required X position. If not, define that the
+    -- new X position is our current plus the speed we move at in the correct direction.
+    if(droneTargetPosition[1] > newPositionX) then        
+        droneTargetPosition[1] = droneTargetPosition[1] - speed
+        --simAddStatusbarMessage('(In ' .. g_myDroneName .. ') minus x speed')
+    else
+        droneTargetPosition[1] = droneTargetPosition[1] + speed
+        --simAddStatusbarMessage('(In ' .. g_myDroneName .. ') plus x speed')
+    end
+
+    -- Check if the target is already at the required Y position. If not, define that the
+    -- new Y position is our current plus the speed we move at in the correct direction.    
+    if(droneTargetPosition[2] > newPositionY) then
+        droneTargetPosition[2] = droneTargetPosition[2] - speed
+        --simAddStatusbarMessage('(In ' .. g_myDroneName .. ') minus y speed')
+    else
+        droneTargetPosition[2] = droneTargetPosition[2] + speed
+        --simAddStatusbarMessage('(In ' .. g_myDroneName .. ') plus y speed')
+    end
+       
+    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ') final target pos: ' .. droneTargetPosition[1] .. ', ' .. droneTargetPosition[2] )
+       
+    -- Move the target to a new position, so the drone will follow it there.
+    simSetObjectPosition(droneTargetHandle, -1, droneTargetPosition)
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- NATIVE AREA COVERAGE FUNCTIONS!
+--/////////////////////////////////////////////////////////////////////////////////////////////
+--/////////////////////////////////////////////////////////////////////////////////////////////
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Private method used to setup the search pattern (area coverage) variables.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function setupSearchPattern()
-	local x1 = simGetScriptSimulationParameter(sim_handle_main_script, 'x1')
-	local y1 = simGetScriptSimulationParameter(sim_handle_main_script, 'y1')
-	local x2 = simGetScriptSimulationParameter(sim_handle_main_script, 'x2')
-	local y2 = simGetScriptSimulationParameter(sim_handle_main_script, 'y2')
-    
-	local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
-	local droneTargetName = simGetObjectName(droneTargetHandle)    
-    
 	-- Divide the search area into squares and select the grid that this
 	-- drone will patrol.
 
@@ -90,6 +275,15 @@ function setupSearchPattern()
 		end
 	end
 
+    --GET AREA AND CURRENT DRONE INFO  ----------------------
+	local x1 = simGetScriptSimulationParameter(sim_handle_main_script, 'x1')
+	local y1 = simGetScriptSimulationParameter(sim_handle_main_script, 'y1')
+	local x2 = simGetScriptSimulationParameter(sim_handle_main_script, 'x2')
+	local y2 = simGetScriptSimulationParameter(sim_handle_main_script, 'y2')
+    
+	local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
+	local droneTargetName = simGetObjectName(droneTargetHandle)     
+    
 	--CALCULATE DRONES CELL ----------------------
 	local deltaX = (x2-x1)/factorX
 	local deltaY = (y2-y1)/factorY
@@ -114,130 +308,105 @@ function setupSearchPattern()
         end
     end
 
-    -- Set the next destination for the target as the initial location.
-	g_destinationx = g_startx
-	g_destinationy = g_starty
-
     -- Indicate that the target starts trying to move "down" Y, which is the first direction it will go,
 	g_down = true
-
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
--- Load the people's locations, so we are able to check when we find one.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function loadPeoplePositions()
-	g_numPeople = simGetScriptSimulationParameter(sim_handle_main_script, 'numberOfPeople')
-	g_personCoords = {}
     
-	local counter = 1
-	for i=1, g_numPeople, 1 do
-		if(i==1) then
-			personHandle = simGetObjectHandle('Bill#')
-		else
-			personHandle = simGetObjectHandle('Bill#' .. (i-2))
-		end
-
-        local billposition = simGetObjectPosition(personHandle, -1)
-		g_personCoords[counter] = billposition[1]
-		g_personCoords[counter+1] = billposition[2]
-		--simAddStatusbarMessage('Person ' .. counter .. ' : ' .. g_personCoords[counter] .. ', ' .. counter+1 .. ' : '..g_personCoords[counter+1])
-		counter = counter + 2
-	end
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
--- Method called in each step of the simulation.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function runMainLogic()
-    if(g_patrolling) then
-        -- Check if we have found a person to stop on top of it (only if we are patrolling).
-        lookForPersonBelow()
-    
-        -- Check if we got new bridge status, or if we have to calculate our position in the bridge.
-        checkBridgeStatus()        
-    end
-
-    -- If we are still patrolling or bridging, move to next scheduled position.
-    if(g_patrolling or g_bridging) then
-        moveTargetToNextPosition()
-    end
+    -- Set the next destination for the target as the initial location.
+	g_nextWaypointx = g_startx
+	g_nextWaypointy = g_starty
 
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
--- Check if we have found a person to stop on top of it.
+-- Moves the target to a new position, so the drone will follow it there.
 --/////////////////////////////////////////////////////////////////////////////////////////////
-function lookForPersonBelow()
-    -- Get my drone position.
-    local droneName, dronePos = getDroneInfoFromSuffix(g_mySuffix)
-
-    -- Check if we found a person, to stop.
-    local counter = 1
-    local margin = 0.2
-    for i=1, g_numPeople, 1 do
-        if( (dronePos[1] >= g_personCoords[counter] - margin) and (dronePos[1] <= g_personCoords[counter] + margin) ) then
-            if((dronePos[2] >= g_personCoords[counter + 1] - margin) and (dronePos[2] <= g_personCoords[counter + 1] + margin)) then
-                -- Notifiy our shared memory that a person was found, and that I was the one to find it.
-                local sourceSuffix, sourceName = simGetNameSuffix(nil)
-                simSetScriptSimulationParameter(sim_handle_main_script, 'personFound', 'true')
-                simSetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound', sourceSuffix)
-                simSetScriptSimulationParameter(sim_handle_main_script, 'personFoundId', i)
-                simAddStatusbarMessage('Drone with suffix ' .. sourceSuffix .. ' found person ' .. i .. '!')
+function updateAreaCoverageWaypoint()
+    -- Check if the target reached its next waypoint.
+    local atNextWaypoint = isTargetAtLocation(g_nextWaypointx, g_nextWaypointy)
+    if(atNextWaypoint) then
+        -- If we enter here, it means the target has reached its next waypoint in the search pattern path.
+        -- Alternate between changing the Y and X destinations.
+        if(g_down) then
+            -- Define the next Y coordinate of the next destination/step of the target.
+            if (g_nextWaypointy == g_starty) then 
+                -- Indicates that the new destination is the lower end of the quadrant, in terms of Y (we have to go "down" through the quadrant).
+                g_nextWaypointy = g_endy 
+            else 
+                -- Indicates that the new destination is the lower end of the quadrant, in terms of Y (we have to go back "up").
+                g_nextWaypointy = g_starty 
             end
+            
+            g_down = false
+        else
+            -- If we had reached our Y destination, now it is time to move on X as well... toward the next vertical line of our search.
+            g_nextWaypointx = g_nextWaypointx - 0.5
+            g_down = true
         end
-        counter = counter + 2
     end
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
--- Checks if the drone is now part of a bridge, or builds one if required.
+-- Checks if the drone's target has reached a certain location.
 --/////////////////////////////////////////////////////////////////////////////////////////////
-function checkBridgeStatus()
-    local myNewX = nil
-    local myNewY = nil
+function isTargetAtLocation(locationx, locationy)
+    -- Get the current position of the target.
+    local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
+    local droneTargetPosition = simGetObjectPosition(droneTargetHandle, -1)    
     
-    -- Drone ids start from 0, while suffixes start from -1.
-    local myDroneId = g_mySuffix + 1       
-    
-    -- Behavior will depend on whether external Madara drones perform the calculations, or not.
-    if(g_madaraClientEnabled) then      
-        -- We wait to get the coordinates of our new position, if any, from the external drones.
-        --simAddStatusbarMessage('(In ' .. g_myDroneName .. ') Checking bridge status.')
-        --simAddStatusbarMessage('Calling external C++ Madara plugin to get remotely calculated position for drone ' .. g_myDroneName .. ' with id ' .. myDroneId .. '.')
-        myNewX, myNewY = simExtMadaraClientGetPositionInBridge(myDroneId)
-        if(myNewX == nil and myNewY == nil) then
-            --simAddStatusbarMessage('Got target position for drone ' .. g_myDroneName .. ' with id ' .. myDroneId .. ' is nil.')
-        end
-    else
-        -- If a person was found, recalculate new location so that we create a bridge to the sink.
-        local personHasBeenFound = simGetScriptSimulationParameter(sim_handle_main_script, 'personFound')
-    
-        -- Actually calculate if we are in the bridge.
-        if(personHasBeenFound and not g_personChecked) then
-            simAddStatusbarMessage('(In ' .. g_myDroneName .. ') Someone found a person, check if I have to stop patrolling and move into bridge-forming mode')
-            myNewX, myNewY = buildBridge()
+    -- Accuracy of how close to the waypoint we define as actually at the waypoint.
+	local accuracy = 0.02
 
-            -- Flag to mark that bridges will only be made for the first person found.
-            g_personChecked = true  
-        end
+    -- Check if the target is already at the required X position.
+    local atLocationX = false
+    local deltax = math.abs(droneTargetPosition[1] - locationx)
+    if(deltax <= accuracy) then
+        atLocationX = true
     end
 
-    -- If we are part of the new bridge, set everything to move to our position in it.
-    if(myNewX ~= nil) then
-        simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. myDroneId .. ') In Lua, target position for bridge found: ' .. myNewX .. ',' .. myNewY)
-        -- Overwrite the next destination variables to make the drone move to its brige location.
-        g_destinationx = myNewX
-        g_destinationy = myNewY
-
-        -- Overwrite the final destination variable so the drone will just stop there.
-        g_endx = myNewX
-        g_endy = myNewY        
+    -- Check if the target is already at the required Y position.
+    local atLocationY = false
+    local deltay = math.abs(droneTargetPosition[2] - locationy)
+    if(deltay <= accuracy) then
+        atLocationY = true
+    end
     
+    -- We are at that location if we are there for both coordinates.
+    return atLocationX and atLocationY
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Checks if the we have reached our final destination.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function checkIfEndWasReached()
+    -- Get the current position of the target.
+    local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
+    local droneTargetPosition = simGetObjectPosition(droneTargetHandle, -1)
+    
+    -- Check how far the target is from the final end of its path.
+    local deltax = math.abs(droneTargetPosition[1] - g_endx)
+    local deltay = math.abs(droneTargetPosition[2] - g_endy)
+
+    -- If the target is within a certain range of the final path, indicate that 
+    -- we are no longer g_patrolling or g_bridging, since we will be stopped.
+    local endAccuracy = 0.3
+    if(deltax < endAccuracy and deltay < endAccuracy) then
         g_patrolling = false
-        g_bridging = true            
-    end
-end
+        g_bridging = false
+        
+        -- Mark this drone as stopped.
+        local myDroneId = g_mySuffix + 1  
+        simExtMadaraClientStopDrone(myDroneId) 
+
+        -- We just return, since we won't move anymore.
+        return        
+    end        
+end  
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- NATIVE BRIDGE FUNCTIONS!
+--/////////////////////////////////////////////////////////////////////////////////////////////
+--/////////////////////////////////////////////////////////////////////////////////////////////
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Calculates the drones required for a bridge, and if I am one, set everything so I will go to
@@ -300,89 +469,6 @@ function buildBridge()
     end
 
     return myNewX, myNewY
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
--- Moves the target to a new position, so the drone will follow it there.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function moveTargetToNextPosition()
-    -- Get the current position of the target, and how far it is from the desination we are headed to.
-    local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
-    local droneTargetPosition = simGetObjectPosition(droneTargetHandle, -1)
-    local deltax = math.abs(droneTargetPosition[1] - g_destinationx)
-    local deltay = math.abs(droneTargetPosition[2] - g_destinationy)
-    
-    -- Define limits.
-	local accuracy = 0.02
-	local speed = 0.02    
-
-    -- Check if the target is already at the required X position. If not, define that the
-    -- new X position is our current plus the speed we move at in the correct direction.
-    local atdestinationx = false
-    if(droneTargetPosition[1] > g_destinationx and deltax > accuracy) then
-        droneTargetPosition[1] = droneTargetPosition[1] - speed
-        atdestinationx = false
-    elseif(droneTargetPosition[1] < g_destinationx and deltax > accuracy) then
-        droneTargetPosition[1]=droneTargetPosition[1] + speed
-        atdestinationx = false
-    else
-        atdestinationx = true
-    end
-
-    -- Check if the target is already at the required Y position. If not, define that the
-    -- new Y position is our current plus the speed we move at in the correct direction.    
-    local atdestinationy = false
-    if(droneTargetPosition[2] > g_destinationy and deltay > accuracy) then
-        droneTargetPosition[2] = droneTargetPosition[2] - speed
-        atdestinationy = false
-    elseif(droneTargetPosition[2] < g_destinationy and deltay > accuracy) then
-        droneTargetPosition[2]=droneTargetPosition[2] + speed
-        atdestinationy = false
-    else
-        atdestinationy = true
-    end
-
-    -- Check if the target reached its destination.
-    if(atdestinationx and atdestinationy) then
-        -- If we enter here, it means the target has reached its next step or destination in the
-        -- search pattern path.
-    
-        -- Check how far the target is from the final end of its path.
-        deltax = math.abs(droneTargetPosition[1] - g_endx)
-        deltay = math.abs(droneTargetPosition[2] - g_endy)
-
-        -- If the target is within a certain range of the final path, indicate that 
-        -- we are no longer g_patrolling or g_bridging, since we will be stopped.
-        if(deltax < 0.3 and deltay < 0.3) then
-            g_patrolling = false
-            g_bridging = false
-            
-            -- Mark this drone as stopped.
-            local myDroneId = g_mySuffix + 1  
-            simExtMadaraClientStopDrone(myDroneId)            
-        end
-
-        -- Alternate between changing the Y and X destinations.
-        if(g_down) then
-            -- Define the next Y coordinate of the next destination/step of the target.
-            if (g_destinationy == g_starty) then 
-                -- Indicates that the new destination is the lower end of the quadrant, in terms of Y (we have to go "down" through the quadrant).
-                g_destinationy = g_endy 
-            else 
-                -- Indicates that the new destination is the lower end of the quadrant, in terms of Y (we have to go back "up").
-                g_destinationy = g_starty 
-            end
-            
-            g_down = false
-        else
-            -- If we had reached our Y destination, now it is time to move on X as well... toward the next vertical line of our search.
-            g_destinationx = g_destinationx - 0.5
-            g_down = true
-        end
-    end
-
-    -- Move the target to a new position, so the drone will follow it there.
-    simSetObjectPosition(droneTargetHandle, -1, droneTargetPosition)
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////

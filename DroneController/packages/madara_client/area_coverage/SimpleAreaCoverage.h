@@ -28,14 +28,19 @@ namespace SMASH
         public:
 	        /** 
                 * Calculates the grid that will be used for area coverage, and returns the boundaries of the cell for the given device to cover.
-                * @param   deviceId             The ID of the device that will cover a specific area.
+                * @param   deviceIdx            The position of the device in the list of current devices, used to know where to place it.
                 * @param   grid                 A Region which will be covered by a certain number of devices.
                 * @param   numDrones            The amount of devices covering the grid.
                 *
-                * @return  The position this drone should go to, or NULL if this drone was not selected for the bridge.
+                * @return  The region that this device will be covering.
                 **/
-	        SMASH::Utilities::Region SimpleAreaCoverage::findCellBoundaries(int deviceId, SMASH::Utilities::Region grid, int numDrones);
+	        SMASH::Utilities::Region SimpleAreaCoverage::calculateCellToSearch(int deviceIdx, SMASH::Utilities::Region grid, int numDrones);
 
+	        /** 
+                * Calculates the next location to move to, assuming we have reached our current target.
+                *
+                * @return  The position this device should go to next to follow the search pattern.
+                **/
             SMASH::Utilities::Position SimpleAreaCoverage::getNextTargetLocation();
 
         private:

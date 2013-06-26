@@ -24,34 +24,6 @@ using namespace SMASH::Utilities;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constructor, sets up a Madara knowledge base and basic values.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-MadaraController::MadaraController(Madara::Knowledge_Engine::Knowledge_Base* knowledge, int id, double commRange)
-{
-    // Set the knowledge base.
-    m_knowledge = knowledge;
-
-    // Start the counter at 0.
-    m_regionId = 0;
-    
-    // Set our id and comm range.
-    m_id = id;
-    //m_knowledge->set (MV_MY_ID, (Madara::Knowledge_Record::Integer) m_id);
-    m_commRange = commRange;
-    m_knowledge->set (MV_COMM_RANGE, m_commRange);
-
-    //m_knowledge->print_knowledge();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Destructor, simply cleans up.
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-MadaraController::~MadaraController()
-{
-    terminate();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Constructor, sets up a Madara knowledge base and basic values.
-////////////////////////////////////////////////////////////////////////////////////////////////////////
 MadaraController::MadaraController(int id, double commRange)
 {
     // Start the counter at 0.
@@ -69,7 +41,7 @@ MadaraController::MadaraController(int id, double commRange)
     m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base(m_host, m_transportSettings);
 
     //m_knowledge->log_to_file("madaralog.txt", true);
-    //m_knowledge->evaluate("#log_level(10)");
+    //m_knowledge->evaluate("#log_level(1)");
 
     // Add the actual transport.
     m_knowledge->attach_transport(new Custom_Transport (m_knowledge->get_id (),
@@ -77,11 +49,79 @@ MadaraController::MadaraController(int id, double commRange)
    
     // Set our id and comm range.
     m_id = id;
-    //m_knowledge->set (MV_MY_ID, (Madara::Knowledge_Record::Integer) m_id);
     m_commRange = commRange;
     m_knowledge->set (MV_COMM_RANGE, m_commRange);
+}
 
-    //m_knowledge->print_knowledge();
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Destructor, simply cleans up.
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+MadaraController::~MadaraController()
+{
+    terminate();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Cleanup, terminating all threads and open communications.
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+void  MadaraController::terminate()
+{
+    if(m_knowledge != NULL)
+    {
+        m_knowledge->close_transport();
+        m_knowledge->clear();
+        delete m_knowledge;
+        m_knowledge = NULL;
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Sets a drone as stopped.
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MadaraController::stopDrone(int droneId)
+{
+    // Simulate the sink actually sending the command to bridge.
+    std::string droneIdString = INT_TO_STR(droneId);
+    m_knowledge->set(MV_MOBILE(droneIdString), (Madara::Knowledge_Record::Integer) 0);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Convenience method that updates the status of the drones with the information form the simulator.
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MadaraController::updateNetworkStatus(double controllerPosx, double controllerPosy, std::vector<DroneStatus> droneStatusList)
+{
+    // Updates status about myself and the drones with info form the simulation.
+    updateDroneStatus(droneStatusList);
+
+    // This is done just to ensure this is propagated, since we are just setting this value to the same value it already has.
+    m_knowledge->set (MV_COMM_RANGE, m_commRange, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+
+    // This call has no delay to flush all past changes, and updates the total of drones in the system.
+    m_knowledge->set(MV_TOTAL_DEVICES, (Madara::Knowledge_Record::Integer) droneStatusList.size());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Updates the status of the drones in Madara. This should be done in each drone, but since V-Rep is
+// simulating them, it has to come from the controller, which is at the simulator.
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MadaraController::updateDroneStatus(std::vector<DroneStatus> droneStatusList)
+{
+    // Update the status of all drones.
+    for (std::vector<DroneStatus>::iterator it = droneStatusList.begin() ; it != droneStatusList.end(); ++it)
+    {
+        // Update the overall status of this drone.
+        // NOTE: we use substring below to store the information not in the local but a global variable, which is only needed in a simulation.
+        std::string droneIdString = INT_TO_STR(it->id);
+        m_knowledge->set((MV_DEVICE_LAT(droneIdString)).substr(1), it->posx, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+        m_knowledge->set((MV_DEVICE_LON(droneIdString)).substr(1), it->posy, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+
+        //if(it->flying)
+        //    m_knowledge->set(MV_MOBILE(it->id), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+        //else
+        //    m_knowledge->set(MV_MOBILE(it->id), 0.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    }
+
+    //m_knowledge->print_knowledge (1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,96 +165,91 @@ void MadaraController::setupBridgeRequest(int bridgeId, Position sourceTopLeft, 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Sets a drone as stopped.
+// Gets a target position where a drone should move to.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraController::stopDrone(int droneId)
+MovementCommand* MadaraController::getNewMovementCommand(int droneId)
 {
-    // Simulate the sink actually sending the command to bridge.
+    // Apart from checking if it is busy, we will also check if the command to move was sent.
     std::string droneIdString = INT_TO_STR(droneId);
-    m_knowledge->set(MV_MOBILE(droneIdString), (Madara::Knowledge_Record::Integer) 0);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Convenience method that updates both the status of this controller, as well as the status of the
-// drone with the information form the simulator.
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraController::updateNetworkStatus(double controllerPosx, double controllerPosy, std::vector<DroneStatus> droneStatusList)
-{
-    // Updates status about myself and the drones with info form the simulation.
-    updateMyStatus(controllerPosx, controllerPosy);
-    updateDroneStatus(droneStatusList);
-
-    // This is done just to ensure this is propagated, since we are just setting this value to the same value it already has.
-    m_knowledge->set (MV_COMM_RANGE, m_commRange, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-
-    // This call has no delay to flush all past changes, and updates the total of drones in the system.
-    m_knowledge->set(MV_TOTAL_DEVICES, (Madara::Knowledge_Record::Integer) droneStatusList.size());
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Updates the status of the controller in Madara.
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraController::updateMyStatus(double posx, double posy)
-{
-    //m_knowledge->set(MV_CONTROLLER_POSX(m_id), posx, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    //m_knowledge->set(MV_CONTROLLER_POSY(m_id), posy, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Updates the status of the drones in Madara. This should be done in each drone, but since V-Rep is
-// simulating them, it has to come from the controller, which is at the simulator.
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraController::updateDroneStatus(std::vector<DroneStatus> droneStatusList)
-{
-    // Update the status of all drones.
-    for (std::vector<DroneStatus>::iterator it = droneStatusList.begin() ; it != droneStatusList.end(); ++it)
-    {
-        // Update the overall status of this drone.
-        // NOTE: we use substring below to store the information not in the local but a global variable, which is only needed in a simulation.
-        std::string droneIdString = INT_TO_STR(it->id);
-        m_knowledge->set((MV_DEVICE_LAT(droneIdString)).substr(1), it->posx, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-        m_knowledge->set((MV_DEVICE_LON(droneIdString)).substr(1), it->posy, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-
-        //if(it->flying)
-        //    m_knowledge->set(MV_MOBILE(it->id), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-        //else
-        //    m_knowledge->set(MV_MOBILE(it->id), 0.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Gets the position in the bridge where the drone with id droneId should go to, if any, or NULL if the
-// drone is not part of the bridge.
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-Position* MadaraController::getBridgePosition(int droneId)
-{
-    std::string droneIdString = INT_TO_STR(droneId);
-    int isDroneInBridge = (int) m_knowledge->get(MV_BUSY(droneIdString)).to_integer();
-    if(isDroneInBridge == 0)
-    {
-        // No position to return since drone has not joined the bridge process.
+    std::string movementCommand = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_REQUESTED).to_string();
+    bool noMovementCommandSet = movementCommand.compare("0") == 0;
+    if(noMovementCommandSet)
+    {       
+        // No position to return since there is no command yet.
         return NULL;
     }
 
-    // Get the targeted positions this drone want to go to in the bridge.
-    double targetPosX = m_knowledge->get(MV_DEVICE_TARGET_LAT(droneIdString)).to_double();
-    double targetPosY = m_knowledge->get(MV_DEVICE_TARGET_LON(droneIdString)).to_double();
+    // Create the movement command to return.
+    MovementCommand* command = new MovementCommand();
+    command->command = movementCommand;
 
-    // Return it as a position object.
-    Position* targetPosition = new Position(targetPosX, targetPosY);
-    return targetPosition;
+    // Depending on the command, we may need to get more parameters.
+    if(movementCommand.compare(MO_MOVE_TO_GPS_CMD) == 0)
+    {
+        // This is a move to certain location command; get the target location.
+        double targetPosX = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_TARGET_LAT).to_double();
+        double targetPosY = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_TARGET_LON).to_double();
+        Position targetPosition = Position(targetPosX, targetPosY);
+        command->position = targetPosition;
+    }
+
+    // Set the command as 0 locally, to indicate that we already read it.
+    m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_REQUESTED, "0", Madara::Knowledge_Engine::TREAT_AS_LOCAL_EVAL_SETTINGS);
+
+    //m_knowledge->print_knowledge (1);
+
+    return command;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Cleanup, terminating all threads and open communications.
+// Gets a simple status of the drone: 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void  MadaraController::terminate()
+bool MadaraController::isBridging(int droneId)
 {
-    if(m_knowledge != NULL)
+    // For now we assume that BUSY means that it is bridging. This will change later, as it can become busy for other reasons.
+    std::string droneIdString = INT_TO_STR(droneId);
+    int isBusy = (int) m_knowledge->get(MV_BUSY(droneIdString)).to_integer();
+    if(isBusy == 1)
     {
-        m_knowledge->close_transport();
-        m_knowledge->clear();
-        delete m_knowledge;
-        m_knowledge = NULL;
+        return true;
     }
+    else
+    {
+        return false;
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Requests a drone to be part of area coverage.
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MadaraController::requestAreaCoverage(int droneId, int searchAreaId)
+{
+    // Set the given search area as the area for this drone to search; and tell it to start searching.
+    std::string droneIdString = INT_TO_STR(droneId);
+    m_knowledge->set(MV_ASSIGNED_SEARCH_AREA(droneIdString), (Madara::Knowledge_Record::Integer) searchAreaId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set(MV_AREA_COVERAGE_REQUESTED(droneIdString), (Madara::Knowledge_Record::Integer) 1);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Requests a drone to be part of area coverage.
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MadaraController::setNewSearchArea(int searchAreaId, SMASH::Utilities::Region areaBoundaries)
+{
+    // Add a new search area.
+    int searchAreaRegionId = m_regionId++;
+    std::string searchAreaIdString = INT_TO_STR(searchAreaId);
+    m_knowledge->set(MV_SEARCH_AREA_REGION(searchAreaIdString), (Madara::Knowledge_Record::Integer) searchAreaRegionId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+
+    // Set the type and bounding box of the region associated with this search area.
+    int rectangleType = 0;
+    std::string sourceRegionIdString = INT_TO_STR(searchAreaRegionId);
+    m_knowledge->set(MV_REGION_TYPE(sourceRegionIdString), (Madara::Knowledge_Record::Integer) rectangleType, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set((MV_REGION_TOPLEFT_LAT(sourceRegionIdString)).substr(1), areaBoundaries.topLeftCorner.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set((MV_REGION_TOPLEFT_LON(sourceRegionIdString)).substr(1), areaBoundaries.topLeftCorner.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set((MV_REGION_BOTRIGHT_LAT(sourceRegionIdString)).substr(1), areaBoundaries.bottomRightCorner.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set((MV_REGION_BOTRIGHT_LON(sourceRegionIdString)).substr(1), areaBoundaries.bottomRightCorner.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+
+    // Update the total amount of search areas. No delay to apply all changes.
+    int totalSearchAreas = searchAreaId + 1;
+    m_knowledge->set(MV_TOTAL_SEARCH_AREAS, (Madara::Knowledge_Record::Integer) totalSearchAreas);
 }

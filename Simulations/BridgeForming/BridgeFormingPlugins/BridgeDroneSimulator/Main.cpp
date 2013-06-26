@@ -12,6 +12,7 @@
 #include "ace/High_Res_Timer.h"
 #include "ace/OS_NS_Thread.h"
 
+#include "area_coverage_module.h"
 #include "bridge_module.h"
 #include "CommonMadaraVariables.h"
 
@@ -65,15 +66,21 @@ int main (int argc, char** argv)
     //knowledge.log_to_file(string("madaralog" + SSTR(g_id) + ".txt").c_str(), false);
     //knowledge.evaluate("#log_level(10)");
 
+    // Startup the area coverage manager.
+    SMASH::AreaCoverage::initialize(knowledge);
+	std::string areaMainLogicCall = SMASH::AreaCoverage::get_core_function();
+    std::string areaPreprocessLogicCall = SMASH::AreaCoverage::get_sim_setup_function();
+
     // Startup the bridge manager.
     SMASH::Bridge::initialize(knowledge);
-	std::string buildingMainLogicCall = SMASH::Bridge::get_core_function();
-    std::string preprocessLogicCall = SMASH::Bridge::get_sim_setup_function();
+	std::string bridgeMainLogicCall = SMASH::Bridge::get_core_function();
+    std::string bridgePreprocessLogicCall = SMASH::Bridge::get_sim_setup_function();
 
 	// Setup a simple test since we are not inside actual drones.
     if(g_setupTest)
     {
     	SMASH::Bridge::setupBridgeTest(knowledge);    
+        SMASH::AreaCoverage::setupSearchTest(knowledge);
     }
 
     // Indicate we start moving.
@@ -87,19 +94,15 @@ int main (int argc, char** argv)
 		"Position:\t{" MV_DEVICE_LAT("{.id}") "},{" MV_DEVICE_LON("{.id}") "}\n"
 		"Mobile:\t\t{" MV_MOBILE("{.id}") "}\n"
 		"Bridging:\t{" MV_BUSY("{.id}") ".bridging}\n"
-		"Target pos:\t{" MV_DEVICE_TARGET_LAT("{.id}") "},{" MV_DEVICE_TARGET_LAT("{.id}") "}\n\n"
+		"Target pos:\t{" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n\n"
 		;
 
     // Until the user presses ctrl+c in this terminal, check for input.
     while (!g_terminated)
     {
-        knowledge.evaluate (preprocessLogicCall + ";" + buildingMainLogicCall + ";", eval_settings);
+        knowledge.evaluate (areaPreprocessLogicCall + ";" + areaMainLogicCall + ";", eval_settings);
+        knowledge.evaluate (bridgePreprocessLogicCall + ";" + bridgeMainLogicCall + ";", eval_settings);
         ACE_OS::sleep (1);
-
-		double myX = knowledge.get("drone{.id}.pos.x").to_double();
-
-		double sourceX = knowledge.get("drone{.id}.target_position.x").to_double();
-		double sourceY = knowledge.get("drone{.id}.target_position.y").to_double();
     }
 
     knowledge.print_knowledge ();
