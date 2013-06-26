@@ -14,7 +14,7 @@
 #define _BRIDGE_ALGORITHM_H
 
 #include <map>
-#include "Position.h"
+#include "utilities/Position.h"
 
 /**
  * @brief Represents the information of the distance between a certain drone and a particular location.

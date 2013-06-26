@@ -14,7 +14,7 @@
 #define _SIMPLE_AREA_COVERAGE_H
 
 #include <vector>
-#include "Position.h"
+#include "utilities/Position.h"
 
 namespace SMASH
 {

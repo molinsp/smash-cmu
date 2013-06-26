@@ -33,12 +33,6 @@ namespace SMASH
 	    std::string get_core_function();
 
 	    /**
-         * Method used to return a Madara function call used to setup any simulated data required to connect with simulator.
-         * @return  A string that can be evaluted to call the logic to prepare data from the simulator.
-         **/
-        std::string get_sim_setup_function();
-
-	    /**
          * Method used to setup a search test environment in Madara.
          **/
         void setupSearchTest(Madara::Knowledge_Engine::Knowledge_Base &knowledge);

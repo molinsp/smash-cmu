@@ -12,7 +12,7 @@
 #include <vector>
 #include <map>
 #include "bridge_module.h"
-#include "CommonMadaraVariables.h"
+#include "utilities/CommonMadaraVariables.h"
 
 using namespace SMASH::Bridge;
 using namespace SMASH::Utilities;
@@ -30,7 +30,6 @@ using namespace SMASH::Utilities;
 #define MF_UPDATE_AVAILABLE_DRONES	"bridge_updateAvailableDrones"				// Function that checks the amount and positions of drones ready for bridging.
 #define MF_FIND_POS_IN_BRIDGE		"bridge_findPositionInBridge"				// Function that finds and sets the position in the bridge for this drone, if any.
 
-#define MF_POPULATE_LOCAL_VARS		"bridge_populateLocalVars"				    // Function that populates local variables from global ones sent by the simulator.
 #define MF_DISSEMINATE_LOCAL_VARS	"bridge_disseminateLocalVars"				// Function that propagates local variables for a simulator.
 
 // Internal variables.
@@ -88,14 +87,6 @@ std::string SMASH::Bridge::get_core_function()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Gets a call to prepare simulated data. This returns a function call that can be included in another block of logic.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::string SMASH::Bridge::get_sim_setup_function()
-{
-    return MF_POPULATE_LOCAL_VARS "()";
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Registers functions with Madara.
 // ASSUMPTION: Drone IDs are continuous, starting from 0.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +97,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     // Assumes that MV_USER_BRIDGE_REQUEST_ON triggers the bridge building logic.
     knowledge.define_function(MF_MAIN_LOGIC, 
         "("
-            MF_SEND_CURRENT_STATE "();"
+            MF_SEND_CURRENT_STATE "();>"
             "(" MV_MOBILE("{" MV_MY_ID "}") " && (!" MV_BUSY("{" MV_MY_ID "}") ") && (" MV_TOTAL_BRIDGES " > 0)" ")"
                 " => " MF_FIND_POS_IN_BRIDGE "();"
         ")"
@@ -157,28 +148,6 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                 "++" MV_AVAILABLE_DRONES_AMOUNT ";"
             ");"
         ");"
-    );
-
-    // Function only used when simulating, to pass along global information sent by simulator to local variables,
-    // where the information will be for the real drones (populated by other parts of the drone).
-    knowledge.define_function(MF_POPULATE_LOCAL_VARS, 
-        // Just set certain local vars (positions) from the global simulated var with the same name, without the dot.
-        "("
-            ".i[0->" MV_TOTAL_BRIDGES ")"
-            "("
-                ".curr_bridge_source_region = " MV_BRIDGE_SOURCE_REGION_ID("{.i}") ";"
-                MV_REGION_TOPLEFT_LAT("{.curr_bridge_source_region}") + "=" + (MV_REGION_TOPLEFT_LAT("{.curr_bridge_source_region}")).substr(1) + ";"
-                MV_REGION_TOPLEFT_LON("{.curr_bridge_source_region}") + "=" + (MV_REGION_TOPLEFT_LON("{.curr_bridge_source_region}")).substr(1) + ";"
-                MV_REGION_BOTRIGHT_LAT("{.curr_bridge_source_region}") + "=" + (MV_REGION_BOTRIGHT_LAT("{.curr_bridge_source_region}")).substr(1) + ";"
-                MV_REGION_BOTRIGHT_LON("{.curr_bridge_source_region}") + "=" + (MV_REGION_BOTRIGHT_LON("{.curr_bridge_source_region}")).substr(1) + ";"
-
-                ".curr_bridge_sink_region = " MV_BRIDGE_SINK_REGION_ID("{.i}") ";"
-                MV_REGION_TOPLEFT_LAT("{.curr_bridge_sink_region}") + "=" + (MV_REGION_TOPLEFT_LAT("{.curr_bridge_sink_region}")).substr(1) + ";"
-                MV_REGION_TOPLEFT_LON("{.curr_bridge_sink_region}") + "=" + (MV_REGION_TOPLEFT_LON("{.curr_bridge_sink_region}")).substr(1) + ";"
-                MV_REGION_BOTRIGHT_LAT("{.curr_bridge_sink_region}") + "=" + (MV_REGION_BOTRIGHT_LAT("{.curr_bridge_sink_region}")).substr(1) + ";"
-                MV_REGION_BOTRIGHT_LON("{.curr_bridge_sink_region}") + "=" + (MV_REGION_BOTRIGHT_LON("{.curr_bridge_sink_region}")).substr(1) + ";"
-            ")"
-        ")"
     );
 }
 

@@ -12,9 +12,16 @@
 #include "ace/High_Res_Timer.h"
 #include "ace/OS_NS_Thread.h"
 
-#include "area_coverage_module.h"
-#include "bridge_module.h"
-#include "CommonMadaraVariables.h"
+#include "area_coverage/area_coverage_module.h"
+#include "bridge/bridge_module.h"
+#include "utilities/CommonMadaraVariables.h"
+#include "utilities/utilities_module.h"
+
+#define NUM_TASKS 	3
+#define MAIN_LOGIC 	0
+#define PROCESS_STATE   1
+#define PROCESS_STATE_MOVEMENT_COMMANDS   2
+static Madara::Knowledge_Engine::Compiled_Expression expressions [NUM_TASKS];
 
 #define SSTR( x ) dynamic_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << x ) ).str()
@@ -69,12 +76,13 @@ int main (int argc, char** argv)
     // Startup the area coverage manager.
     SMASH::AreaCoverage::initialize(knowledge);
 	std::string areaMainLogicCall = SMASH::AreaCoverage::get_core_function();
-    std::string areaPreprocessLogicCall = SMASH::AreaCoverage::get_sim_setup_function();
 
     // Startup the bridge manager.
     SMASH::Bridge::initialize(knowledge);
 	std::string bridgeMainLogicCall = SMASH::Bridge::get_core_function();
-    std::string bridgePreprocessLogicCall = SMASH::Bridge::get_sim_setup_function();
+
+    // Startup the utilities.
+    SMASH::Utilities::initialize(knowledge);
 
 	// Setup a simple test since we are not inside actual drones.
     if(g_setupTest)
@@ -85,6 +93,33 @@ int main (int argc, char** argv)
 
     // Indicate we start moving.
     knowledge.set(MV_MOBILE("{" MV_MY_ID "}"), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+
+    // Temporary, using copied code from DroneController main to pre process state.
+	expressions[PROCESS_STATE] = knowledge.compile
+	(
+		knowledge.expand_statement
+		(
+			//"device.{.id}.location=.location;"
+			"inflate_coords(.location, '.location');"
+			"inflate_coord_array_to_local('device.*');"
+			"inflate_coord_array_to_local('region.*');"
+			"process_state_movement_commands();"
+		)
+	);
+    knowledge.define_function("process_state", expressions[PROCESS_STATE]);
+
+	expressions[MAIN_LOGIC] = knowledge.compile
+	(
+		"read_sensors ();"
+		"process_state ();"
+		"(.movement_command"
+		";"
+		//"(.needs_bridge => " + bridgeMainLogicCall + " )"
+        "(" + bridgeMainLogicCall + " )"
+		";"
+		"" + areaMainLogicCall + ");"
+		".movement_command => process_movement_commands();"
+	);
 
     // Visual settings to show console output.
 	Madara::Knowledge_Engine::Eval_Settings eval_settings;
@@ -101,8 +136,7 @@ int main (int argc, char** argv)
     // Until the user presses ctrl+c in this terminal, check for input.
     while (!g_terminated)
     {
-        knowledge.evaluate (areaPreprocessLogicCall + ";" + areaMainLogicCall + ";", eval_settings);
-        knowledge.evaluate (bridgePreprocessLogicCall + ";" + bridgeMainLogicCall + ";", eval_settings);
+        knowledge.evaluate (expressions[MAIN_LOGIC], eval_settings);
         ACE_OS::sleep (1);
     }
 

@@ -12,6 +12,13 @@
 #ifndef _POSITION_H
 #define _POSITION_H
 
+#include <iostream>     // std::dec
+#include <sstream>      // std::ostringstream
+
+// Macro to convert from int to std::string.
+#define NUM_TO_STR( x ) dynamic_cast< std::ostringstream & >( \
+        ( std::ostringstream() << std::dec << x ) ).str()
+
 namespace SMASH
 {
     namespace Utilities
@@ -39,6 +46,14 @@ namespace SMASH
 		        x = newX;
 		        y = newY;
 	        }
+
+	        /** Turns a position into a string.
+             * @return a string of the form "x,y".
+             **/
+            std::string toString()
+            {
+                return NUM_TO_STR(x) + std::string(",") + NUM_TO_STR(y);
+            }
         };
 
         /**

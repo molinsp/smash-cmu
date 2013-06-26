@@ -45,7 +45,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\V-RepImports;$(MADARA_ROOT)/include;..\..\..\..\DroneController\packages\madara_client\bridge;..\..\..\..\DroneController\packages\madara_client\utilities</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\V-RepImports;$(MADARA_ROOT)/include;..\..\..\..\DroneController\packages\madara_client</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>

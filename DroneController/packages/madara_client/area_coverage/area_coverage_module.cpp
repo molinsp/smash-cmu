@@ -12,7 +12,7 @@
 #include <vector>
 #include <map>
 #include "area_coverage_module.h"
-#include "CommonMadaraVariables.h"
+#include "utilities/CommonMadaraVariables.h"
 #include "SimpleAreaCoverage.h"
 
 using namespace SMASH::AreaCoverage;
@@ -33,7 +33,6 @@ using namespace SMASH::Utilities;
 #define MF_SET_NEW_TARGET           "area_coverage_setNewTarget"            // Sets the next target.
 #define MF_UPDATE_AVAILABLE_DRONES	"area_coverage_updateAvailableDrones"   // Function that checks the amount and positions of drones ready for covering.
 
-#define MF_POPULATE_LOCAL_VARS		"area_coverage_populateLocalVars"		// Function that populates local variables from global ones sent by the simulator.
 #define MF_DISSEMINATE_LOCAL_VARS	"area_coverage_disseminateLocalVars"	// Function that propagates local variables for a simulator.
 
 // Internal variables.
@@ -97,14 +96,6 @@ void SMASH::AreaCoverage::initialize(Madara::Knowledge_Engine::Knowledge_Base &k
 std::string SMASH::AreaCoverage::get_core_function()
 {
     return MF_MAIN_LOGIC "()";
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Gets a call to prepare simulated data. This returns a function call that can be included in another block of logic.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::string SMASH::AreaCoverage::get_sim_setup_function()
-{
-    return MF_POPULATE_LOCAL_VARS "()";
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -192,28 +183,6 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 
     // Function that can be included in main loop of another method to introduce area coverage.
     knowledge.define_function(MF_SET_NEW_TARGET, madaraSetNewTarget);
-
-    // Function only used when simulating, to pass along global information sent by simulator to local variables,
-    // where the information will be for the real drones (populated by other parts of the drone).
-    knowledge.define_function(MF_POPULATE_LOCAL_VARS, 
-        // Just set certain local vars (positions) from the global simulated var with the same name, without the dot.
-        "("
-            ".i[0->" MV_TOTAL_DEVICES ")"
-            "("
-                MV_DEVICE_LAT("{.i}") + "=" + (MV_DEVICE_LAT("{.i}")).substr(1) + ";"
-                MV_DEVICE_LON("{.i}") + "=" + (MV_DEVICE_LON("{.i}")).substr(1) + ";"
-            ");"
-            ".i[0->" MV_TOTAL_SEARCH_AREAS ")"
-            "("
-                ".curr_area_region = " MV_SEARCH_AREA_REGION("{.i}") ";"
-                MV_REGION_TOPLEFT_LAT("{.curr_area_region}") + "=" + (MV_REGION_TOPLEFT_LAT("{.curr_area_region}")).substr(1) + ";"
-                MV_REGION_TOPLEFT_LON("{.curr_area_region}") + "=" + (MV_REGION_TOPLEFT_LON("{.curr_area_region}")).substr(1) + ";"
-                MV_REGION_BOTRIGHT_LAT("{.curr_area_region}") + "=" + (MV_REGION_BOTRIGHT_LAT("{.curr_area_region}")).substr(1) + ";"
-                MV_REGION_BOTRIGHT_LON("{.curr_area_region}") + "=" + (MV_REGION_BOTRIGHT_LON("{.curr_area_region}")).substr(1) + ";"
-            ")"
-        ")"
-    );
-
 
     // Function to broadcast local variables to a simulator.
     knowledge.define_function(MF_DISSEMINATE_LOCAL_VARS, 

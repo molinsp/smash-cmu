@@ -8,16 +8,12 @@
 #include "MadaraController.h"
 
 #include "Custom_Transport.h"
-#include "CommonMadaraVariables.h"
+#include "utilities/CommonMadaraVariables.h"
 
 #include <vector>
 
 // Multicast address.
 #define DEFAULT_MULTICAST_ADDRESS "239.255.0.1:4150"
-
-// Macro to convert from int to std::string.
-#define INT_TO_STR( x ) dynamic_cast< std::ostringstream & >( \
-        ( std::ostringstream() << std::dec << x ) ).str()
 
 using namespace SMASH::Utilities;
 
@@ -40,8 +36,8 @@ MadaraController::MadaraController(int id, double commRange)
     // Create the knowledge base.
     m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base(m_host, m_transportSettings);
 
-    //m_knowledge->log_to_file("madaralog.txt", true);
-    //m_knowledge->evaluate("#log_level(1)");
+    m_knowledge->log_to_file("madaralog.txt", true);
+    m_knowledge->evaluate("#log_level(1)");
 
     // Add the actual transport.
     m_knowledge->attach_transport(new Custom_Transport (m_knowledge->get_id (),
@@ -50,7 +46,6 @@ MadaraController::MadaraController(int id, double commRange)
     // Set our id and comm range.
     m_id = id;
     m_commRange = commRange;
-    m_knowledge->set (MV_COMM_RANGE, m_commRange);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,7 +76,7 @@ void  MadaraController::terminate()
 void MadaraController::stopDrone(int droneId)
 {
     // Simulate the sink actually sending the command to bridge.
-    std::string droneIdString = INT_TO_STR(droneId);
+    std::string droneIdString = NUM_TO_STR(droneId);
     m_knowledge->set(MV_MOBILE(droneIdString), (Madara::Knowledge_Record::Integer) 0);
 }
 
@@ -106,22 +101,17 @@ void MadaraController::updateNetworkStatus(double controllerPosx, double control
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MadaraController::updateDroneStatus(std::vector<DroneStatus> droneStatusList)
 {
-    // Update the status of all drones.
+    // Update the locations of all drones.
     for (std::vector<DroneStatus>::iterator it = droneStatusList.begin() ; it != droneStatusList.end(); ++it)
     {
-        // Update the overall status of this drone.
-        // NOTE: we use substring below to store the information not in the local but a global variable, which is only needed in a simulation.
-        std::string droneIdString = INT_TO_STR(it->id);
-        m_knowledge->set((MV_DEVICE_LAT(droneIdString)).substr(1), it->posx, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-        m_knowledge->set((MV_DEVICE_LON(droneIdString)).substr(1), it->posy, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-
-        //if(it->flying)
-        //    m_knowledge->set(MV_MOBILE(it->id), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-        //else
-        //    m_knowledge->set(MV_MOBILE(it->id), 0.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+        // Update the location of this drone (this would be done by its sensors).
+        std::string droneIdString = NUM_TO_STR(it->id);
+        std::string droneLocation = it->position.toString();
+        m_knowledge->set((MV_DEVICE_LOCATION(droneIdString)), droneLocation, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+        m_knowledge->set(std::string("test"), std::string("test"));
     }
 
-    //m_knowledge->print_knowledge (1);
+    m_knowledge->print_knowledge (1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -130,33 +120,32 @@ void MadaraController::updateDroneStatus(std::vector<DroneStatus> droneStatusLis
 void MadaraController::setupBridgeRequest(int bridgeId, Position sourceTopLeft, Position sourceBottomRight, Position sinkTopLeft, Position sinkBottomRight)
 {
     int rectangleType = 0;
-    std::string bridgeIdString = INT_TO_STR(bridgeId);
+    std::string bridgeIdString = NUM_TO_STR(bridgeId);
 
     // Store the id of the source region for this bridge.
     int sourceRegionId = m_regionId++;
-    std::string sourceRegionIdString = INT_TO_STR(sourceRegionId);
+    std::string sourceRegionIdString = NUM_TO_STR(sourceRegionId);
     m_knowledge->set(MV_BRIDGE_SOURCE_REGION_ID(bridgeIdString), (Madara::Knowledge_Record::Integer) sourceRegionId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
     m_knowledge->set(MV_REGION_TYPE(sourceRegionIdString), (Madara::Knowledge_Record::Integer) rectangleType, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
     // Set the bounding box of the regions. For now, the rectangle will actually just be a point.
     // NOTE: we use substring below to store the information not in the local but a global variable, which is only needed in a simulation.
-    m_knowledge->set((MV_REGION_TOPLEFT_LAT(sourceRegionIdString)).substr(1), sourceTopLeft.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set((MV_REGION_TOPLEFT_LON(sourceRegionIdString)).substr(1), sourceTopLeft.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set((MV_REGION_BOTRIGHT_LAT(sourceRegionIdString)).substr(1), sourceBottomRight.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set((MV_REGION_BOTRIGHT_LON(sourceRegionIdString)).substr(1), sourceBottomRight.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    std::string sourceTopLeftLocation = sourceTopLeft.toString();
+    std::string sourceBotRightLocation = sourceBottomRight.toString();
+    m_knowledge->set(MV_REGION_TOPLEFT_LOC(sourceRegionIdString), sourceTopLeftLocation, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set(MV_REGION_BOTRIGHT_LOC(sourceRegionIdString), sourceBotRightLocation, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
     // Store the id of the sink region for this bridge.
     int sinkRegionId = m_regionId++;
-    std::string sinkRegionIdString = INT_TO_STR(sinkRegionId);
+    std::string sinkRegionIdString = NUM_TO_STR(sinkRegionId);
     m_knowledge->set(MV_BRIDGE_SINK_REGION_ID(bridgeIdString), (Madara::Knowledge_Record::Integer) sinkRegionId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
     m_knowledge->set(MV_REGION_TYPE(sinkRegionIdString), (Madara::Knowledge_Record::Integer) rectangleType, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
     // Set the bounding box of the regions. For now, the rectangle will actually just be a point.
-    // NOTE: we use substring below to store the information not in the local but a global variable, which is only needed in a simulation.
-    m_knowledge->set((MV_REGION_TOPLEFT_LAT(sinkRegionIdString)).substr(1), sinkTopLeft.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set((MV_REGION_TOPLEFT_LON(sinkRegionIdString)).substr(1), sinkTopLeft.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set((MV_REGION_BOTRIGHT_LAT(sinkRegionIdString)).substr(1), sinkBottomRight.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set((MV_REGION_BOTRIGHT_LON(sinkRegionIdString)).substr(1), sinkBottomRight.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    std::string sinkTopLeftLocation = sinkTopLeft.toString();
+    std::string sinkBotRightLocation = sinkBottomRight.toString();
+    m_knowledge->set(MV_REGION_TOPLEFT_LOC(sinkRegionIdString), sinkTopLeftLocation, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set(MV_REGION_BOTRIGHT_LOC(sinkRegionIdString), sinkBotRightLocation, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
     // We set the total bridges to the bridge id + 1, since it starts at 0.
     // This call has no delay to flush all past changes.
@@ -170,7 +159,7 @@ void MadaraController::setupBridgeRequest(int bridgeId, Position sourceTopLeft, 
 MovementCommand* MadaraController::getNewMovementCommand(int droneId)
 {
     // Apart from checking if it is busy, we will also check if the command to move was sent.
-    std::string droneIdString = INT_TO_STR(droneId);
+    std::string droneIdString = NUM_TO_STR(droneId);
     std::string movementCommand = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_REQUESTED).to_string();
     bool noMovementCommandSet = movementCommand.compare("0") == 0;
     if(noMovementCommandSet)
@@ -207,7 +196,7 @@ MovementCommand* MadaraController::getNewMovementCommand(int droneId)
 bool MadaraController::isBridging(int droneId)
 {
     // For now we assume that BUSY means that it is bridging. This will change later, as it can become busy for other reasons.
-    std::string droneIdString = INT_TO_STR(droneId);
+    std::string droneIdString = NUM_TO_STR(droneId);
     int isBusy = (int) m_knowledge->get(MV_BUSY(droneIdString)).to_integer();
     if(isBusy == 1)
     {
@@ -225,7 +214,7 @@ bool MadaraController::isBridging(int droneId)
 void MadaraController::requestAreaCoverage(int droneId, int searchAreaId)
 {
     // Set the given search area as the area for this drone to search; and tell it to start searching.
-    std::string droneIdString = INT_TO_STR(droneId);
+    std::string droneIdString = NUM_TO_STR(droneId);
     m_knowledge->set(MV_ASSIGNED_SEARCH_AREA(droneIdString), (Madara::Knowledge_Record::Integer) searchAreaId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
     m_knowledge->set(MV_AREA_COVERAGE_REQUESTED(droneIdString), (Madara::Knowledge_Record::Integer) 1);
 }
@@ -237,17 +226,17 @@ void MadaraController::setNewSearchArea(int searchAreaId, SMASH::Utilities::Regi
 {
     // Add a new search area.
     int searchAreaRegionId = m_regionId++;
-    std::string searchAreaIdString = INT_TO_STR(searchAreaId);
+    std::string searchAreaIdString = NUM_TO_STR(searchAreaId);
     m_knowledge->set(MV_SEARCH_AREA_REGION(searchAreaIdString), (Madara::Knowledge_Record::Integer) searchAreaRegionId, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
     // Set the type and bounding box of the region associated with this search area.
     int rectangleType = 0;
-    std::string sourceRegionIdString = INT_TO_STR(searchAreaRegionId);
+    std::string sourceRegionIdString = NUM_TO_STR(searchAreaRegionId);
+    std::string topLeftLocation = areaBoundaries.topLeftCorner.toString();
+    std::string botRightLocation = areaBoundaries.bottomRightCorner.toString();
     m_knowledge->set(MV_REGION_TYPE(sourceRegionIdString), (Madara::Knowledge_Record::Integer) rectangleType, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set((MV_REGION_TOPLEFT_LAT(sourceRegionIdString)).substr(1), areaBoundaries.topLeftCorner.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set((MV_REGION_TOPLEFT_LON(sourceRegionIdString)).substr(1), areaBoundaries.topLeftCorner.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set((MV_REGION_BOTRIGHT_LAT(sourceRegionIdString)).substr(1), areaBoundaries.bottomRightCorner.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    m_knowledge->set((MV_REGION_BOTRIGHT_LON(sourceRegionIdString)).substr(1), areaBoundaries.bottomRightCorner.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set(MV_REGION_TOPLEFT_LOC(sourceRegionIdString), topLeftLocation, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    m_knowledge->set(MV_REGION_BOTRIGHT_LOC(sourceRegionIdString), botRightLocation, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
     // Update the total amount of search areas. No delay to apply all changes.
     int totalSearchAreas = searchAreaId + 1;

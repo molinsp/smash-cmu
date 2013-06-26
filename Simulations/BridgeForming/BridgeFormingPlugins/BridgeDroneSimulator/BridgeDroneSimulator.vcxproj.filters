@@ -28,6 +28,12 @@
     <Filter Include="Source Files\area_coverage_module">
       <UniqueIdentifier>{f5d3e9a9-52c9-497d-a5a4-a67a14fcec2d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\platform">
+      <UniqueIdentifier>{2753fab8-3b4a-49d3-9c53-0d81ced1b770}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\utilities_modules">
+      <UniqueIdentifier>{a3c5782d-314d-473d-9ffc-802bf787d870}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -44,6 +50,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.cpp">
       <Filter>Source Files\bridge_module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\platforms\v_rep\v-rep_control_functions.cpp">
+      <Filter>Header Files\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\DroneController\packages\madara_client\utilities\utilities_module.cpp">
+      <Filter>Source Files\utilities_modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

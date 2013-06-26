@@ -17,14 +17,13 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include <vector>
 #include <string>
-#include "Position.h"
+#include "utilities/Position.h"
 
 // Class that has information about drones that has to be updated periodically.
 struct DroneStatus
 {
     int id;
-    double posx;
-    double posy;
+    SMASH::Utilities::Position position;
     bool flying;
 };
 

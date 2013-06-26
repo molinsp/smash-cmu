@@ -345,8 +345,8 @@ void simExtMadaraClientUpdateStatus(SLuaCallBack* p)
             // Get the actual values from the array.
             DroneStatus currDroneStatus;
             currDroneStatus.id = p->inputInt[currDroneIdIntArrayIdx];  
-            currDroneStatus.posx = p->inputFloat[currDronePosFloatArrayIdx];
-            currDroneStatus.posy = p->inputFloat[currDronePosFloatArrayIdx + 1];
+            currDroneStatus.position.x = p->inputFloat[currDronePosFloatArrayIdx];
+            currDroneStatus.position.y = p->inputFloat[currDronePosFloatArrayIdx + 1];
             currDroneStatus.flying = p->inputBool[currDroneFlyingBoolArrayIdx];
 
             // Add the status to the vector.
@@ -360,7 +360,7 @@ void simExtMadaraClientUpdateStatus(SLuaCallBack* p)
         for (std::vector<DroneStatus>::iterator it = droneStatusList.begin() ; it != droneStatusList.end(); ++it)
         {
 		    // Get info for current drone ID and position, and mark this drone as not assigned for now.
-            sstm << "Drone " << it->id << " with pos " << it->posx << "," << it->posy << ", flying:" << it->flying << std::endl;
+            sstm << "Drone " << it->id << " with pos " << it->position.x << "," << it->position.y << ", flying:" << it->flying << std::endl;
         }
         std::string message = sstm.str();
         //simAddStatusbarMessage(message.c_str());
