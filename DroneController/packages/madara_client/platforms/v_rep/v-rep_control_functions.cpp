@@ -9,6 +9,7 @@
 
 #ifdef V_REP
 
+
 #include "platforms/platform.h"
 #include "movement/platform_movement.h"
 #include "sensors/platform_sensors.h"
@@ -16,6 +17,8 @@
 #include "utilities/CommonMadaraVariables.h"
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include <string>
+
+Madara::Knowledge_Engine::Knowledge_Base* m_sim_knowledge;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Madara Variable Definitions
@@ -30,6 +33,24 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool init_platform()
 {
+    //// By default we identify ourselves by the hostname set in our OS.
+    //std::string g_host ("");
+
+    //// By default, we use the multicast port 239.255.0.1.:4150
+    //const std::string DEFAULT_MULTICAST_ADDRESS ("239.255.0.1:4150");
+
+    //// Used for updating various transport settings
+    //Madara::Transport::Settings g_settings;
+
+    //// Define the transport.
+    //g_settings.hosts_.resize (1);
+    //g_settings.hosts_[0] = DEFAULT_MULTICAST_ADDRESS;
+    //g_settings.type = Madara::Transport::MULTICAST;
+    //g_settings.id = 1000;
+    //
+    //// Create the knowledge base.
+    //m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base(g_host, g_settings);
+
 	return true;
 }
 
@@ -154,11 +175,21 @@ void read_thermal(double buffer[8][8])
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+// Gets the GPS coordinates from the simulator and gives them back to the 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void read_gps(struct madara_gps * ret)
 {
+    // Get the latitude and longitude that the simulator set for this drone, in variables with the sim prefix.
+    double latitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_PREFIX MV_DEVICE_LAT("{"MV_MY_ID"}"))).to_double();
+    double longitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_PREFIX MV_DEVICE_LON("{"MV_MY_ID"}"))).to_double();
 
+    //std::cout << "Lat " << latitude << ", Long " << longitude << " from: " << std::string(MS_SIM_PREFIX MV_DEVICE_LAT("{"MV_MY_ID"}")) << std::endl;
+    //m_sim_knowledge->print_knowledge();
+
+    // Set the values in the return structure.
+	ret->latitude = latitude;
+	ret->longitude = longitude;
+	ret->num_sats = 10;             // Just because it should be really exact with the simulator.
 }
 
 #endif

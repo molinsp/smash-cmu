@@ -106,9 +106,8 @@ void MadaraController::updateDroneStatus(std::vector<DroneStatus> droneStatusLis
     {
         // Update the location of this drone (this would be done by its sensors).
         std::string droneIdString = NUM_TO_STR(it->id);
-        std::string droneLocation = it->position.toString();
-        m_knowledge->set((MV_DEVICE_LOCATION(droneIdString)), droneLocation, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-        m_knowledge->set(std::string("test"), std::string("test"));
+        m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LAT(droneIdString), it->position.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+        m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LON(droneIdString), it->position.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
     }
 
     m_knowledge->print_knowledge (1);

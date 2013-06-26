@@ -14,8 +14,10 @@
 
 #include "area_coverage/area_coverage_module.h"
 #include "bridge/bridge_module.h"
+#include "sensors/sensors_module.h"
 #include "utilities/CommonMadaraVariables.h"
 #include "utilities/utilities_module.h"
+#include "platforms/platform.h"
 
 #define NUM_TASKS 	3
 #define MAIN_LOGIC 	0
@@ -48,8 +50,74 @@ Madara::Transport::Settings g_settings;
 
 Madara::Knowledge_Record::Integer g_id;
 
+extern Madara::Knowledge_Engine::Knowledge_Base* m_sim_knowledge;
+
 // Flag to indicate if we want to run an internal test configuration.
 bool g_setupTest;
+
+//Extra defined function just to force local update settings on global movement variables
+Madara::Knowledge_Record process_state_movement_commands (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
+{
+	return variables.evaluate(expressions[PROCESS_STATE_MOVEMENT_COMMANDS], Madara::Knowledge_Engine::TREAT_AS_LOCAL_UPDATE_SETTINGS);
+}
+
+//Setup of pre-compiled expressions
+void compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
+{
+	expressions[PROCESS_STATE_MOVEMENT_COMMANDS] = knowledge.compile
+	(
+		knowledge.expand_statement
+		(
+			".movement_command=0;"
+			"swarm.movement_command  || device.{.id}.movement_command =>"
+			"("
+				"(( swarm.movement_command => "
+				"("
+					".movement_command = swarm.movement_command;"
+					"copy_vector('swarm.movement_command.*', '.movement_command.');"
+				"))"
+				"||"
+				"( device.{.id}.movement_command => "
+				"(" 
+					".movement_command = device.{.id}.movement_command;"
+					"copy_vector('device.{.id}.movement_command.*', '.movement_command.');"
+				")));"
+				"swarm.movement_command = 0; device.{.id}.movement_command = 0;"
+			")"
+		)
+	);
+	knowledge.define_function("process_state_movement_commands", process_state_movement_commands);
+
+	expressions[PROCESS_STATE] = knowledge.compile
+	(
+		knowledge.expand_statement
+		(
+			"device.{.id}.location=.location;"
+			"inflate_coords(.location, '.location');"
+			"inflate_coord_array_to_local('device.*');"
+			"inflate_coord_array_to_local('region.*');"
+			"process_state_movement_commands();"
+		)
+	);
+	
+	knowledge.define_function("process_state", expressions[PROCESS_STATE]);
+	
+	std::string areaMainLogicCall = SMASH::AreaCoverage::get_core_function();
+    std::string bridgeMainLogicCall = SMASH::Bridge::get_core_function();
+	expressions[MAIN_LOGIC] = knowledge.compile
+	(
+		"read_sensors ();"
+		"process_state ();"
+		"(.movement_command"
+		";"
+		//"(.needs_bridge => " + bridgeMainLogicCall + " )"
+        "(" + bridgeMainLogicCall + " )"
+		";"
+		"" + areaMainLogicCall + ");"
+		".movement_command => process_movement_commands();"
+	);
+
+}
 
 int main (int argc, char** argv)
 {
@@ -69,19 +137,17 @@ int main (int argc, char** argv)
     // Create the knowledge base.
     Madara::Knowledge_Engine::Knowledge_Base knowledge (g_host, g_settings);
     knowledge.set (".id", (Madara::Knowledge_Record::Integer) g_id);
+
+    m_sim_knowledge = &knowledge;
     
     //knowledge.log_to_file(string("madaralog" + SSTR(g_id) + ".txt").c_str(), false);
     //knowledge.evaluate("#log_level(10)");
 
-    // Startup the area coverage manager.
+    // Startup the modules.
+    init_platform();
     SMASH::AreaCoverage::initialize(knowledge);
-	std::string areaMainLogicCall = SMASH::AreaCoverage::get_core_function();
-
-    // Startup the bridge manager.
     SMASH::Bridge::initialize(knowledge);
-	std::string bridgeMainLogicCall = SMASH::Bridge::get_core_function();
-
-    // Startup the utilities.
+    SMASH::Sensors::initialize(knowledge);
     SMASH::Utilities::initialize(knowledge);
 
 	// Setup a simple test since we are not inside actual drones.
@@ -94,32 +160,7 @@ int main (int argc, char** argv)
     // Indicate we start moving.
     knowledge.set(MV_MOBILE("{" MV_MY_ID "}"), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
-    // Temporary, using copied code from DroneController main to pre process state.
-	expressions[PROCESS_STATE] = knowledge.compile
-	(
-		knowledge.expand_statement
-		(
-			//"device.{.id}.location=.location;"
-			"inflate_coords(.location, '.location');"
-			"inflate_coord_array_to_local('device.*');"
-			"inflate_coord_array_to_local('region.*');"
-			"process_state_movement_commands();"
-		)
-	);
-    knowledge.define_function("process_state", expressions[PROCESS_STATE]);
-
-	expressions[MAIN_LOGIC] = knowledge.compile
-	(
-		"read_sensors ();"
-		"process_state ();"
-		"(.movement_command"
-		";"
-		//"(.needs_bridge => " + bridgeMainLogicCall + " )"
-        "(" + bridgeMainLogicCall + " )"
-		";"
-		"" + areaMainLogicCall + ");"
-		".movement_command => process_movement_commands();"
-	);
+    compile_expressions(knowledge);
 
     // Visual settings to show console output.
 	Madara::Knowledge_Engine::Eval_Settings eval_settings;
