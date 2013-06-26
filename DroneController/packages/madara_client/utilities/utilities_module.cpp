@@ -67,6 +67,7 @@ Madara::Knowledge_Record inflate_coord_array_to_local (Madara::Knowledge_Engine:
 		}
 		
 	}
+	return Madara::Knowledge_Record::Integer(1);
 }
 
 Madara::Knowledge_Record copy_vector (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
