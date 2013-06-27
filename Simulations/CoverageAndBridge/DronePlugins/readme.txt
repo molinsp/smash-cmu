@@ -61,3 +61,15 @@ for that code, and plugins to use it in V-Rep. The projects are:
     absolute value on your system where the main executable of V-Rep is.    
     * The property indicate above is used post-compilation to automatically move the generated DLL to 
     that folder, since VRep needs all plugins to be inside its executable folder.    
+
+##############################
+# Linux notes
+##############################
+
+ * Makefile will recursively build all projects except the BridgeDroneSimulator (will be added when fixed)
+ * V-REP plugins are built in their respective directories, add symlinks or move these to VREP install
+     directory to use
+ * GoToLocation can be used to test if plugins are installed correctly
+ * libACE and libMADARA need to be found on launch; easiest way to do this is to add their directory to 
+     LD_LIBRARY_PATH in vrep.sh in the VREP install directory
+ * BridgeDroneSimulator is not working
