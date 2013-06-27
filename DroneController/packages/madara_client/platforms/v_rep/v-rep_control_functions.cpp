@@ -18,15 +18,23 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include <string>
 
+// NOTE: We are using a hack here, assuming that an external Main module will set this KB to the common KB used by the system.
 Madara::Knowledge_Engine::Knowledge_Base* m_sim_knowledge;
 
+// Define the ids for the internal expressions.
+enum VRepMadaraExpressionId 
+{
+    // Expression to send a movement command.
+	VE_SEND_MOVE_COMMAND,
+};
+
+// Map of Madara expressions.
+static std::map<VRepMadaraExpressionId, Madara::Knowledge_Engine::Compiled_Expression> m_expressions;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Madara Variable Definitions
+// Internal functions.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Functions.
-#define MF_MAIN_LOGIC				"movement_doMovement"			        // Function that checks if there is area coverage to be done, and does it.
-#define MF_POPULATE_LOCAL_VARS		"platforms_vrep_populateLocalVars"		// Function that populates local variables from global ones sent by the simulator.
-#define MF_DISSEMINATE_LOCAL_VARS	"platforms_vrep_disseminateLocalVars"	// Function that propagates local variables for a simulator.
+static void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base* knowledge);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // General Functions.
@@ -51,17 +59,18 @@ bool init_platform()
     //// Create the knowledge base.
     //m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base(g_host, g_settings);
 
+    compileExpressions(m_sim_knowledge);
+
 	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Registers functions with Madara.
-// ASSUMPTION: Drone IDs are continuous, starting from 0.
+// Compiles all expressions to be used by this class.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
+void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base* knowledge)
 {
-    // Function to broadcast local variables to a simulator.
-    knowledge.define_function(MF_DISSEMINATE_LOCAL_VARS, 
+    // Expression to update the list of available drone positions, simply calls the predefined function.
+    m_expressions[VE_SEND_MOVE_COMMAND] = knowledge->compile(
         // Simulator variables sent to V-Rep to simulate movements.
         "("
             MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_REQUESTED) + "=" + MV_MOVEMENT_REQUESTED + ";"
@@ -151,7 +160,8 @@ void move_backward()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void move_to_location(double lat, double lon)
 {
-
+    // We will assume that lat and lon have already been loaded in the local Madara variables.
+    m_sim_knowledge->evaluate(m_expressions[VE_SEND_MOVE_COMMAND]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

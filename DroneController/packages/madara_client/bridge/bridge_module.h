@@ -20,7 +20,6 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include <map>
 #include <string>
-#include "BridgeAlgorithm.h"
 
 namespace SMASH
 {

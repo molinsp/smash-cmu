@@ -14,6 +14,7 @@
 
 #include "area_coverage/area_coverage_module.h"
 #include "bridge/bridge_module.h"
+#include "movement/movement_module.h"
 #include "sensors/sensors_module.h"
 #include "utilities/CommonMadaraVariables.h"
 #include "utilities/utilities_module.h"
@@ -24,9 +25,6 @@
 #define PROCESS_STATE   1
 #define PROCESS_STATE_MOVEMENT_COMMANDS   2
 static Madara::Knowledge_Engine::Compiled_Expression expressions [NUM_TASKS];
-
-#define SSTR( x ) dynamic_cast< std::ostringstream & >( \
-        ( std::ostringstream() << std::dec << x ) ).str()
 
 //Inturupt handling
 volatile bool g_terminated = false;
@@ -50,18 +48,23 @@ Madara::Transport::Settings g_settings;
 
 Madara::Knowledge_Record::Integer g_id;
 
+// NOTE: Hack to pass the knowledge base to the V-Rep simulation platform.
 extern Madara::Knowledge_Engine::Knowledge_Base* m_sim_knowledge;
 
 // Flag to indicate if we want to run an internal test configuration.
 bool g_setupTest;
 
-//Extra defined function just to force local update settings on global movement variables
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Extra defined function just to force local update settings on global movement variables.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record process_state_movement_commands (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
 	return variables.evaluate(expressions[PROCESS_STATE_MOVEMENT_COMMANDS], Madara::Knowledge_Engine::TREAT_AS_LOCAL_UPDATE_SETTINGS);
 }
 
-//Setup of pre-compiled expressions
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Setup of pre-compiled expressions.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 {
 	expressions[PROCESS_STATE_MOVEMENT_COMMANDS] = knowledge.compile
@@ -92,6 +95,11 @@ void compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 	(
 		knowledge.expand_statement
 		(
+            "("
+                MV_BUSY("{" MV_MY_ID "}") "=" MV_BUSY("{" MV_MY_ID "}") ";"
+                MV_MOBILE("{" MV_MY_ID "}") "=" MV_MOBILE("{" MV_MY_ID "}") ";"
+            ");"
+
 			"device.{.id}.location=.location;"
 			"inflate_coords(.location, '.location');"
 			"inflate_coord_array_to_local('device.*');"
@@ -119,6 +127,9 @@ void compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Enntry point.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int main (int argc, char** argv)
 {
     // Set the use of Ctrl+C to terminate.
@@ -138,9 +149,10 @@ int main (int argc, char** argv)
     Madara::Knowledge_Engine::Knowledge_Base knowledge (g_host, g_settings);
     knowledge.set (".id", (Madara::Knowledge_Record::Integer) g_id);
 
+    // NOTE: Hack to pass the knowledge base to the V-Rep simulation platform.
     m_sim_knowledge = &knowledge;
     
-    //knowledge.log_to_file(string("madaralog" + SSTR(g_id) + ".txt").c_str(), false);
+    //knowledge.log_to_file(string("madaralog" + NUM_TO_STR(g_id) + ".txt").c_str(), false);
     //knowledge.evaluate("#log_level(10)");
 
     // Startup the modules.
@@ -148,12 +160,13 @@ int main (int argc, char** argv)
     SMASH::AreaCoverage::initialize(knowledge);
     SMASH::Bridge::initialize(knowledge);
     SMASH::Sensors::initialize(knowledge);
+    SMASH::Movement::initialize(knowledge);
     SMASH::Utilities::initialize(knowledge);
 
 	// Setup a simple test since we are not inside actual drones.
     if(g_setupTest)
     {
-    	SMASH::Bridge::setupBridgeTest(knowledge);    
+    	//SMASH::Bridge::setupBridgeTest(knowledge);    
         SMASH::AreaCoverage::setupSearchTest(knowledge);
     }
 

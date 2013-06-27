@@ -68,6 +68,6 @@
 #define MV_MOVEMENT_REQUESTED           ".movement_command"                             // Command to tell that we want certain movement.
 #define MV_MOVEMENT_TARGET_LAT	        ".movement_command.0"                           // The latitude of the position the device is headed towards.
 #define MV_MOVEMENT_TARGET_LON  	    ".movement_command.1"                           // The longitude of the position the device is headed towards.
-#define MO_MOVE_TO_GPS_CMD              "'move_to_gps'"                                 // Command used to tell drone to move to that a location.
+#define MO_MOVE_TO_GPS_CMD              "move_to_gps"                                 // Command used to tell drone to move to that a location.
 
 #endif

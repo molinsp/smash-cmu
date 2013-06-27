@@ -18,10 +18,6 @@
 using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
 
-// Macro to convert from int to std::string.
-#define INT_TO_STR( x ) dynamic_cast< std::ostringstream & >( \
-        ( std::ostringstream() << std::dec << x ) ).str()
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Madara Variable Definitions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -33,16 +29,13 @@ using namespace SMASH::Utilities;
 #define MF_SET_NEW_TARGET           "area_coverage_setNewTarget"            // Sets the next target.
 #define MF_UPDATE_AVAILABLE_DRONES	"area_coverage_updateAvailableDrones"   // Function that checks the amount and positions of drones ready for covering.
 
-#define MF_DISSEMINATE_LOCAL_VARS	"area_coverage_disseminateLocalVars"	// Function that propagates local variables for a simulator.
-
 // Internal variables.
-#define MV_ACCURACY	                "0.20"                                      // Used to check if we have reached a location.
+#define MV_ACCURACY	                "0.20"                                      // Delta to use when checking if we have reached a location.
 #define MV_CELL_INITIALIZED	        ".area_coverage.cell.initialized"           // Flag to check if we have initialized our cell in the search area.
 #define MV_NEXT_TARGET_LAT          ".area_coverage.target.location.latitude"   // The latitude of the next target location in our search pattern.
 #define MV_NEXT_TARGET_LON          ".area_coverage.target.location.longitude"  // The longitude of the next target location in our search pattern.
 #define MV_AVAILABLE_DRONES_AMOUNT	".area_coverage.devices.available.total"    // The amount of available drones.
 #define MV_AVAILABLE_DRONES_MY_IDX	".area_coverage.devices.available.my_idx"   // The index of the device in the list of available ones.
-#define MV_MY_SEARCH_AREA_REGION    ".area_coverage.search_area_region.id"      // The id of the region associated with this area.
 #define MV_MY_CELL_TOP_LEFT_LAT     ".area_coverage.cell.top_left.location.latitude"        // The x of the top left corner of the cell I am searching.
 #define MV_MY_CELL_TOP_LEFT_LON     ".area_coverage.cell.top_left.location.longitude"       // The y of the top left corner of the cell I am searching.
 #define MV_MY_CELL_BOT_RIGHT_LAT    ".area_coverage.cell.bottom_right.location.latitude"    // The x of the bottom right corner of the cell I am searching.
@@ -57,9 +50,6 @@ enum AreaCoverageMadaraExpressionId
 {
     // Expression to call function to update the positions of the drones available for coverage.
 	ACE_FIND_AVAILABLE_DRONES_POSITIONS,
-
-    // Expression to call function to disseminate information that the simulator needs.
-	ACE_DISSEMINATE_SIMULATION_VARIABLES,
 };
 
 // Map of Madara expressions used in bridge building.
@@ -183,16 +173,6 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 
     // Function that can be included in main loop of another method to introduce area coverage.
     knowledge.define_function(MF_SET_NEW_TARGET, madaraSetNewTarget);
-
-    // Function to broadcast local variables to a simulator.
-    knowledge.define_function(MF_DISSEMINATE_LOCAL_VARS, 
-        // Dummy variable set for the bridging flag to ensure it is continously propagated, even to new drones.
-        "("
-            MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_REQUESTED) + "=" + MV_MOVEMENT_REQUESTED + ";"
-            MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_TARGET_LAT) + "=" + MV_MOVEMENT_TARGET_LAT + ";"
-            MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_TARGET_LON) + "=" + MV_MOVEMENT_TARGET_LON + ";"
-        ")"
-    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -203,11 +183,6 @@ void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     // Expression to update the list of available drones, simply calls the predefined function.
     m_expressions[ACE_FIND_AVAILABLE_DRONES_POSITIONS] = knowledge.compile(
         MF_UPDATE_AVAILABLE_DRONES "();"
-    );
-
-    // Expression to disseminate internal information for simulation purposes.
-    m_expressions[ACE_DISSEMINATE_SIMULATION_VARIABLES] = knowledge.compile(
-        MF_DISSEMINATE_LOCAL_VARS "();"
     );
 }
 
@@ -245,9 +220,6 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
     variables.set(MV_MY_CELL_BOT_RIGHT_LAT, myCell.bottomRightCorner.x);
     variables.set(MV_MY_CELL_BOT_RIGHT_LON, myCell.bottomRightCorner.y);
 
-    // Store the region id in an internal variable for easier retrieval.
-    variables.set(MV_MY_SEARCH_AREA_REGION, myAssignedSearchRegion);
-
     return Madara::Knowledge_Record(1.0);
 }
 
@@ -272,9 +244,6 @@ Madara::Knowledge_Record madaraSetNewTarget (Madara::Knowledge_Engine::Function_
     variables.set(MV_MOVEMENT_TARGET_LAT, nextTarget.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
     variables.set(MV_MOVEMENT_TARGET_LON, nextTarget.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
     variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
-
-    // For simulation only, disseminate some of the internal information such as movement command.
-    variables.evaluate(m_expressions[ACE_DISSEMINATE_SIMULATION_VARIABLES]);
 
     return Madara::Knowledge_Record(1.0);
 }

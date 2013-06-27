@@ -16,13 +16,13 @@
 #include <map>
 #include "utilities/Position.h"
 
-/**
- * @brief Represents the information of the distance between a certain drone and a particular location.
- **/
 namespace SMASH
 {
     namespace Bridge
     {
+        /**
+         * @brief Represents the information of the distance between a certain drone and a particular location.
+         **/
         struct DistanceTuple
         {
             // The id of the drone.

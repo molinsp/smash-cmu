@@ -6,15 +6,13 @@
  *********************************************************************/
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include "MadaraController.h"
-
 #include "utilities/CommonMadaraVariables.h"
+#include <vector>
 
 #ifdef _WIN32
   // Only include the custom transport in Windows, as it is not necessary in Linux.
   #include "Custom_Transport.h"
 #endif
-
-#include <vector>
 
 // Multicast address.
 #define DEFAULT_MULTICAST_ADDRESS "239.255.0.1:4150"
