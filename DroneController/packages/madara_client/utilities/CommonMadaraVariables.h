@@ -33,11 +33,12 @@
 
 // Area coverage information.
 #define MV_AREA_COVERAGE_REQUESTED(deviceId) "device." + std::string(deviceId) + ".area_coverage_requested"    // Tells if this device was tasked with area coverage.
-#define MV_ASSIGNED_SEARCH_AREA(deviceId)    "device." + std::string(deviceId) + ".search_area"     // The id of the area that I have been assigned to search.
+#define MV_ASSIGNED_SEARCH_AREA(deviceId)    "device." + std::string(deviceId) + ".search_area_id"  // The id of the area that I have been assigned to search.
 #define MV_TOTAL_SEARCH_AREAS                "search_areas"                                         // The total number of search areas requested so far.
 #define MV_SEARCH_AREA_REGION(areaId)        "search_area." + std::string(areaId) + ""              // Returns the region associated to a certain search area.
 
 // Bridge information.
+#define MV_BRIDGE_REQUESTED                  "bridge.bridge_requested"                          // Tells if a bridge was requested.
 #define MV_BRIDGE_ID(deviceId)   	         "device." + std::string(deviceId) + ".bridge_id"   // If bridging, indicates the id of the associated bridge.
 #define MV_TOTAL_BRIDGES                     "bridges"                                          // The total number of bridges requested so far.
 #define MV_COMM_RANGE				         "bridge.max_communication_distance"			    // The range of the high-banwidth radio.

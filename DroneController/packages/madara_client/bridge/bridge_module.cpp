@@ -25,6 +25,7 @@ using namespace SMASH::Utilities;
 #define MF_MAIN_LOGIC				"bridge_doBridgeBuilding"					// Function that checks if there is bridge building to be done, and does it.
 #define MF_UPDATE_AVAILABLE_DRONES	"bridge_updateAvailableDrones"				// Function that checks the amount and positions of drones ready for bridging.
 #define MF_FIND_POS_IN_BRIDGE		"bridge_findPositionInBridge"				// Function that finds and sets the position in the bridge for this drone, if any.
+#define MF_TURN_OFF_BRIDGE_REQUEST	"bridge_turnOffBridgeRequest"				// Function to turn off a bridge request locally.
 
 // Internal variables.
 #define MV_AVAILABLE_DRONES_AMOUNT	".bridge.devices.available.total"			    // The amount of available drones.
@@ -54,6 +55,8 @@ static std::map<BridgeMadaraExpressionId, Madara::Knowledge_Engine::Compiled_Exp
 static void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
 static void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
 static Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::Function_Arguments &args,
+             Madara::Knowledge_Engine::Variables &variables);
+static Madara::Knowledge_Record madaraTurnOffBridgeRequest (Madara::Knowledge_Engine::Function_Arguments &args,
              Madara::Knowledge_Engine::Variables &variables);
 static Position* calculateMiddlePoint(Madara::Knowledge_Engine::Variables &variables, std::string regionId);
 
@@ -88,13 +91,23 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     // Assumes that MV_USER_BRIDGE_REQUEST_ON triggers the bridge building logic.
     knowledge.define_function(MF_MAIN_LOGIC, 
         "("
-            "(" MV_MOBILE("{" MV_MY_ID "}") " && (!" MV_BUSY("{" MV_MY_ID "}") ") && (" MV_TOTAL_BRIDGES " > 0)" ")"
-                " => " MF_FIND_POS_IN_BRIDGE "();"
+            MV_BRIDGE_REQUESTED " => "
+            "("
+                // We turn off the bridge request, but only locally.
+               MF_TURN_OFF_BRIDGE_REQUEST "();"
+
+               // If we are available and there are bridges to check, check if we can help.
+                "(" MV_MOBILE("{" MV_MY_ID "}") " && (!" MV_BUSY("{" MV_MY_ID "}") ") && (" MV_TOTAL_BRIDGES " > 0)" ")"
+                    " => " MF_FIND_POS_IN_BRIDGE "();"
+            ")"
         ")"
     );
 
     // Function that actually performs bridge building for this drone.
     knowledge.define_function(MF_FIND_POS_IN_BRIDGE, madaraFindPositionInBridge);
+
+    // Function that actually performs bridge building for this drone.
+    knowledge.define_function(MF_TURN_OFF_BRIDGE_REQUEST, madaraTurnOffBridgeRequest);
 
     // Function to update the amound and positions of drones available for bridges.
     // @param .0    Bridge id, an integer indicating the bridge id for which we are finding available drones.
@@ -131,6 +144,22 @@ void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     m_expressions[BE_FIND_AVAILABLE_DRONES_POSITIONS] = knowledge.compile(
         MF_UPDATE_AVAILABLE_DRONES "(" MV_CURR_BRIDGE_ID ");"
     );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Method to turn off a bridge request locally.
+ * Will be called from an external Madara function.
+ * @return  Returns true (1) always.
+ **/
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Madara::Knowledge_Record madaraTurnOffBridgeRequest (Madara::Knowledge_Engine::Function_Arguments &args,
+             Madara::Knowledge_Engine::Variables &variables)
+{
+    // Turn off the request by setting the global variable to 0 but only locally.
+    variables.set(MV_BRIDGE_REQUESTED, (Madara::Knowledge_Record::Integer) 0.0, Madara::Knowledge_Engine::TREAT_AS_LOCAL_EVAL_SETTINGS);
+
+    return Madara::Knowledge_Record(1.0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////

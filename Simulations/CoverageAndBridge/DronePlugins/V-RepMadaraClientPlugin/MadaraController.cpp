@@ -133,6 +133,10 @@ void MadaraController::setupBridgeRequest(int bridgeId, Position sourceTopLeft, 
     int rectangleType = 0;
     std::string bridgeIdString = NUM_TO_STR(bridgeId);
 
+    // We set the total bridges to the bridge id + 1, since it starts at 0.
+    int totalBridges = bridgeId + 1;
+    m_knowledge->set(MV_TOTAL_BRIDGES, (Madara::Knowledge_Record::Integer) totalBridges, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+
     // Store the id of the source region for this bridge.
     int sourceRegionId = m_regionId++;
     std::string sourceRegionIdString = NUM_TO_STR(sourceRegionId);
@@ -158,10 +162,9 @@ void MadaraController::setupBridgeRequest(int bridgeId, Position sourceTopLeft, 
     m_knowledge->set(MV_REGION_TOPLEFT_LOC(sinkRegionIdString), sinkTopLeftLocation, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
     m_knowledge->set(MV_REGION_BOTRIGHT_LOC(sinkRegionIdString), sinkBotRightLocation, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
-    // We set the total bridges to the bridge id + 1, since it starts at 0.
+    // Indicates that we are requesting a bridge.
     // This call has no delay to flush all past changes.
-    int totalBridges = bridgeId + 1;
-    m_knowledge->set(MV_TOTAL_BRIDGES, (Madara::Knowledge_Record::Integer) totalBridges);
+    m_knowledge->set(MV_BRIDGE_REQUESTED, (Madara::Knowledge_Record::Integer) 1.0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
