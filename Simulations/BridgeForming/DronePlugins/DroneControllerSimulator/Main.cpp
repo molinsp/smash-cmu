@@ -120,7 +120,7 @@ void compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 		"||"
 		//"(.needs_bridge => " + bridgeMainLogicCall + " )"
         "(" + bridgeMainLogicCall + " )"
-		"||"
+		";"
 		"" + areaMainLogicCall + ");"
 		".movement_command => process_movement_commands();"
 	);
