@@ -7,8 +7,12 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include "MadaraController.h"
 
-#include "Custom_Transport.h"
 #include "utilities/CommonMadaraVariables.h"
+
+#ifdef _WIN32
+  // Only include the custom transport in Windows, as it is not necessary in Linux.
+  #include "Custom_Transport.h"
+#endif
 
 #include <vector>
 
@@ -25,23 +29,33 @@ MadaraController::MadaraController(int id, double commRange)
     // Start the counter at 0.
     m_regionId = 0;
 
-    // Define the transport.
+    // Define the transport settings.
     m_host = "";
     m_transportSettings.hosts_.resize (1);
     m_transportSettings.hosts_[0] = DEFAULT_MULTICAST_ADDRESS;
-    //m_transportSettings.type = Madara::Transport::MULTICAST;
-    m_transportSettings.delay_launch = true;
     m_transportSettings.id = id;
+
+    // Setup the actual transport.
+#ifdef __linux
+    // In Linux we can use the default Mulitcast transport.
+    m_transportSettings.type = Madara::Transport::MULTICAST;
+#elif defined(WIN32)
+    // In Windows we need to delay the transport launch to use a custom transport.
+    m_transportSettings.delay_launch = true;
+#endif
 
     // Create the knowledge base.
     m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base(m_host, m_transportSettings);
 
-    m_knowledge->log_to_file("madaralog.txt", true);
-    m_knowledge->evaluate("#log_level(1)");
+    // Setup a log.
+    //m_knowledge->log_to_file("madaralog.txt", true);
+    //m_knowledge->evaluate("#log_level(1)");
 
-    // Add the actual transport.
+#ifdef _WIN32
+    // In Windows we need a custom transport to avoid crashes due to incompatibilities between Win V-Rep and ACE.
     m_knowledge->attach_transport(new Custom_Transport (m_knowledge->get_id (),
         m_knowledge->get_context (), m_transportSettings, true));
+#endif
    
     // Set our id and comm range.
     m_id = id;
@@ -110,7 +124,7 @@ void MadaraController::updateDroneStatus(std::vector<DroneStatus> droneStatusLis
         m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LON(droneIdString), it->position.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
     }
 
-    m_knowledge->print_knowledge (1);
+    //m_knowledge->print_knowledge (1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

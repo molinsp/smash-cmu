@@ -5,12 +5,16 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
-#include "BridgeAlgorithm.h"
+#include "bridge\BridgeAlgorithm.h"
+#include "utilities\Position.h"
 
 #include "v_repExtBridgeAlgorithm.h"
 #include "v_repLib.h"
 #include <iostream>
 #include <sstream>
+
+using SMASH::Utilities::Position;
+using SMASH::Bridge::BridgeAlgorithm;
 
 //#ifdef _WIN32
 //	#include <afxwin.h>         // MFC core and standard components
@@ -19,6 +23,21 @@
 //	#pragma message("-----------------------> Adding library: Winmm.lib") 
 //	#pragma comment(lib,"Winmm.lib")
 //#endif /* _WIN32 */
+
+#ifdef __linux
+// perform a string comparison while ignoring case
+bool _stricmp(const char *left, const char *right)
+{
+  int i = 0;
+  while(left[i] != 0 && right[i] != 0) // go until reaching end of string
+  {
+    if(tolower(left[i]) != tolower(right[i])) // compare lower case versions
+      return false; // not same, so return false
+    ++i; // go to next character
+  }
+  return (left[i] == 0 && right[i] == 0); // reached end at same time, so true
+}
+#endif
 
 #ifdef _WIN32
     #include <shlwapi.h> // required for PathRemoveFileSpec function

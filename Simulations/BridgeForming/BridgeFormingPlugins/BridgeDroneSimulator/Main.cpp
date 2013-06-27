@@ -109,10 +109,10 @@ void compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 		"read_sensors ();"
 		"process_state ();"
 		"(.movement_command"
-		";"
+		"||"
 		//"(.needs_bridge => " + bridgeMainLogicCall + " )"
         "(" + bridgeMainLogicCall + " )"
-		";"
+		"||"
 		"" + areaMainLogicCall + ");"
 		".movement_command => process_movement_commands();"
 	);

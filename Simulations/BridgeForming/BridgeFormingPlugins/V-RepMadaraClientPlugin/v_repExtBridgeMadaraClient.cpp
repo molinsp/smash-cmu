@@ -28,6 +28,22 @@
     #define WIN_AFX_MANAGE_STATE
 #endif /* __linux || __APPLE__ */
 
+#ifdef __linux
+// perform a string comparison while ignoring case
+// not an exact port of MS version, but works for this case
+bool _stricmp(const char *left, const char *right)
+{
+  int i = 0;
+  while(left[i] != 0 && right[i] != 0) // go until reaching end of string
+  {
+    if(tolower(left[i]) != tolower(right[i])) // compare lower case versions
+      return false; // not same, so return false
+    ++i; // go to next character
+  }
+  return (left[i] == 0 && right[i] == 0); // reached end at same time, so true
+}
+#endif
+
 #define PLUGIN_VERSION 1
 
 LIBRARY vrepLib; // the V-REP library that we will dynamically load and bind
