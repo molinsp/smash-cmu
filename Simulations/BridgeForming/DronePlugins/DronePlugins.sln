@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BridgeDroneSimulator", "BridgeDroneSimulator\BridgeDroneSimulator.vcxproj", "{536297B3-7E10-4E87-B57F-D1F2956ED836}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DroneControllerSimulator", "DroneControllerSimulator\DroneControllerSimulator.vcxproj", "{536297B3-7E10-4E87-B57F-D1F2956ED836}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "V-RepMadaraClientPlugin", "V-RepMadaraClientPlugin\V-RepMadaraClientPlugin.vcxproj", "{8B324244-E0D8-45A7-A5AC-047385A4DE07}"
 EndProject
