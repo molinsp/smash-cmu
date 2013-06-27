@@ -14,7 +14,7 @@
     <ProjectGuid>{536297B3-7E10-4E87-B57F-D1F2956ED836}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>BridgeDroneSimulator</RootNamespace>
-    <ProjectName>BridgeDroneSimulator</ProjectName>
+    <ProjectName>DroneControllerSimulator</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
