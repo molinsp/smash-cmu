@@ -3,7 +3,7 @@ STD = --std=c++0x
 WARN = -Wall -Wextra -pedantic
 OPT = 
 DEBUG = -ggdb
-INC = -I$(ACE_ROOT) -I$(MADARA_ROOT)/include -I$(HOME)/dev/smash-cmu/DroneController/packages/madara_client/utilities
+INC = -I$(ACE_ROOT) -I$(MADARA_ROOT)/include -I$(HOME)/dev/smash-cmu/DroneController/packages/madara_client
 LIB_PATH = -L$(MADARA_ROOT)/lib -L$(ACE_ROOT)/lib
 
 all: GoToLocation
