@@ -8,31 +8,37 @@
 This folder contains the code for the simple Bridge Algorithm, as well as testers
 for that code, and plugins to use it in V-Rep. The projects are:
 
- - BridgeDroneSimulator
+ - DroneControllerSimulator
  
-     References the actual Bride Algorithm code and an object to handle access to the 
-     algorithm through Madara logic which coordinates with the rest of the distributed 
-     system. This code is actually located in the DroneController/packages/madara_client 
-     folder or the repository.
+     This program acts as a simulated drone, containing all current code and logic for the drones
+     except for the hardware layer. Instead of the actual hardware layer, it uses a V-Rep layer
+     which gets information from the "sensors" (location) from V-Rep, and sends movement commands
+     to V-Rep to, to move the simulated drones on a V-Rep scene. It uses the actual algorithms
+     for Area Coverage and Bridge building that will be included on the drone. Since there is 
+     an interface for the hardware layer, the use of V-Rep instead is (almost) transparent. 
+     This is supposed to be used with the V-RepMadaraClientPlugin installed in the V-Rep main 
+     executable folder, as they communicate with each other through Madara. It is assumed that a 
+     V-Rep scene will act as the System Controller, as well as the sensors and actuators for each drone.
      
-     Only contains a simple main program that runs a loop to test out the bridge 
-     functionality, assuming the V-Rep simulator does the rest (act as a controller and 
-     disseminate position information). This is supposed to be used with the V-RepMadaraClientPlugin
-     installed in the V-Rep main executable folder, as they communicate with each other
-     through Madara.
+     The communication with V-Rep could be done through TCP or other methods, but it is actually
+     handled through Madara as well, using some particular prefixes to get sensor information
+     or send movement commands to V-Rep through Madara.
+ 
+     Most of the code is actually located in the DroneController/packages/madara_client 
+     folder or the repository, and is only referenced from this project.
+     
+     The project itself contains a simple main program that is very similar to the main loop
+     in the DroneController project. The main differences are some simplifications for simulation
+     purposes (and compatibility issues), and a small hack to enable the V-Rep layer to access
+     Madara through the same Knowledge Base used to communicate between the drones.
      
      To execute, add the "-i" option, followed by an integer number starting from 0. 
      This indicates the id that this pseudo-drone will have. Running this in multiple
      consoles with different ids allows to simluate multiple pseudo-drones.
      
-     The main program can also be run independently of V-Rep with the "-t" option to 
-     populate the knowledge base with a predefined test state of drone positions and
-     a bridge request, to see the interaction of multiple drones in different consoles
-     and the results of the bridge algorithm.
-     
  - V-RepBridgeAlgorithmPlugin
  
-    A simple plugin that calls the C++ version of the algorithm directly. It does not use 
+    A simple plugin that calls the C++ version of the bridge algorithm directly. It does not use 
     Madara, and allows the V-Rep simulation to use the actual implementation of the algorithm locally.
     It defines only one custom Lua function that can be used by a simulation to get the position a
     drone should go to to form a bridge, if it is part of it.
@@ -48,11 +54,11 @@ for that code, and plugins to use it in V-Rep. The projects are:
  - V-RepMadaraClientPlugin
 
     A plugin that acts as the Controller of the network, as well as disseminating the positioning 
-    information of the drones obtained from V-Rep. This is done through Madara to communicate 
-    with simulated pseudo-drones running with the BridgeDroneSimulator project described above.
-    It defines several Lua functions that can be used by a simulation to setup and cleanup the Madara
-    interface, as well as send and receive the state of different variables in the Knowledge Base, 
-    including bridge requests and bridge target positions for a drone.
+    information of the drones obtained from V-Rep, and receiving commands to move the drones to certain locations. 
+    This is done through Madara to communicate with simulated pseudo-drones running with the DroneControllerSimulator 
+    project described above. It defines several Lua functions that can be used by a simulation to setup 
+    and cleanup the Madara interface, as well as send and receive the state of different variables in the Knowledge Base, 
+    including area coverage and bridge requests, and functions to handle sensor and movement requests from the drones.
     
     Notes:
     * This project has a custom property that has to be set to indicate where the V-Rep folder with
@@ -66,10 +72,10 @@ for that code, and plugins to use it in V-Rep. The projects are:
 # Linux notes
 ##############################
 
- * Makefile will recursively build all projects except the BridgeDroneSimulator (will be added when fixed)
+ * Makefile will recursively build all projects except the DroneControllerSimulator (will be added when fixed)
  * V-REP plugins are built in their respective directories, add symlinks or move these to VREP install
      directory to use
  * GoToLocation can be used to test if plugins are installed correctly
  * libACE and libMADARA need to be found on launch; easiest way to do this is to add their directory to 
      LD_LIBRARY_PATH in vrep.sh in the VREP install directory
- * BridgeDroneSimulator is not working
+ * DroneControllerSimulator is not working
