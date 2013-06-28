@@ -59,10 +59,10 @@
     <ClInclude Include="LuaCustomFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\utilities\Position.h">
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\utilities\Position.h">
       <Filter>Header Files\utilities_module</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\DroneController\packages\madara_client\utilities\CommonMadaraVariables.h">
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\utilities\CommonMadaraVariables.h">
       <Filter>Header Files\utilities_module</Filter>
     </ClInclude>
     <ClInclude Include="Custom_Transport.h">

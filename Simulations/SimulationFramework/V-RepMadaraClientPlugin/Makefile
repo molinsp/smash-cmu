@@ -3,7 +3,7 @@ STD = --std=c++0x
 WARN = -Wall -Wextra -pedantic
 OPT = -O3
 DEBUG = 
-INC = -I../V-RepImports -I$(ACE_ROOT) -I$(MADARA_ROOT)/include -I../../../../DroneController/packages/madara_client
+INC = -I../V-RepImports -I$(ACE_ROOT) -I$(MADARA_ROOT)/include -I../../../DroneController/packages/madara_client
 LIB_PATH = -L$(MADARA_ROOT)/lib -L$(ACE_ROOT)/lib
 OS = -D__linux
 
