@@ -74,7 +74,7 @@ Right now, the scene works in the following way:
        the C++ implementation of the bridge algorithm calculation. The results should be 
        the same. 
        
-    The source code for the plugins is in smash-cmu\Simulations\CoverageAndBridge\DronePlugins.
+    The source code for the plugins is in smash-cmu\Simulations\SimulationFramework.
        
     Moving the locations of the laptop and the people on the scene can also be useful
     to check different behaviors.   

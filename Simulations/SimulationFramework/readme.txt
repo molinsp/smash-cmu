@@ -5,8 +5,8 @@
 # https://code.google.com/p/smash-cmu/wiki/License
 ######################################################################
 
-This folder contains the code for the simple Bridge Algorithm, as well as testers
-for that code, and plugins to use it in V-Rep. The projects are:
+This folder contains the code to simulate drones using the actual code
+they will have and and plugins to simulate parts of it in V-Rep. The projects are:
 
  - DroneControllerSimulator
  
