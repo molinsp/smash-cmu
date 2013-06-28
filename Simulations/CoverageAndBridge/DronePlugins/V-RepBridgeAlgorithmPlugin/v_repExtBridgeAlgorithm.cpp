@@ -5,8 +5,13 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
+#ifdef _WIN32
 #include "bridge\BridgeAlgorithm.h"
 #include "utilities\Position.h"
+#elif defined(__linux)
+#include "bridge/BridgeAlgorithm.h"
+#include "utilities/Position.h"
+#endif
 
 #include "v_repExtBridgeAlgorithm.h"
 #include "v_repLib.h"
