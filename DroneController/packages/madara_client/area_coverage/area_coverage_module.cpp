@@ -30,7 +30,7 @@ using namespace SMASH::Utilities;
 #define MF_UPDATE_AVAILABLE_DRONES	"area_coverage_updateAvailableDrones"   // Function that checks the amount and positions of drones ready for covering.
 
 // Internal variables.
-#define MV_ACCURACY	                "0.20"                                      // Delta to use when checking if we have reached a location.
+#define MV_ACCURACY	                "0.20"                                      // Delta (in meters) to use when checking if we have reached a location.
 #define MV_CELL_INITIALIZED	        ".area_coverage.cell.initialized"           // Flag to check if we have initialized our cell in the search area.
 #define MV_NEXT_TARGET_LAT          ".area_coverage.target.location.latitude"   // The latitude of the next target location in our search pattern.
 #define MV_NEXT_TARGET_LON          ".area_coverage.target.location.longitude"  // The longitude of the next target location in our search pattern.

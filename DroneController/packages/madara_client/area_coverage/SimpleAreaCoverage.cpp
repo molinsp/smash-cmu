@@ -16,7 +16,7 @@
 using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
 
-// We set the search column width to roughly the width of the device.
+// We set the search column width to roughly the width of the device, in meters.
 const double SimpleAreaCoverage::SEARCH_COLUMN_WIDTH = 0.5;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

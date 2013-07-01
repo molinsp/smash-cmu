@@ -41,7 +41,7 @@
 #define MV_BRIDGE_REQUESTED                  "bridge.bridge_requested"                          // Tells if a bridge was requested.
 #define MV_BRIDGE_ID(deviceId)   	         "device." + std::string(deviceId) + ".bridge_id"   // If bridging, indicates the id of the associated bridge.
 #define MV_TOTAL_BRIDGES                     "bridges"                                          // The total number of bridges requested so far.
-#define MV_COMM_RANGE				         "bridge.max_communication_distance"			    // The range of the high-banwidth radio.
+#define MV_COMM_RANGE				         "bridge.max_communication_distance"			    // The range of the high-banwidth radio, in meters.
 #define MV_BRIDGE_SOURCE_REGION_ID(bridgeId) "bridge." + std::string(bridgeId) + ".endpoint.1"  // The region where one of the endpoints of the bridge is.
 #define MV_BRIDGE_SINK_REGION_ID(bridgeId)   "bridge." + std::string(bridgeId) + ".endpoint.2"  // The region where the other endpoint of the bridge is.
 
