@@ -6,7 +6,8 @@ DEBUG = -ggdb
 ifndef REPO_ROOT
   REPO_ROOT=$(HOME)/dev/smash-cmu
 endif
-INC = -I$(ACE_ROOT) -I$(MADARA_ROOT)/include -I$(REPO_ROOT)/DroneController/packages/madara_client
+MADARA_CLIENT = $(REPO_ROOT)/DroneController/packages/madara_client
+INC = -I$(ACE_ROOT) -I$(MADARA_ROOT)/include -I$(MADARA_CLIENT)
 LIB_PATH = -L$(MADARA_ROOT)/lib -L$(ACE_ROOT)/lib -L.
 
 all: libMadaraQuadrotorControl.so GoToLocation

@@ -78,12 +78,12 @@ they will have and and plugins to simulate parts of it in V-Rep. The projects ar
 # Linux notes
 ##############################
 
- * Makefile will recursively build libv_repExtMadaraQuadrotorControlPlugin and
-   GoToLocation projects
+ * Makefile will recursively build projects
+ * ensure REPO_ROOT is set correctly in Makefile
  * V-REP plugins are built in their respective directories, add symlinks or move
    these to VREP install directory to use
- * GoToLocation can be used to test if plugin is installed correctly
  * vrep needs to find libACE and libMADARA found when loading
-   libv_repExtMadaraQuadrotorControlPlugin
-    * easiest way to do this is to add their directory to LD_LIBRARY_PATH in
-      vrep.sh in the VREP install directory
+   libv_repExtMadaraQuadrotorControlPlugin; symlink or copy them to vrep
+   install directory
+ * vrep needs to find LaptopController.lua, QuadrictoperTargetController.lua,
+   and Utils.lua; symlink or copy them to vrep install directory

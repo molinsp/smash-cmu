@@ -1,16 +1,21 @@
 CC = g++
 STD = --std=c++0x
-WARN = -Wall -Wextra -pedantic
+#WARN = -Wall -Wextra -pedantic
 OPT = -O3
 DEBUG = 
-INC = -I$(MADARA_ROOT)/include -I$(ACE_ROOT) -I../V-RepImports -I../../../DroneController/packages/madara_client/bridge -I../../../DroneController/packages/madara_client/utilities -I../../../DroneController/packages/madara_client/area_coverage
+ifndef REPO_ROOT
+  REPO_ROOT = $(HOME)/dev/smash-cmu
+endif
+MADARA_CLIENT = $(REPO_ROOT)/DroneController/packages/madara_client
+INC = -I$(MADARA_ROOT)/include -I$(ACE_ROOT) -I../V-RepImports -I$(MADARA_CLIENT)
 LIB_PATH = -L$(MADARA_ROOT)/lib -L$(ACE_ROOT)/lib
 OS = -D__linux
+PLATFORM = -DV_REP
 
 all: DroneControllerSimulator
 
 DroneControllerSimulator: Main.o
-	$(CC) $(STD) $(WARN) $(OPT) $(INC) $(LIB_PATH) $(OS) -o DroneControllerSimulator Main.o ../../../DroneController/packages/madara_client/bridge/BridgeAlgorithm.cpp ../../../DroneController/packages/madara_client/bridge/bridge_module.cpp ../../../DroneController/packages/madara_client/area_coverage/SimpleAreaCoverage.cpp ../../../DroneController/packages/madara_client/area_coverage/area_coverage_module.cpp -lACE -lMADARA -ldl -lrt
+	$(CC) $(STD) $(WARN) $(OPT) $(INC) $(LIB_PATH) $(OS) $(PLATFORM) -o DroneControllerSimulator Main.o $(MADARA_CLIENT)/bridge/BridgeAlgorithm.cpp $(MADARA_CLIENT)/bridge/bridge_module.cpp $(MADARA_CLIENT)/area_coverage/SimpleAreaCoverage.cpp $(MADARA_CLIENT)/area_coverage/area_coverage_module.cpp $(MADARA_CLIENT)/sensors/sensors_module.cpp $(MADARA_CLIENT)/platforms/v_rep/v-rep_control_functions.cpp $(MADARA_CLIENT)/movement/movement_module.cpp $(MADARA_CLIENT)/utilities/utilities_module.cpp -lACE -lMADARA -ldl -lrt
 
 Main.o: Main.cpp
 	$(CC) $(STD) $(WARN) $(OPT) $(INC) $(OS) -c -o Main.o Main.cpp

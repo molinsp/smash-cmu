@@ -34,14 +34,22 @@ namespace SMASH
                 *
                 * @return  The region that this device will be covering.
                 **/
+#ifdef __linux
+	        SMASH::Utilities::Region calculateCellToSearch(int deviceIdx, SMASH::Utilities::Region grid, int numDrones);
+#else
 	        SMASH::Utilities::Region SimpleAreaCoverage::calculateCellToSearch(int deviceIdx, SMASH::Utilities::Region grid, int numDrones);
+#endif
 
 	        /** 
                 * Calculates the next location to move to, assuming we have reached our current target.
                 *
                 * @return  The position this device should go to next to follow the search pattern.
                 **/
+#ifdef __linux
+            SMASH::Utilities::Position getNextTargetLocation();
+#else
             SMASH::Utilities::Position SimpleAreaCoverage::getNextTargetLocation();
+#endif
 
         private:
             // The width of each column the device will move over when searching the area. It will roughly have the same width as the device.
