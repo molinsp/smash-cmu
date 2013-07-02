@@ -55,9 +55,6 @@ protected:
   // Flag to check whether we are moving on the X or Y axis (to know whether we
   // have to turn or not).
   bool m_movingOnYAxis;
-
-  // Finds the middle (closest to each other) divisors of a number.
-  std::vector<int> findMiddleDivisors(int numberToEvaluate);
 }; // class SnakeAreaCoverage
 }} // namespace SMASH::AreaCoverage
 
