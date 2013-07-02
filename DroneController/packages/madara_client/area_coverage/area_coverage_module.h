@@ -26,6 +26,12 @@ namespace SMASH
          **/
 	    void initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
 
+      /**
+       * Cleans up the coverage module
+       * @param knowledge	Knowledge base object used in area coverage
+       **/
+      void cleanup(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
+
 	    /**
          * Method used to get a string with the main call to the area coverage funtionality.
          * @return  A string that can be evaluted to call the logic to check and do area coverage.

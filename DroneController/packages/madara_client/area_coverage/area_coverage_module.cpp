@@ -13,7 +13,8 @@
 #include <map>
 #include "area_coverage_module.h"
 #include "utilities/CommonMadaraVariables.h"
-#include "SimpleAreaCoverage.h"
+#include "AreaCoverage.h"
+#include "SnakeAreaCoverage.h"
 
 using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
@@ -22,7 +23,7 @@ using namespace SMASH::Utilities;
 // Madara Variable Definitions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions.
-#define MF_MAIN_LOGIC				"area_coverage_doAreaCoverage"			// Function that checks if there is area coverage to be done, and does it.
+#define MF_MAIN_LOGIC               "area_coverage_doAreaCoverage"			// Function that checks if there is area coverage to be done, and does it.
 #define MF_INIT_SEARCH_CELL         "area_coverage_initSearchCell"          // Initializes the cell that we will be searching.
 #define MF_TARGET_REACHED           "area_coverage_checkTargetReached"      // Checks if the current target has been reached.
 #define MF_FINAL_TARGET_REACHED     "area_coverage_checkFinalTargetReached" // Checks if the final target has been reached.
@@ -56,7 +57,7 @@ enum AreaCoverageMadaraExpressionId
 static std::map<AreaCoverageMadaraExpressionId, Madara::Knowledge_Engine::Compiled_Expression> m_expressions;
 
 // Stores information about the area coverage state.
-static SimpleAreaCoverage m_coverageAlgorithm;
+static AreaCoverage* m_coverageAlgorithm;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private function declarations.
@@ -78,6 +79,15 @@ void SMASH::AreaCoverage::initialize(Madara::Knowledge_Engine::Knowledge_Base &k
 
     // Registers all default expressions, to have them compiled for faster access.
     compileExpressions(knowledge);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Cleanup, cleans up the dynamically allocated search algorithm
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SMASH::AreaCoverage::cleanup(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
+{
+  // should only need to delete the coverage algorithm
+  delete m_coverageAlgorithm;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -213,8 +223,8 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
     Region searchArea = Region(Position(topLeftX, topLeftY), Position(bottomRightX, bottomRightY));
 
     // Reset the area coverage, and calculate the actual cell I will be covering, and store it in Madara.
-    m_coverageAlgorithm = SimpleAreaCoverage();
-    Region myCell = m_coverageAlgorithm.calculateCellToSearch(myIndexInList, searchArea, availableDrones);
+    m_coverageAlgorithm = new SnakeAreaCoverage();
+    Region myCell = m_coverageAlgorithm->calculateCellToSearch(myIndexInList, searchArea, availableDrones);
     variables.set(MV_MY_CELL_TOP_LEFT_LAT, myCell.topLeftCorner.x);
     variables.set(MV_MY_CELL_TOP_LEFT_LON, myCell.topLeftCorner.y);
     variables.set(MV_MY_CELL_BOT_RIGHT_LAT, myCell.bottomRightCorner.x);
@@ -234,7 +244,7 @@ Madara::Knowledge_Record madaraSetNewTarget (Madara::Knowledge_Engine::Function_
              Madara::Knowledge_Engine::Variables &variables)
 {
     // Get the next target.
-    Position nextTarget = m_coverageAlgorithm.getNextTargetLocation();
+    Position nextTarget = m_coverageAlgorithm->getNextTargetLocation();
 
     // Update the drone status for the next target.
     variables.set(MV_NEXT_TARGET_LAT, nextTarget.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
