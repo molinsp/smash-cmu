@@ -1,5 +1,8 @@
 #!/bin/sh
-DroneControllerSimulator/DroneControllerSimulator -i 0 &
-DroneControllerSimulator/DroneControllerSimulator -i 1 &
-DroneControllerSimulator/DroneControllerSimulator -i 2 &
-DroneControllerSimulator/DroneControllerSimulator -i 3 
+xterm -hold -e DroneControllerSimulator/DroneControllerSimulator -i 0 &
+sleep 1.5
+xterm -hold -e DroneControllerSimulator/DroneControllerSimulator -i 1 &
+sleep 1.5
+xterm -hold -e DroneControllerSimulator/DroneControllerSimulator -i 2 &
+sleep 1.5
+xterm -hold -e DroneControllerSimulator/DroneControllerSimulator -i 3 &

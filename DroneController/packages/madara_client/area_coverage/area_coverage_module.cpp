@@ -15,6 +15,7 @@
 #include "utilities/CommonMadaraVariables.h"
 #include "AreaCoverage.h"
 #include "SnakeAreaCoverage.h"
+#include "RandomAreaCoverage.h"
 
 using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
@@ -223,7 +224,7 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
     Region searchArea = Region(Position(topLeftX, topLeftY), Position(bottomRightX, bottomRightY));
 
     // Reset the area coverage, and calculate the actual cell I will be covering, and store it in Madara.
-    m_coverageAlgorithm = new SnakeAreaCoverage();
+    m_coverageAlgorithm = new RandomAreaCoverage();
     Region myCell = m_coverageAlgorithm->calculateCellToSearch(myIndexInList, searchArea, availableDrones);
     variables.set(MV_MY_CELL_TOP_LEFT_LAT, myCell.topLeftCorner.x);
     variables.set(MV_MY_CELL_TOP_LEFT_LON, myCell.topLeftCorner.y);
