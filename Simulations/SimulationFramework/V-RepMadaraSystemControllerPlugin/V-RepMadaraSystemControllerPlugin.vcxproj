@@ -12,7 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{8B324244-E0D8-45A7-A5AC-047385A4DE07}</ProjectGuid>
-    <RootNamespace>VRepMadaraClientPlugin</RootNamespace>
+    <RootNamespace>V-RepMadaraSystemControllerPlugin</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -21,7 +21,7 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
@@ -39,7 +39,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <TargetName>v_repExtBridgeMadaraClient</TargetName>
+    <TargetName>v_repExtMadaraSystemController</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <TargetName>v_repExtMadaraSystemController</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <TargetExt>.dll</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -81,7 +87,7 @@
     <ClCompile Include="Custom_Transport_Read_Thread.cpp" />
     <ClCompile Include="LuaCustomFunctions.cpp" />
     <ClCompile Include="MadaraController.cpp" />
-    <ClCompile Include="v_repExtBridgeMadaraClient.cpp" />
+    <ClCompile Include="v_repExtMadaraSystemController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\utilities\CommonMadaraVariables.h" />
