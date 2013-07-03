@@ -5,7 +5,7 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 #include "madara/knowledge_engine/Knowledge_Base.h"
-#include "MadaraController.h"
+#include "MadaraSystemController.h"
 #include "utilities/CommonMadaraVariables.h"
 #include <vector>
 
@@ -83,46 +83,15 @@ void  MadaraController::terminate()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Sets a drone as stopped.
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraController::stopDrone(int droneId)
-{
-    // Simulate the sink actually sending the command to bridge.
-    std::string droneIdString = NUM_TO_STR(droneId);
-    m_knowledge->set(MV_MOBILE(droneIdString), (Madara::Knowledge_Record::Integer) 0);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Convenience method that updates the status of the drones with the information form the simulator.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraController::updateNetworkStatus(double controllerPosx, double controllerPosy, std::vector<DroneStatus> droneStatusList)
+void MadaraController::updateNetworkStatus(const int& numberOfDrones)
 {
-    // Updates status about myself and the drones with info form the simulation.
-    updateDroneStatus(droneStatusList);
-
     // This is done just to ensure this is propagated, since we are just setting this value to the same value it already has.
     m_knowledge->set (MV_COMM_RANGE, m_commRange, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 
     // This call has no delay to flush all past changes, and updates the total of drones in the system.
-    m_knowledge->set(MV_TOTAL_DEVICES, (Madara::Knowledge_Record::Integer) droneStatusList.size());
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Updates the status of the drones in Madara. This should be done in each drone, but since V-Rep is
-// simulating them, it has to come from the controller, which is at the simulator.
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraController::updateDroneStatus(std::vector<DroneStatus> droneStatusList)
-{
-    // Update the locations of all drones.
-    for (std::vector<DroneStatus>::iterator it = droneStatusList.begin() ; it != droneStatusList.end(); ++it)
-    {
-        // Update the location of this drone (this would be done by its sensors).
-        std::string droneIdString = NUM_TO_STR(it->id);
-        m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LAT(droneIdString), it->position.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-        m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LON(droneIdString), it->position.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    }
-
-    //m_knowledge->print_knowledge (1);
+    m_knowledge->set(MV_TOTAL_DEVICES, (Madara::Knowledge_Record::Integer) numberOfDrones);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -165,61 +134,6 @@ void MadaraController::setupBridgeRequest(int bridgeId, Position sourceTopLeft, 
     // Indicates that we are requesting a bridge.
     // This call has no delay to flush all past changes.
     m_knowledge->set(MV_BRIDGE_REQUESTED, (Madara::Knowledge_Record::Integer) 1.0);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Gets a target position where a drone should move to.
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-MovementCommand* MadaraController::getNewMovementCommand(int droneId)
-{
-    // Apart from checking if it is busy, we will also check if the command to move was sent.
-    std::string droneIdString = NUM_TO_STR(droneId);
-    std::string movementCommand = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_REQUESTED).to_string();
-    bool noMovementCommandSet = movementCommand.compare("0") == 0;
-    if(noMovementCommandSet)
-    {       
-        // No position to return since there is no command yet.
-        return NULL;
-    }
-
-    // Create the movement command to return.
-    MovementCommand* command = new MovementCommand();
-    command->command = movementCommand;
-
-    // Depending on the command, we may need to get more parameters.
-    if(movementCommand.compare(MO_MOVE_TO_GPS_CMD) == 0)
-    {
-        // This is a move to certain location command; get the target location.
-        double targetPosX = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_TARGET_LAT).to_double();
-        double targetPosY = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_TARGET_LON).to_double();
-        Position targetPosition = Position(targetPosX, targetPosY);
-        command->position = targetPosition;
-    }
-
-    // Set the command as 0 locally, to indicate that we already read it.
-    m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_REQUESTED, "0", Madara::Knowledge_Engine::TREAT_AS_LOCAL_EVAL_SETTINGS);
-
-    //m_knowledge->print_knowledge (1);
-
-    return command;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Gets a simple status of the drone: 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool MadaraController::isBridging(int droneId)
-{
-    // For now we assume that BUSY means that it is bridging. This will change later, as it can become busy for other reasons.
-    std::string droneIdString = NUM_TO_STR(droneId);
-    int isBusy = (int) m_knowledge->get(MV_BUSY(droneIdString)).to_integer();
-    if(isBusy == 1)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

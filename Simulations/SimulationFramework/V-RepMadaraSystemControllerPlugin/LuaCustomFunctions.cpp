@@ -5,7 +5,7 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
-#include "MadaraController.h"
+#include "MadaraSystemController.h"
 #include "LuaCustomFunctions.h"
 
 using namespace SMASH::Utilities;
@@ -229,20 +229,12 @@ void simExtMadaraClientBridgeRequest(SLuaCallBack* p)
 void registerMadaraClientUpdateStatusLuaCallback()
 {
     // Define the LUA function input parameters.
-    int inArgs[] = {5, sim_lua_arg_float,					  // The X position of the controller.
-                       sim_lua_arg_float,					  // The Y position of the controller.
-                       sim_lua_arg_int  |sim_lua_arg_table,   // IDs of drones. (size: num drones)
-                       sim_lua_arg_float|sim_lua_arg_table,   // X and Y posotions for all drones. (size: num drones x 2).
-                       sim_lua_arg_bool |sim_lua_arg_table};  // Whether the drones are flying. (size: num drones)
+    int inArgs[] = {1, sim_lua_arg_int};					  // The number of drones.
 
     // Register the simExtGetPositionInBridge function.
     simRegisterCustomLuaFunction("simExtMadaraClientUpdateStatus",                  // The Lua function name.
                                  "simExtMadaraClientUpdateStatus"                   // A tooltip to be shown to help the user know how to call it.
-                                                          "(number controllerPosx, "             
-                                                           "number controllerPosy, "
-                                                           "table droneIds, "
-                                                           "table dronesPos, "
-                                                           "table dronesFlying)",
+                                                          "(number numberOfDrones)",             
                                  inArgs,                                            // The argument types.
                                  simExtMadaraClientUpdateStatus);                   // The C function that will be called by the Lua function.
 }
@@ -258,286 +250,27 @@ void simExtMadaraClientUpdateStatus(SLuaCallBack* p)
     bool paramsOk = true;
 
     // Check we have to correct amount of parameters.
-    if (p->inputArgCount != 5)
+    if (p->inputArgCount != 1)
     { 
         simSetLastError("simExtMadaraClientUpdateStatus", "Not enough arguments.");
         paramsOk = false;
     }
 
     // Check we have the correct type of arguments.
-    if (p->inputArgTypeAndSize[0*2+0] != sim_lua_arg_float)
+    if (p->inputArgTypeAndSize[0*2+0] != sim_lua_arg_int)
     {
-        simSetLastError("simExtMadaraClientUpdateStatus", "The x position of the controller is not a float.");
-        paramsOk = false;
-    }
-
-    if(p->inputArgTypeAndSize[1*2+0] != sim_lua_arg_float)
-    {
-        simSetLastError("simExtMadaraClientUpdateStatus", "The y position of the controller is not a float.");
-        paramsOk = false;
-    }
-
-    if(p->inputArgTypeAndSize[2*2+0] != (sim_lua_arg_int|sim_lua_arg_table) )
-    {
-        std::string errorMessage = "Drone IDs parameter is not an table of ints, it is a ";
-        std::stringstream sstm; sstm << errorMessage << p->inputArgTypeAndSize[2*2+0] ; std::string fullErrorMessage = sstm.str();
-        simSetLastError("simExtMadaraClientUpdateStatus", fullErrorMessage.c_str());
-        paramsOk = false;
-    }
-
-    if(p->inputArgTypeAndSize[2*2+1] < 1)
-    {
-        simSetLastError("simExtMadaraClientUpdateStatus", "Drone IDs parameter is empty.");
-        paramsOk = false;
-    }
-
-    if(p->inputArgTypeAndSize[3*2+0] != (sim_lua_arg_float|sim_lua_arg_table))
-    {
-        std::string errorMessage = "Drone Positions parameter is not an table of floats, it is a ";
-        std::stringstream sstm; sstm << errorMessage << p->inputArgTypeAndSize[3*2+0] ; std::string fullErrorMessage = sstm.str();
-        simSetLastError("simExtMadaraClientUpdateStatus", fullErrorMessage.c_str());
-        paramsOk = false;
-    }        
-        
-    if(p->inputArgTypeAndSize[3*2+1] < 2)
-    {
-        simSetLastError("simExtMadaraClientUpdateStatus", "Drone Positions parameter is empty.");
-        paramsOk = false;
-    }
-
-    if(p->inputArgTypeAndSize[4*2+0] != (sim_lua_arg_bool|sim_lua_arg_table)) 
-    {
-        std::string errorMessage = "Drone Flying Status parameter is not an table of bools, it is a ";
-        std::stringstream sstm; sstm << errorMessage << p->inputArgTypeAndSize[4*2+0]; std::string fullErrorMessage = sstm.str();
-        simSetLastError("simExtMadaraClientUpdateStatus", fullErrorMessage.c_str());
-        paramsOk = false;
-    }             
-        
-    if(p->inputArgTypeAndSize[4*2+1] < 1)
-    {
-        simSetLastError("simExtMadaraClientUpdateStatus", "Drone Flying Status parameter is empty.");
+        simSetLastError("simExtMadaraClientUpdateStatus", "The number of drones is not an integer.");
         paramsOk = false;
     }
 
     // Continue forward calling the external functions only if we have all parameters ok.
     if(paramsOk)
     { 
-        // Indexes for the arrays with all the data.
-        int intArrayIdx = 0;
-        int floatArrayIdx = 0;
-        int boolArrayIdx = 0;
-
-        // Get the controller's position.        
-        double controllerPosx = p->inputFloat[floatArrayIdx++];
-        double controllerPosy = p->inputFloat[floatArrayIdx++];
-
-        // Create the vector with the drones' status.
-        std::vector<DroneStatus> droneStatusList = std::vector<DroneStatus>();
-        int totalNumberOfDrones = p->inputArgTypeAndSize[2*2+1];
-
-        for(int currDroneIdx = 0; currDroneIdx < totalNumberOfDrones; currDroneIdx++)
-        {
-            // Update the current positions in the int, float and bool arrays from which the id, (x,y) positions and flying status will be obtained, respectively.
-            int currDroneIdIntArrayIdx = intArrayIdx++;
-            int currDronePosFloatArrayIdx = floatArrayIdx + currDroneIdx * 2;	// Note that every position uses up 2 spaces in the float array, 1 for x and 2 for y.
-            int currDroneFlyingBoolArrayIdx = boolArrayIdx++;
-
-            // Get the actual values from the array.
-            DroneStatus currDroneStatus;
-            currDroneStatus.id = p->inputInt[currDroneIdIntArrayIdx];  
-            currDroneStatus.position.x = p->inputFloat[currDronePosFloatArrayIdx];
-            currDroneStatus.position.y = p->inputFloat[currDronePosFloatArrayIdx + 1];
-            currDroneStatus.flying = p->inputBool[currDroneFlyingBoolArrayIdx];
-
-            // Add the status to the vector.
-            droneStatusList.push_back(currDroneStatus);
-        }
-
-        // For debugging, print out what we received.
-        std::stringstream sstm; 
-        sstm << "Values received inside C function: controllerPosx:" << controllerPosx << ", controllerPosy:" << controllerPosy << std::endl; 
-
-        for (std::vector<DroneStatus>::iterator it = droneStatusList.begin() ; it != droneStatusList.end(); ++it)
-        {
-		    // Get info for current drone ID and position, and mark this drone as not assigned for now.
-            sstm << "Drone " << it->id << " with pos " << it->position.x << "," << it->position.y << ", flying:" << it->flying << std::endl;
-        }
-        std::string message = sstm.str();
-        //simAddStatusbarMessage(message.c_str());
+        // Get the number of drones.
+        int totalNumberOfDrones = p->inputArgTypeAndSize[0];
 
         // Propagate the status information through the network.
-        madaraController->updateNetworkStatus(controllerPosx, controllerPosy, droneStatusList);
-    }
-
-    simLockInterface(0);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Registers the Lua simExtMadaraClientGetNewMovementCommand command.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void registerMadaraClientGetNewMovementCommandLuaCallback()
-{
-    // Define the LUA function input parameters.
-    int inArgs[] = {1, sim_lua_arg_int,					  // Drone ID for which we want the position in bridge, if any.
-                   };
-
-    // Register the simExtGetPositionInBridge function.
-    simRegisterCustomLuaFunction("simExtMadaraClientGetNewMovementCommand",               // The Lua function name.
-                                 "myNewX, myNewY, bridging = "                            // A tooltip to be shown to help the user know how to call it.
-                                 "simExtMadaraClientGetNewMovementCommand(int droneId) ",     
-                                 inArgs,                                                  // The argument types.
-                                 simExtMadaraClientGetNewMovementCommand                  // The C function that will be called by the Lua function.
-                                 );
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Callback of the Lua simExtMadaraClientGetNewMovementCommand command.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void simExtMadaraClientGetNewMovementCommand(SLuaCallBack* p)
-{
-    //WIN_AFX_MANAGE_STATE;
-    simLockInterface(1);
-
-    bool paramsOk = true;
-
-    // Check we have to correct amount of parameters.
-    if (p->inputArgCount != 1)
-    { 
-        simSetLastError("simExtMadaraClientGetPositionInBridge", "Not enough arguments.");
-        paramsOk = false;
-    }
-
-    // Check we have the correct type of arguments.
-    if ( p->inputArgTypeAndSize[0*2+0] != sim_lua_arg_int )
-    {
-        simSetLastError("simExtMadaraClientGetPositionInBridge", "SourceId parameter is not an int.");
-        paramsOk = false;
-    }
-
-    // Continue forward calling the external functions only if we have all parameters ok.
-    MovementCommand* movementCommand = NULL;
-    int isBridgingValue = 0;
-    if(paramsOk)
-    { 
-        // Get the simple input values.
-        int droneId = p->inputInt[0];
-
-        // For debugging, print out what we received.
-        //std::stringstream sstm; 
-        //sstm << "Values received inside simExtMadaraClientGetPositionInBridge function: droneId:" << droneId << std::endl;
-        //std::string message = sstm.str();
-        //simAddStatusbarMessage(message.c_str());
-
-        // Check to see if there is a new position we want to move to.
-        movementCommand = madaraController->getNewMovementCommand(droneId);
-        
-        // Check if it is bridging or not, to return status along with movement. (This is a shortcut to get more info with this call).
-        bool isBridging = madaraController->isBridging(droneId);
-        if(isBridging)
-        {
-            isBridgingValue = 1;
-        }
-    }
-
-    // Now we prepare the return value(s):
-    int numReturnValues = 3;
-    p->outputArgCount = numReturnValues; // 3 return values
-    p->outputArgTypeAndSize = (simInt*)simCreateBuffer(p->outputArgCount*(2*sizeof(simInt))); // x return values takes x*2 simInt for the type and size buffer
-
-    // Set the actual return values depending on whether we found a position or not.
-    bool positionWasFound = movementCommand != NULL;
-    if (positionWasFound)
-    {
-        p->outputArgTypeAndSize[2*0+0] = sim_lua_arg_float;			// The first return value is a float.
-        p->outputArgTypeAndSize[2*0+1] = 1;							// Not used (table size if the return value was a table).
-
-        p->outputArgTypeAndSize[2*1+0] = sim_lua_arg_float;			// The second return value is a float
-        p->outputArgTypeAndSize[2*1+1] = 1;							// Not used (table size if the return value was a table).
-
-        p->outputArgTypeAndSize[2*2+0] = sim_lua_arg_int;			// The second return value is a float
-        p->outputArgTypeAndSize[2*2+1] = 1;							// Not used (table size if the return value was a table).
-
-        p->outputFloat = (simFloat*) simCreateBuffer(2*sizeof(movementCommand->position.x)); // 2 float return values.
-        p->outputFloat[0] = (float) movementCommand->position.x;				    // The X part of the target position.
-        p->outputFloat[1] = (float) movementCommand->position.y;				    // The Y part of the target position.
-
-        p->outputInt = (simInt*) simCreateBuffer(sizeof(isBridgingValue));          // 1 int return value.
-        p->outputInt[0] = isBridgingValue;				                            // The current status of bridging, 1 if it is.
-    }
-    else
-    {
-        // All values will just be nil.
-        p->outputArgTypeAndSize[2*0+0] = sim_lua_arg_nil;
-        p->outputArgTypeAndSize[2*0+1] = 1;					// Not used (table size if the return value was a table)
-        p->outputArgTypeAndSize[2*1+0] = sim_lua_arg_nil;
-        p->outputArgTypeAndSize[2*1+1] = 1;					// Not used (table size if the return value was a table)
-        p->outputArgTypeAndSize[2*2+0] = sim_lua_arg_nil;
-        p->outputArgTypeAndSize[2*2+1] = 1;					// Not used (table size if the return value was a table)
-    }
-
-    // Free up the memory.
-    if(movementCommand != NULL)
-    {
-        delete movementCommand;
-    }
-
-    simLockInterface(0);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Registers the Lua simExtMadaraClientStopDrone command.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void registerMadaraClientStopDroneLuaCallback()
-{
-    // Define the LUA function input parameters.
-    int inArgs[] = {1, sim_lua_arg_int					  // Drone ID.
-                   };
-
-    // Register the simExtGetPositionInBridge function.
-    simRegisterCustomLuaFunction("simExtMadaraClientStopDrone",                             // The Lua function name.
-                                 "simExtMadaraClientStopDrone(int droneId)",                // A tooltip to be shown to help the user know how to call it.
-                                 inArgs,                                                    // The argument types.
-                                 simExtMadaraClientStopDrone);                              // The C function that will be called by the Lua function.
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Callback of the Lua simExtMadaraClientStopDrone command.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void simExtMadaraClientStopDrone(SLuaCallBack* p)
-{
-    //WIN_AFX_MANAGE_STATE;
-    simLockInterface(1);
-
-    bool paramsOk = true;
-
-    // Check we have to correct amount of parameters.
-    if (p->inputArgCount != 1)
-    { 
-        simSetLastError("simExtMadaraClientStopDrone", "Not enough arguments.");
-        paramsOk = false;
-    }
-
-    // Check we have the correct type of arguments.
-    if ( p->inputArgTypeAndSize[0*2+0] != sim_lua_arg_int )
-    {
-        simSetLastError("simExtMadaraClientStopDrone", "DroneId parameter is not an int.");
-        paramsOk = false;
-    }
-
-    // Continue forward calling the external functions only if we have all parameters ok.
-    if(paramsOk)
-    { 
-        // Get the simple input values.
-        int droneId = p->inputInt[0];
-
-        // For debugging, print out what we received.
-        std::stringstream sstm; 
-        sstm << "Values received inside simExtMadaraClientStopDrone function: droneId:" << droneId << std::endl;
-        std::string message = sstm.str();
-        simAddStatusbarMessage(message.c_str());
-
-        // Make the controller set up the bridge request through the knowledge base.
-        madaraController->stopDrone(droneId);
+        madaraController->updateNetworkStatus(totalNumberOfDrones);
     }
 
     simLockInterface(0);

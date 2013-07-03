@@ -87,7 +87,7 @@
     <ClCompile Include="..\WindowsMulticastTransport\Windows_Multicast_Transport.cpp" />
     <ClCompile Include="..\WindowsMulticastTransport\Windows_Multicast_Transport_Read_Thread.cpp" />
     <ClCompile Include="LuaCustomFunctions.cpp" />
-    <ClCompile Include="MadaraController.cpp" />
+    <ClCompile Include="MadaraSystemController.cpp" />
     <ClCompile Include="v_repExtMadaraSystemController.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -99,7 +99,7 @@
     <ClInclude Include="..\WindowsMulticastTransport\Windows_Multicast_Transport.h" />
     <ClInclude Include="..\WindowsMulticastTransport\Windows_Multicast_Transport_Read_Thread.h" />
     <ClInclude Include="LuaCustomFunctions.h" />
-    <ClInclude Include="MadaraController.h" />
+    <ClInclude Include="MadaraSystemController.h" />
     <ClInclude Include="v_repExtMadaraSystemController.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
