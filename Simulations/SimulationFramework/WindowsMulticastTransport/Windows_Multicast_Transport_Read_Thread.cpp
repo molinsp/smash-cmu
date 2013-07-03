@@ -136,8 +136,7 @@ unsigned __stdcall threadfunc(void * param)
 
   while (false == trt->terminated_)
   {
-    //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
-    //  " entering message iteration "<<std::endl; outputFile.flush();
+    //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" " entering message iteration "<<std::endl; outputFile.flush();
     
     // Wait until timeout or data received.
     fd_set fds;
@@ -149,13 +148,11 @@ unsigned __stdcall threadfunc(void * param)
     int success = select(trt->socket_, &fds, NULL, NULL, &timeout) ;
     if (success == 0)
     { 
-        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
-        //  " timeout waiting for messages "<<std::endl; outputFile.flush();
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" " timeout waiting for messages "<<std::endl; outputFile.flush();
     }
     else if(success == SOCKET_ERROR)
     {
-       // outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
-       //   " error ocurred waiting for messages "<<std::endl; outputFile.flush();
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \ " error ocurred waiting for messages "<<std::endl; outputFile.flush();
     }
 
     // read the message
@@ -179,8 +176,7 @@ unsigned __stdcall threadfunc(void * param)
         DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
         " received %d bytes. Proceeding to next wait\n", bytes_read));
 
-        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
-        //      " received " << bytes_read << " bytes. Proceeding to next wait." <<std::endl;outputFile.flush();
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" " received " << bytes_read << " bytes. Proceeding to next wait." <<std::endl;outputFile.flush();
 
     }
     else
@@ -193,8 +189,7 @@ unsigned __stdcall threadfunc(void * param)
           bytes_read,
           inet_ntoa(from_addr.sin_addr), from_port));
 
-        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
-        //    " received a message header of "<< bytes_read << " bytes from "<< inet_ntoa(from_addr.sin_addr) << ":" << from_port<<std::endl; outputFile.flush();
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" " received a message header of "<< bytes_read << " bytes from "<< inet_ntoa(from_addr.sin_addr) << ":" << from_port<<std::endl; outputFile.flush();
 
       int64_t buffer_remaining = (int64_t)bytes_read;
       Madara::Transport::Message_Header header;
@@ -208,8 +203,7 @@ unsigned __stdcall threadfunc(void * param)
           " dropping non-KaRL message from %s:%d\n",
           inet_ntoa(from_addr.sin_addr), from_port));
 
-        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
-        //      "dropping non-KaRL message from  "<< inet_ntoa(from_addr.sin_addr) << ":" << from_port<<std::endl;outputFile.flush();
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" "dropping non-KaRL message from  "<< inet_ntoa(from_addr.sin_addr) << ":" << from_port<<std::endl;outputFile.flush();
         continue;
       }
       else
@@ -218,27 +212,26 @@ unsigned __stdcall threadfunc(void * param)
           DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
           " processing KaRL message from %s:%d\n",
           inet_ntoa(from_addr.sin_addr), from_port));
-        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
-        //      " processing KaRL message from  "<< inet_ntoa(from_addr.sin_addr) << ":" << from_port<<std::endl;outputFile.flush();
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" " processing KaRL message from  "<< inet_ntoa(from_addr.sin_addr) << ":" << from_port<<std::endl;outputFile.flush();
       }
     
       // reject the message if it is us as the originator (no update necessary)
-      //if (strncmp (header.originator, id_.c_str (),
-      //     std::min (sizeof (header.originator), id_.size ())) == 0)
-      //{
-      //  MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-      //    DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
-      //    " dropping message from ourself (id %s)\n",
-      //    id_.c_str ()));
-      //  continue;
-      //}
-      //else
-      //{
-      //  MADARA_DEBUG (MADARA_LOG_MINOR_EVENT, (LM_DEBUG, 
-      //    DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
-      //    " remote id (%s:%d) is not our own\n",
-      //    remote.get_host_addr (), remote.get_port_number ()));
-      //}
+      std::string id_ = SSTR(trt->settings_.id);
+      if (strncmp (header.originator, id_.c_str (),
+           std::min (sizeof (header.originator), id_.size ())) == 0)
+      {
+        MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+          DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
+          " dropping message from ourself (id %s)\n",
+          id_.c_str ()));
+        continue;
+      }
+      else
+      {
+        MADARA_DEBUG (MADARA_LOG_MINOR_EVENT, (LM_DEBUG, 
+          DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
+          " remote id (%s) is not our own\n", id_.c_str ()));
+      }
       
       // reject the message if it is from a different domain
       if (strncmp (header.domain, 
@@ -252,8 +245,7 @@ unsigned __stdcall threadfunc(void * param)
           inet_ntoa(from_addr.sin_addr), from_port,
           header.domain));
 
-        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
-        //      " remote in a different domain (" << header.domain <<"). Dropping message. "<< inet_ntoa(from_addr.sin_addr) << ":" << from_port<<std::endl;outputFile.flush();
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" " remote in a different domain (" << header.domain <<"). Dropping message. "<< inet_ntoa(from_addr.sin_addr) << ":" << from_port<<std::endl;outputFile.flush();
         continue;
       }
       else
@@ -263,8 +255,7 @@ unsigned __stdcall threadfunc(void * param)
           " remote id (%s:%d) message is in our domain\n",
           inet_ntoa(from_addr.sin_addr), from_port));
 
-        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
-        //      " remote id message is in our domain  "<< inet_ntoa(from_addr.sin_addr) << ":" << from_port<<std::endl;outputFile.flush();
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" " remote id message is in our domain  "<< inet_ntoa(from_addr.sin_addr) << ":" << from_port<<std::endl;outputFile.flush();
       }
 
       MADARA_DEBUG (MADARA_LOG_MINOR_EVENT, (LM_DEBUG, 
@@ -302,8 +293,7 @@ unsigned __stdcall threadfunc(void * param)
             " unable to process message. Buffer remaining is negative." \
             " Server is likely being targeted by custom KaRL tools.\n"));
 
-        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
-        //      " unable to process message. Buffer remaining is negative."<<std::endl;outputFile.flush();
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:"  " unable to process message. Buffer remaining is negative."<<std::endl;outputFile.flush();
 
           break;
         }
@@ -312,6 +302,8 @@ unsigned __stdcall threadfunc(void * param)
           DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
           " attempting to apply %s=%s\n",
           key.c_str (), record.to_string ().c_str ()));
+
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" " Received: "<<key.c_str ()<<'='<< record.to_string ().c_str ()<<std::endl;outputFile.flush();
 
         int result = record.apply (trt->context_, key, header.quality,
           header.clock, false);

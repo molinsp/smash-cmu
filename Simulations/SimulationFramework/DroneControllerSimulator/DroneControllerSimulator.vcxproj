@@ -75,8 +75,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\AreaCoverage.cpp" />
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\area_coverage_module.cpp" />
-    <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\SimpleAreaCoverage.cpp" />
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\RandomAreaCoverage.cpp" />
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\SnakeAreaCoverage.cpp" />
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.cpp" />
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\bridge\bridge_module.cpp" />
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\movement\movement_module.cpp" />
@@ -86,8 +88,10 @@
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\area_coverage\AreaCoverage.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\area_coverage\area_coverage_module.h" />
-    <ClInclude Include="..\..\..\DroneController\packages\madara_client\area_coverage\SimpleAreaCoverage.h" />
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\area_coverage\RandomAreaCoverage.h" />
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\area_coverage\SnakeAreaCoverage.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\bridge\bridge_module.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\movement\movement_module.h" />

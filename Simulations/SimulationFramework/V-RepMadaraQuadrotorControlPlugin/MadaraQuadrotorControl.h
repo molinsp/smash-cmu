@@ -54,7 +54,7 @@ public:
   /**
    * constructor
    */
-  MadaraQuadrotorControl();
+  MadaraQuadrotorControl(int droneId);
 
   /**
    * destructor

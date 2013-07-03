@@ -28,6 +28,16 @@ Right now, the scene works in the following way:
    to be part of the bridge, it will move to the location it calculated and stop there.
  * All drones which do not become part of a bridge will continue covering their areas 
    untill they reach the end of the cell, and then they will stop.
+   
+In its current implementation, the scene will only act as the System Controller and as the eyes and actuators 
+of the drones, with no algorithms executed inside the scene. The scene will continously 
+disseminate the position of the simulated drones through Madara, and send area coverage 
+and bridge requests when required automatically (as well as handling the results to order the drones 
+to move to a certain location). Note that it requires the v_repExtMadaraSystemController.dll 
+and v_repExtMadaraQuadrotorControlPlugin.dll (which have to be in the main folder of V-Rep before 
+V-Rep is started to be loaded) to access the Madara client. This assumes that there will be external 
+executables for each of the simulated drones, which will communicate with the scene through Madara.
+The source code for the plugins is in smash-cmu\Simulations\SimulationFramework.
 
 - Bridge Building Algorithm   
    
@@ -53,28 +63,7 @@ Right now, the scene works in the following way:
 
     The following are parameters that can be used to play with the simulation: 
      - radioRange: the range (radius) of the Wi-Fi radio on the drones,
-       required to calculate how many drones are needed for the bridge.
-       
-    The following parameters control where the algorithms are executed:
-     - madaraClientEnabled (By default it is "true"): when false, the Madara plugin will 
-       not be used, and the behavior will be defined by the useExternalPlugin variable. 
-       If true, it overrides the value of the useExternalPlugin variable, which will be ignored. 
-       In this case, the scene will only act as the System Controller and as the eyes and actuators 
-       of the drones, with no algorithms executed inside the scene. The scene will continously 
-       disseminate the position of the simulated drones through Madara, and send area coverage 
-       and bridge requests when required (as well as handling the results to order the drones 
-       to move to a certain location). Note that it requires the v_repExtBridgeMadaraClient.dll 
-       (which has to be in the main folder of V-Rep before V-Rep is started to be loaded) to access 
-       the Madara client. This assumes that there will be external executables for each of the 
-       simulated drones, which will communicate with the scene through Madara.
-     - useExternalPlugin (ONLY used if madaraClientEnabled is false): when false, it uses 
-       an internal Lua function to form the bridge and find the new positions for the drones 
-       in the bridge. When true, it uses the v_repExtBridgeAlgorithm.dll plugin (which has 
-       to be in the main folder of V-Rep before V-Rep is started to be loaded) to access 
-       the C++ implementation of the bridge algorithm calculation. The results should be 
-       the same. 
-       
-    The source code for the plugins is in smash-cmu\Simulations\SimulationFramework.
+       required to calculate how many drones are needed for the bridge.       
        
     Moving the locations of the laptop and the people on the scene can also be useful
     to check different behaviors.   

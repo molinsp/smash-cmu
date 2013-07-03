@@ -25,11 +25,11 @@ MadaraQuadrotorControl* control = NULL;
 void registerMadaraQuadrotorControlSetupLuaCallback()
 {
     // Define the LUA function input parameters.
-    int inArgs[] = {0};
+    int inArgs[] = {1, sim_lua_arg_int};    // the id of the drone
 
     // Register the simExtGetPositionInBridge function.
     simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlSetup",
-                                 "simExtMadaraQuadrotorControlSetup()",
+                                 "simExtMadaraQuadrotorControlSetup(int droneId)",
                                  inArgs, simExtMadaraQuadrotorControlSetup);
 }
 
@@ -39,15 +39,23 @@ void simExtMadaraQuadrotorControlSetup(SLuaCallBack* p)
   simLockInterface(1);
 
   // Check we have to correct amount of parameters.
-  if (p->inputArgCount != 0)
+  if (p->inputArgCount != 1)
   {
     simSetLastError("simExtMadaraQuadrotorControlSetup",
-                    "should have no arguments.");
+                    "Not enough arguments given.");
+  }
+  // Check we have the correct type of arguments.
+  else if (p->inputArgTypeAndSize[0*2+0] != sim_lua_arg_int)
+  {
+    simSetLastError("simExtMadaraQuadrotorControlUpdateStatus",
+      "The id of the drone is not an int.");
   }
   else
   {
-    delete control;
-    control = new MadaraQuadrotorControl();
+    int droneId = p->inputInt[0];
+    if(control != NULL)
+        delete control;
+    control = new MadaraQuadrotorControl(droneId);
   }
 
   simLockInterface(0);
@@ -242,6 +250,7 @@ void simExtMadaraQuadrotorControlIsGoToCmd(SLuaCallBack* p)
     p->outputArgTypeAndSize[2*0+1] = 1;
     p->outputBool = (simBool*)simCreateBuffer(sizeof(simBool));
     p->outputBool[0] = (!strcmp(MO_MOVE_TO_GPS_CMD, p->inputChar));
+
   }
 
   simLockInterface(0);

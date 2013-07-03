@@ -18,24 +18,22 @@
 #define _LUA_CUSTOM_FUNCTIONS_H
 
 // Functions to register the callbacks to the custom Lua functions.
-void registerMadaraClientSetupLuaCallback();
-void registerMadaraClientCleanupLuaCallback();
+void registerMadaraSystemControllerSetupLuaCallback();
+void registerMadaraSystemControllerCleanupLuaCallback();
 
-void registerMadaraClientUpdateStatusLuaCallback();
-void registerMadaraClientBridgeRequestLuaCallback();
-void registerMadaraClientSetupSearchAreaLuaCallback();
-void registerMadaraClientSearchRequestLuaCallback();
-void registerMadaraClientIsBridgingLuaCallback();
+void registerMadaraSystemControllerUpdateStatusLuaCallback();
+void registerMadaraSystemControllerBridgeRequestLuaCallback();
+void registerMadaraSystemControllerSetupSearchAreaLuaCallback();
+void registerMadaraSystemControllerSearchRequestLuaCallback();
 
 // The actual callbacks implementing the custom Lua functions.
-void simExtMadaraClientSetup(SLuaCallBack* p);
-void simExtMadaraClientCleanup(SLuaCallBack* p);
+void simExtMadaraSystemControllerSetup(SLuaCallBack* p);
+void simExtMadaraSystemControllerCleanup(SLuaCallBack* p);
 
-void simExtMadaraClientUpdateStatus(SLuaCallBack* p);
-void simExtMadaraClientBridgeRequest(SLuaCallBack* p);
-void simExtMadaraClientSetupSearchArea(SLuaCallBack* p);
-void simExtMadaraClientSearchRequest(SLuaCallBack* p);
-void simExtMadaraClientIsBridging(SLuaCallBack* p);
+void simExtMadaraSystemControllerUpdateStatus(SLuaCallBack* p);
+void simExtMadaraSystemControllerBridgeRequest(SLuaCallBack* p);
+void simExtMadaraSystemControllerSetupSearchArea(SLuaCallBack* p);
+void simExtMadaraSystemControllerSearchRequest(SLuaCallBack* p);
 
 
 #endif

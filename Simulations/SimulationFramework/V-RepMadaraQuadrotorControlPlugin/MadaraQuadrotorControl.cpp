@@ -22,12 +22,16 @@ using std::string;
 #define DEFAULT_MULTICAST_ADDRESS "239.255.0.1:4150"
 
 // Constructor, sets up a Madara knowledge base and basic values.
-MadaraQuadrotorControl::MadaraQuadrotorControl()
+MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
 {
+    // Control id is derived from the droneId. But it has to be different to ensure different ids inside Madara.
+    int transportId = droneId + 100;
+
     // Define the transport settings.
     Madara::Transport::Settings settings;
     settings.hosts_.resize(1);
     settings.hosts_[0] = DEFAULT_MULTICAST_ADDRESS;
+    settings.id = transportId;
 
     // Setup the actual transport.
 #ifdef __linux
@@ -41,6 +45,10 @@ MadaraQuadrotorControl::MadaraQuadrotorControl()
     // Create the knowledge base.
     m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base("", settings);
 
+    // Setup a log.
+    //m_knowledge->log_to_file("madaralog.txt", true);
+    //m_knowledge->evaluate("#log_level(10)");
+
 #ifdef _WIN32
     // In Windows we need a custom transport to avoid crashes due to incompatibilities between Win V-Rep and ACE.
     m_knowledge->attach_transport(new Windows_Multicast_Transport (m_knowledge->get_id (),
@@ -50,7 +58,7 @@ MadaraQuadrotorControl::MadaraQuadrotorControl()
 
 // Destructor, simply cleans up.
 MadaraQuadrotorControl::~MadaraQuadrotorControl()
-{
+{    
   terminate();
 }
 
@@ -75,8 +83,7 @@ void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const double
     Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
   m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LON(droneIdString), y,
     Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-  m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_ALT(droneIdString), z,
-    Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+  m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_ALT(droneIdString), z);
 }
 
 // Updates the status of the drones in Madara.
@@ -87,14 +94,13 @@ void MadaraQuadrotorControl::updateQuadrotorStatus(const Status& s)
 }
 
 // Gets a target position where a drone should move to.
-MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(
-  int droneId)
+MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(int droneId)
 {
     // Check for command.
     string droneIdString = std::to_string(static_cast<long long>(droneId));
     string commandStr =
-    m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
-        MV_MOVEMENT_REQUESTED).to_string();
+        m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
+                         MV_MOVEMENT_REQUESTED).to_string();
     if(commandStr == "0")
         return NULL;
 

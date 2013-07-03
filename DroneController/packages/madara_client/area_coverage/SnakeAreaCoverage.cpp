@@ -20,7 +20,7 @@ using namespace SMASH::Utilities;
 const double SnakeAreaCoverage::SEARCH_COLUMN_WIDTH = 0.5;
 
 // Constructors
-SnakeAreaCoverage::SnakeAreaCoverage(const Utilities::Region& region) :
+SnakeAreaCoverage::SnakeAreaCoverage(const SMASH::Utilities::Region& region) :
   AreaCoverage(region) {}
 
 // Destructor

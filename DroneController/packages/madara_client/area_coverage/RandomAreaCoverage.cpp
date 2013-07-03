@@ -20,7 +20,7 @@ using std::cerr;
 using std::endl;
 
 // Constructors
-RandomAreaCoverage::RandomAreaCoverage(const Utilities::Region& region, 
+RandomAreaCoverage::RandomAreaCoverage(const SMASH::Utilities::Region& region, 
   int seed) : AreaCoverage(region)
 {
   // seed the random number generator

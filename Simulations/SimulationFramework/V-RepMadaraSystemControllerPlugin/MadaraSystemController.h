@@ -51,7 +51,6 @@ public:
     // Bridge methods.
     void setupBridgeRequest(int bridgeId, SMASH::Utilities::Position sourceTopLeft, SMASH::Utilities::Position sourceBottomRight, 
                                           SMASH::Utilities::Position sinkTopLeft, SMASH::Utilities::Position sinkBottomRight);
-    bool isBridging(int droneId);
 
     // Area coverage methods.
     void setNewSearchArea(int searchAreaId, SMASH::Utilities::Region areaBoundaries);

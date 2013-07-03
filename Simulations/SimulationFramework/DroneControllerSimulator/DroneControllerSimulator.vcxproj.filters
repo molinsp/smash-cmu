@@ -54,9 +54,6 @@
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\area_coverage_module.cpp">
       <Filter>Source Files\area_coverage_module</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\SimpleAreaCoverage.cpp">
-      <Filter>Source Files\area_coverage_module</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\bridge\bridge_module.cpp">
       <Filter>Source Files\bridge_module</Filter>
     </ClCompile>
@@ -75,6 +72,15 @@
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\sensors\sensors_module.cpp">
       <Filter>Source Files\sensors_module</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\RandomAreaCoverage.cpp">
+      <Filter>Source Files\area_coverage_module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\SnakeAreaCoverage.cpp">
+      <Filter>Source Files\area_coverage_module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\AreaCoverage.cpp">
+      <Filter>Source Files\area_coverage_module</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\area_coverage\area_coverage_module.h">
@@ -92,9 +98,6 @@
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\utilities\CommonMadaraVariables.h">
       <Filter>Header Files\utilities_module</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\DroneController\packages\madara_client\area_coverage\SimpleAreaCoverage.h">
-      <Filter>Header Files\area_coverage_module</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\movement\movement_module.h">
       <Filter>Header Files\movement_module</Filter>
     </ClInclude>
@@ -106,6 +109,15 @@
     </ClInclude>
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\movement\platform_movement.h">
       <Filter>Header Files\movement_module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\area_coverage\AreaCoverage.h">
+      <Filter>Header Files\area_coverage_module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\area_coverage\RandomAreaCoverage.h">
+      <Filter>Header Files\area_coverage_module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\area_coverage\SnakeAreaCoverage.h">
+      <Filter>Header Files\area_coverage_module</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
