@@ -5,14 +5,14 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
-#ifndef _CUSTOM_TRANSPORT_READ_THREAD_H_
-#define _CUSTOM_TRANSPORT_READ_THREAD_H_
+#ifndef _WINDOWS_MULTICAST_TRANSPORT_READ_THREAD_H_
+#define _WINDOWS_MULTICAST_TRANSPORT_READ_THREAD_H_
 
 /**
- * @file Custom_Transport_Read_Thread.h
- * @author James Edmondson <jedmondson@gmail.com>
+ * @file Windows_Multicast_Transport_Read_Thread.h
+ * @author Sebastian Echeverria
  *
- * This file contains the Custom_Transport_Read_Thread class, which provides a
+ * This file contains the Windows_Multicast_Transport_Read_Thread class, which provides a
  * multicast transport for reading knowledge updates in KaRL
  **/
 
@@ -24,11 +24,11 @@
 #include "ace/Barrier.h"
 
 /**
-  * @class Custom_Transport_Read_Thread
+  * @class Windows_Multicast_Transport_Read_Thread
   * @brief Thread for reading knowledge updates through a Multicast
   *        datagram socket
   **/
-class Custom_Transport_Read_Thread
+class Windows_Multicast_Transport_Read_Thread
 {
 public:
   /**
@@ -39,7 +39,7 @@ public:
     * @param    context    the knowledge variables to update
     * @param    address    the multicast address we will read from
     **/
-  Custom_Transport_Read_Thread (
+  Windows_Multicast_Transport_Read_Thread (
     const Madara::Transport::Settings & settings,
     const std::string & id,
     Madara::Knowledge_Engine::Thread_Safe_Context & context
@@ -48,7 +48,7 @@ public:
   /**
   * Destructor
   **/
-  ~Custom_Transport_Read_Thread ();
+  ~Windows_Multicast_Transport_Read_Thread ();
       
   /**
   * Signals the read thread to terminate

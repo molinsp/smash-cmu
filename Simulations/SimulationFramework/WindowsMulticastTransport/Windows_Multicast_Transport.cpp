@@ -5,7 +5,7 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
-#include "Custom_Transport.h"
+#include "Windows_Multicast_Transport.h"
 
 #include "madara/utility/Log_Macros.h"
 #include "madara/transport/Message_Header.h"
@@ -14,7 +14,7 @@
 #include <iostream>
 #include <vector>
 
-Custom_Transport::Custom_Transport (const std::string & id,
+Windows_Multicast_Transport::Windows_Multicast_Transport (const std::string & id,
         Madara::Knowledge_Engine::Thread_Safe_Context & context, 
         Madara::Transport::Settings & config, bool launch_transport)
 : Base (config, context),
@@ -25,13 +25,13 @@ Custom_Transport::Custom_Transport (const std::string & id,
     setup ();
 }
 
-Custom_Transport::~Custom_Transport ()
+Windows_Multicast_Transport::~Windows_Multicast_Transport ()
 {
   close ();
 }
 
 void
-Custom_Transport::close (void)
+Windows_Multicast_Transport::close (void)
 {
   this->invalidate_transport ();
 
@@ -51,13 +51,13 @@ Custom_Transport::close (void)
 }
 
 int
-Custom_Transport::reliability (void) const
+Windows_Multicast_Transport::reliability (void) const
 {
   return Madara::Transport::BEST_EFFORT;
 }
 
 int
-Custom_Transport::reliability (const int &)
+Windows_Multicast_Transport::reliability (const int &)
 {
   return Madara::Transport::BEST_EFFORT;
 }
@@ -78,14 +78,14 @@ std::vector<std::string> split(const std::string &s, char delim) {
 }
 
 int
-Custom_Transport::setup (void)
+Windows_Multicast_Transport::setup (void)
 {
     WSADATA wsadata;
     int error = WSAStartup(0x0202, &wsadata);
     if(error)
     {
         MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-          DLINFO "Custom_Transport::setup:" \
+          DLINFO "Windows_Multicast_Transport::setup:" \
           " Error starting Windows Sockets\n"));
     }
 
@@ -102,7 +102,7 @@ Custom_Transport::setup (void)
     const char * mc_ipaddr = parts[0].c_str();
 
     MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-        DLINFO "Custom_Transport::setup:" \
+        DLINFO "Windows_Multicast_Transport::setup:" \
         " settings address[0] to %s:%d\n", 
         mc_ipaddr, mc_port));
 
@@ -111,7 +111,7 @@ Custom_Transport::setup (void)
     if(socket_ == INVALID_SOCKET)
     {
         MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-            DLINFO "Custom_Transport::setup:" \
+            DLINFO "Windows_Multicast_Transport::setup:" \
             " Error creating socket to %s:%d\n",  
             mc_ipaddr, mc_port));
     }
@@ -122,7 +122,7 @@ Custom_Transport::setup (void)
     //                (char*) &optionValue, sizeof(optionValue))) < 0) 
     //{
     //    MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-    //        DLINFO "Custom_Transport::setup:" \
+    //        DLINFO "Windows_Multicast_Transport::setup:" \
     //        " Error creating socket to %s:%d\n",  
     //        mc_ipaddr, mc_port));
     //}
@@ -133,7 +133,7 @@ Custom_Transport::setup (void)
                     (char*) &mc_ttl, sizeof(mc_ttl))) < 0) 
     {
         MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-            DLINFO "Custom_Transport::setup:" \
+            DLINFO "Windows_Multicast_Transport::setup:" \
             " Error creating socket to %s:%d\n",  
             mc_ipaddr, mc_port));
     }
@@ -149,7 +149,7 @@ Custom_Transport::setup (void)
     //	            sizeof(multi)) <0)
     //{
     //    MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-    //        DLINFO "Custom_Transport::setup:" \
+    //        DLINFO "Windows_Multicast_Transport::setup:" \
     //        " Error setting multicast iface\n"  
     //        ));
     //}
@@ -163,14 +163,14 @@ Custom_Transport::setup (void)
     socketAddress_.sin_addr.s_addr  = inet_addr(mc_ipaddr);
 
     // start thread with the addresses (only looks at the first one for now)
-    thread_ = new Custom_Transport_Read_Thread (
+    thread_ = new Windows_Multicast_Transport_Read_Thread (
                     settings_, id_, context_, mc_ipaddr, mc_port);
   }
   return this->validate_transport ();
 }
 
 long
-Custom_Transport::send_data (
+Windows_Multicast_Transport::send_data (
   const Madara::Knowledge_Records & updates)
 {
   
@@ -179,13 +179,13 @@ Custom_Transport::send_data (
   if (-1 == ret)
   {
     MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-      DLINFO "Custom_Transport::send_data: transport has been told to shutdown")); 
+      DLINFO "Windows_Multicast_Transport::send_data: transport has been told to shutdown")); 
     return ret;
   }
   else if (-2 == ret)
   {
     MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-      DLINFO "Custom_Transport::send_data: transport is not valid")); 
+      DLINFO "Windows_Multicast_Transport::send_data: transport is not valid")); 
     return ret;
   }
  
@@ -200,7 +200,7 @@ Custom_Transport::send_data (
   if (buffer == 0)
   {
     MADARA_DEBUG (MADARA_LOG_EMERGENCY, (LM_DEBUG, 
-      DLINFO "Custom_Transport::send_data:" \
+      DLINFO "Windows_Multicast_Transport::send_data:" \
       " Unable to allocate buffer of size %d. Exiting thread.\n",
       settings_.queue_length));
     
@@ -268,14 +268,14 @@ Custom_Transport::send_data (
     if (buffer_remaining > 0)
     {
       MADARA_DEBUG (MADARA_LOG_MINOR_EVENT, (LM_DEBUG, 
-        DLINFO "Custom_Transport::send_data:" \
+        DLINFO "Windows_Multicast_Transport::send_data:" \
         " update[%d] => encoding %s of type %d and size %d\n",
         j, i->first.c_str (), i->second->type (), i->second->size ()));
     }
     else
     {
     MADARA_DEBUG (MADARA_LOG_EMERGENCY, (LM_DEBUG, 
-      DLINFO "Custom_Transport::send_data:" \
+      DLINFO "Windows_Multicast_Transport::send_data:" \
       " unable to encode update[%d] => %s of type %d and size %d\n",
       j, i->first.c_str (), i->second->type (), i->second->size ()));
     }
@@ -296,7 +296,7 @@ Custom_Transport::send_data (
       int bytes_sent = sendto(socket_, buffer, size, 0, (sockaddr *) &socketAddress_, sizeof(socketAddress_));
 
       MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-        DLINFO "Custom_Transport::send_data:" \
+        DLINFO "Windows_Multicast_Transport::send_data:" \
         " Sent packet of size %d to %s:%d\n",
         bytes_sent, inet_ntoa(socketAddress_.sin_addr), ntohs(socketAddress_.sin_port)));
     }

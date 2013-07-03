@@ -7,7 +7,7 @@
 
 #define NOMINMAX
 
-#include "Custom_Transport_Read_Thread.h"
+#include "Windows_Multicast_Transport_Read_Thread.h"
 
 #include "madara/utility/Log_Macros.h"
 #include "madara/transport/Message_Header.h"
@@ -20,7 +20,7 @@
 #define SSTR( x ) dynamic_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << x ) ).str()
 
-Custom_Transport_Read_Thread::Custom_Transport_Read_Thread (
+Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread (
   const Madara::Transport::Settings & settings, const std::string & id,
   Madara::Knowledge_Engine::Thread_Safe_Context & context, const char* mc_ipaddr, int mc_port)
   : settings_ (settings), id_ (id), context_ (context),
@@ -32,7 +32,7 @@ Custom_Transport_Read_Thread::Custom_Transport_Read_Thread (
   _beginthreadex(NULL, 0, threadfunc, (void*)this, 0, 0);
 
   MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-    DLINFO "Custom_Transport_Read_Thread::Custom_Transport_Read_Thread:" \
+    DLINFO "Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread:" \
     " read thread started\n"));
 
     // Prepare socket.
@@ -40,7 +40,7 @@ Custom_Transport_Read_Thread::Custom_Transport_Read_Thread (
     if(socket_ == INVALID_SOCKET)
     {
       MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-        DLINFO "Custom_Transport_Read_Thread::Custom_Transport_Read_Thread:" \
+        DLINFO "Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread:" \
         " Error creating socket\n"));
     }
 
@@ -49,7 +49,7 @@ Custom_Transport_Read_Thread::Custom_Transport_Read_Thread (
     if (setsockopt(socket_, SOL_SOCKET, SO_REUSEADDR, (char *)  &yes, sizeof(yes)) < 0) 
     {
       MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-        DLINFO "Custom_Transport_Read_Thread::Custom_Transport_Read_Thread:" \
+        DLINFO "Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread:" \
         " Reusing ADDR failed\n"));
    }
 
@@ -65,7 +65,7 @@ Custom_Transport_Read_Thread::Custom_Transport_Read_Thread (
     if (bind(socket_, (sockaddr *) &socketAddress_, sizeof(socketAddress_)) < 0) 
     {
       MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-        DLINFO "Custom_Transport_Read_Thread::Custom_Transport_Read_Thread:" \
+        DLINFO "Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread:" \
         " Bind failed\n"));
     }
      
@@ -76,18 +76,18 @@ Custom_Transport_Read_Thread::Custom_Transport_Read_Thread (
     if (setsockopt(socket_, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)  &mreq, sizeof(mreq)) < 0) 
     {
       MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-        DLINFO "Custom_Transport_Read_Thread::Custom_Transport_Read_Thread:" \
+        DLINFO "Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread:" \
         " Joining multicast failed\n"));
     }
     else
     {
       MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-        DLINFO "Custom_Transport_Read_Thread::Custom_Transport_Read_Thread:" \
+        DLINFO "Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread:" \
         " Joining multicast succeeded.\n"));
     }
 }
 
-Custom_Transport_Read_Thread::~Custom_Transport_Read_Thread ()
+Windows_Multicast_Transport_Read_Thread::~Windows_Multicast_Transport_Read_Thread ()
 {
     // Use setsockopt() to request that the kernel leaves a multicast group.
     const char * host = inet_ntoa(socketAddress_.sin_addr);
@@ -97,7 +97,7 @@ Custom_Transport_Read_Thread::~Custom_Transport_Read_Thread ()
     if (setsockopt(socket_, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)  &mreq, sizeof(mreq)) < 0) 
     {
         MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-          DLINFO "Custom_Transport_Read_Thread::close:" \
+          DLINFO "Windows_Multicast_Transport_Read_Thread::close:" \
           " Error unsubscribing to multicast address\n"));
     }
 
@@ -105,7 +105,7 @@ Custom_Transport_Read_Thread::~Custom_Transport_Read_Thread ()
 }
 
 int
-Custom_Transport_Read_Thread::close (void)
+Windows_Multicast_Transport_Read_Thread::close (void)
 {
   terminated_ = true;
 
@@ -115,28 +115,28 @@ Custom_Transport_Read_Thread::close (void)
 }
 
 int
-Custom_Transport_Read_Thread::svc (void)
+Windows_Multicast_Transport_Read_Thread::svc (void)
 {
     return 0;
 }
 
 unsigned __stdcall threadfunc(void * param)
 {
-    Custom_Transport_Read_Thread* trt = (Custom_Transport_Read_Thread*)param;
+    Windows_Multicast_Transport_Read_Thread* trt = (Windows_Multicast_Transport_Read_Thread*)param;
 
     //std::ofstream outputFile;
     //outputFile.open(std::string("customtransportread" + SSTR(trt->settings_.id) + ".txt").c_str());
     //outputFile << "Starting thread" << std::endl;
     
     MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-      DLINFO "Custom_Transport_Read_Thread::Multicast_Transport_Read_Thread:" \
+      DLINFO "Windows_Multicast_Transport_Read_Thread::Multicast_Transport_Read_Thread:" \
       " starting"));
 
   char buffer[2048];
 
   while (false == trt->terminated_)
   {
-    //outputFile << "Custom_Transport_Read_Thread::svc:" \
+    //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
     //  " entering message iteration "<<std::endl; outputFile.flush();
     
     // Wait until timeout or data received.
@@ -149,12 +149,12 @@ unsigned __stdcall threadfunc(void * param)
     int success = select(trt->socket_, &fds, NULL, NULL, &timeout) ;
     if (success == 0)
     { 
-        //outputFile << "Custom_Transport_Read_Thread::svc:" \
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
         //  " timeout waiting for messages "<<std::endl; outputFile.flush();
     }
     else if(success == SOCKET_ERROR)
     {
-       // outputFile << "Custom_Transport_Read_Thread::svc:" \
+       // outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
        //   " error ocurred waiting for messages "<<std::endl; outputFile.flush();
     }
 
@@ -176,10 +176,10 @@ unsigned __stdcall threadfunc(void * param)
     if (bytes_read <= 0)
     {
       MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-        DLINFO "Custom_Transport_Read_Thread::svc:" \
+        DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
         " received %d bytes. Proceeding to next wait\n", bytes_read));
 
-        //outputFile << "Custom_Transport_Read_Thread::svc:" \
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
         //      " received " << bytes_read << " bytes. Proceeding to next wait." <<std::endl;outputFile.flush();
 
     }
@@ -188,12 +188,12 @@ unsigned __stdcall threadfunc(void * param)
         int from_port = ntohs(from_addr.sin_port);
 
         MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-          DLINFO "Custom_Transport_Read_Thread::svc:" \
+          DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
           " received a message header of %d bytes from %s:%d\n",
           bytes_read,
           inet_ntoa(from_addr.sin_addr), from_port));
 
-        //outputFile << "Custom_Transport_Read_Thread::svc:" \
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
         //    " received a message header of "<< bytes_read << " bytes from "<< inet_ntoa(from_addr.sin_addr) << ":" << from_port<<std::endl; outputFile.flush();
 
       int64_t buffer_remaining = (int64_t)bytes_read;
@@ -204,21 +204,21 @@ unsigned __stdcall threadfunc(void * param)
       if (strncmp (header.madara_id, "KaRL", 4) != 0)
       {
         MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-          DLINFO "Custom_Transport_Read_Thread::svc:" \
+          DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
           " dropping non-KaRL message from %s:%d\n",
           inet_ntoa(from_addr.sin_addr), from_port));
 
-        //outputFile << "Custom_Transport_Read_Thread::svc:" \
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
         //      "dropping non-KaRL message from  "<< inet_ntoa(from_addr.sin_addr) << ":" << from_port<<std::endl;outputFile.flush();
         continue;
       }
       else
       {
         MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-          DLINFO "Custom_Transport_Read_Thread::svc:" \
+          DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
           " processing KaRL message from %s:%d\n",
           inet_ntoa(from_addr.sin_addr), from_port));
-        //outputFile << "Custom_Transport_Read_Thread::svc:" \
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
         //      " processing KaRL message from  "<< inet_ntoa(from_addr.sin_addr) << ":" << from_port<<std::endl;outputFile.flush();
       }
     
@@ -227,7 +227,7 @@ unsigned __stdcall threadfunc(void * param)
       //     std::min (sizeof (header.originator), id_.size ())) == 0)
       //{
       //  MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-      //    DLINFO "Custom_Transport_Read_Thread::svc:" \
+      //    DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
       //    " dropping message from ourself (id %s)\n",
       //    id_.c_str ()));
       //  continue;
@@ -235,7 +235,7 @@ unsigned __stdcall threadfunc(void * param)
       //else
       //{
       //  MADARA_DEBUG (MADARA_LOG_MINOR_EVENT, (LM_DEBUG, 
-      //    DLINFO "Custom_Transport_Read_Thread::svc:" \
+      //    DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
       //    " remote id (%s:%d) is not our own\n",
       //    remote.get_host_addr (), remote.get_port_number ()));
       //}
@@ -247,33 +247,33 @@ unsigned __stdcall threadfunc(void * param)
                   ) != 0)
       {
         MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-          DLINFO "Custom_Transport_Read_Thread::svc:" \
+          DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
           " remote id (%s:%d) in a different domain (%s). Dropping message.\n",
           inet_ntoa(from_addr.sin_addr), from_port,
           header.domain));
 
-        //outputFile << "Custom_Transport_Read_Thread::svc:" \
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
         //      " remote in a different domain (" << header.domain <<"). Dropping message. "<< inet_ntoa(from_addr.sin_addr) << ":" << from_port<<std::endl;outputFile.flush();
         continue;
       }
       else
       {
         MADARA_DEBUG (MADARA_LOG_MINOR_EVENT, (LM_DEBUG, 
-          DLINFO "Custom_Transport_Read_Thread::svc:" \
+          DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
           " remote id (%s:%d) message is in our domain\n",
           inet_ntoa(from_addr.sin_addr), from_port));
 
-        //outputFile << "Custom_Transport_Read_Thread::svc:" \
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
         //      " remote id message is in our domain  "<< inet_ntoa(from_addr.sin_addr) << ":" << from_port<<std::endl;outputFile.flush();
       }
 
       MADARA_DEBUG (MADARA_LOG_MINOR_EVENT, (LM_DEBUG, 
-        DLINFO "Custom_Transport_Read_Thread::svc:" \
+        DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
         " iterating over the %d updates\n",
         header.updates));
       
       MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-        DLINFO "Custom_Transport_Read_Thread::svc:" \
+        DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
         " locking context\n"));
       
       // temporary record for reading from the updates buffer
@@ -286,7 +286,7 @@ unsigned __stdcall threadfunc(void * param)
       trt->context_.lock ();
             
       MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-        DLINFO "Custom_Transport_Read_Thread::svc:" \
+        DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
         " past the lock\n"));
 
       // iterate over the updates
@@ -298,18 +298,18 @@ unsigned __stdcall threadfunc(void * param)
         if (buffer_remaining < 0)
         {
           MADARA_DEBUG (MADARA_LOG_EMERGENCY, (LM_DEBUG, 
-            DLINFO "Custom_Transport_Read_Thread::svc:" \
+            DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
             " unable to process message. Buffer remaining is negative." \
             " Server is likely being targeted by custom KaRL tools.\n"));
 
-        //outputFile << "Custom_Transport_Read_Thread::svc:" \
+        //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" \
         //      " unable to process message. Buffer remaining is negative."<<std::endl;outputFile.flush();
 
           break;
         }
 
         MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-          DLINFO "Custom_Transport_Read_Thread::svc:" \
+          DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
           " attempting to apply %s=%s\n",
           key.c_str (), record.to_string ().c_str ()));
 
@@ -319,14 +319,14 @@ unsigned __stdcall threadfunc(void * param)
         if (result != 1)
         {
           MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-            DLINFO "Custom_Transport_Read_Thread::svc:" \
+            DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
             " update %s=%s was rejected\n",
             key.c_str (), record.to_string ().c_str ()));
         }
         else
         {
           MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-            DLINFO "Custom_Transport_Read_Thread::svc:" \
+            DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
             " update %s=%s was accepted\n",
             key.c_str (), record.to_string ().c_str ()));
         }

@@ -11,7 +11,7 @@
 
 #ifdef _WIN32
   // Only include the custom transport in Windows, as it is not necessary in Linux.
-  #include "Custom_Transport.h"
+  #include "Windows_Multicast_Transport.h"
 #endif
 
 // Multicast address.
@@ -51,7 +51,7 @@ MadaraController::MadaraController(int id, double commRange)
 
 #ifdef _WIN32
     // In Windows we need a custom transport to avoid crashes due to incompatibilities between Win V-Rep and ACE.
-    m_knowledge->attach_transport(new Custom_Transport (m_knowledge->get_id (),
+    m_knowledge->attach_transport(new Windows_Multicast_Transport (m_knowledge->get_id (),
         m_knowledge->get_context (), m_transportSettings, true));
 #endif
    

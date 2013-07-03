@@ -5,15 +5,15 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
-#ifndef _CUSTOM_TRANSPORT_H_
-#define _CUSTOM_TRANSPORT_H_
+#ifndef _WINDOWS_MULTICAST_TRANSPORT_H_
+#define _WINDOWS_MULTICAST_TRANSPORT_H_
 
 /**
- * @file Custom_Transport.h
- * @author James Edmondson <jedmondson@gmail.com>
+ * @file Windows_Multicast_Transport.h
+ * @author Sebastian Echeverria.
  *
- * This file contains the Custom_Transport class, which provides a
- * multicast transport for sending knowledge updates in KaRL
+ * This file contains the Windows_Multicast_Transport class, which provides a
+ * multicast transport for sending knowledge updates in KaRL using Windows native APIs.
  **/
 
 #include <winsock2.h>
@@ -22,13 +22,13 @@
 #include "madara/transport/Transport.h"
 #include "madara/knowledge_engine/Thread_Safe_Context.h"
 
-#include "Custom_Transport_Read_Thread.h"
+#include "Windows_Multicast_Transport_Read_Thread.h"
 
 /**
-  * @class Custom_Transport
-  * @brief Multicast-based transport for knowledge
+  * @class Windows_Multicast_Transport
+  * @brief Multicast-based transport for knowledge in Windows.
   **/
-class Custom_Transport : public Madara::Transport::Base
+class Windows_Multicast_Transport : public Madara::Transport::Base
 {
 public:
   /**
@@ -38,14 +38,14 @@ public:
     * @param   config   transport configuration settings
     * @param   launch_transport  whether or not to launch this transport
     **/
-  Custom_Transport (const std::string & id, 
+  Windows_Multicast_Transport (const std::string & id, 
     Madara::Knowledge_Engine::Thread_Safe_Context & context, 
     Madara::Transport::Settings & config, bool launch_transport);
 
   /**
     * Destructor
     **/
-  ~Custom_Transport ();
+  ~Windows_Multicast_Transport ();
       
   /**
     * Sends a list of knowledge updates to listeners
@@ -83,7 +83,7 @@ private:
   const std::string                         id_;
 
   /// thread for reading knowledge updates
-  Custom_Transport_Read_Thread *            thread_;
+  Windows_Multicast_Transport_Read_Thread * thread_;
       
   /// indicates whether the transport is correctly configured
   bool                                      valid_setup_;

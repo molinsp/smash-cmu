@@ -7,7 +7,7 @@
 
 #include "LuaCustomFunctions.h"
 
-#include "v_repExtBridgeMadaraClient.h"
+#include "v_repExtMadaraSystemController.h"
 #include "v_repLib.h"
 #include <iostream>
 #include <sstream>
