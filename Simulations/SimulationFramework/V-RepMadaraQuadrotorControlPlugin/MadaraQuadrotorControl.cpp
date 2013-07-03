@@ -13,20 +13,39 @@ using std::vector;
 #include <string>
 using std::string;
 
+#ifdef _WIN32
+  // Only include the custom transport in Windows, as it is not necessary in Linux.
+  #include "Windows_Multicast_Transport.h"
+#endif
+
 // Multicast address.
 #define DEFAULT_MULTICAST_ADDRESS "239.255.0.1:4150"
 
 // Constructor, sets up a Madara knowledge base and basic values.
 MadaraQuadrotorControl::MadaraQuadrotorControl()
 {
-  // Define the transport settings.
-  Madara::Transport::Settings settings;
-  settings.hosts_.resize(1);
-  settings.hosts_[0] = DEFAULT_MULTICAST_ADDRESS;
-  settings.type = Madara::Transport::MULTICAST;
+    // Define the transport settings.
+    Madara::Transport::Settings settings;
+    settings.hosts_.resize(1);
+    settings.hosts_[0] = DEFAULT_MULTICAST_ADDRESS;
 
-  // Create the knowledge base.
-  m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base("", settings);
+    // Setup the actual transport.
+#ifdef __linux
+    // In Linux we can use the default Mulitcast transport.
+    settings.type = Madara::Transport::MULTICAST;
+#elif defined(WIN32)
+    // In Windows we need to delay the transport launch to use a custom transport.
+    settings.delay_launch = true;
+#endif
+
+    // Create the knowledge base.
+    m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base("", settings);
+
+#ifdef _WIN32
+    // In Windows we need a custom transport to avoid crashes due to incompatibilities between Win V-Rep and ACE.
+    m_knowledge->attach_transport(new Windows_Multicast_Transport (m_knowledge->get_id (),
+        m_knowledge->get_context (), settings, true));
+#endif
 }
 
 // Destructor, simply cleans up.

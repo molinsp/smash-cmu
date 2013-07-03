@@ -23,6 +23,7 @@ function doInitialSetup()
 	-- Get my name
 	g_mySuffix = simGetNameSuffix(nil)
     g_myDroneName = getDroneInfoFromSuffix(g_mySuffix)
+	g_myDroneId = g_mySuffix + 1
 
     -- Get the total number of drones.
 	g_numDrones = simGetScriptSimulationParameter(sim_handle_main_script, 'numberOfDrones')
@@ -38,6 +39,9 @@ function doInitialSetup()
 
     -- Setup the search pattern, either on the drone itself or internally.
     if(g_madaraClientEnabled) then
+		simExtMadaraQuadrotorControlSetup()
+	
+		-- This should be done in LaptopController.lua for all drones, since it is a SystemController action.
         local myDroneId = g_mySuffix + 1 
         g_searchAreaId = 0
         simExtMadaraClientSearchRequest(myDroneId, g_searchAreaId)
@@ -48,6 +52,13 @@ function doInitialSetup()
         setupSearchPattern()
     end
     
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Method called when the simulation ends.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function doCleanup()
+    simExtMadaraQuadrotorControlCleanup()
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -105,6 +116,16 @@ function runMainLogic()
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
+-- Updates the position of the drone to the network.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function updateDronePosition()
+	local droneName, dronePosition = getDroneInfoFromId(g_myDroneId)
+	if(droneTargetPosition ~= nil) then
+		simExtMadaraQuadrotorControlUpdateStatus(g_myDroneId, dronePosition[1], dronePosition[2], dronePosition[3])
+	end
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
 -- Check if we have found a person to stop on top of it.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function lookForPersonBelow()
@@ -144,10 +165,13 @@ function loadNewMovementCommand()
         -- We wait to get the coordinates of our new position, if any, from the external drones.
         --simAddStatusbarMessage('(In ' .. g_myDroneName .. ') Checking movement status.')
         --simAddStatusbarMessage('Calling external C++ Madara plugin to get remotely calculated position for drone ' .. g_myDroneName .. ' with id ' .. myDroneId .. '.')
-        myNewX, myNewY, bridging = simExtMadaraClientGetNewMovementCommand(myDroneId)
-        if(myNewX ~= nil) then
+
+		-- Altitude and command are ignored for now, we assume all commands are move_to_gps.
+        command, myNewX, myNewY, myNewAlt = simExtMadaraQuadrotorControlGetNewCmd(myDroneId)
+        if(simExtMadaraQuadrotorControlIsGoToCmd(command) and myNewX ~= nil) then
             --simAddStatusbarMessage('(In ' .. g_myDroneName .. ') Got new movement.')
             -- We also get the bridging status. If the device is now bridging, we set the corresponding flags for the simulation.
+			bridging = simExtMadaraClientIsBridging(myDroneId)
             if(bridging == 1) then  
                 simAddStatusbarMessage('(In ' .. g_myDroneName .. ') Stopped patrolling, now bridging.')            
                 g_patrolling = false
@@ -392,10 +416,6 @@ function checkIfEndWasReached()
     if(deltax < endAccuracy and deltay < endAccuracy) then
         g_patrolling = false
         g_bridging = false
-        
-        -- Mark this drone as stopped.
-        local myDroneId = g_mySuffix + 1  
-        simExtMadaraClientStopDrone(myDroneId) 
 
         -- We just return, since we won't move anymore.
         return        

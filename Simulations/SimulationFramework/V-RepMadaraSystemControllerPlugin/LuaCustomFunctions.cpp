@@ -477,3 +477,73 @@ void simExtMadaraClientCleanup(SLuaCallBack* p)
 
     simLockInterface(0);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Registers the Lua simExtMadaraClientIsBridging command.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void registerMadaraClientIsBridgingLuaCallback()
+{
+    // Define the LUA function input parameters.
+    int inArgs[] = {1, sim_lua_arg_int,					      // Drone ID.
+                   };
+
+    // Register the simExtGetPositionInBridge function.
+    simRegisterCustomLuaFunction("simExtMadaraClientIsBridging",                       // The Lua function name.
+                                 "simExtMadaraClientIsBridging(int droneId)",  // A tooltip to be shown to help the user know how to call it.
+                                 inArgs,                                                  // The argument types.
+                                 simExtMadaraClientSearchRequest);                        // The C function that will be called by the Lua function.
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Callback of the Lua simExtMadaraClientIsBridging command.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void simExtMadaraClientIsBridging(SLuaCallBack* p)
+{
+    //WIN_AFX_MANAGE_STATE;
+    simLockInterface(1);
+
+    bool paramsOk = true;
+
+    // Check we have to correct amount of parameters.
+    if (p->inputArgCount != 1)
+    { 
+        simSetLastError("simExtMadaraClientSearchRequest", "Not enough arguments.");
+        paramsOk = false;
+    }
+
+    // Check we have the correct type of arguments.
+    if ( p->inputArgTypeAndSize[0*2+0] != sim_lua_arg_int )
+    {
+        simSetLastError("simExtMadaraClientSearchRequest", "DroneId parameter is not an int.");
+        paramsOk = false;
+    }
+
+    // Continue forward calling the external functions only if we have all parameters ok.
+    if(paramsOk)
+    { 
+        // Get the simple input values.
+        int droneId = p->inputInt[0];
+
+        // For debugging, print out what we received.
+        std::stringstream sstm; 
+        sstm << "Values received inside simExtMadaraClientSearchRequest function: droneId:" << droneId << std::endl;
+        std::string message = sstm.str();
+        simAddStatusbarMessage(message.c_str());
+
+        // Check if this drone is bridging.
+        bool isBridging = madaraController->isBridging(droneId);
+
+        // Now we prepare the return value(s):
+        p->outputArgCount = 1;
+        p->outputArgTypeAndSize = (simInt*)simCreateBuffer(
+              p->outputArgCount * (2 * sizeof(simInt)));
+
+        p->outputArgTypeAndSize[2*0+0] = sim_lua_arg_bool;
+        p->outputArgTypeAndSize[2*0+1] = 1;
+
+        p->outputBool = (simBool*)simCreateBuffer(sizeof(simBool));
+        p->outputBool[0] = isBridging;
+    }
+
+    simLockInterface(0);
+}

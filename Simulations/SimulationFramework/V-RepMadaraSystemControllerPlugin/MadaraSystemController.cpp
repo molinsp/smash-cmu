@@ -137,6 +137,23 @@ void MadaraController::setupBridgeRequest(int bridgeId, Position sourceTopLeft, 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Gets a simple status of the drone: 
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool MadaraController::isBridging(int droneId)
+{
+    // For now we assume that BUSY means that it is bridging. This will change later, as it can become busy for other reasons.
+    std::string droneIdString = NUM_TO_STR(droneId);
+    int isBusy = (int) m_knowledge->get(MV_BUSY(droneIdString)).to_integer();
+    if(isBusy == 1)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
 // Requests a drone to be part of area coverage.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MadaraController::requestAreaCoverage(int droneId, int searchAreaId)

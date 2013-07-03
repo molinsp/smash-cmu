@@ -25,6 +25,7 @@ void registerMadaraClientUpdateStatusLuaCallback();
 void registerMadaraClientBridgeRequestLuaCallback();
 void registerMadaraClientSetupSearchAreaLuaCallback();
 void registerMadaraClientSearchRequestLuaCallback();
+void registerMadaraClientIsBridgingLuaCallback();
 
 // The actual callbacks implementing the custom Lua functions.
 void simExtMadaraClientSetup(SLuaCallBack* p);
@@ -34,6 +35,7 @@ void simExtMadaraClientUpdateStatus(SLuaCallBack* p);
 void simExtMadaraClientBridgeRequest(SLuaCallBack* p);
 void simExtMadaraClientSetupSearchArea(SLuaCallBack* p);
 void simExtMadaraClientSearchRequest(SLuaCallBack* p);
+void simExtMadaraClientIsBridging(SLuaCallBack* p);
 
 
 #endif

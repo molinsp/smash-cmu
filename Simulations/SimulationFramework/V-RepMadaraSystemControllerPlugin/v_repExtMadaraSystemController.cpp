@@ -109,6 +109,7 @@ VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer,int reservedInt)
     registerMadaraClientSetupLuaCallback();
     registerMadaraClientCleanupLuaCallback();
 
+    registerMadaraClientIsBridgingLuaCallback();
     registerMadaraClientUpdateStatusLuaCallback();
     registerMadaraClientBridgeRequestLuaCallback();
     registerMadaraClientSetupSearchAreaLuaCallback();

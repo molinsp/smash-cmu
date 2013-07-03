@@ -52,34 +52,8 @@ function runMainLogic()
         checkForBridgeRequest()
         
         -- Update the drone status to the network.        
-        local droneIds, dronePositions, droneFlyingStatus = getDronesInfo(g_numDrones)  
-        local sinkName, sinkPosition = getSinkInfo()
-        simExtMadaraClientUpdateStatus(sinkPosition[1], sinkPosition[2], droneIds, dronePositions, droneFlyingStatus)           
+        simExtMadaraClientUpdateStatus(g_numDrones)           
     end
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
--- Returns the ids, positions and flying status of all drones.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function getDronesInfo(numDrones)
-    -- Get all drone positions
-    local droneIds = {}
-    local dronePositionsArray = {}
-    local droneFlyingStatus = {}
-    for currDroneIdx = 1, numDrones, 1 do
-        local currDroneId = currDroneIdx-1         -- Actual drone IDs start at 0, but Lua table indexes start at 1.
-        local curentDroneName, currentDronePos = getDroneInfoFromId(currDroneId)
-        
-        -- We have to store the IDs in a separate, simple table to be able to pass this to the C function in the plugin (which doesnt accept nested tables).
-        droneIds[currDroneIdx] = currDroneId
-        droneFlyingStatus[currDroneIdx] = true
-        
-        -- We have to store the positions in a single-level array to pass this to the C function in the plugin (which doesnt accept nested tables).
-        dronePositionsArray[2*currDroneIdx-1] = currentDronePos[1]
-        dronePositionsArray[2*currDroneIdx-1+1] = currentDronePos[2]
-    end
-    
-    return droneIds, dronePositionsArray, droneFlyingStatus
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,6 +96,3 @@ end
 function doCleanup()
     simExtMadaraClientCleanup()
 end
-
-
-
