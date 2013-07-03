@@ -45,6 +45,18 @@
     <ClInclude Include="..\WindowsMulticastTransport\Windows_Multicast_Transport_Read_Thread.h">
       <Filter>Header Files\win_multicast_transport</Filter>
     </ClInclude>
+    <ClInclude Include="v_repExtMadaraQuadrotorControlPlugin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Location.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaCustomFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MadaraQuadrotorControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\V-RepImports\v_repLib.cpp">
@@ -55,6 +67,15 @@
     </ClCompile>
     <ClCompile Include="..\WindowsMulticastTransport\Windows_Multicast_Transport_Read_Thread.cpp">
       <Filter>Source Files\win_multicast_transport</Filter>
+    </ClCompile>
+    <ClCompile Include="v_repExtMadaraQuadrotorControlPlugin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LuaCustomFunctions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MadaraQuadrotorControl.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

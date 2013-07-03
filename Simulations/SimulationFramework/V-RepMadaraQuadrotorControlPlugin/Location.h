@@ -10,11 +10,11 @@
 
 struct Location
 {
-  float m_lat;
-  float m_long;
-  float m_alt; // meters
+  double m_lat;
+  double m_long;
+  double m_alt; // meters
 
-  Location(const float& lat = 0, const float& lon = 0, const float& alt = 0) :
+  Location(const double& lat = 0, const double& lon = 0, const double& alt = 0) :
     m_lat(lat), m_long(lon), m_alt(alt) {}
 };
 

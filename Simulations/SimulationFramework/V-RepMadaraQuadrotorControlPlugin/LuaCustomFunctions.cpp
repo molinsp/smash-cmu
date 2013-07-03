@@ -110,9 +110,9 @@ void simExtMadaraQuadrotorControlUpdateStatus(SLuaCallBack* p)
     // Propagate the status information through the network.
     MadaraQuadrotorControl::Status status;
     status.m_id = p->inputInt[0];
-    status.m_loc.m_lat = p->inputFloat[0];
-    status.m_loc.m_long = p->inputFloat[1];
-    status.m_loc.m_alt = p->inputFloat[2];
+    status.m_loc.m_lat = (double) p->inputFloat[0];
+    status.m_loc.m_long = (double) p->inputFloat[1];
+    status.m_loc.m_alt = (double) p->inputFloat[2];
     control->updateQuadrotorStatus(status);
   }
 

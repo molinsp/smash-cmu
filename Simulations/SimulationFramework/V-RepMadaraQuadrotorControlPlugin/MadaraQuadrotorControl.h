@@ -29,8 +29,8 @@ private:
   /**
    * update position in the knowledge base
    */
-  void updateQuadrotorPosition(const int& id, const float& x, const float& y,
-    const float& z);
+  void updateQuadrotorPosition(const int& id, const double& x, const double& y,
+    const double& z);
 
 public:
   /**

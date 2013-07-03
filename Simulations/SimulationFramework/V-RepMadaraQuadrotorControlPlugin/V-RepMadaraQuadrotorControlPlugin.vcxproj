@@ -16,12 +16,12 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
@@ -31,23 +31,40 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\VRepEnvironment.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\VRepEnvironment.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <TargetName>v_repExtMadaraQuadrotorControlPlugin</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <TargetExt>.dll</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetName>v_repExtMadaraQuadrotorControlPlugin</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetExt>.dll</TargetExt>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\V-RepImports;$(MADARA_ROOT)/include;..\..\..\DroneController\packages\madara_client</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WindowsMulticastTransport;..\V-RepImports;$(MADARA_ROOT)/include;..\..\..\DroneController\packages\madara_client</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(MADARA_ROOT)\lib;</AdditionalLibraryDirectories>
       <AdditionalDependencies>MADARAd.lib;ACEd.lib;shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y $(TargetPath) $(VRepPath)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -55,7 +72,8 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\V-RepImports;$(MADARA_ROOT)/include;..\..\..\DroneController\packages\madara_client</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WindowsMulticastTransport;..\V-RepImports;$(MADARA_ROOT)/include;..\..\..\DroneController\packages\madara_client</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -64,6 +82,9 @@
       <AdditionalLibraryDirectories>$(MADARA_ROOT)\lib;</AdditionalLibraryDirectories>
       <AdditionalDependencies>MADARA.lib;ACE.lib;shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y $(TargetPath) $(VRepPath)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\V-RepImports\extApiCustomConst.h" />
@@ -71,11 +92,18 @@
     <ClInclude Include="..\V-RepImports\v_repLib.h" />
     <ClInclude Include="..\WindowsMulticastTransport\Windows_Multicast_Transport.h" />
     <ClInclude Include="..\WindowsMulticastTransport\Windows_Multicast_Transport_Read_Thread.h" />
+    <ClInclude Include="Location.h" />
+    <ClInclude Include="LuaCustomFunctions.h" />
+    <ClInclude Include="MadaraQuadrotorControl.h" />
+    <ClInclude Include="v_repExtMadaraQuadrotorControlPlugin.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\V-RepImports\v_repLib.cpp" />
     <ClCompile Include="..\WindowsMulticastTransport\Windows_Multicast_Transport.cpp" />
     <ClCompile Include="..\WindowsMulticastTransport\Windows_Multicast_Transport_Read_Thread.cpp" />
+    <ClCompile Include="LuaCustomFunctions.cpp" />
+    <ClCompile Include="MadaraQuadrotorControl.cpp" />
+    <ClCompile Include="v_repExtMadaraQuadrotorControlPlugin.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

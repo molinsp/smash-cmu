@@ -47,11 +47,11 @@ void MadaraQuadrotorControl::terminate()
   }
 }
 
-void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const float& x,
-  const float& y, const float& z) // need to update for altitude
+void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const double& x,
+  const double& y, const double& z) // need to update for altitude
 {
   // update the location of this drone (this would be done by its sensors).
-  string droneIdString = std::to_string(id);
+  string droneIdString = std::to_string(static_cast<long long>(id));
   m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LAT(droneIdString), x,
     Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
   m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LON(droneIdString), y,
@@ -60,47 +60,47 @@ void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const float&
     Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
 }
 
-// updates the status of the drones in Madara
+// Updates the status of the drones in Madara.
 void MadaraQuadrotorControl::updateQuadrotorStatus(const Status& s)
 {
-  // need to update for altitude
-  updateQuadrotorPosition(s.m_id, s.m_loc.m_lat, s.m_loc.m_long, s.m_loc.m_alt);
+    // Need to update for altitude.
+    updateQuadrotorPosition(s.m_id, s.m_loc.m_lat, s.m_loc.m_long, s.m_loc.m_alt);
 }
 
 // Gets a target position where a drone should move to.
 MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(
   int droneId)
 {
-  // check for command
-  string droneIdString = std::to_string(droneId);
-  string commandStr =
+    // Check for command.
+    string droneIdString = std::to_string(static_cast<long long>(droneId));
+    string commandStr =
     m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
-      MV_MOVEMENT_REQUESTED).to_string();
-  if(commandStr == "0")
-    return NULL;
+        MV_MOVEMENT_REQUESTED).to_string();
+    if(commandStr == "0")
+        return NULL;
 
-  // create the movement command to return
-  Command* command = new Command();
-  command->m_command = commandStr;
+    // create the movement command to return
+    Command* command = new Command();
+    command->m_command = commandStr;
 
-  // depending on the command, we may need to get more parameters.
-  if(commandStr == MO_MOVE_TO_GPS_CMD)
-  {
-    // move to certain location command; get the target location.
-    double targetPosX = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
-      MV_MOVEMENT_TARGET_LAT).to_double();
-    double targetPosY = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
-      MV_MOVEMENT_TARGET_LON).to_double();
-    double targetPosZ = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
-      MV_MOVEMENT_TARGET_ALT).to_double();
-    Location targetLocation = Location(targetPosX, targetPosY, targetPosZ);
-    command->m_loc = targetLocation;
-  }
+    // Depending on the command, we may need to get more parameters.
+    if(commandStr == MO_MOVE_TO_GPS_CMD)
+    {
+        // Move to certain location command; get the target location.
+        double targetPosX = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
+            MV_MOVEMENT_TARGET_LAT).to_double();
+        double targetPosY = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
+            MV_MOVEMENT_TARGET_LON).to_double();
+        double targetPosZ = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
+            MV_MOVEMENT_TARGET_ALT).to_double();
+        Location targetLocation = Location(targetPosX, targetPosY, targetPosZ);
+        command->m_loc = targetLocation;
+    }
 
-  // set the command as 0 locally, to indicate that we already read it.
-  m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString +
-    MV_MOVEMENT_REQUESTED, "0",
+    // Set the command as 0 locally, to indicate that we already read it.
+    m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString +
+        MV_MOVEMENT_REQUESTED, "0",
     Madara::Knowledge_Engine::TREAT_AS_LOCAL_EVAL_SETTINGS);
 
-  return command;
+    return command;
 }
