@@ -37,4 +37,3 @@ cat $MADARA_ROOT/LICENSE.txt >> $INSTALL_ROOT/doc/madara/copyright
 cp $MADARA_ROOT/libMADARA.so.* $INSTALL_ROOT/lib
 
 ln -s `ls $INSTALL_ROOT/lib | grep "libMADARA.so.*"` $INSTALL_ROOT/lib/libMADARA.so
-

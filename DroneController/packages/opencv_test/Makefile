@@ -12,8 +12,11 @@ SOURCES = images_test.cpp
 LIBS = -lopencv_core -lopencv_imgproc -lopencv_highgui -lACE
 
 all:
-	@$(CC) -L$(INSTALL_ROOT)/lib -I$(INSTALL_ROOT)/include $(LIBS) -o $(EXECUTABLE) $(SOURCES)
+	@$(CC) -L$(INSTALL_ROOT)/lib -I$(INSTALL_ROOT)/include -o $(EXECUTABLE) $(SOURCES) $(LIBS)
 	@mkdir -p $(INSTALL_ROOT)/bin
 	@cp $(EXECUTABLE) $(INSTALL_ROOT)/bin
 	@chmod 755 $(INSTALL_ROOT)/bin/$(EXECUTABLE)
 
+clean:
+
+realclean: clean

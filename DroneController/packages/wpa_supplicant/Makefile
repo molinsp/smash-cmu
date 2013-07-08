@@ -44,3 +44,7 @@ else
 endif
 
 	@echo "Done with wpa_supplicant"
+
+clean:
+
+realclean: clean

@@ -7,24 +7,25 @@
 
 OPENCV_ROOT=$(PACKAGES_ROOT)/opencv/opencv
 
-all:
+all: old
 
-	@echo "This makefile is broken at the moment and needs some work"
 
 old:
 
 	@echo "Starting OpenCV"
 
+#check if packages/opencv/opencv exists
 ifeq ($(wildcard $(OPENCV_ROOT)),)
+	@echo "Downloading opencv source"
 	@git clone git://code.opencv.org/opencv.git
+else
+	@echo "opencv source already exists"
 endif
 
-
-ifeq ($(wildcard $(OPENCV_ROOT)/Makefile),)
 #create toolchain.cmake
+ifeq ($(wildcard $(OPENCV_ROOT)/Makefile),)
 	@echo "Generating OpenCV makefiles"
 	@echo "set ( CMAKE_SYSTEM_NAME Linux )" > $(OPENCV_ROOT)/toolchain.cmake
-	@echo "set ( CMAKE_SYSTEM_PROCESSOR $(TARGET) )" >> $(OPENCV_ROOT)/toolchain.cmake
 	@echo "set ( COMPILER_ROOT $(LOCAL_CROSS) )" >> $(OPENCV_ROOT)/toolchain.cmake
 	@echo "set ( CMAKE_FIND_ROOT_PATH $(INSTALL_ROOT) )" >> $(OPENCV_ROOT)/toolchain.cmake
 	@echo "set ( CMAKE_C_COMPILER $(LOCAL_GCC) )" >> $(OPENCV_ROOT)/toolchain.cmake
@@ -36,7 +37,7 @@ ifeq ($(wildcard $(OPENCV_ROOT)/Makefile),)
 	@echo "set ( BUILD_opencv_ml ON )" >> $(OPENCV_ROOT)/toolchain.cmake
 	@echo "set ( BUILD_opencv_flann ON )" >> $(OPENCV_ROOT)/toolchain.cmake
 	@echo "set ( BUILD_opencv_objdetect ON )" >> $(OPENCV_ROOT)/toolchain.cmake
-	@echo "set ( BUILD_opencv_photo OFF )" >> $(OPENCV_ROOT)/toolchain.cmake
+	@echo "set ( BUILD_opencv_photo ON )" >> $(OPENCV_ROOT)/toolchain.cmake
 	@echo "set ( BUILD_opencv_video ON )" >> $(OPENCV_ROOT)/toolchain.cmake
 	@echo "set ( BUILD_opencv_contrib OFF )" >> $(OPENCV_ROOT)/toolchain.cmake
 	@echo "set ( BUILD_opencv_ts ON )" >> $(OPENCV_ROOT)/toolchain.cmake
@@ -57,7 +58,6 @@ ifeq ($(wildcard $(OPENCV_ROOT)/Makefile),)
 	@cd $(OPENCV_ROOT); cmake -DCMAKE_TOOLCHAIN_FILE=$(OPENCV_ROOT)/toolchain.cmake $(OPENCV_ROOT)
 else
 	@echo "Makefiles already generated"
-
 endif
 
 ifeq ($(wildcard $(OPENCV_ROOT)/lib/libopencv_core.so),)
@@ -75,3 +75,7 @@ else
 endif
 
 	@echo "Done in OpenCV"
+
+clean:
+
+realclean: clean
