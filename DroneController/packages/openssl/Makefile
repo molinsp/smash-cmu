@@ -31,3 +31,7 @@ else
 endif
 
 	@echo "Done with OpenSSL"
+
+clean:
+
+realclean:

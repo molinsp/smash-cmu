@@ -47,3 +47,5 @@ clean:
 	rm -rf bin
 	rm -rf $(LOCAL_OBJ)
 
+realclean: clean
+	rm -f bin/$(LOCAL_EXECUTABLE)

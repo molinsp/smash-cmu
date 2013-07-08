@@ -103,22 +103,23 @@ endif
 ifeq ($(wildcard $(ACE_TARGET_ROOT)/lib/libACE.so),)
 	@echo "Building libACE in $(ACE_TARGET_FOLDER)"
 	ACE_ROOT=$(ACE_TARGET_ROOT) \
-	make -C $(ACE_TARGET_ROOT)/ace
+	make -C $(ACE_TARGET_ROOT)/ace -j $(JOBS)
 else
 	@echo "libACE already built"
 endif
 
 #Install ACE
 #Must CD to directory because the ace files use PWD which is set to our current directory not ACE_ROOT
-ifeq ($(wildcard $(INSTALL_ROOT)/lib/libACE.so),)
+ifneq ($(wildcard $(INSTALL_ROOT)/lib/libACE.so),)
+	@echo "removing previous libACE from $(INSTALL_ROOT)"
+	@rm $(INSTALL_ROOT)/lib/libACE*
+endif
+
 	@echo "Installing libACE"
 	@mkdir -p $(INSTALL_ROOT)/share/ace
 	@cd $(ACE_TARGET_ROOT)/ace; \
 	ACE_ROOT=$(ACE_TARGET_ROOT) \
-	make -j8 install
-else
-	@echo "libACE already installed"
-endif
+	make -j $(JOBS) install
 
 	@echo "Done in $(ACE_TARGET_FOLDER)"
 
@@ -129,3 +130,8 @@ endif
 #================================
 #END ACE
 #================================
+clean:
+	for d in "$(ACE_ROOT)/build/"*; do make -C $$d/ace clean; done
+
+realclean:
+	rm -rf $(ACE_ROOT)/build

@@ -12,7 +12,8 @@ LOCAL_EXECUTABLE = madara_client
 
 LOCAL_SOURCES = madara_client.cpp
 		
-LOCAL_CFLAGS = -lMADARA -lACE
+LOCAL_CFLAGS = -D$(PLATFORM) -ggdb
+LOCAL_LIBS = -lMADARA -lACE
 LOCAL_LD_PATH = -L$(INSTALL_ROOT)/lib
 LOCAL_INCLUDES = -I$(INSTALL_ROOT)/include -I$(CURDIR)
 
@@ -20,7 +21,10 @@ include movement/movement_module.mk
 include sensors/sensors_module.mk
 include bridge/bridge_module.mk
 include utilities/utilities_module.mk
+
+ifdef PLATFORM
 include platforms/$(PLATFORM).mk
+endif
 
 LOCAL_OBJ = $(LOCAL_SOURCES:.cpp=.o)
 
@@ -37,7 +41,7 @@ default: $(LOCAL_EXECUTABLE)
 $(LOCAL_EXECUTABLE): $(LOCAL_SOURCES) $(LOCAL_OBJ)
 	@echo -n "$(BOLD)Linking $(LOCAL_EXECUTABLE)...$(RESET)"
 	@mkdir -p bin
-	@_ERROR=$$($(CC) $(LOCAL_LD_PATH) $(LOCAL_CFLAGS) $(LOCAL_OBJ) -o bin/$@ 2>&1); \
+	@_ERROR=$$($(CC) $(LOCAL_LD_PATH) $(LOCAL_CFLAGS) $(LOCAL_OBJ) -o bin/$@ $(LOCAL_LIBS) 2>&1); \
 	if [ $$? -eq 0 ]; then echo "$(OK)"; \
 	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
 	
@@ -56,3 +60,5 @@ clean:
 	rm -rf bin
 	rm -rf $(LOCAL_OBJ)
 
+realclean: clean
+	rm -f bin/$(LOCAL_EXECUTABLE)
