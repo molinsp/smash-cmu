@@ -11,37 +11,19 @@ PACKAGES_ROOT:=$(HOME_DIR)/packages
 INSTALL_ROOT:=$(HOME_DIR)/install
 JOBS:=6
 
-LOCAL_CMD = TARGET=$(TARGET) \
-	PLATFORM=$(PLATFORM) \
-	HOME_DIR=$(HOME_DIR) \
-	PACKAGES_ROOT=$(PACKAGES_ROOT) \
-	INSTALL_ROOT=$(INSTALL_ROOT) \
-	LOCAL_CROSS=$(LOCAL_CROSS) \
-	LOCAL_CROSS_PREFIX=$(LOCAL_CROSS_PREFIX) \
-	LOCAL_GCC=$(LOCAL_GCC) \
-	LOCAL_GPLUSPLUS=$(LOCAL_GPLUSPLUS) \
-	make
+include v_rep.mk
+include ar_drone_2.mk
 
-VREP_CMD := TARGET=LINUX \
-	PLATFORM=LINUX \
-	HOME_DIR=$(HOME_DIR) \
-	PACKAGES_ROOT=$(PACKAGES_ROOT) \
-	INSTALL_ROOT=$(INSTALL_ROOT) \
-	LOCAL_GCC=gcc \
-	LOCAL_GPLUSPLUS=g++ \
-	JOBS=$(JOBS) \
-	make
-
-AR_DRONE_2_CMD := TARGET=AR_DRONE_2 \
-	PLATFORM=AR_DRONE_2 \
-	HOME_DIR=$(HOME_DIR) \
-	PACKAGES_ROOT=$(PACKAGES_ROOT) \
-	INSTALL_ROOT=$(INSTALL_ROOT) \
-	LOCAL_CROSS_PREFIX=$(HOME)/dev/drone-rk/2toolchain/arm-2010.09/bin/arm-none-linux-gnueabi- \
-	LOCAL_GCC=$(LOCAL_CROSS_PREFIX)gcc \
-	LOCAL_GPLUSPLUS=$(LOCAL_CROSS_PREFIX)g++ \
-	JOBS=$(JOBS) \
-	make
+#LOCAL_CMD = 
+#	PLATFORM=$(PLATFORM) \
+#	HOME_DIR=$(HOME_DIR) \
+#	PACKAGES_ROOT=$(PACKAGES_ROOT) \
+#	INSTALL_ROOT=$(INSTALL_ROOT) \
+#	LOCAL_CROSS=$(LOCAL_CROSS) \
+#	LOCAL_CROSS_PREFIX=$(LOCAL_CROSS_PREFIX) \
+#	LOCAL_GCC=$(LOCAL_GCC) \
+#	LOCAL_GPLUSPLUS=$(LOCAL_GPLUSPLUS) \
+#	make
 
 .make_install_dir:
 	rm -rf $(INSTALL_ROOT)
@@ -51,24 +33,26 @@ AR_DRONE_2_CMD := TARGET=AR_DRONE_2 \
 	mkdir -p $(INSTALL_ROOT)/doc
 	mkdir -p $(INSTALL_ROOT)/share
 
-vrep: .make_install_dir
-	cd $(PACKAGES_ROOT)/ace; $(VREP_CMD)
-	cd $(PACKAGES_ROOT)/madara; $(VREP_CMD)
-	cd $(PACKAGES_ROOT)/madara_client; $(VREP_CMD)
+v_rep: .make_install_dir
+	cd $(PACKAGES_ROOT)/ace; $(V_REP_CMD)
+	cd $(PACKAGES_ROOT)/madara; $(V_REP_CMD)
+	make madara_client-realclean # hack to force recompile, should be better way to do this
+	cd $(PACKAGES_ROOT)/madara_client; $(V_REP_CMD)
 
 ar_drone_2: .make_install_dir
 	cd $(PACKAGES_ROOT)/ace; $(AR_DRONE_2_CMD)
 	cd $(PACKAGES_ROOT)/madara; $(AR_DRONE_2_CMD)
-	@echo "ar_drone_2 not completely working"
+	make madara_client-realclean # hack to force recompile, should be better way to do this
+	cd $(PACKAGES_ROOT)/madara_client; $(AR_DRONE_2_CMD)
 
-%:
-	@cd $(PACKAGES_ROOT)/$@; $(LOCAL_CMD)
+#%:
+#	@cd $(PACKAGES_ROOT)/$@; make
 
 %-clean:
-	@cd $(PACKAGES_ROOT)/$*; $(LOCAL_CMD) clean
+	@cd $(PACKAGES_ROOT)/$*; make clean
 
 %-realclean:
-	@cd $(PACKAGES_ROOT)/$*; $(LOCAL_CMD) realclean
+	@cd $(PACKAGES_ROOT)/$*; make realclean
 	
 clean:
 	for d in `ls packages`; do make $$d-clean; done

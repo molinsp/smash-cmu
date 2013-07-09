@@ -5,14 +5,12 @@
 # https://code.google.com/p/smash-cmu/wiki/License
 ######################################################################
 
-LOCAL_CROSS_PREFIX = $(HOME)/dev/drone-rk/2toolchain/arm-2010.09/bin/arm-none-linux-gnueabi-
-
-AR_DRONE_2_CMD = TARGET=AR_DRONE_2 \
-	PLATFORM=AR_DRONE_2 \
+V_REP_CMD = TARGET=V_REP \
+	PLATFORM=V_REP \
 	HOME_DIR=$(HOME_DIR) \
 	PACKAGES_ROOT=$(PACKAGES_ROOT) \
 	INSTALL_ROOT=$(INSTALL_ROOT) \
-	LOCAL_GCC=$(LOCAL_CROSS_PREFIX)gcc \
-	LOCAL_GPLUSPLUS=$(LOCAL_CROSS_PREFIX)g++ \
+	LOCAL_GCC=gcc \
+	LOCAL_GPLUSPLUS=g++ \
 	JOBS=$(JOBS) \
 	make

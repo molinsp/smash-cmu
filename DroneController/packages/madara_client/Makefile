@@ -50,6 +50,7 @@ $(LOCAL_EXECUTABLE): $(LOCAL_SOURCES) $(LOCAL_OBJ)
 	@_ERROR=$$(mkdir -p $(INSTALL_ROOT)/bin; cp bin/$(LOCAL_EXECUTABLE) $(INSTALL_ROOT)/bin/; chmod 755 $(INSTALL_ROOT)/bin/$(EXECUTABLE)); \
 	if [ $$? -eq 0 ]; then echo "$(OK)"; \
 	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
+
 .cpp.o:
 	@echo -n "$(BOLD)Compiling $<...$(RESET)"
 	@_ERROR=$$($(CC) $(LOCAL_LD_PATH) $(LOCAL_INCLUDES) $(LOCAL_CFLAGS) -c $< -o $@ 2>&1); \

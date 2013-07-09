@@ -45,7 +45,7 @@ endif
 
 ifeq ($(wildcard $(MADARA_TARGET_ROOT)/lib/libMADARA.so.*),)
 	@echo "Building libMADARA"
-	cd $(MADARA_ROOT); LD_LIBRARY_PATH=$(INSTALL_ROOT)/lib MADARA_ROOT=$(MADARA_ROOT) ACE_ROOT=$(ACE_ROOT) make cid=1 tests=0 -j $(JOBS)
+	cd $(MADARA_ROOT); LD_LIBRARY_PATH=$(INSTALL_ROOT)/lib MADARA_ROOT=$(MADARA_ROOT) ACE_ROOT=$(ACE_ROOT) make cid=1 tests=1 -j $(JOBS)
 else
 	@echo "libMADARA already built"
 	@rm -f $(MADARA_ROOT)/libMADARA*

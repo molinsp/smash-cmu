@@ -5,6 +5,6 @@
 # https://code.google.com/p/smash-cmu/wiki/License
 ######################################################################
 
-
 LOCAL_SOURCES += platforms/v_rep/v-rep_control_functions.cpp
 
+LOCAL_CFLAGS +=

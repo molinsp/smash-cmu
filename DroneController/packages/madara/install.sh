@@ -35,5 +35,6 @@ svn log http://madara.googlecode.com/svn/trunk/ -l 10 > $INSTALL_ROOT/doc/madara
 cat $MADARA_ROOT/LICENSE.txt >> $INSTALL_ROOT/doc/madara/copyright
 
 cp $MADARA_ROOT/libMADARA.so.* $INSTALL_ROOT/lib
+cp $MADARA_ROOT/test_reasoning_throughput $INSTALL_ROOT/bin
 
 ln -s `ls $INSTALL_ROOT/lib | grep "libMADARA.so.*"` $INSTALL_ROOT/lib/libMADARA.so
