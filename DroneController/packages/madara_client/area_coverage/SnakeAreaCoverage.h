@@ -17,6 +17,8 @@
 #include "utilities/Position.h"
 #include "AreaCoverage.h"
 
+using namespace SMASH::Utilities;
+
 namespace SMASH { namespace AreaCoverage {
 /**
  * @brief Represents a snaking area coverage algorithm.
@@ -33,6 +35,18 @@ public:
    * Destructor
    */
   virtual ~SnakeAreaCoverage();
+
+  /**
+   * Initialize the area for the drone
+   * @param   deviceIdx The position of the device in the list of current
+   *                    devices, used to know where to place it.
+   * @param   grid      A Region which will be covered by a certain number of
+   *                    devices.
+   * @param   numDrones The amount of devices covering the grid.
+   *
+   * @return  The region that this device will be covering.
+   */
+  virtual Region initialize(int deviceIdx, const Region& grid, int numDrones);
 
   /** 
    * Calculates the next location to move to, assuming we have reached our

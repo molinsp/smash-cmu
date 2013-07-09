@@ -21,7 +21,7 @@ using std::endl;
 
 // Constructors
 RandomAreaCoverage::RandomAreaCoverage(const SMASH::Utilities::Region& region, 
-  int seed) : AreaCoverage(region)
+  bool split, int seed) : AreaCoverage(region), m_split(split)
 {
   // seed the random number generator
   //if(seed == -1)
@@ -32,6 +32,18 @@ RandomAreaCoverage::RandomAreaCoverage(const SMASH::Utilities::Region& region,
 
 // Destructor
 RandomAreaCoverage::~RandomAreaCoverage() {}
+
+
+// Initialize the area for the drone
+Region RandomAreaCoverage::initialize(int deviceIdx, const Region& grid,
+  int numDrones)
+{
+  if(m_split)
+    m_searchRegion = calculateCellToSearch(deviceIdx, grid, numDrones);
+  else
+    m_searchRegion = grid;
+  return m_searchRegion;
+}
 
 // Calculates the next location to move to, assuming we have reached our
 // current target.

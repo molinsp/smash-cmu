@@ -46,9 +46,8 @@ public:
    */
   virtual Position getNextTargetLocation() = 0;
 
-  /** 
-   * Calculates the grid that will be used for area coverage, and returns the
-   * boundaries of the cell for the given device to cover.
+  /**
+   * Initialize the area for the drone
    * @param   deviceIdx The position of the device in the list of current
    *                    devices, used to know where to place it.
    * @param   grid      A Region which will be covered by a certain number of
@@ -56,9 +55,8 @@ public:
    * @param   numDrones The amount of devices covering the grid.
    *
    * @return  The region that this device will be covering.
-   **/
-  virtual Region calculateCellToSearch(int deviceIdx, const Region& grid,
-    int numDrones);
+   */
+  virtual Region initialize(int deviceIdx, const Region& grid, int numDrones) = 0;
 
 protected:
   /**
@@ -76,6 +74,20 @@ protected:
    * are moving towards)
    */
   Position m_targetLocation;
+
+  /** 
+   * Calculates the grid that will be used for area coverage, and returns the
+   * boundaries of the cell for the given device to cover.
+   * @param   deviceIdx The position of the device in the list of current
+   *                    devices, used to know where to place it.
+   * @param   grid      A Region which will be covered by a certain number of
+   *                    devices.
+   * @param   numDrones The amount of devices covering the grid.
+   *
+   * @return  The region that this device will be covering.
+   **/
+  Region calculateCellToSearch(int deviceIdx, const Region& grid,
+    int numDrones);
 
   /**
    * Returns a vector with the two middle divisors of a number (the ones closest

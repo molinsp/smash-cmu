@@ -26,6 +26,12 @@ SnakeAreaCoverage::SnakeAreaCoverage(const SMASH::Utilities::Region& region) :
 // Destructor
 SnakeAreaCoverage::~SnakeAreaCoverage() {}
 
+// Initialize the area for the drone
+Region SnakeAreaCoverage::initialize(int deviceIdx, const Region& grid, int numDrones)
+{
+  return calculateCellToSearch(deviceIdx, grid, numDrones);
+}
+
 // Called when we reach the next target location, updates and returns the next
 // target location.
 Position SnakeAreaCoverage::getNextTargetLocation()
