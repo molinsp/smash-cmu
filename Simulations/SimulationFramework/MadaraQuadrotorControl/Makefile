@@ -26,6 +26,8 @@ GoToLocation.o: GoToLocation.cpp ../MadaraQuadrotorControl/MadaraQuadrotorContro
 
 clean:
 	rm -f GoToLocation.o
-	rm -f GoToLocation
 	rm -f MadaraQuadrotorControl.o
+
+realclean: clean
+	rm -f GoToLocation
 	rm -f libMadaraQuadrotorControl.so

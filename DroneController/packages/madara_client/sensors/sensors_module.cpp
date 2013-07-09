@@ -48,7 +48,7 @@ Madara::Knowledge_Record read_gps_sensor (Madara::Knowledge_Engine::Function_Arg
 Madara::Knowledge_Record read_sensors (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
 	printf("read_sensors();\n");
-	return variables.evaluate(expressions2[EVALUATE_SENSORS], Madara::Knowledge_Engine::TREAT_AS_LOCAL_UPDATE_SETTINGS);
+	return variables.evaluate(expressions2[EVALUATE_SENSORS], Madara::Knowledge_Engine::Eval_Settings(false, true));
 }
 
 

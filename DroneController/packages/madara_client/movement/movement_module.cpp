@@ -83,7 +83,7 @@ Madara::Knowledge_Record process_movement_commands (Madara::Knowledge_Engine::Fu
 {
 	std::string expansion = variables.expand_statement("{.movement_command}();");
 	printf("Expanded Movement Command: %s\n", expansion.c_str());
-	return variables.evaluate(expansion, Madara::Knowledge_Engine::TREAT_AS_LOCAL_UPDATE_SETTINGS);
+	return variables.evaluate(expansion, Madara::Knowledge_Engine::Eval_Settings(false, true));
 }
 
 

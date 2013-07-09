@@ -208,7 +208,8 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
              Madara::Knowledge_Engine::Variables &variables)
 {
     // Find all the available drones, called here to ensure atomicity and we have the most up to date data.
-    variables.evaluate(m_expressions[ACE_FIND_AVAILABLE_DRONES_POSITIONS], Madara::Knowledge_Engine::DELAY_AND_TREAT_AS_LOCAL_EVAL_SETTINGS);
+    variables.evaluate(m_expressions[ACE_FIND_AVAILABLE_DRONES_POSITIONS],
+      Madara::Knowledge_Engine::Knowledge_Update_Settings(true, false));
 
     // Obtain the amount of available drones, and my position in that list.
     int availableDrones = (int) variables.get(MV_AVAILABLE_DRONES_AMOUNT).to_integer();
@@ -225,7 +226,7 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
 
     // Reset the area coverage, and calculate the actual cell I will be covering, and store it in Madara.
     m_coverageAlgorithm = new RandomAreaCoverage();
-    Region myCell = m_coverageAlgorithm->calculateCellToSearch(myIndexInList, searchArea, availableDrones);
+    Region myCell = searchArea; //m_coverageAlgorithm->calculateCellToSearch(myIndexInList, searchArea, availableDrones);
     variables.set(MV_MY_CELL_TOP_LEFT_LAT, myCell.topLeftCorner.x);
     variables.set(MV_MY_CELL_TOP_LEFT_LON, myCell.topLeftCorner.y);
     variables.set(MV_MY_CELL_BOT_RIGHT_LAT, myCell.bottomRightCorner.x);
@@ -248,12 +249,16 @@ Madara::Knowledge_Record madaraSetNewTarget (Madara::Knowledge_Engine::Function_
     Position nextTarget = m_coverageAlgorithm->getNextTargetLocation();
 
     // Update the drone status for the next target.
-    variables.set(MV_NEXT_TARGET_LAT, nextTarget.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    variables.set(MV_NEXT_TARGET_LON, nextTarget.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    variables.set(MV_NEXT_TARGET_LAT, nextTarget.x,
+      Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
+    variables.set(MV_NEXT_TARGET_LON, nextTarget.y,
+      Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
 
     // Set the movement command for the movement module.
-    variables.set(MV_MOVEMENT_TARGET_LAT, nextTarget.x, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    variables.set(MV_MOVEMENT_TARGET_LON, nextTarget.y, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    variables.set(MV_MOVEMENT_TARGET_LAT, nextTarget.x,
+      Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
+    variables.set(MV_MOVEMENT_TARGET_LON, nextTarget.y,
+      Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
     variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
 
     return Madara::Knowledge_Record(1.0);
@@ -293,21 +298,31 @@ void SMASH::AreaCoverage::setupSearchTest(Madara::Knowledge_Engine::Knowledge_Ba
     knowledge.set(MV_TOTAL_DEVICES, 9.0);
 
     // Simulate the sink actually sending the command to search.
-    knowledge.set(MV_ASSIGNED_SEARCH_AREA(id), (Madara::Knowledge_Record::Integer) 0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    knowledge.set(MV_ASSIGNED_SEARCH_AREA("2"), (Madara::Knowledge_Record::Integer) 0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    knowledge.set(MV_ASSIGNED_SEARCH_AREA("5"), (Madara::Knowledge_Record::Integer) 0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    knowledge.set(MV_ASSIGNED_SEARCH_AREA("8"), (Madara::Knowledge_Record::Integer) 0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    knowledge.set(MV_ASSIGNED_SEARCH_AREA(id), (Madara::Knowledge_Record::Integer) 0,
+      Madara::Knowledge_Engine::Eval_Settings(true));
+    knowledge.set(MV_ASSIGNED_SEARCH_AREA("2"), (Madara::Knowledge_Record::Integer) 0,
+      Madara::Knowledge_Engine::Eval_Settings(true));
+    knowledge.set(MV_ASSIGNED_SEARCH_AREA("5"), (Madara::Knowledge_Record::Integer) 0,
+      Madara::Knowledge_Engine::Eval_Settings(true));
+    knowledge.set(MV_ASSIGNED_SEARCH_AREA("8"), (Madara::Knowledge_Record::Integer) 0,
+      Madara::Knowledge_Engine::Eval_Settings(true));
 
-    knowledge.set(MV_SEARCH_AREA_REGION("0"), (Madara::Knowledge_Record::Integer) 0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    knowledge.set(MV_SEARCH_AREA_REGION("0"), (Madara::Knowledge_Record::Integer) 0,
+      Madara::Knowledge_Engine::Eval_Settings(true));
 
     // Set the bounding box of the regions. For now, the rectangle will actually just be a point.
     // NOTE: we use substring below to store the information not in the local but a global variable, which is only needed in a simulation.
     std::string sourceRegionIdString = "0";
-    knowledge.set(MV_REGION_TYPE("0"), (Madara::Knowledge_Record::Integer) 0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    knowledge.set((MV_REGION_TOPLEFT_LAT(sourceRegionIdString)), 0.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    knowledge.set((MV_REGION_TOPLEFT_LON(sourceRegionIdString)), 10.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    knowledge.set((MV_REGION_BOTRIGHT_LAT(sourceRegionIdString)), 10.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
-    knowledge.set((MV_REGION_BOTRIGHT_LON(sourceRegionIdString)), 0.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    knowledge.set(MV_REGION_TYPE("0"), (Madara::Knowledge_Record::Integer) 0,
+      Madara::Knowledge_Engine::Eval_Settings(true));
+    knowledge.set((MV_REGION_TOPLEFT_LAT(sourceRegionIdString)), 0.0,
+      Madara::Knowledge_Engine::Eval_Settings(true));
+    knowledge.set((MV_REGION_TOPLEFT_LON(sourceRegionIdString)), 10.0,
+      Madara::Knowledge_Engine::Eval_Settings(true));
+    knowledge.set((MV_REGION_BOTRIGHT_LAT(sourceRegionIdString)), 10.0,
+      Madara::Knowledge_Engine::Eval_Settings(true));
+    knowledge.set((MV_REGION_BOTRIGHT_LON(sourceRegionIdString)), 0.0,
+      Madara::Knowledge_Engine::Eval_Settings(true));
 
     knowledge.set(MV_AREA_COVERAGE_REQUESTED(id), 1.0);
 }

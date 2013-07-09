@@ -33,4 +33,6 @@ clean:
 	rm -f MadaraQuadrotorControl.o
 	rm -f v_repExtMadaraQuadrotorControlPlugin.o
 	rm -f v_repLib.o
+
+realclean: clean
 	rm -f libv_repExtMadaraQuadrotorControlPlugin.so

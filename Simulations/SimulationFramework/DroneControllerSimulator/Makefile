@@ -23,4 +23,6 @@ Main.o: Main.cpp
 
 clean:
 	rm -f Main.o
+
+realclean: clean
 	rm -f DroneControllerSimulator

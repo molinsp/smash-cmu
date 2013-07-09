@@ -5,3 +5,6 @@ all:
 
 clean:
 	@for d in `ls -d */`; do make -C $$d clean; done
+
+realclean:
+	@for d in `ls -d */`; do make -C $$d realclean; done

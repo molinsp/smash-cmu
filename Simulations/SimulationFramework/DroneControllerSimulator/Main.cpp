@@ -59,7 +59,8 @@ bool g_setupTest;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record process_state_movement_commands (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-	return variables.evaluate(expressions[PROCESS_STATE_MOVEMENT_COMMANDS], Madara::Knowledge_Engine::TREAT_AS_LOCAL_UPDATE_SETTINGS);
+  return variables.evaluate(expressions[PROCESS_STATE_MOVEMENT_COMMANDS],
+    Madara::Knowledge_Engine::Eval_Settings(false, true));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -171,7 +172,7 @@ int main (int argc, char** argv)
     }
 
     // Indicate we start moving.
-    knowledge.set(MV_MOBILE("{" MV_MY_ID "}"), 1.0, Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    knowledge.set(MV_MOBILE("{" MV_MY_ID "}"), 1.0, Madara::Knowledge_Engine::Eval_Settings(true));
 
     compile_expressions(knowledge);
 

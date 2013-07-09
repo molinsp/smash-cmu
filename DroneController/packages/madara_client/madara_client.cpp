@@ -24,6 +24,8 @@
 #include "sensors/sensors_module.h"
 #include "utilities/utilities_module.h"
 
+#include "area_coverage/area_coverage_module.h"
+
 #define NUM_TASKS 	3
 #define MAIN_LOGIC 	0
 #define PROCESS_STATE   1
@@ -43,7 +45,9 @@ static Madara::Knowledge_Engine::Compiled_Expression expressions [NUM_TASKS];
 //Extra defined function just to force local update settings on global movement variables
 Madara::Knowledge_Record process_state_movement_commands (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-	return variables.evaluate(expressions[PROCESS_STATE_MOVEMENT_COMMANDS], Madara::Knowledge_Engine::TREAT_AS_LOCAL_UPDATE_SETTINGS);
+  /*TREAT_AS_LOCAL*/
+  return variables.evaluate(expressions[PROCESS_STATE_MOVEMENT_COMMANDS],
+    Madara::Knowledge_Engine::Knowledge_Update_Settings(true));
 }
 
 //Setup of pre-compiled expressions
@@ -123,6 +127,7 @@ int main (int argc, char** argv)
 		
 		
 	//We call platform init early incase it has to fork()
+	Madara::Knowledge_Engine::Knowledge_Base* knowledge;
 	if (!init_platform())
 	{
 		printf("Failed to initialize the platform\n");
@@ -133,27 +138,27 @@ int main (int argc, char** argv)
 	
 	MADARA_debug_level = local_debug_level;
 	
-	
-	Madara::Transport::Settings settings;
-	settings.hosts_.resize (1);
-	settings.hosts_[0] = "192.168.1.255:15000";
-	settings.type = Madara::Transport::BROADCAST;
-	settings.queue_length = 1024; //Smaller queue len to preserve memory
-	Madara::Knowledge_Engine::Knowledge_Base knowledge ("", settings);
+//	Madara::Transport::Settings settings;
+//	settings.hosts_.resize (1);
+//	settings.hosts_[0] = "192.168.1.255:15000";
+//	settings.type = Madara::Transport::BROADCAST;
+//	settings.queue_length = 1024; //Smaller queue len to preserve memory
+//	Madara::Knowledge_Engine::Knowledge_Base knowledge ("", settings);
 	
 	//First thing we do is set our ID, this needs to be changed to actually set it
 	//Set our ID
-	knowledge.set(".id", Madara::Knowledge_Record::Integer(id));
+	knowledge->set(".id", Madara::Knowledge_Record::Integer(id));
 
 	
-	SMASH::Movement::initialize(knowledge);
-	SMASH::Sensors::initialize(knowledge);
-	SMASH::Utilities::initialize(knowledge);
+	SMASH::Movement::initialize(*knowledge);
+	SMASH::Sensors::initialize(*knowledge);
+	SMASH::Utilities::initialize(*knowledge);
+  SMASH::AreaCoverage::initialize(*knowledge);
 	//SMASH::Bridge::initialize(knowledge);
 
 	
 	//Compile the main logic
-	compile_expressions(knowledge);
+	compile_expressions(*knowledge);
 
 	Madara::Knowledge_Engine::Eval_Settings eval_settings;
 
@@ -161,12 +166,14 @@ int main (int argc, char** argv)
 
 	while (!terminated)
 	{
-		knowledge.evaluate (expressions[MAIN_LOGIC], eval_settings);
-		knowledge.print_knowledge();
+		knowledge->evaluate (expressions[MAIN_LOGIC], eval_settings);
+		knowledge->print_knowledge();
 		ACE_OS::sleep (1);
 	}
 	
 	printf("\nExiting...\n");
+
+  delete knowledge;
 
 	return 0;
 }

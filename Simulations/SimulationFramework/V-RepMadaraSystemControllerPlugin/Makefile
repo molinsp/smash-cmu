@@ -26,4 +26,7 @@ LuaCustomFunctions.o: LuaCustomFunctions.cpp LuaCustomFunctions.h
 	$(CC) $(STD) $(WARN) $(OS) $(INC) -fPIC -c -o LuaCustomFunctions.o LuaCustomFunctions.cpp
 
 clean:
-	rm *.o *.so
+	rm -f *.o
+
+realclean: clean
+	rm -f *.so

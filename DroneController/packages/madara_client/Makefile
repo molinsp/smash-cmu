@@ -17,6 +17,7 @@ LOCAL_LIBS = -lMADARA -lACE
 LOCAL_LD_PATH = -L$(INSTALL_ROOT)/lib
 LOCAL_INCLUDES = -I$(INSTALL_ROOT)/include -I$(CURDIR)
 
+include area_coverage/area_coverage_module.mk
 include movement/movement_module.mk
 include sensors/sensors_module.mk
 include bridge/bridge_module.mk

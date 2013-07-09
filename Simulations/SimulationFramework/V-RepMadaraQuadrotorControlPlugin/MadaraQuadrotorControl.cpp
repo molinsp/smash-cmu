@@ -80,9 +80,9 @@ void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const double
   // update the location of this drone (this would be done by its sensors).
   string droneIdString = std::to_string(static_cast<long long>(id));
   m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LAT(droneIdString), x,
-    Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    Madara::Knowledge_Engine::Eval_Settings(true));
   m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LON(droneIdString), y,
-    Madara::Knowledge_Engine::DELAY_ONLY_EVAL_SETTINGS);
+    Madara::Knowledge_Engine::Eval_Settings(true));
   m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_ALT(droneIdString), z);
 }
 
@@ -125,7 +125,7 @@ MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(int drone
     // Set the command as 0 locally, to indicate that we already read it.
     m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString +
         MV_MOVEMENT_REQUESTED, "0",
-    Madara::Knowledge_Engine::TREAT_AS_LOCAL_EVAL_SETTINGS);
+    Madara::Knowledge_Engine::Eval_Settings(false, true));
 
     return command;
 }
