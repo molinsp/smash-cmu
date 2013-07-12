@@ -19,8 +19,9 @@
 
 DroneRK_Transport::DroneRK_Transport(const std::string& id,
   Madara::Knowledge_Engine::Thread_Safe_Context& context,
-  Madara::Transport::Settings& config, bool launch_transport) :
-  Base(config, context), id_(id), thread_(0), valid_setup_(false)
+  Madara::Transport::Settings& config, bool launch_transport, int size) :
+  Base(config, context), id_(id), thread_(0), valid_setup_(false),
+  size_threshold_(size)
 {
   if(launch_transport)
     setup();
@@ -120,9 +121,6 @@ int DroneRK_Transport::setup(void)
 
 long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
 {
-  // size threshold
-  const int SIZE_THRESHOLD = 500000;
-
   // check to see if we are shutting down
   long ret = this->check_transport();
   if(-1 == ret)
@@ -220,7 +218,7 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
   for(Madara::Knowledge_Records::const_iterator i = updates.begin();
     i != updates.end(); ++i, ++j)
   {
-    if(i->second->size() < SIZE_THRESHOLD)
+    if(i->second->size() < size_threshold_) 
     {
       update = i->second->write(update, i->first, buffer_remaining);
       
@@ -246,7 +244,7 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
   for(Madara::Knowledge_Records::const_iterator i = updates.begin();
     i != updates.end(); ++i, ++j)
   {
-    if(i->second->size() >= SIZE_THRESHOLD)
+    if(i->second->size() >= size_threshold_)
     {
       update = i->second->write(update, i->first, buffer_remaining);
       

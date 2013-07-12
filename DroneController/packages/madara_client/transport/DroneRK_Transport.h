@@ -40,7 +40,7 @@ public:
    **/
   DroneRK_Transport(const std::string & id, 
     Madara::Knowledge_Engine::Thread_Safe_Context & context, 
-    Madara::Transport::Settings& config, bool launch_transport);
+    Madara::Transport::Settings& config, bool launch_transport, int size);
 
   /**
    * Destructor
@@ -102,6 +102,9 @@ private:
 
   /// buffer for sending
   Madara::Utility::Scoped_Array <char>      buffer_;
+
+  /// size threshold for long range vs wifi
+  const int                                 size_threshold_;
 };
 
 #endif // _DRONERK_TRANSPORT_H_
