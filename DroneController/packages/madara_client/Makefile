@@ -23,6 +23,9 @@ include sensors/sensors_module.mk
 include bridge/bridge_module.mk
 include utilities/utilities_module.mk
 
+#will need to modify based on desired transport settings
+include transport/transport_module.mk
+
 ifdef PLATFORM
 include platforms/$(PLATFORM).mk
 endif
