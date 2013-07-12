@@ -25,9 +25,22 @@ function doInitialSetup()
     local x1 = simGetScriptSimulationParameter(sim_handle_main_script, 'x1')
     local y1 = simGetScriptSimulationParameter(sim_handle_main_script, 'y1')
     local x2 = simGetScriptSimulationParameter(sim_handle_main_script, 'x2')
-    local y2 = simGetScriptSimulationParameter(sim_handle_main_script, 'y2')        
-    simExtMadaraSystemControllerSetupSearchArea(g_searchAreaId, x1, y1, x2, y2)
+    local y2 = simGetScriptSimulationParameter(sim_handle_main_script, 'y2')   
 
+    -- Turn into degrees.
+    local startPoint = {}
+    startPoint['x'] = x1
+    startPoint['y'] = y1
+    local startInDegrees = getLatAndLong(startPoint)
+    local endPoint = {}
+    endPoint['x'] = x2
+    endPoint['y'] = y2    
+    local endInDegrees = getLatAndLong(endPoint)
+    
+    simAddStatusbarMessage("Search area: " .. tostring(startInDegrees['longitude']) .. ',' .. startInDegrees['latitude'] .. '; ' .. endInDegrees['longitude'] .. ',' .. endInDegrees['latitude'])
+    simExtMadaraSystemControllerSetupSearchArea(g_searchAreaId, tostring(startInDegrees['longitude']), tostring(startInDegrees['latitude']), 
+                                                tostring(endInDegrees['longitude']), tostring(endInDegrees['latitude']))
+    
     -- Tell drones to be part of this search area.
     addDronesToSearchArea(g_numDrones, g_searchAreaId)
 
@@ -84,8 +97,9 @@ function checkForBridgeRequest()
         local sourceName, sourcePosition = getSourceInfo()
         
         -- Do the external bridge request.        
-        simExtMadaraSystemControllerBridgeRequest(g_bridgeRequestId, sourcePosition[1], sourcePosition[2], sourcePosition[1], sourcePosition[2], 
-                                                           sinkPosition[1], sinkPosition[2], sinkPosition[1], sinkPosition[2])
+        simExtMadaraSystemControllerBridgeRequest(g_bridgeRequestId, 
+                                                  tostring(sourcePosition[1]), tostring(sourcePosition[2]), tostring(sourcePosition[1]), tostring(sourcePosition[2]), 
+                                                  tostring(sinkPosition[1]), tostring(sinkPosition[2]), tostring(sinkPosition[1]), tostring(sinkPosition[2]))
                                                            
         -- Update the next bridge request id.
         g_bridgeRequestId = g_bridgeRequestId + 1

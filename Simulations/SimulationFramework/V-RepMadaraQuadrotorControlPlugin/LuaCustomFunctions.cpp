@@ -8,6 +8,7 @@
 #include "MadaraQuadrotorControl.h"
 #include "LuaCustomFunctions.h"
 #include "utilities/CommonMadaraVariables.h"
+#include "utilities/Position.h"
 
 #include <string>
 using std::string;
@@ -66,9 +67,9 @@ void registerMadaraQuadrotorControlUpdateStatusLuaCallback()
 {
     // Define the LUA function input parameters.
     int inArgs[] = {4, sim_lua_arg_int,     // the id of the drone
-                       sim_lua_arg_float,   // The lat position of the drone
-                       sim_lua_arg_float,   // The long position of the drone
-                       sim_lua_arg_float};  // The alt position of the drone
+                       sim_lua_arg_string,   // The lat position of the drone
+                       sim_lua_arg_string,   // The long position of the drone
+                       sim_lua_arg_string};  // The alt position of the drone
 
     // Register the simExtGetPositionInBridge function.
     simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlUpdateStatus",
@@ -98,30 +99,44 @@ void simExtMadaraQuadrotorControlUpdateStatus(SLuaCallBack* p)
     simSetLastError("simExtMadaraQuadrotorControlUpdateStatus",
       "The id of the drone is not an int.");
   }
-  else if(p->inputArgTypeAndSize[1*2+0] != sim_lua_arg_float)
+  else if(p->inputArgTypeAndSize[1*2+0] != sim_lua_arg_string)
   {
     simSetLastError("simExtMadaraQuadrotorControlUpdateStatus",
       "The latitude of the drone is not a float.");
   }
-  else if(p->inputArgTypeAndSize[2*2+0] != sim_lua_arg_float)
+  else if(p->inputArgTypeAndSize[2*2+0] != sim_lua_arg_string)
   {
     simSetLastError("simExtMadaraQuadrotorControlUpdateStatus",
       "The longitude of the drone is not a float.");
   }
-  else if(p->inputArgTypeAndSize[3*2+0] != sim_lua_arg_float)
+  else if(p->inputArgTypeAndSize[3*2+0] != sim_lua_arg_string)
   {
     simSetLastError("simExtMadaraQuadrotorControlUpdateStatus",
       "The altitude of the drone is not a float.");
   }
   else // params checked out
-  { 
+  {
+	// Get the values from the concatenated string with all of them.
+	// NOTE: these parameters are sent as strings since there seems to be problems with large double numbers between Lua and C++ in Vrep.
+	std::string lat(p->inputChar);
+	std::string lon(p->inputChar+lat.length()+1);
+	std::string alt(p->inputChar+lat.length()+lon.length()+2);
+
     // Propagate the status information through the network.
     MadaraQuadrotorControl::Status status;
     status.m_id = p->inputInt[0];
-    status.m_loc.m_lat = (double) p->inputFloat[0];
-    status.m_loc.m_long = (double) p->inputFloat[1];
-    status.m_loc.m_alt = (double) p->inputFloat[2];
+    status.m_loc.m_lat = atof(lat.c_str());
+    status.m_loc.m_long = atof(lon.c_str());
+    status.m_loc.m_alt = atof(alt.c_str());
     control->updateQuadrotorStatus(status);
+
+    // For debugging, print out what we received.
+    //std::stringstream sstm; 
+    //sstm << "Values received inside simExtMadaraQuadrotorControlUpdateStatus function: bridgeId:" << status.m_id << ", "
+    //    << " (" << std::setprecision(20) << status.m_loc.m_lat << "," <<  std::setprecision(20) << status.m_loc.m_long << "," << status.m_loc.m_alt << ")"
+    //    << std::endl;
+    //std::string message = sstm.str();
+    //simAddStatusbarMessage(message.c_str());
   }
 
   simLockInterface(0);
@@ -172,28 +187,54 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
   // Set the actual return values depending on whether we found a position or not.
   if(temp != NULL)
   {
+    // For debugging, print out what we received.
+    std::stringstream sstm; 
+    sstm << "Values received inside simExtMadaraQuadrotorControlGetNewCmd function: command:" << temp->m_command << ", "
+        << " (" << std::setprecision(20) << temp->m_loc.m_lat << "," <<  std::setprecision(20) << temp->m_loc.m_long << "," << temp->m_loc.m_alt << ")"
+        << std::endl;
+    std::string message = sstm.str();
+    simAddStatusbarMessage(message.c_str());
+
     p->outputArgTypeAndSize[2*0+0] = sim_lua_arg_string; // cmd
     p->outputArgTypeAndSize[2*0+1] = 1;
-    p->outputArgTypeAndSize[2*1+0] = sim_lua_arg_float; // lat
+    p->outputArgTypeAndSize[2*1+0] = sim_lua_arg_string; // lat
     p->outputArgTypeAndSize[2*1+1] = 1;
-    p->outputArgTypeAndSize[2*2+0] = sim_lua_arg_float; // long
+    p->outputArgTypeAndSize[2*2+0] = sim_lua_arg_string; // long
     p->outputArgTypeAndSize[2*2+1] = 1;
-    p->outputArgTypeAndSize[2*3+0] = sim_lua_arg_float; // altitude
+    p->outputArgTypeAndSize[2*3+0] = sim_lua_arg_string; // altitude
     p->outputArgTypeAndSize[2*3+1] = 1;
+
+	// Turn floats into strings to avoid losing precision when transfering back to Lua.
+	std::string lat(NUM_TO_STR(temp->m_loc.m_lat));
+	std::string lon(NUM_TO_STR(temp->m_loc.m_long));
+	std::string alt(NUM_TO_STR(temp->m_loc.m_alt));
 
     // copy cmd
     p->outputChar = (simChar*) simCreateBuffer(
-      (temp->m_command.length() + 1) * sizeof(simChar));
-    unsigned int i = 0;
-    for(; i < temp->m_command.length(); ++i)
-      p->outputChar[i] = temp->m_command.at(i);
-    p->outputChar[i] = '\0'; // null terminate
+		(temp->m_command.length() + 1 + lat.length()+1 + lon.length()+1 + alt.length()+1) * sizeof(simChar));
+
+    unsigned int pos = 0;
+    for(unsigned int i = 0; i < temp->m_command.length(); ++i)
+      p->outputChar[pos++] = temp->m_command.at(i);
+    p->outputChar[pos++] = '\0'; // null terminate
+
+    for(unsigned int i = 0; i < lat.length(); ++i)
+      p->outputChar[pos++] = lat.at(i);
+    p->outputChar[pos++] = '\0'; // null terminate
+
+    for(unsigned int i = 0; i < lon.length(); ++i)
+      p->outputChar[pos++] = lon.at(i);
+    p->outputChar[pos++] = '\0'; // null terminate
+
+    for(unsigned int i = 0; i < alt.length(); ++i)
+      p->outputChar[pos++] = alt.at(i);
+    p->outputChar[pos++] = '\0'; // null terminate
 
     // copy x, y, z coords
-    p->outputFloat = (simFloat*) simCreateBuffer(3 * sizeof(simFloat));
-    p->outputFloat[0] = (float) temp->m_loc.m_lat;
-    p->outputFloat[1] = (float) temp->m_loc.m_long;
-    p->outputFloat[2] = (float) temp->m_loc.m_alt;
+    //p->outputFloat = (simFloat*) simCreateBuffer(3 * sizeof(simFloat));
+    //p->outputFloat[0] = (float) temp->m_loc.m_lat;
+    //p->outputFloat[1] = (float) temp->m_loc.m_long;
+    //p->outputFloat[2] = (float) temp->m_loc.m_alt;
   }
   else
   {

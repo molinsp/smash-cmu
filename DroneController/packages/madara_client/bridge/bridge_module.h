@@ -36,11 +36,6 @@ namespace SMASH
          * @return  A string that can be evaluted to call the logic to check and do bridge building.
          **/
 	    std::string get_core_function();
-
-	    /**
-         * Method used to set up a simple test scenario.
-         **/
-	    void setupBridgeTest(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
     }
 }
 

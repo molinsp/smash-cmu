@@ -14,10 +14,11 @@
 
 #include <iostream>     // std::dec
 #include <sstream>      // std::ostringstream
+#include <iomanip>		// std::setprecision
 
 // Macro to convert from int to std::string.
 #define NUM_TO_STR( x ) dynamic_cast< std::ostringstream & >( \
-        ( std::ostringstream() << std::dec << x ) ).str()
+        ( std::ostringstream() << std::dec << std::setprecision(10) << x ) ).str()
 
 namespace SMASH
 {

@@ -97,7 +97,7 @@ void MadaraController::updateNetworkStatus(const int& numberOfDrones)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Sets up all the variables required for a bridge request.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraController::setupBridgeRequest(int bridgeId, Position sourceTopLeft, Position sourceBottomRight, Position sinkTopLeft, Position sinkBottomRight)
+void MadaraController::setupBridgeRequest(int bridgeId, Region startRegion, Region endRegion)
 {
     int rectangleType = 0;
     std::string bridgeIdString = NUM_TO_STR(bridgeId);
@@ -119,8 +119,8 @@ void MadaraController::setupBridgeRequest(int bridgeId, Position sourceTopLeft, 
 
     // Set the bounding box of the regions. For now, the rectangle will actually just be a point.
     // NOTE: we use substring below to store the information not in the local but a global variable, which is only needed in a simulation.
-    std::string sourceTopLeftLocation = sourceTopLeft.toString();
-    std::string sourceBotRightLocation = sourceBottomRight.toString();
+	std::string sourceTopLeftLocation = startRegion.topLeftCorner.toString();
+	std::string sourceBotRightLocation = startRegion.bottomRightCorner.toString();
     m_knowledge->set(MV_REGION_TOPLEFT_LOC(sourceRegionIdString), sourceTopLeftLocation,
       Madara::Knowledge_Engine::Eval_Settings(true));
     m_knowledge->set(MV_REGION_BOTRIGHT_LOC(sourceRegionIdString), sourceBotRightLocation,
@@ -135,8 +135,8 @@ void MadaraController::setupBridgeRequest(int bridgeId, Position sourceTopLeft, 
       Madara::Knowledge_Engine::Eval_Settings(true));
 
     // Set the bounding box of the regions. For now, the rectangle will actually just be a point.
-    std::string sinkTopLeftLocation = sinkTopLeft.toString();
-    std::string sinkBotRightLocation = sinkBottomRight.toString();
+	std::string sinkTopLeftLocation = endRegion.topLeftCorner.toString();
+	std::string sinkBotRightLocation = endRegion.bottomRightCorner.toString();
     m_knowledge->set(MV_REGION_TOPLEFT_LOC(sinkRegionIdString), sinkTopLeftLocation,
       Madara::Knowledge_Engine::Eval_Settings(true));
     m_knowledge->set(MV_REGION_BOTRIGHT_LOC(sinkRegionIdString), sinkBotRightLocation,

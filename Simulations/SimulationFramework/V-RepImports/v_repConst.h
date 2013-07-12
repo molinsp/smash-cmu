@@ -24,7 +24,7 @@
 // along with V-REP.  If not, see <http://www.gnu.org/licenses/>.
 // -------------------------------------------------------------------
 //
-// This file was automatically created for V-REP release V3.0.1 on January 20th 2013
+// This file was automatically created for V-REP release V3.0.4 on July 8th 2013
 
 #if !defined(V_REPCONST_INCLUDED_)
 #define V_REPCONST_INCLUDED_
@@ -62,7 +62,8 @@ enum {
 	sim_appobj_script_type,
 	sim_appobj_pathplanning_type,
 	sim_appobj_RESERVED_type,
-	sim_appobj_texture_type
+	sim_appobj_texture_type,
+	sim_appobj_motionplanning_type
 };
 
 /* Ik calculation methods. Values are serialized */
@@ -158,6 +159,10 @@ enum { /* Check the documentation instead of comments below!! */
 		sim_message_bannerclicked,				/* a banner was clicked (aux[0]=banner ID) */
 		sim_message_scene_loaded,				/* a scene was loaded */
 
+		sim_message_prox_sensor_select_down,	/* a "geometric" click select (mouse down) was registered. Enable with sim_intparam_prox_sensor_select_down. aux[0]=objectID, aux2[0-2]=pt coord, aux2[3-5]=pt normal vector */
+		sim_message_prox_sensor_select_up,		/* a "geometric" click select (mouse up) was registered. Enable with sim_intparam_prox_sensor_select_up. aux[0]=objectID, aux2[0-2]=pt coord, aux2[3-5]=pt normal vector */
+		sim_message_pick_select_down,			/* a "pick" click select (mouse down) was registered. aux[0]=objectID */
+
 
 		/* Following messages are dispatched only to the C-API (not available from Lua): */
 		sim_message_for_c_api_only_start=0x0100,			/* Do not use */
@@ -226,19 +231,50 @@ enum { /* Check the documentation instead of comments below!! */
 		sim_message_eventcallback_guipass,
 		sim_message_eventcallback_mainscriptabouttobecalled,
 
-		sim_message_eventcallback_rmlposition, // the command simRMLPosition was called. The appropriate plugin should handle the call
-		sim_message_eventcallback_rmlvelocity, // the command simRMLVelocity was called. The appropriate plugin should handle the call
+		sim_message_eventcallback_rmlposition, /* the command simRMLPosition was called. The appropriate plugin should handle the call */
+		sim_message_eventcallback_rmlvelocity, /* the command simRMLVelocity was called. The appropriate plugin should handle the call */
 
-		sim_message_eventcallback_meshcalculationplugin, // to interact with the mesh calculation plugin
-		sim_message_eventcallback_dynamicsplugin, // to interact with the dynamics calculation plugin
-		sim_message_eventcallback_pathplanningplugin, // to interact with the path planning plugin
-		sim_message_eventcallback_colladaplugin, // to interact with the collada plugin
+		sim_message_eventcallback_meshcalculationplugin, /* to interact with the mesh calculation plugin */
+		sim_message_eventcallback_dynamicsplugin, /* to interact with the dynamics calculation plugin */
+		sim_message_eventcallback_pathplanningplugin, /* to interact with the path planning plugin */
+		sim_message_eventcallback_colladaplugin, /* to interact with the collada plugin */
+
+		sim_message_eventcallback_opengl, /* a simple callback at different rendering stages */
+		sim_message_eventcallback_openglframe, /* a callback with the full rendered opengl frame data (that can be modified then returned) */
+		sim_message_eventcallback_openglcameraview, /* a callback with the rendered opengl view data (that can be modified then returned) */
+
+		sim_message_eventcallback_proxsensorselectdown, /* a "geometric" click select (mouse down) was registered. Enable with sim_intparam_prox_sensor_select_down. aux[0]=objectID, customData[0-2]=pt coord (floats), customData[3-5]=pt normal vector (floats)*/
+		sim_message_eventcallback_proxsensorselectup, /* a "geometric" click select (mouse up) was registered. Enable with sim_intparam_prox_sensor_select_down. aux[0]=objectID, customData[0-2]=pt coord (floats), customData[3-5]=pt normal vector (floats)*/
+		sim_message_eventcallback_pickselectdown, /* a "pick" click select (mouse down) was registered. aux[0]=objectID */
 
 
 		sim_message_simulation_start_resume_request=0x1000,
 		sim_message_simulation_pause_request,
 		sim_message_simulation_stop_request
 
+};
+
+// Rendering attributes:
+enum {
+		sim_displayattribute_renderpass		=0x0001,
+		sim_displayattribute_depthpass		=0x0002,
+		sim_displayattribute_pickpass		=0x0004,
+		sim_displayattribute_selected		=0x0008,
+		sim_displayattribute_groupselection	=0x0010,
+		sim_displayattribute_mainselection	=0x0020,
+		sim_displayattribute_forcewireframe	=0x0040,
+		sim_displayattribute_forbidwireframe=0x0080,
+		sim_displayattribute_forbidedges	=0x0100,
+		sim_displayattribute_originalcolors	=0x0200,
+		sim_displayattribute_ignorelayer	=0x0400,
+		sim_displayattribute_forvisionsensor	=0x0800,
+		sim_displayattribute_FREE1				=0x1000, /* free */
+		sim_displayattribute_FREE2				=0x2000, /* free */
+		sim_displayattribute_trianglewireframe	=0x4000, 
+		sim_displayattribute_simplifyasboundingbox	=0x8000,
+		sim_displayattribute_thickEdges				=0x10000,
+		sim_displayattribute_dynamiccontentonly		=0x20000,
+		sim_displayattribute_mirror					=0x40000
 };
 
 enum { /* Scene object properties. Combine with the | operator */
@@ -252,8 +288,9 @@ enum { /* Scene object properties. Combine with the | operator */
 	sim_objectproperty_selectable				=0x0020,
 	sim_objectproperty_reserved7				=0x0040,
 	sim_objectproperty_selectmodelbaseinstead	=0x0080,
-	sim_objectproperty_dontshowasinsidemodel	=0x0100
-	/* reserved									=0x0200 */
+	sim_objectproperty_dontshowasinsidemodel	=0x0100,
+	/* reserved									=0x0200, */
+	sim_objectproperty_canupdatedna				=0x0400
 };
 
 enum { /* type of arguments (input and output) for custom lua commands */
@@ -328,6 +365,8 @@ enum { /* Script types (serialized!) */
 	sim_scripttype_childscript,
 	sim_scripttype_addonscript,
 	sim_scripttype_addonfunction,
+	sim_scripttype_jointctrlcallback,
+	sim_scripttype_contactcallback,
 	sim_scripttype_threaded=0x00f0			/* Combine with sim_scripttype_childscript if you want */
 };
 
@@ -493,7 +532,13 @@ enum { /* Boolean parameters: */
 	sim_boolparam_mirrors_enabled,
 	sim_boolparam_aux_clip_planes_enabled,
 	sim_boolparam_full_model_copy_from_api,
-	sim_boolparam_realtime_simulation
+	sim_boolparam_realtime_simulation,
+	sim_boolparam_use_glfinish_cmd,
+	sim_boolparam_force_show_wireless_emission,
+	sim_boolparam_force_show_wireless_reception,
+	sim_boolparam_video_recording_triggered,
+	sim_boolparam_opengl_frame_callback_enabled,
+	sim_boolparam_opengl_camera_view_callback_enabled,
 };
 
 enum { /* Integer parameters: */
@@ -517,7 +562,15 @@ enum { /* Integer parameters: */
 	sim_intparam_event_flags_read, /* can only be read */
 	sim_intparam_event_flags_read_clear, /* can only be read */
 	sim_intparam_platform, /* can only be read */
-	sim_intparam_scene_unique_id /* can only be read */
+	sim_intparam_scene_unique_id, /* can only be read */
+	sim_intparam_work_thread_count, /* 0-256. 0 to disable, -1 to try to automatically set */
+	sim_intparam_mouse_x,
+	sim_intparam_mouse_y,
+	sim_intparam_core_count, /* can only be read */
+	sim_intparam_work_thread_calc_time_ms,
+	sim_intparam_idle_fps,
+	sim_intparam_prox_sensor_select_down,
+	sim_intparam_prox_sensor_select_up
 };
 
 enum { /* Float parameters: */
@@ -526,7 +579,8 @@ enum { /* Float parameters: */
 };
 
 enum { /* String parameters: */
-	sim_stringparam_application_path=0 /* path of V-REP's executable */
+	sim_stringparam_application_path=0, /* path of V-REP's executable */
+	sim_stringparam_video_filename /* name + path without extension! */
 };
 
 enum { /* Array parameters: */
@@ -563,27 +617,27 @@ enum { /* Joint modes: */
 };
 
 enum { /* Navigation and selection modes with the mouse. Lower byte values are mutually exclusive, upper byte bits can be combined */
-	sim_navigation_passive					=0x0000,
-	sim_navigation_camerashift				=0x0001,
-	sim_navigation_camerarotate				=0x0002,
-	sim_navigation_camerazoom				=0x0003,
-	sim_navigation_cameratilt				=0x0004,
-	sim_navigation_cameraangle				=0x0005,
-	sim_navigation_camerafly				=0x0006,
-	sim_navigation_objectshift				=0x0007,
-	sim_navigation_objectrotate				=0x0008,
-	sim_navigation_reserved2				=0x0009,
-	sim_navigation_reserved3				=0x000A,
-	sim_navigation_jointpathtest			=0x000B,
-	sim_navigation_ikmanip					=0x000C,
-	sim_navigation_objectmultipleselection	=0x000D,
+	sim_navigation_passive					=0x000000,
+	sim_navigation_camerashift				=0x000001,
+	sim_navigation_camerarotate				=0x000002,
+	sim_navigation_camerazoom				=0x000003,
+	sim_navigation_cameratilt				=0x000004,
+	sim_navigation_cameraangle				=0x000005,
+	sim_navigation_camerafly				=0x000006,
+	sim_navigation_objectshift				=0x000007,
+	sim_navigation_objectrotate				=0x000008,
+	sim_navigation_reserved2				=0x000009,
+	sim_navigation_reserved3				=0x00000A,
+	sim_navigation_reserved4				=0x00000B,
+	sim_navigation_reserved5				=0x00000C,
+	sim_navigation_reserved6				=0x00000D,
 	/* Bit-combine following values and add them to one of above's values for a valid navigation mode: */
-	sim_navigation_reserved4				=0x0100,
-	sim_navigation_clickselection			=0x0200,
-	sim_navigation_ctrlselection			=0x0400,
-	sim_navigation_shiftselection			=0x0800,
-	sim_navigation_camerazoomwheel			=0x1000,
-	sim_navigation_camerarotaterightbutton	=0x2000
+	sim_navigation_createpathpoint			=0x000100,
+	sim_navigation_clickselection			=0x000200,
+	sim_navigation_ctrlselection			=0x000400,
+	sim_navigation_shiftselection			=0x000800,
+	sim_navigation_camerazoomwheel			=0x001000,
+	sim_navigation_camerarotaterightbutton	=0x002000
 };
 
 
@@ -730,6 +784,7 @@ enum {	simx_cmdnull_start				=0,
 		simx_cmd_get_object_selection,
 		simx_cmd_rml_position,
 		simx_cmd_rml_velocity,
+		simx_cmd_create_dummy,
 
 		simx_cmdnull_custom_start		=0x000800,
 
@@ -804,6 +859,7 @@ enum {	simx_cmdnull_start				=0,
 		simx_cmd_set_object_float_parameter,
 		simx_cmd_set_object_int_parameter,
 		simx_cmd_get_object_child,
+		simx_cmd_get_object_group_data,
 
 		simx_cmd8bytes_custom_start		=0x002800,
 
@@ -830,6 +886,8 @@ enum {	simx_cmdnull_start				=0,
 		simx_cmd_set_float_signal,
 		simx_cmd_set_integer_signal,
 		simx_cmd_set_string_signal,
+		simx_cmd_append_string_signal,
+		simx_cmd_get_and_clear_string_signal,
 
 		simx_cmd1string_custom_start	=0x003800,
 
@@ -926,6 +984,7 @@ enum {	simros_strmcmdnull_start				=0,
 		simros_strmcmd_get_ui_button_property,
 		simros_strmcmd_get_ui_slider,
 		simros_strmcmd_get_transform,
+		simros_strmcmd_get_object_group_data,
 
 		simros_strmcmdintint_subscriber_start			=0x002800, 
 		simros_strmcmd_set_object_float_parameter,
@@ -944,6 +1003,7 @@ enum {	simros_strmcmdnull_start				=0,
 		simros_strmcmd_get_integer_signal,
 		simros_strmcmd_get_string_signal,
 		simros_strmcmd_get_range_finder_data,
+		simros_strmcmd_get_and_clear_string_signal,
 
 		simros_strmcmdstring_subscriber_start			=0x003800, 
 		simros_strmcmd_clear_float_signal,
@@ -953,6 +1013,7 @@ enum {	simros_strmcmdnull_start				=0,
 		simros_strmcmd_set_integer_signal,
 		simros_strmcmd_set_string_signal,
 		simros_strmcmd_set_twist_command,
+		simros_strmcmd_append_string_signal,
 
 		simros_strmcmdintstring_start			=0x004000,
 		/* from here on, commands are also identified by one additional int and one additional string */

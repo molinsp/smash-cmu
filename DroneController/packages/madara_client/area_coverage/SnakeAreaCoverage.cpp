@@ -17,7 +17,7 @@ using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
 
 // We set the search column width to roughly the width of the device, in meters.
-const double SnakeAreaCoverage::SEARCH_COLUMN_WIDTH = 0.5;
+const double SnakeAreaCoverage::SEARCH_COLUMN_WIDTH = 0.000005;
 
 // Constructors
 SnakeAreaCoverage::SnakeAreaCoverage(const SMASH::Utilities::Region& region) :
@@ -77,5 +77,6 @@ Position SnakeAreaCoverage::getNextTargetLocation()
     }
 
     // We updated it internally, but we also return our next target it so it can be used by the movement controller.
+	printf("Target location: %.10f, %.10f\n", m_targetLocation.x, m_targetLocation.y);
     return m_targetLocation;
 }

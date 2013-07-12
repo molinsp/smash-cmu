@@ -8,10 +8,10 @@
 require("Utils")
     
 -- The speed defines how far the target moves, and therefore how fast the drone will follow.
-TARGET_SPEED = 0.02        
+TARGET_SPEED = 0.0000005    -- This is rougly equivalent to 5 cm.
 
--- This margin (in meters) indicates how close to a person we use to declare that we found it.
-PERSON_FOUND_ERROR_MARGIN = 0.2
+-- This margin (in degrees) indicates how close to a person we use to declare that we found it.
+PERSON_FOUND_ERROR_MARGIN = 0.000002    -- This is roughly equivalent to 20 cm.
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Method called when the simulation starts.
@@ -27,13 +27,18 @@ function doInitialSetup()
     
     -- Control continuos movement.
     g_myTargetSetup = false
-    g_myTargetx = 0
-    g_myTargety = 0
+    g_myTargetLon = 0
+    g_myTargetLat = 0
     
     -- Setup the plugin to communicate to the network. Only do this once, for the first drone.
     if(g_myDroneId == 0) then
         simExtMadaraQuadrotorControlSetup(g_myDroneId)   
     end
+    
+    --local droneHandle = simGetObjectHandle('Quadricopter')
+    --local degreePosition = getObjectPositionInDegrees(droneHandle, -1)    
+    --simAddStatusbarMessage('Pos in degrees: ' .. degreePosition[1] .. ',' .. degreePosition[2] .. ',' .. degreePosition[3])    
+    --setObjectPositionFromDegrees(droneHandle, degreePosition)    
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,12 +66,12 @@ function loadPeoplePositions()
 			personHandle = simGetObjectHandle('Bill#' .. (i-2))
 		end
 
-        local billposition = simGetObjectPosition(personHandle, -1)
+        local billposition = getObjectPositionInDegrees(personHandle, -1)
 		g_personCoords[counter] = billposition[1]
 		g_personCoords[counter+1] = billposition[2]
 		--simAddStatusbarMessage('Person ' .. counter .. ' : ' .. g_personCoords[counter] .. ', ' .. counter+1 .. ' : '..g_personCoords[counter+1])
 		counter = counter + 2
-	end
+	end    
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,7 +102,8 @@ end
 function updateDronePosition()
 	local droneName, dronePosition = getDroneInfoFromId(g_myDroneId)
 	if(dronePosition ~= nil) then
-		simExtMadaraQuadrotorControlUpdateStatus(g_myDroneId, dronePosition[1], dronePosition[2], dronePosition[3])
+        --simAddStatusbarMessage('Sending pos ' ..tostring(dronePosition[1])..','.. tostring(dronePosition[2]))
+		simExtMadaraQuadrotorControlUpdateStatus(g_myDroneId, tostring(dronePosition[1]), tostring(dronePosition[2]), tostring(dronePosition[3]))
 	end
 end
 
@@ -130,45 +136,51 @@ end
 -- Checks if there is movement to be done, and do it.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function simulateMovementCommands()
-    local myNewX = nil
-    local myNewY = nil
+    local myNewLon = nil
+    local myNewLat = nil
     local myNewAlt = nil
     local command = ''
     
     -- We check if there is a new command.
-    command, myNewX, myNewY, myNewAlt = simExtMadaraQuadrotorControlGetNewCmd(g_myDroneId)
+    command, myNewLon, myNewLat, myNewAlt = simExtMadaraQuadrotorControlGetNewCmd(g_myDroneId)
     if(not (command == nil)) then
         --simAddStatusbarMessage('Command: '..command)    
         local isGoToCmd = simExtMadaraQuadrotorControlIsGoToCmd(command) 
         if(isGoToCmd == true) then
             -- If we have to move to a new location, move our target there so the drone will follow it. Altitude is ignored.
             g_myTargetSetup = true
-            --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') In Lua, target position found: ' .. myNewX .. ',' .. myNewY)
-            g_myTargetx = myNewX
-            g_myTargety = myNewY
+            simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') In Lua, target position found: ' .. myNewLon .. ',' .. myNewLat)            
+            g_myTargetLon = tonumber(myNewLon)
+            g_myTargetLat = tonumber(myNewLat)
+            
+            local targetPoint = {}
+            targetPoint['longitude'] = g_myTargetLon            
+            targetPoint['latitude'] = g_myTargetLat
+            cartesianPoint = getXYpos(targetPoint)
+            simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') In Lua, cartesian target position: ' ..cartesianPoint['x'] .. ',' .. cartesianPoint['y'])            
         end
     end
     
     -- Move if required.
     if(g_myTargetSetup) then
-        moveTargetToPosition(g_myTargetx, g_myTargety)
+        moveTargetTowardsPosition(g_myTargetLon, g_myTargetLat)
     end
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Moves the target to a new position, so the drone will follow it there.
 --/////////////////////////////////////////////////////////////////////////////////////////////
-function moveTargetToPosition(newPositionX, newPositionY)
+function moveTargetTowardsPosition(newPositionLon, newPositionLat)
     -- Get the current position of the target.
     local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
-    local droneTargetPosition = simGetObjectPosition(droneTargetHandle, -1)
+    local droneTargetPosition = getObjectPositionInDegrees(droneTargetHandle, -1)
     
     local speed = TARGET_SPEED
-    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Curr target position' .. droneTargetPosition[1] .. ',' .. droneTargetPosition[2]..':'..speed)
+    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Curr target position' .. (droneTargetPosition[1]) .. ',' .. ((droneTargetPosition[2]))..', speed: '..speed)
     
     -- Check if the target is already at the required X position. If not, define that the
     -- new X position is our current plus the speed we move at in the correct direction.
-    if(droneTargetPosition[1] > newPositionX) then        
+    if(droneTargetPosition[1] > newPositionLon) then        
         droneTargetPosition[1] = droneTargetPosition[1] - speed
     else
         droneTargetPosition[1] = droneTargetPosition[1] + speed
@@ -176,13 +188,14 @@ function moveTargetToPosition(newPositionX, newPositionY)
 
     -- Check if the target is already at the required Y position. If not, define that the
     -- new Y position is our current plus the speed we move at in the correct direction.    
-    if(droneTargetPosition[2] > newPositionY) then
+    if(droneTargetPosition[2] > newPositionLat) then
         droneTargetPosition[2] = droneTargetPosition[2] - speed
     else
         droneTargetPosition[2] = droneTargetPosition[2] + speed
     end
        
     -- Move the target to a new position, so the drone will follow it there.
-    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Moving target to position' .. droneTargetPosition[1] .. ',' .. droneTargetPosition[2])
-    simSetObjectPosition(droneTargetHandle, -1, droneTargetPosition)
+    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Final target position' .. (newPositionLon) .. ',' .. (newPositionLat)..', speed: '..speed)
+    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Moving target to position' .. ((droneTargetPosition[1]+79.9402)*10000) .. ',' .. ((droneTargetPosition[2]-40.4432)*1000))
+    setObjectPositionFromDegrees(droneTargetHandle, -1, droneTargetPosition)
 end

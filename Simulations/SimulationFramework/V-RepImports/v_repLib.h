@@ -24,7 +24,7 @@
 // along with V-REP.  If not, see <http://www.gnu.org/licenses/>.
 // -------------------------------------------------------------------
 //
-// This file was automatically created for V-REP release V3.0.1 on January 20th 2013
+// This file was automatically created for V-REP release V3.0.4 on July 8th 2013
 
 // Use this header to dynamically load and bind v_rep.dll and its functions (call loadVrepLibrary, unloadVrepLibrary and getVrepProcAddresses)
 
@@ -96,6 +96,7 @@ typedef simInt (__cdecl *ptrSimSetIntegerParameter)(simInt parameter,simInt intS
 typedef simInt (__cdecl *ptrSimGetIntegerParameter)(simInt parameter,simInt* intState);
 typedef simInt (__cdecl *ptrSimSetFloatingParameter)(simInt parameter,simFloat floatState);
 typedef simInt (__cdecl *ptrSimGetFloatingParameter)(simInt parameter,simFloat* floatState);
+typedef simInt (__cdecl *ptrSimSetStringParameter)(simInt parameter,const simChar* stringState);
 typedef simChar* (__cdecl *ptrSimGetStringParameter)(simInt parameter);
 typedef simInt (__cdecl *ptrSimGetObjectHandle)(const simChar* objectName);
 typedef simInt (__cdecl *ptrSimRemoveObject)(simInt objectHandle);
@@ -115,6 +116,7 @@ typedef simInt (__cdecl *ptrSimSetObjectOrientation)(simInt objectHandle,simInt 
 typedef simInt (__cdecl *ptrSimGetJointPosition)(simInt objectHandle,simFloat* position);
 typedef simInt (__cdecl *ptrSimSetJointPosition)(simInt objectHandle,simFloat position);
 typedef simInt (__cdecl *ptrSimSetJointTargetPosition)(simInt objectHandle,simFloat targetPosition);
+typedef simInt (__cdecl *ptrSimGetJointTargetPosition)(simInt objectHandle,simFloat* targetPosition);
 typedef simInt (__cdecl *ptrSimSetJointForce)(simInt objectHandle,simFloat forceOrTorque);
 typedef simInt (__cdecl *ptrSimGetPathPosition)(simInt objectHandle,simFloat* position);
 typedef simInt (__cdecl *ptrSimSetPathPosition)(simInt objectHandle,simFloat position);
@@ -247,6 +249,7 @@ typedef simInt (__cdecl *ptrSimEndDialog)(simInt genericDialogHandle);
 typedef simInt (__cdecl *ptrSimRegisterCustomLuaFunction)(const simChar* funcName,const simChar* callTips,const simInt* inputArgumentTypes,simVoid(*callBack)(struct SLuaCallBack* p));
 typedef simInt (__cdecl *ptrSimRegisterCustomLuaVariable)(const simChar* varName,const simChar* varValue);
 typedef simInt (__cdecl *ptrSimSetJointTargetVelocity)(simInt objectHandle,simFloat targetVelocity);
+typedef simInt (__cdecl *ptrSimGetJointTargetVelocity)(simInt objectHandle,simFloat* targetVelocity);
 typedef simInt (__cdecl *ptrSimSetPathTargetNominalVelocity)(simInt objectHandle,simFloat targetNominalVelocity);
 typedef simInt (__cdecl *ptrSimLockInterface)(simBool locked);
 typedef simChar* (__cdecl *ptrSimGetScriptRawBuffer)(simInt scriptHandle,simInt bufferHandle);
@@ -296,6 +299,7 @@ typedef simInt (__cdecl *ptrSimSetLightParameters)(simInt objectHandle,simInt st
 typedef simInt (__cdecl *ptrSimGetLightParameters)(simInt objectHandle,simFloat* ambientPart,simFloat* diffusePart,simFloat* specularPart);
 typedef simInt (__cdecl *ptrSimHandleVarious)();
 typedef simInt (__cdecl *ptrSimGetVelocity)(simInt shapeHandle,simFloat* linearVelocity,simFloat* angularVelocity);
+typedef simInt (__cdecl *ptrSimGetObjectVelocity)(simInt objectHandle,simFloat* linearVelocity,simFloat* angularVelocity);
 typedef simInt (__cdecl *ptrSimAddForceAndTorque)(simInt shapeHandle,const simFloat* force,const simFloat* torque);
 typedef simInt (__cdecl *ptrSimAddForce)(simInt shapeHandle,const simFloat* position,const simFloat* force);
 typedef simInt (__cdecl *ptrSimSetExplicitHandling)(simInt generalObjectHandle,int explicitFlags);
@@ -308,6 +312,7 @@ typedef simInt (__cdecl *ptrSimSetShapeColor)(simInt shapeHandle,const simChar* 
 typedef simInt (__cdecl *ptrSimGetShapeColor)(simInt shapeHandle,const simChar* colorName,simInt colorComponent,simFloat* rgbData);
 typedef simInt (__cdecl *ptrSimResetDynamicObject)(simInt objectHandle);
 typedef simInt (__cdecl *ptrSimSetJointMode)(simInt jointHandle,simInt jointMode,simInt options);
+typedef simInt (__cdecl *ptrSimGetJointMode)(simInt jointHandle,simInt* options);
 typedef simInt (__cdecl *ptrSimSerialOpen)(const simChar* portString,simInt baudRate,simVoid* reserved1,simVoid* reserved2);
 typedef simInt (__cdecl *ptrSimSerialClose)(simInt portHandle);
 typedef simInt (__cdecl *ptrSimSerialSend)(simInt portHandle,const simChar* data,simInt dataLength);
@@ -342,6 +347,9 @@ typedef simInt (__cdecl *ptrSimCreateDummy)(simFloat size,const simFloat* color)
 typedef simInt (__cdecl *ptrSimCreateForceSensor)(simInt options,const simInt* intParams,const simFloat* floatParams,const simFloat* color);
 typedef simInt (__cdecl *ptrSimCreateVisionSensor)(simInt options,const simInt* intParams,const simFloat* floatParams,const simFloat* color);
 typedef simInt (__cdecl *ptrSimCreateProximitySensor)(simInt sensorType,simInt subType,simInt options,const simInt* intParams,const simFloat* floatParams,const simFloat* color);
+typedef simInt (__cdecl *ptrSimCreatePath)(simInt attributes,const simInt* intParams,const simFloat* floatParams,const simFloat* color);
+typedef simInt (__cdecl *ptrSimInsertPathCtrlPoints)(simInt pathHandle,simInt options,simInt startIndex,simInt ptCnt,const simVoid* ptData);
+typedef simInt (__cdecl *ptrSimCutPathCtrlPoints)(simInt pathHandle,simInt startIndex,simInt ptCnt);
 typedef simInt (__cdecl *ptrSimRegisterContactCallback)(simInt(*callBack)(simInt,simInt,simInt,simInt*,simFloat*));
 typedef simInt (__cdecl *ptrSimGetObjectIntParameter)(simInt objectHandle,simInt parameterID,simInt* parameter);
 typedef simInt (__cdecl *ptrSimSetObjectIntParameter)(simInt objectHandle,simInt parameterID,simInt parameter);
@@ -404,6 +412,7 @@ typedef simInt (__cdecl *ptrSimGetShapeMassAndInertia)(simInt shapeHandle,simFlo
 typedef simInt (__cdecl *ptrSimGroupShapes)(const simInt* shapeHandles,simInt shapeCount);
 typedef simInt* (__cdecl *ptrSimUngroupShape)(simInt shapeHandle,simInt* shapeCount);
 typedef simInt (__cdecl *ptrSimConvexDecompose)(simInt shapeHandle,simInt options,const simInt* intParams,const simFloat* floatParams);
+typedef simFloat* (__cdecl *ptrSimGetIkGroupMatrix)(simInt ikGroupHandle,simInt options,simInt* matrixSize);
 
 
 typedef simInt (__cdecl *ptr_simGetContactCallbackCount)();
@@ -418,6 +427,8 @@ typedef const simVoid** (__cdecl *ptr_simGetObjectChildren)(const simVoid* objec
 typedef const simVoid* (__cdecl *ptr_simGetGeomProxyFromShape)(const simVoid* shape);
 typedef const simVoid* (__cdecl *ptr_simGetParentObject)(const simVoid* object);
 typedef const simVoid* (__cdecl *ptr_simGetObject)(int objID);
+typedef const simVoid* (__cdecl *ptr_simGetIkGroupObject)(int ikGroupID);
+typedef simInt (__cdecl *ptr_simMpHandleIkGroupObject)(const simVoid* ikGroup);
 typedef simVoid (__cdecl *ptr_simGetObjectLocalTransformation)(const simVoid* object,simFloat* pos,simFloat* quat,simBool excludeFirstJointTransformation);
 typedef simVoid (__cdecl *ptr_simSetObjectLocalTransformation)(simVoid* object,const simFloat* pos,const simFloat* quat);
 typedef simVoid (__cdecl *ptr_simSetObjectCumulativeTransformation)(simVoid* object,const simFloat* pos,const simFloat* quat,simBool keepChildrenInPlace);
@@ -438,6 +449,8 @@ typedef simFloat (__cdecl *ptr_simGetJointPosition)(const simVoid* joint);
 typedef simVoid (__cdecl *ptr_simSetDynamicMotorPositionControlTargetPosition)(const simVoid* joint,simFloat pos);
 typedef simVoid (__cdecl *ptr_simGetInitialDynamicVelocity)(const simVoid* shape,simFloat* vel);
 typedef simVoid (__cdecl *ptr_simSetInitialDynamicVelocity)(simVoid* shape,const simFloat* vel);
+typedef simVoid (__cdecl *ptr_simGetInitialDynamicAngVelocity)(const simVoid* shape,simFloat* angularVel);
+typedef simVoid (__cdecl *ptr_simSetInitialDynamicAngVelocity)(simVoid* shape,const simFloat* angularVel);
 typedef simBool (__cdecl *ptr_simGetStartSleeping)(const simVoid* shape);
 typedef simBool (__cdecl *ptr_simGetWasPutToSleepOnce)(const simVoid* shape);
 typedef simBool (__cdecl *ptr_simGetDynamicsFullRefreshFlag)(const simVoid* object);
@@ -494,8 +507,8 @@ typedef simVoid (__cdecl *ptr_simGetGravity)(simFloat* gravity);
 typedef simInt (__cdecl *ptr_simGetTimeDiffInMs)(simInt previousTime);
 typedef simBool (__cdecl *ptr_simDoEntitiesCollide)(simInt entity1ID,simInt entity2ID,simInt* cacheBuffer,simBool overrideCollidableFlagIfShape1,simBool overrideCollidableFlagIfShape2,simBool pathPlanningRoutineCalling);
 typedef simBool (__cdecl *ptr_simGetDistanceBetweenEntitiesIfSmaller)(simInt entity1ID,simInt entity2ID,simFloat* distance,simFloat* ray,simInt* cacheBuffer,simBool overrideMeasurableFlagIfNonCollection1,simBool overrideMeasurableFlagIfNonCollection2,simBool pathPlanningRoutineCalling);
-
-
+typedef simInt (__cdecl *ptr_simHandleJointControl)(const simVoid* joint,simInt auxV,const simInt* inputValuesInt,const simFloat* inputValuesFloat,simFloat* outputValues);
+typedef simInt (__cdecl *ptr_simHandleCustomContact)(simInt objHandle1,simInt objHandle2,simInt engine,simInt* dataInt,simFloat* dataFloat);
 
 extern ptrSimRunSimulator simRunSimulator;
 extern ptrSimGetSimulatorMessage simGetSimulatorMessage;
@@ -510,6 +523,7 @@ extern ptrSimSetIntegerParameter simSetIntegerParameter;
 extern ptrSimGetIntegerParameter simGetIntegerParameter;
 extern ptrSimSetFloatingParameter simSetFloatingParameter;
 extern ptrSimGetFloatingParameter simGetFloatingParameter;
+extern ptrSimSetStringParameter simSetStringParameter;
 extern ptrSimGetStringParameter simGetStringParameter;
 extern ptrSimGetObjectHandle simGetObjectHandle;
 extern ptrSimRemoveObject simRemoveObject;
@@ -529,6 +543,7 @@ extern ptrSimSetObjectOrientation simSetObjectOrientation;
 extern ptrSimGetJointPosition simGetJointPosition;
 extern ptrSimSetJointPosition simSetJointPosition;
 extern ptrSimSetJointTargetPosition simSetJointTargetPosition;
+extern ptrSimGetJointTargetPosition simGetJointTargetPosition;
 extern ptrSimSetJointForce simSetJointForce;
 extern ptrSimGetPathPosition simGetPathPosition;
 extern ptrSimSetPathPosition simSetPathPosition;
@@ -661,6 +676,7 @@ extern ptrSimEndDialog simEndDialog;
 extern ptrSimRegisterCustomLuaFunction simRegisterCustomLuaFunction;
 extern ptrSimRegisterCustomLuaVariable simRegisterCustomLuaVariable;
 extern ptrSimSetJointTargetVelocity simSetJointTargetVelocity;
+extern ptrSimGetJointTargetVelocity simGetJointTargetVelocity;
 extern ptrSimSetPathTargetNominalVelocity simSetPathTargetNominalVelocity;
 extern ptrSimLockInterface simLockInterface;
 extern ptrSimGetScriptRawBuffer simGetScriptRawBuffer;
@@ -710,6 +726,7 @@ extern ptrSimSetLightParameters simSetLightParameters;
 extern ptrSimGetLightParameters simGetLightParameters;
 extern ptrSimHandleVarious simHandleVarious;
 extern ptrSimGetVelocity simGetVelocity;
+extern ptrSimGetObjectVelocity simGetObjectVelocity;
 extern ptrSimAddForceAndTorque simAddForceAndTorque;
 extern ptrSimAddForce simAddForce;
 extern ptrSimSetExplicitHandling simSetExplicitHandling;
@@ -722,6 +739,7 @@ extern ptrSimSetShapeColor simSetShapeColor;
 extern ptrSimGetShapeColor simGetShapeColor;
 extern ptrSimResetDynamicObject simResetDynamicObject;
 extern ptrSimSetJointMode simSetJointMode;
+extern ptrSimGetJointMode simGetJointMode;
 extern ptrSimSerialPortOpen simSerialPortOpen;
 extern ptrSimSerialPortClose simSerialPortClose;
 extern ptrSimSerialPortSend simSerialPortSend;
@@ -756,6 +774,9 @@ extern ptrSimCreateDummy simCreateDummy;
 extern ptrSimCreateForceSensor simCreateForceSensor;
 extern ptrSimCreateVisionSensor simCreateVisionSensor;
 extern ptrSimCreateProximitySensor simCreateProximitySensor;
+extern ptrSimCreatePath simCreatePath;
+extern ptrSimInsertPathCtrlPoints simInsertPathCtrlPoints;
+extern ptrSimCutPathCtrlPoints simCutPathCtrlPoints;
 extern ptrSimRegisterContactCallback simRegisterContactCallback;
 extern ptrSimGetObjectIntParameter simGetObjectIntParameter;
 extern ptrSimSetObjectIntParameter simSetObjectIntParameter;
@@ -818,6 +839,7 @@ extern ptrSimGetShapeMassAndInertia simGetShapeMassAndInertia;
 extern ptrSimGroupShapes simGroupShapes;
 extern ptrSimUngroupShape simUngroupShape;
 extern ptrSimConvexDecompose simConvexDecompose;
+extern ptrSimGetIkGroupMatrix simGetIkGroupMatrix;
 
 
 extern ptr_simGetContactCallbackCount _simGetContactCallbackCount;
@@ -832,6 +854,8 @@ extern ptr_simGetObjectChildren _simGetObjectChildren;
 extern ptr_simGetGeomProxyFromShape _simGetGeomProxyFromShape;
 extern ptr_simGetParentObject _simGetParentObject;
 extern ptr_simGetObject _simGetObject;
+extern ptr_simGetIkGroupObject _simGetIkGroupObject;
+extern ptr_simMpHandleIkGroupObject _simMpHandleIkGroupObject;
 extern ptr_simGetObjectLocalTransformation _simGetObjectLocalTransformation;
 extern ptr_simSetObjectLocalTransformation _simSetObjectLocalTransformation;
 extern ptr_simSetObjectCumulativeTransformation _simSetObjectCumulativeTransformation;
@@ -852,6 +876,8 @@ extern ptr_simGetJointPosition _simGetJointPosition;
 extern ptr_simSetDynamicMotorPositionControlTargetPosition _simSetDynamicMotorPositionControlTargetPosition;
 extern ptr_simGetInitialDynamicVelocity _simGetInitialDynamicVelocity;
 extern ptr_simSetInitialDynamicVelocity _simSetInitialDynamicVelocity;
+extern ptr_simGetInitialDynamicAngVelocity _simGetInitialDynamicAngVelocity;
+extern ptr_simSetInitialDynamicAngVelocity _simSetInitialDynamicAngVelocity;
 extern ptr_simGetStartSleeping _simGetStartSleeping;
 extern ptr_simGetWasPutToSleepOnce _simGetWasPutToSleepOnce;
 extern ptr_simGetDynamicsFullRefreshFlag _simGetDynamicsFullRefreshFlag;
@@ -908,6 +934,8 @@ extern ptr_simGetGravity _simGetGravity;
 extern ptr_simGetTimeDiffInMs _simGetTimeDiffInMs;
 extern ptr_simDoEntitiesCollide _simDoEntitiesCollide;
 extern ptr_simGetDistanceBetweenEntitiesIfSmaller _simGetDistanceBetweenEntitiesIfSmaller;
+extern ptr_simHandleJointControl _simHandleJointControl;
+extern ptr_simHandleCustomContact _simHandleCustomContact;
 
 #endif // V_REP_LIBRARY
 

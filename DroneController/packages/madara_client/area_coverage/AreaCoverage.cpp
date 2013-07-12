@@ -54,6 +54,7 @@ Region AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
     amountOfLines;
   double cellSizeY = (grid.bottomRightCorner.y - grid.topLeftCorner.y) /
     amountOfColumns;
+  printf("Cell size: %.10f, %.10f \n", cellSizeX, cellSizeY);
 
   // Calculate my line and column to find my cell, based on my idx.
   int deviceLine = deviceIdx % amountOfLines;
@@ -64,11 +65,13 @@ Region AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
   Position deviceCellTopLeftCorner;
   deviceCellTopLeftCorner.x = grid.topLeftCorner.x + (deviceLine*cellSizeX);
   deviceCellTopLeftCorner.y = grid.topLeftCorner.y + (deviceColumn*cellSizeY);
+  printf("Starting point: %.10f, %.10f \n", deviceCellTopLeftCorner.x, deviceCellTopLeftCorner.y);
 
   // Calculate the ending position based on the starting one and the cell's size
   SMASH::Utilities::Position deviceCellBottomRightCorner;
   deviceCellBottomRightCorner.x = deviceCellTopLeftCorner.x + cellSizeX;
   deviceCellBottomRightCorner.y = deviceCellTopLeftCorner.y + cellSizeY;
+  printf("End point: %.10f, %.10f \n", deviceCellBottomRightCorner.x, deviceCellBottomRightCorner.y);
 
   // Reset the search; indicate that we have not started searching or moving on
   // any axis yet.

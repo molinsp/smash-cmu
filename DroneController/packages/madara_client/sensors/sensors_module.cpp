@@ -7,6 +7,7 @@
  
 #include "sensors/sensors_module.h"
 #include "platform_sensors.h"
+#include <iomanip>		// std::setprecision
 
 #define TASK_COUNT		1
 #define EVALUATE_SENSORS	0
@@ -38,7 +39,7 @@ Madara::Knowledge_Record read_gps_sensor (Madara::Knowledge_Engine::Function_Arg
 	struct madara_gps gps;
 	read_gps(&gps);
 	std::stringstream buffer;
-	buffer << gps.latitude << "," << gps.longitude;
+	buffer << std::setprecision(10) << gps.latitude << "," << gps.longitude;
 	variables.set(".location", buffer.str());
 	variables.set(".location.gps.locks", Madara::Knowledge_Record::Integer(gps.num_sats));
 	

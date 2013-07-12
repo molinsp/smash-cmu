@@ -49,8 +49,8 @@ public:
     void updateNetworkStatus(const int& numberOfDrones);
 
     // Bridge methods.
-    void setupBridgeRequest(int bridgeId, SMASH::Utilities::Position sourceTopLeft, SMASH::Utilities::Position sourceBottomRight, 
-                                          SMASH::Utilities::Position sinkTopLeft, SMASH::Utilities::Position sinkBottomRight);
+    void setupBridgeRequest(int bridgeId, SMASH::Utilities::Region startRegion, 
+                                          SMASH::Utilities::Region endRegion);
 
     // Area coverage methods.
     void setNewSearchArea(int searchAreaId, SMASH::Utilities::Region areaBoundaries);

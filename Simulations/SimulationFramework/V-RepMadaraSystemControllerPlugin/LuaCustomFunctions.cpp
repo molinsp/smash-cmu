@@ -88,14 +88,14 @@ void registerMadaraSystemControllerBridgeRequestLuaCallback()
 {
     // Define the LUA function input parameters.
     int inArgs[] = {9, sim_lua_arg_int,					    // Bridge ID.
-                       sim_lua_arg_float,					// The X position of the top left corner of the source.
-                       sim_lua_arg_float,					// The Y position of the top left corner of the source.
-                       sim_lua_arg_float,					// The X position of the bottom right corner of the source.
-                       sim_lua_arg_float,					// The Y position of the bottom right corner of the source.
-                       sim_lua_arg_float,					// The X position of the top left corner of the sink.
-                       sim_lua_arg_float,					// The Y position of the top left corner of the sink.
-                       sim_lua_arg_float,					// The X position of the bottom right corner of the sink.
-                       sim_lua_arg_float,					// The Y position of the bottom right corner of the sink.
+                       sim_lua_arg_string,					// The X position of the top left corner of the source.
+                       sim_lua_arg_string,					// The Y position of the top left corner of the source.
+                       sim_lua_arg_string,					// The X position of the bottom right corner of the source.
+                       sim_lua_arg_string,					// The Y position of the bottom right corner of the source.
+                       sim_lua_arg_string,					// The X position of the top left corner of the sink.
+                       sim_lua_arg_string,					// The Y position of the top left corner of the sink.
+                       sim_lua_arg_string,					// The X position of the bottom right corner of the sink.
+                       sim_lua_arg_string,					// The Y position of the bottom right corner of the sink.
 
                    };
 
@@ -139,49 +139,49 @@ void simExtMadaraSystemControllerBridgeRequest(SLuaCallBack* p)
     }
 
     // Check we have the correct type of arguments.
-    if ( p->inputArgTypeAndSize[1*2+0] != sim_lua_arg_float )
+    if ( p->inputArgTypeAndSize[1*2+0] != sim_lua_arg_string )
     {
-        simSetLastError("simExtMadaraSystemControllerBridgeRequest", "sourceTopleftX parameter is not an int.");
+        simSetLastError("simExtMadaraSystemControllerBridgeRequest", "sourceTopleftX parameter is not an float.");
         paramsOk = false;
     }
 
     // Check we have the correct type of arguments.
-    if ( p->inputArgTypeAndSize[2*2+0] != sim_lua_arg_float )
+    if ( p->inputArgTypeAndSize[2*2+0] != sim_lua_arg_string )
     {
-        simSetLastError("simExtMadaraSystemControllerBridgeRequest", "sourceTopleftY parameter is not an int.");
+        simSetLastError("simExtMadaraSystemControllerBridgeRequest", "sourceTopleftY parameter is not an float.");
         paramsOk = false;
     }
 
     // Check we have the correct type of arguments.
-    if ( p->inputArgTypeAndSize[3*2+0] != sim_lua_arg_float )
+    if ( p->inputArgTypeAndSize[3*2+0] != sim_lua_arg_string )
     {
-        simSetLastError("simExtMadaraSystemControllerBridgeRequest", "sourceBottomrightX parameter is not an int.");
+        simSetLastError("simExtMadaraSystemControllerBridgeRequest", "sourceBottomrightX parameter is not an float.");
         paramsOk = false;
     }
 
     // Check we have the correct type of arguments.
-    if ( p->inputArgTypeAndSize[4*2+0] != sim_lua_arg_float )
+    if ( p->inputArgTypeAndSize[4*2+0] != sim_lua_arg_string )
     {
-        simSetLastError("simExtMadaraSystemControllerBridgeRequest", "sourceBottomrightY parameter is not an int.");
+        simSetLastError("simExtMadaraSystemControllerBridgeRequest", "sourceBottomrightY parameter is not an float.");
         paramsOk = false;
     }
 
     // Check we have the correct type of arguments.
-    if ( p->inputArgTypeAndSize[5*2+0] != sim_lua_arg_float )
+    if ( p->inputArgTypeAndSize[5*2+0] != sim_lua_arg_string )
     {
-        simSetLastError("simExtMadaraSystemControllerBridgeRequest", "sinkTopleftX parameter is not an int.");
+        simSetLastError("simExtMadaraSystemControllerBridgeRequest", "sinkTopleftX parameter is not an float.");
         paramsOk = false;
     } 
     // Check we have the correct type of arguments.
-    if ( p->inputArgTypeAndSize[6*2+0] != sim_lua_arg_float )
+    if ( p->inputArgTypeAndSize[6*2+0] != sim_lua_arg_string )
     {
-        simSetLastError("simExtMadaraSystemControllerBridgeRequest", "sinkTopleftY parameter is not an int.");
+        simSetLastError("simExtMadaraSystemControllerBridgeRequest", "sinkTopleftY parameter is not an float.");
         paramsOk = false;
     } 
     // Check we have the correct type of arguments.
-    if ( p->inputArgTypeAndSize[7*2+0] != sim_lua_arg_float )
+    if ( p->inputArgTypeAndSize[7*2+0] != sim_lua_arg_string )
     {
-        simSetLastError("simExtMadaraSystemControllerBridgeRequest", "sinkBottomrightX parameter is not an int.");
+        simSetLastError("simExtMadaraSystemControllerBridgeRequest", "sinkBottomrightX parameter is not an float.");
         paramsOk = false;
     }
 
@@ -198,26 +198,45 @@ void simExtMadaraSystemControllerBridgeRequest(SLuaCallBack* p)
         // Get the simple input values.
         int bridgeId = p->inputInt[0];
 
-        // Get the float values.
-        int floatArrayIdx = 0;
-        Position sourceTopLeft(p->inputFloat[floatArrayIdx+0], p->inputFloat[floatArrayIdx+1]);
-        Position sourceBottomRight(p->inputFloat[floatArrayIdx+2], p->inputFloat[floatArrayIdx+3]);
-        Position sinkTopLeft(p->inputFloat[floatArrayIdx+4], p->inputFloat[floatArrayIdx+5]);
-        Position sinkBottomRight(p->inputFloat[floatArrayIdx+6], p->inputFloat[floatArrayIdx+7]);
+		// Get the values from the concatenated string with all of them.
+		// NOTE: these parameters are sent as strings since there seems to be problems with large double numbers between Lua and C++ in Vrep.
+		std::string sourceTopLeftX(p->inputChar);
+		std::string sourceTopLeftY(p->inputChar+sourceTopLeftX.length()+1);
+		std::string sourceBotRightX(p->inputChar+sourceTopLeftX.length()+sourceTopLeftY.length()+2);
+		std::string sourceBotRightY(p->inputChar+sourceTopLeftX.length()+sourceTopLeftY.length()+sourceBotRightX.length()+3);
+
+		int sinkPosStart = sourceTopLeftX.length()+sourceTopLeftY.length()+sourceBotRightX.length()+sourceBotRightY.length()+4;
+		std::string sinkTopLeftX(p->inputChar+sinkPosStart);
+		std::string sinkTopLeftY(p->inputChar+sinkPosStart+sinkTopLeftX.length()+1);
+		std::string sinkBotRightX(p->inputChar+sinkPosStart+sinkTopLeftX.length()+sinkTopLeftY.length()+2);
+		std::string sinkBotRightY(p->inputChar+sinkPosStart+sinkTopLeftX.length()+sinkTopLeftY.length()+sinkBotRightX.length()+3);
+
+		// Create positions based on the received parameters, turning the strings into doubles.
+        Region startRegion;
+        startRegion.topLeftCorner.x = atof(sourceTopLeftX.c_str());
+        startRegion.topLeftCorner.y = atof(sourceTopLeftY.c_str());
+        startRegion.bottomRightCorner.x = atof(sourceBotRightX.c_str());
+        startRegion.bottomRightCorner.y = atof(sourceBotRightY.c_str());
+
+        Region endRegion;
+        endRegion.topLeftCorner.x = atof(sourceTopLeftX.c_str());
+        endRegion.topLeftCorner.y = atof(sourceTopLeftY.c_str());
+        endRegion.bottomRightCorner.x = atof(sourceBotRightX.c_str());
+        endRegion.bottomRightCorner.y = atof(sourceBotRightY.c_str());
 
         // For debugging, print out what we received.
         std::stringstream sstm; 
         sstm << "Values received inside simExtMadaraSystemControllerBridgeRequest function: bridgeId:" << bridgeId << ", "
-            << " (" << sourceTopLeft.x << "," << sourceTopLeft.y << ")"
-            << " (" << sourceBottomRight.x << "," << sourceBottomRight.y << ")"
-            << " (" << sinkTopLeft.x << "," << sinkTopLeft.y << ")"
-            << " (" << sinkBottomRight.x << "," << sinkBottomRight.y << ")"
+            << " (" << startRegion.topLeftCorner.x << "," << startRegion.topLeftCorner.y << ")"
+            << " (" << startRegion.bottomRightCorner.x << "," << startRegion.bottomRightCorner.y << ")"
+            << " (" << endRegion.topLeftCorner.x << "," << endRegion.topLeftCorner.y << ")"
+            << " (" << endRegion.bottomRightCorner.x << "," << endRegion.bottomRightCorner.y << ")"
             << std::endl;
         std::string message = sstm.str();
         simAddStatusbarMessage(message.c_str());
 
         // Make the controller set up the bridge request through the knowledge base.
-        madaraController->setupBridgeRequest(bridgeId, sourceTopLeft, sourceBottomRight, sinkTopLeft, sinkBottomRight);
+        madaraController->setupBridgeRequest(bridgeId, startRegion, endRegion);
     }
 
     simLockInterface(0);
@@ -283,10 +302,10 @@ void registerMadaraSystemControllerSetupSearchAreaLuaCallback()
 {
     // Define the LUA function input parameters.
     int inArgs[] = {5, sim_lua_arg_int,					      // Area ID.
-                       sim_lua_arg_float,					  // The X position of the top left corner.
-                       sim_lua_arg_float,					  // The Y position of the top left corner.
-                       sim_lua_arg_float,					  // The X position of the bottom right corner.
-                       sim_lua_arg_float					  // The Y position of the bottom right corner.
+                       sim_lua_arg_string,					  // The X position of the top left corner.
+                       sim_lua_arg_string,					  // The Y position of the top left corner.
+                       sim_lua_arg_string,					  // The X position of the bottom right corner.
+                       sim_lua_arg_string					  // The Y position of the bottom right corner.
                    };
 
     // Register the simExtGetPositionInBridge function.
@@ -323,28 +342,28 @@ void simExtMadaraSystemControllerSetupSearchArea(SLuaCallBack* p)
     }
 
     // Check we have the correct type of arguments.
-    if ( p->inputArgTypeAndSize[1*2+0] != sim_lua_arg_float )
+    if ( p->inputArgTypeAndSize[1*2+0] != sim_lua_arg_string )
     {
         simSetLastError("simExtMadaraSystemControllerSetupSearchArea", "X1 parameter is not a float.");
         paramsOk = false;
     }
 
     // Check we have the correct type of arguments.
-    if ( p->inputArgTypeAndSize[2*2+0] != sim_lua_arg_float )
+    if ( p->inputArgTypeAndSize[2*2+0] != sim_lua_arg_string )
     {
         simSetLastError("simExtMadaraSystemControllerSetupSearchArea", "Y1 parameter is not a float.");
         paramsOk = false;
     }
 
     // Check we have the correct type of arguments.
-    if ( p->inputArgTypeAndSize[3*2+0] != sim_lua_arg_float )
+    if ( p->inputArgTypeAndSize[3*2+0] != sim_lua_arg_string )
     {
         simSetLastError("simExtMadaraSystemControllerSetupSearchArea", "X2 parameter is not a float");
         paramsOk = false;
     }
 
     // Check we have the correct type of arguments.
-    if ( p->inputArgTypeAndSize[4*2+0] != sim_lua_arg_float )
+    if ( p->inputArgTypeAndSize[4*2+0] != sim_lua_arg_string )
     {
         simSetLastError("simExtMadaraSystemControllerSetupSearchArea", "Y2 parameter is not a float.");
         paramsOk = false;
@@ -355,20 +374,30 @@ void simExtMadaraSystemControllerSetupSearchArea(SLuaCallBack* p)
     { 
         // Get the simple input values.
         int searchAreaId = p->inputInt[0];
+
+		// Get the values from the concatenated string with all of them.
+		// NOTE: these parameters are sent as strings since there seems to be problems with large double numbers between Lua and C++ in Vrep.
+		std::string topLeftX(p->inputChar);
+		std::string topLeftY(p->inputChar+topLeftX.length()+1);
+		std::string botRightX(p->inputChar+topLeftX.length()+topLeftY.length()+2);
+		std::string botRightY(p->inputChar+topLeftX.length()+topLeftY.length()+botRightX.length()+3);
+
+		// Create a region based on the received parameters, turning the strings into doubles.
         Region searchAreaRegion;
-        searchAreaRegion.topLeftCorner.x = p->inputFloat[0];
-        searchAreaRegion.topLeftCorner.y = p->inputFloat[1];
-        searchAreaRegion.bottomRightCorner.x = p->inputFloat[2];
-        searchAreaRegion.bottomRightCorner.y = p->inputFloat[3];
+        searchAreaRegion.topLeftCorner.x = atof(topLeftX.c_str());
+        searchAreaRegion.topLeftCorner.y = atof(topLeftY.c_str());
+        searchAreaRegion.bottomRightCorner.x = atof(botRightX.c_str());
+        searchAreaRegion.bottomRightCorner.y = atof(botRightY.c_str());
 
         // For debugging, print out what we received.
-        std::stringstream sstm; 
-        sstm << "Values received inside simExtMadaraSystemControllerSetupSearchArea function: area id:" << searchAreaId << std::endl;
-        std::string message = sstm.str();
-        simAddStatusbarMessage(message.c_str());
+        char message[500];
+		sprintf(message, "In SetupSearchArea: %d; (x,y) = %.20f,%.20f, x2,y2 = %.20f,%.20f \n", 
+				searchAreaId,	searchAreaRegion.topLeftCorner.x,searchAreaRegion.topLeftCorner.y, 
+								searchAreaRegion.bottomRightCorner.x, searchAreaRegion.bottomRightCorner.y);
+        simAddStatusbarMessage(message);
 
         // Tell the controller to actually set up this area.
-        madaraController->setNewSearchArea(searchAreaId, searchAreaRegion);
+        madaraController->setNewSearchArea(0, searchAreaRegion);
     }
 
     simLockInterface(0);

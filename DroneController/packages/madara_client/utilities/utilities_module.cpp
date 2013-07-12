@@ -6,6 +6,8 @@
  *********************************************************************/
  
 #include "utilities/utilities_module.h"
+#include <iomanip>		// std::setprecision
+#include "Position.h"
 
 Madara::Knowledge_Record inflate_coords (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
@@ -43,7 +45,8 @@ Madara::Knowledge_Record inflate_coords (Madara::Knowledge_Engine::Function_Argu
 			case 2: nameBuffer << ".altitude"; break;
 			default: nameBuffer << ".null"; break;
 		}
-		variables.set(nameBuffer.str(), current_value);
+		//printf("Curr string: %s; value %.10f\n",nameBuffer.str().c_str(), current_value);
+		variables.set(nameBuffer.str(), NUM_TO_STR(current_value));
 	}
 	return Madara::Knowledge_Record::Integer(1);
 }
@@ -62,7 +65,7 @@ Madara::Knowledge_Record inflate_coord_array_to_local (Madara::Knowledge_Engine:
 		if (STRING_ENDS_WITH(iter->first, std::string(".location")))
 		{
 			
-			evalBuffer << "." << iter->first << "=" << iter->first << ";inflate_coords(." << iter->first << ",'." << iter->first << "');";
+			evalBuffer << std::setprecision(10) << "." << iter->first << "=" << iter->first << ";inflate_coords(." << iter->first << ",'." << iter->first << "');";
 			variables.evaluate(evalBuffer.str());
 		}
 		
