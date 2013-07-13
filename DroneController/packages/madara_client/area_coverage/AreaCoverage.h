@@ -58,6 +58,12 @@ public:
    */
   virtual Region initialize(int deviceIdx, const Region& grid, int numDrones) = 0;
 
+  /**
+   * Query if algorithm has reached final target
+   * @return  false, default to algorithm never finishes
+   */
+  virtual bool hasReachedFinalTarget();
+
 protected:
   /**
    * Flag to indicate if we started searching or not.

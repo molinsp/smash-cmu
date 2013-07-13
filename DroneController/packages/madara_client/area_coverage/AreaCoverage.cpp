@@ -26,6 +26,10 @@ AreaCoverage::AreaCoverage(const Region& region) : m_started(false),
 // Destructor
 AreaCoverage::~AreaCoverage() {}
 
+// Query if algorithm has reached final target
+// @return  false, default to algorithm never finishes
+bool AreaCoverage::hasReachedFinalTarget() { return false; }
+
 // Calculates the grid that will be used for area coverage, and returns the
 // boundaries of the cell for the given device to cover.
 Region AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
@@ -79,6 +83,7 @@ Region AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
   m_searchRegion = deviceCell;
   return deviceCell;
 }
+
 
 // Returns a vector with the two middle divisors of a number (the ones closest
 // to one another).

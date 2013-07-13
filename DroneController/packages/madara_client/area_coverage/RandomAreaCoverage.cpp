@@ -6,8 +6,8 @@
  ******************************************************************************/
 
 /*******************************************************************************
- * RandomAreCoverage.cpp - Declares the structures and methods for the algorithm
- * to perform a snaking area coverage search.
+ * RandomAreaCoverage.cpp - Declares the structures and methods for the
+ * algorithm to perform a snaking area coverage search.
  ******************************************************************************/
 
 #include "RandomAreaCoverage.h"

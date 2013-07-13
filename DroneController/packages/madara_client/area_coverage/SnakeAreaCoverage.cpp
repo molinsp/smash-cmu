@@ -79,3 +79,11 @@ Position SnakeAreaCoverage::getNextTargetLocation()
     // We updated it internally, but we also return our next target it so it can be used by the movement controller.
     return m_targetLocation;
 }
+
+// Query if algorithm has reached final target
+// @return  true if final target has been reached, false otherwise
+bool SnakeAreaCoverage::hasReachedFinalTarget()
+{
+  return ((m_targetLocation.x == m_searchRegion.bottomRightCorner.x) &&
+          (m_targetLocation.y == m_searchRegion.bottomRightCorner.y));
+}

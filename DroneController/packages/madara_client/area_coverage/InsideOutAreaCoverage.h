@@ -6,12 +6,12 @@
  ******************************************************************************/
 
 /*******************************************************************************
- * RandomAreaCoverage.cpp - Declares the structures and methods for the
- * algorithm to perform a snaking area coverage search.
+ * InsideOutAreaCoverage.h - Declares the structures and methods for the
+ * algorithm to perform an inside out area search
  ******************************************************************************/
 
-#ifndef _RANDOM_AREA_COVERAGE_H
-#define _RANDOM_AREA_COVERAGE_H
+#ifndef _INSIDE_OUT_AREA_COVERAGE_H_
+#define _INSIDE_OUT_AREA_COVERAGE_H_
 
 #include "utilities/Position.h"
 #include "AreaCoverage.h"
@@ -22,19 +22,24 @@ namespace SMASH { namespace AreaCoverage {
 /**
  * @brief Represents a snaking area coverage algorithm.
  **/
-class RandomAreaCoverage : public SMASH::AreaCoverage::AreaCoverage
+class InsideOutAreaCoverage : public SMASH::AreaCoverage::AreaCoverage
 {
 public:
   /**
+   * Use fourway directions
+   */
+  enum direction_t { NORTH, SOUTH, EAST, WEST };
+
+  /**
    * Constructors
    */
-  RandomAreaCoverage(const Utilities::Region& region = Utilities::Region(),
-    bool split = true, int seed = -1);
+  InsideOutAreaCoverage(const Utilities::Region& region = Utilities::Region(),
+    float delta = 0.5, direction_t heading = EAST, bool clockwise = false);
 
   /**
    * Destructor
    */
-  virtual ~RandomAreaCoverage();
+  virtual ~InsideOutAreaCoverage();
 
   /**
    * Initialize the area for the drone
@@ -57,15 +62,26 @@ public:
    */
   virtual SMASH::Utilities::Position getNextTargetLocation();
 
-protected:
-  // split the area into separate regions for each drone
-  bool m_split;
-
   /**
-   * Returns a random float between lower and upper
+   * Query if algorithm has reached final target
+   * @return  false, default to algorithm never finishes
    */
-  double frand(const double& lower, const double& upper);
-}; // class RandomAreaCoverage
+  virtual bool hasReachedFinalTarget();
+
+protected:
+  // distance between two waypoints
+  int m_iteration;
+
+  // Offset from previous row/column
+  float m_delta;
+
+  // rotation style
+  bool m_clockwise;
+
+  // current heading
+  direction_t m_heading;
+}; // class InsideOutAreaCoverage
 }} // namespace SMASH::AreaCoverage
 
-#endif // _RANDOM_AREA_COVERAGE_H_
+#endif // _INSIDE_OUT_AREA_COVERAGE_H_
+
