@@ -310,7 +310,7 @@ Madara::Knowledge_Record madaraReachedFinalTarget(Madara::Knowledge_Engine::Func
              Madara::Knowledge_Engine::Variables &variables)
 {
     // change to new coverage algorithm
-    if(m_coverageAlgorithm->hasReachedFinalTarget())
+    if(m_coverageAlgorithm->isTargetingFinalWaypoint())
       return Madara::Knowledge_Record(1.0);
     return Madara::Knowledge_Record(0.0);
 }

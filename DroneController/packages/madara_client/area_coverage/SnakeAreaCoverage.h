@@ -61,7 +61,7 @@ public:
    * Query if algorithm has reached final target
    * @return  true if final target has been reached, false otherwise
    */
-  virtual bool hasReachedFinalTarget();
+  virtual bool isTargetingFinalWaypoint();
 
 protected:
   // The width of each column the device will move over when searching the area.

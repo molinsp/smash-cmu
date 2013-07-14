@@ -66,7 +66,7 @@ public:
    * Query if algorithm has reached final target
    * @return  false, default to algorithm never finishes
    */
-  virtual bool hasReachedFinalTarget();
+  virtual bool isTargetingFinalWaypoint();
 
 protected:
   // distance between two waypoints

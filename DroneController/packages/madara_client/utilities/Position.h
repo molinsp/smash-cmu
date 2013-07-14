@@ -82,10 +82,10 @@ namespace SMASH
 
           bool contains(const Position& test)
           {
-            return ((test.x > topLeftCorner.x) ||
-                    (test.x < bottomRightCorner.x) ||
-                    (test.y > bottomRightCorner.y) ||
-                    (test.y < topLeftCorner.y));
+            return ((test.x <= topLeftCorner.x) &&
+                    (test.x >= bottomRightCorner.x) &&
+                    (test.y <= bottomRightCorner.y) &&
+                    (test.y >= topLeftCorner.y));
           }
         };
     }

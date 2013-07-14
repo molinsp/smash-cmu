@@ -25,13 +25,7 @@ using namespace SMASH::AreaCoverage;
 // Constructor
 InsideOutAreaCoverage::InsideOutAreaCoverage(const Utilities::Region& region,
   float delta, direction_t heading, bool clockwise) : AreaCoverage(region),
-  m_delta(delta), m_clockwise(clockwise), m_heading(heading), m_iteration(2)
-{
-  cerr << "delta:   " << m_delta << " " << delta << endl;
-  cerr << "heading: " << m_heading << " " << heading << endl;
-  cerr << "clock:   " << m_clockwise << " " << clockwise << endl;
-  //m_delta = delta; m_clockwise = clockwise; m_heading = heading;
-}
+  m_delta(delta), m_clockwise(clockwise), m_heading(heading), m_iteration(2) {}
 
 // Destructor
 InsideOutAreaCoverage::~InsideOutAreaCoverage() {}
@@ -127,7 +121,7 @@ Position InsideOutAreaCoverage::getNextTargetLocation()
 
 // Query if algorithm has reached final target
 // @return  false, default to algorithm never finishes
-bool InsideOutAreaCoverage::hasReachedFinalTarget()
+bool InsideOutAreaCoverage::isTargetingFinalWaypoint()
 {
-  return m_searchRegion.contains(m_targetLocation);
+  return !m_searchRegion.contains(m_targetLocation);
 }
