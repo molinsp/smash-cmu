@@ -12,12 +12,13 @@
 
 #include "InsideOutAreaCoverage.h"
 
+#include "utilities/Position.h"
+#include "utilities/CommonMadaraVariables.h"
+
 #include <iostream>
 using std::cerr;
 using std::endl;
 
-#include "utilities/Position.h"
-#include "AreaCoverage.h"
 
 using namespace SMASH::Utilities;
 using namespace SMASH::AreaCoverage;

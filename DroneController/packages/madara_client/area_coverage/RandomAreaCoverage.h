@@ -57,6 +57,12 @@ public:
    */
   virtual SMASH::Utilities::Position getNextTargetLocation();
 
+  /**
+   * Query if algorithm has reached final target
+   * @return  true if final target has been reached, false otherwise
+   */
+  virtual bool isTargetingFinalWaypoint();
+
 protected:
   // split the area into separate regions for each drone
   bool m_split;

@@ -11,6 +11,9 @@
  ******************************************************************************/
 
 #include "SnakeAreaCoverage.h"
+
+#include "utilities/CommonMadaraVariables.h"
+
 #include <cmath>
 
 using namespace SMASH::AreaCoverage;
@@ -85,6 +88,8 @@ Position SnakeAreaCoverage::getNextTargetLocation()
 // @return  true if final target has been reached, false otherwise
 bool SnakeAreaCoverage::isTargetingFinalWaypoint()
 {
-  return ((m_targetLocation.x == m_searchRegion.bottomRightCorner.x) &&
-          (m_targetLocation.y == m_searchRegion.bottomRightCorner.y));
+  return (fabs(m_targetLocation.x - m_searchRegion.bottomRightCorner.x) <
+                    (SEARCH_COLUMN_WIDTH / 2)) &&
+         (fabs(m_targetLocation.y - m_searchRegion.bottomRightCorner.y) <
+                    (SEARCH_COLUMN_WIDTH / 2));
 }

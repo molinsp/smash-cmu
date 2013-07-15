@@ -177,21 +177,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
         ");"
     );
 
-    // Returns 1 if we are closer than MV_ACCURACY to the final coverage target location. 
-    knowledge.define_function(MF_FINAL_TARGET_REACHED, 
-        "("
-			"(" MF_TARGET_REACHED "(" MV_DEVICE_LAT("{.id}") "," MV_MY_CELL_BOT_RIGHT_LAT "," MV_DEVICE_LON("{.id}") "," MV_MY_CELL_BOT_RIGHT_LON ")" ")"
-           // "("
-           //     "((" MV_DEVICE_LAT("{.id}") " - " MV_MY_CELL_BOT_RIGHT_LAT ") < " MV_ACCURACY ") && "
-           //     "((" MV_MY_CELL_BOT_RIGHT_LAT " - " MV_DEVICE_LAT("{.id}") ") < " MV_ACCURACY ") "
-           // ")"
-           // " && "
-           // "("
-           // "((" MV_DEVICE_LON("{.id}") " - " MV_MY_CELL_BOT_RIGHT_LON ") < " MV_ACCURACY ") && "
-           //     "((" MV_MY_CELL_BOT_RIGHT_LON " - " MV_DEVICE_LON("{.id}") ") < " MV_ACCURACY ") "
-           // ")"
-        ");"
-    );
+    knowledge.define_function(MF_FINAL_TARGET_REACHED, madaraReachedFinalTarget);
 
     // Returns 1 if we are closer than MV_ACCURACY to certain target location. 
     knowledge.define_function(MF_TARGET_REACHED, madaraTargetReached);

@@ -12,6 +12,8 @@
 
 #include "RandomAreaCoverage.h"
 
+#include "utilities/CommonMadaraVariables.h"
+
 using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
 
@@ -33,6 +35,10 @@ RandomAreaCoverage::RandomAreaCoverage(const SMASH::Utilities::Region& region,
 // Destructor
 RandomAreaCoverage::~RandomAreaCoverage() {}
 
+
+// Query if algorithm has reached final target
+// @return  true if final target has been reached, false otherwise
+bool RandomAreaCoverage::isTargetingFinalWaypoint() { return false; }
 
 // Initialize the area for the drone
 Region RandomAreaCoverage::initialize(int deviceIdx, const Region& grid,

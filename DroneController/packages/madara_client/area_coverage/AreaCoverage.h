@@ -15,6 +15,8 @@
 #include "utilities/utilities_module.h"
 #include "utilities/Position.h"
 
+#include "madara/knowledge_engine/Knowledge_Base.h"
+
 #include <vector>
 using std::vector;
 
@@ -60,9 +62,9 @@ public:
 
   /**
    * Query if algorithm has reached final target
-   * @return  false, default to algorithm never finishes
+   * @return  true if final target has been reached, false otherwise
    */
-  virtual bool isTargetingFinalWaypoint();
+  virtual bool isTargetingFinalWaypoint() = 0;
 
 protected:
   /**
