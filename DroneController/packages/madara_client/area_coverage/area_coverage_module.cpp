@@ -21,7 +21,7 @@
 using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
 
-#define REACHED_ACCURACY	                0.0000060                      // Delta (in degrees) to use when checking if we have reached a location.
+#define REACHED_ACCURACY	                0.0000050                      // Delta (in degrees) to use when checking if we have reached a location.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Madara Variable Definitions
@@ -227,13 +227,15 @@ Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::Function
 	printf("Curr and target lats are %.10f,%.10f, and diff is %.10f\n", currLat, targetLat, (currLat-targetLat));
 	printf("Curr and target lats are %.10f,%.10f, and diff is %.10f\n", currLon, targetLon, (currLon-targetLon));
 
-	if(abs(currLat - targetLat) < REACHED_ACCURACY &&
-	   abs(currLon - targetLon) < REACHED_ACCURACY)
+	if(fabs(currLat - targetLat) < REACHED_ACCURACY &&
+	   fabs(currLon - targetLon) < REACHED_ACCURACY)
 	{
+    printf("HAS reached target\n");
 		return Madara::Knowledge_Record(1.0);
 	}
 	else
 	{
+    printf("HAS NOT reached target\n");
 		return Madara::Knowledge_Record(0.0);
 	}
 }
