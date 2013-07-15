@@ -21,7 +21,7 @@ void registerMadaraSystemControllerSetupLuaCallback()
     // Define the LUA function input parameters.
     int inArgs[] = {3, sim_lua_arg_int,					      // My ID.
                        sim_lua_arg_float,					  // Radio range.
-                       sim_lua_arg_float,					  // Min altitude.
+                       sim_lua_arg_float,					  // Min alti tude.
                    };
 
     // Register the simExtGetPositionInBridge function.

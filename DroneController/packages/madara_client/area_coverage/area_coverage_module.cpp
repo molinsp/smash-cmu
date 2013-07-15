@@ -228,13 +228,15 @@ Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::Function
 	printf("Curr and target lats are %.10f,%.10f, and diff is %.10f\n", currLat, targetLat, (currLat-targetLat));
 	printf("Curr and target lats are %.10f,%.10f, and diff is %.10f\n", currLon, targetLon, (currLon-targetLon));
 
-	if(abs(currLat - targetLat) < REACHED_ACCURACY &&
-	   abs(currLon - targetLon) < REACHED_ACCURACY)
+	if(fabs(currLat - targetLat) < REACHED_ACCURACY &&
+	   fabs(currLon - targetLon) < REACHED_ACCURACY)
 	{
+		printf("HAS reached target\n");
 		return Madara::Knowledge_Record(1.0);
 	}
 	else
 	{
+		printf("HAS NOT reached target\n");
 		return Madara::Knowledge_Record(0.0);
 	}
 }
