@@ -57,14 +57,16 @@ public:
    */
   virtual SMASH::Utilities::Position getNextTargetLocation();
 
+  /**
+   * Query if algorithm has reached final target
+   * @return  true if final target has been reached, false otherwise
+   */
+  virtual bool isTargetingFinalWaypoint();
+
 protected:
   // The width of each column the device will move over when searching the area.
   // It will roughly have the same width as the device.
   static const double SEARCH_COLUMN_WIDTH;
-
-  // Stores the location we are currently using as our target (i.e., where we
-  // are moving towards).
-  SMASH::Utilities::Position m_targetLocation;
 
   // Flag to check whether we are moving on the X or Y axis (to know whether we
   // have to turn or not).

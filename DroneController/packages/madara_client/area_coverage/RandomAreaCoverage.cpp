@@ -6,8 +6,8 @@
  ******************************************************************************/
 
 /*******************************************************************************
- * RandomAreCoverage.cpp - Declares the structures and methods for the algorithm
- * to perform a snaking area coverage search.
+ * RandomAreaCoverage.cpp - Declares the structures and methods for the
+ * algorithm to perform a snaking area coverage search.
  ******************************************************************************/
 
 #include "RandomAreaCoverage.h"
@@ -77,7 +77,7 @@ Position RandomAreaCoverage::getNextTargetLocation()
       side = EAST;
 
     // get a noncurrent side
-    side = (side_t)((side + (rand() % (NUM_SIDES - 1))) % NUM_SIDES);
+    side = (side_t)((side + 1 + (rand() % (NUM_SIDES - 1))) % NUM_SIDES);
   }
 
   // select a location on the side

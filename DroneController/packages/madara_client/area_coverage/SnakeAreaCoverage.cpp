@@ -80,3 +80,11 @@ Position SnakeAreaCoverage::getNextTargetLocation()
 	printf("Target location: %.10f, %.10f\n", m_targetLocation.x, m_targetLocation.y);
     return m_targetLocation;
 }
+
+// Query if algorithm has reached final target
+// @return  true if final target has been reached, false otherwise
+bool SnakeAreaCoverage::isTargetingFinalWaypoint()
+{
+  return ((m_targetLocation.x == m_searchRegion.bottomRightCorner.x) &&
+          (m_targetLocation.y == m_searchRegion.bottomRightCorner.y));
+}

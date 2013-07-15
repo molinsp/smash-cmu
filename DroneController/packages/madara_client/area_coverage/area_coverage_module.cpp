@@ -17,6 +17,7 @@
 #include "AreaCoverage.h"
 #include "SnakeAreaCoverage.h"
 #include "RandomAreaCoverage.h"
+#include "InsideOutAreaCoverage.h"
 
 using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
@@ -34,6 +35,7 @@ using namespace SMASH::Utilities;
 #define MF_TARGET_REACHED       "area_coverage_checkTargetReached"      // Checks if the current target has been reached.
 #define MF_SET_NEW_TARGET           "area_coverage_setNewTarget"            // Sets the next target.
 #define MF_UPDATE_AVAILABLE_DRONES	"area_coverage_updateAvailableDrones"   // Function that checks the amount and positions of drones ready for covering.
+#define MF_SET_NEW_COVERAGE         "area_coverage_setNewCoverage"      // Switches the drones coverage algorithm
 
 // Internal variables.
 #define MV_ACCURACY	                "0.0000020"                                 // Delta (in degrees) to use when checking if we have reached a location.
@@ -74,6 +76,10 @@ static Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::
 static Madara::Knowledge_Record madaraSetNewTarget (Madara::Knowledge_Engine::Function_Arguments &args,
              Madara::Knowledge_Engine::Variables &variables);
 static Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::Function_Arguments &args,
+             Madara::Knowledge_Engine::Variables &variables);
+static Madara::Knowledge_Record madaraReachedFinalTarget(Madara::Knowledge_Engine::Function_Arguments &args,
+             Madara::Knowledge_Engine::Variables &variables);
+static Madara::Knowledge_Record madaraSetNewCoverage(Madara::Knowledge_Engine::Function_Arguments &args,
              Madara::Knowledge_Engine::Variables &variables);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -124,7 +130,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                     "("MV_CELL_INITIALIZED ")"
                         " => (" 
                                 // Check if we reached the next target, but not the end of the area, to set the next waypoint.                                
-                                "(" MF_NEXT_TARGET_REACHED "()" " && !" MF_FINAL_TARGET_REACHED "() )"
+                                "(" MF_NEXT_TARGET_REACHED "()" " && !(" MF_FINAL_TARGET_REACHED "() && " MF_SET_NEW_COVERAGE "() ))"
                                     " => " MF_SET_NEW_TARGET  "()" 
                             ")"
                 ");"
@@ -187,7 +193,6 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
         ");"
     );
 
-
     // Returns 1 if we are closer than MV_ACCURACY to certain target location. 
     knowledge.define_function(MF_TARGET_REACHED, madaraTargetReached);
 
@@ -196,6 +201,9 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 
     // Function that can be included in main loop of another method to introduce area coverage.
     knowledge.define_function(MF_SET_NEW_TARGET, madaraSetNewTarget);
+
+    // Change over to random area coverage
+    knowledge.define_function(MF_SET_NEW_COVERAGE, madaraSetNewCoverage);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -225,17 +233,15 @@ Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::Function
 	double targetLon = args[3].to_double();
 
 	printf("Curr and target lats are %.10f,%.10f, and diff is %.10f\n", currLat, targetLat, (currLat-targetLat));
-	printf("Curr and target lats are %.10f,%.10f, and diff is %.10f\n", currLon, targetLon, (currLon-targetLon));
+	printf("Curr and target lons are %.10f,%.10f, and diff is %.10f\n", currLon, targetLon, (currLon-targetLon));
 
 	if(fabs(currLat - targetLat) < REACHED_ACCURACY &&
 	   fabs(currLon - targetLon) < REACHED_ACCURACY)
 	{
-    printf("HAS reached target\n");
 		return Madara::Knowledge_Record(1.0);
 	}
 	else
 	{
-    printf("HAS NOT reached target\n");
 		return Madara::Knowledge_Record(0.0);
 	}
 }
@@ -254,25 +260,24 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
     variables.evaluate(m_expressions[ACE_FIND_AVAILABLE_DRONES_POSITIONS],
       Madara::Knowledge_Engine::Knowledge_Update_Settings(true, false));
 
-    // Obtain the amount of available drones, and my position in that list.
-    int availableDrones = (int) variables.get(MV_AVAILABLE_DRONES_AMOUNT).to_integer();
-    int myIndexInList = (int) variables.get(MV_AVAILABLE_DRONES_MY_IDX).to_integer();
+  // Obtain drone information
+  int availableDrones = (int) variables.get(MV_AVAILABLE_DRONES_AMOUNT).to_integer();
+  int myIndexInList = (int) variables.get(MV_AVAILABLE_DRONES_MY_IDX).to_integer();
 
-    // Obtain the region details where we will be searching.
-    std::string myAssignedSearchArea = variables.get(MV_ASSIGNED_SEARCH_AREA("{.id}")).to_string();
-    std::string myAssignedSearchRegion = variables.get(MV_SEARCH_AREA_REGION(myAssignedSearchArea)).to_string();
-    double topLeftX = variables.get(MV_REGION_TOPLEFT_LAT(myAssignedSearchRegion)).to_double();
-    double topLeftY = variables.get(MV_REGION_TOPLEFT_LON(myAssignedSearchRegion) ).to_double();
-    double bottomRightX = variables.get(MV_REGION_BOTRIGHT_LAT(myAssignedSearchRegion)).to_double();
-    double bottomRightY = variables.get(MV_REGION_BOTRIGHT_LON(myAssignedSearchRegion) ).to_double();
-    Region searchArea = Region(Position(topLeftX, topLeftY), Position(bottomRightX, bottomRightY));
+  // Obtain the region details where we will be searching.
+  std::string myAssignedSearchArea = variables.get(MV_ASSIGNED_SEARCH_AREA("{.id}")).to_string();
+  std::string myAssignedSearchRegion = variables.get(MV_SEARCH_AREA_REGION(myAssignedSearchArea)).to_string();
+  double topLeftX = variables.get(MV_REGION_TOPLEFT_LAT(myAssignedSearchRegion)).to_double();
+  double topLeftY = variables.get(MV_REGION_TOPLEFT_LON(myAssignedSearchRegion) ).to_double();
+  double bottomRightX = variables.get(MV_REGION_BOTRIGHT_LAT(myAssignedSearchRegion)).to_double();
+  double bottomRightY = variables.get(MV_REGION_BOTRIGHT_LON(myAssignedSearchRegion) ).to_double();
+  Region searchArea = Region(Position(topLeftX, topLeftY), Position(bottomRightX, bottomRightY));
 
-    // Reset the area coverage, and calculate the actual cell I will be covering, and store it in Madara.
+  // set cell information
 	// NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
 	// as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
-    //m_coverageAlgorithm = new RandomAreaCoverage(searchArea, false);
 	m_coverageAlgorithm = new SnakeAreaCoverage(searchArea);
-    Region myCell = m_coverageAlgorithm->initialize(myIndexInList, searchArea, availableDrones);
+  Region myCell = m_coverageAlgorithm->initialize(myIndexInList, searchArea, availableDrones);
     variables.set(MV_MY_CELL_TOP_LEFT_LAT, NUM_TO_STR(myCell.topLeftCorner.x));
     variables.set(MV_MY_CELL_TOP_LEFT_LON, NUM_TO_STR(myCell.topLeftCorner.y));
     variables.set(MV_MY_CELL_BOT_RIGHT_LAT, NUM_TO_STR(myCell.bottomRightCorner.x));
@@ -313,6 +318,59 @@ Madara::Knowledge_Record madaraSetNewTarget (Madara::Knowledge_Engine::Function_
 
     return Madara::Knowledge_Record(1.0);
 }
+
+/**
+ * Switches the coverage algorithm used
+ * TODO: allow for other algorithms to be used
+ * @return  Returns true (1) always.
+ **/
+Madara::Knowledge_Record madaraSetNewCoverage(Madara::Knowledge_Engine::Function_Arguments &args,
+             Madara::Knowledge_Engine::Variables &variables)
+{
+  // Find all the available drones, called here to ensure atomicity and we have the most up to date data.
+  variables.evaluate(m_expressions[ACE_FIND_AVAILABLE_DRONES_POSITIONS],
+    Madara::Knowledge_Engine::Knowledge_Update_Settings(true, false));
+
+  // Obtain drone information
+  int availableDrones = (int) variables.get(MV_AVAILABLE_DRONES_AMOUNT).to_integer();
+  int myIndexInList = (int) variables.get(MV_AVAILABLE_DRONES_MY_IDX).to_integer();
+
+  // Obtain the region details where we will be searching.
+  std::string myAssignedSearchArea = variables.get(MV_ASSIGNED_SEARCH_AREA("{.id}")).to_string();
+  std::string myAssignedSearchRegion = variables.get(MV_SEARCH_AREA_REGION(myAssignedSearchArea)).to_string();
+  double topLeftX = variables.get(MV_REGION_TOPLEFT_LAT(myAssignedSearchRegion)).to_double();
+  double topLeftY = variables.get(MV_REGION_TOPLEFT_LON(myAssignedSearchRegion) ).to_double();
+  double bottomRightX = variables.get(MV_REGION_BOTRIGHT_LAT(myAssignedSearchRegion)).to_double();
+  double bottomRightY = variables.get(MV_REGION_BOTRIGHT_LON(myAssignedSearchRegion) ).to_double();
+  Region searchArea = Region(Position(topLeftX, topLeftY), Position(bottomRightX, bottomRightY));
+
+  // set cell information
+	// NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
+	// as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
+  delete m_coverageAlgorithm;
+  m_coverageAlgorithm = new RandomAreaCoverage();
+  Region myCell = m_coverageAlgorithm->initialize(myIndexInList, searchArea, availableDrones);
+  variables.set(MV_MY_CELL_TOP_LEFT_LAT, NUM_TO_STR(topLeftX));
+  variables.set(MV_MY_CELL_TOP_LEFT_LON, NUM_TO_STR(topLeftY));
+  variables.set(MV_MY_CELL_BOT_RIGHT_LAT, NUM_TO_STR(topLeftX));
+  variables.set(MV_MY_CELL_BOT_RIGHT_LON, NUM_TO_STR(topLeftY));
+
+  return Madara::Knowledge_Record(1.0);
+}
+
+/**
+ * Determines if this algorithm has ended
+ * @return  Returns true (1) if ended, else returns false (0)
+ **/
+Madara::Knowledge_Record madaraReachedFinalTarget(Madara::Knowledge_Engine::Function_Arguments &args,
+             Madara::Knowledge_Engine::Variables &variables)
+{
+    // change to new coverage algorithm
+    if(m_coverageAlgorithm->isTargetingFinalWaypoint())
+      return Madara::Knowledge_Record(1.0);
+    return Madara::Knowledge_Record(0.0);
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Test method used to setup drones in certain locations and issue a search request.
