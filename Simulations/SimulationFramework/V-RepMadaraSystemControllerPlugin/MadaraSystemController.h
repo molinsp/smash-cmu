@@ -36,13 +36,16 @@ private:
     // The communications range for the network.
     double m_commRange;
 
+    // The min altitude for the flying devices.
+    double m_minAltitude;
+
     // The actual knowledge base.
     Madara::Knowledge_Engine::Knowledge_Base* m_knowledge;
 
     // A counter for the regions created.
     int m_regionId;
 public:
-    MadaraController(int id, double commRange);
+	MadaraController(int id, double commRange, double minAltitude);
     ~MadaraController();
     void terminate();
 

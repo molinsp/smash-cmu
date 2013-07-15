@@ -25,10 +25,14 @@ function doInitialSetup()
     -- Load the positions of people on the grid, so we will know when we find one.
     loadPeoplePositions()
     
-    -- Control continuos movement.
+    -- Min default altitude.
+    g_minAltitude = simGetScriptSimulationParameter(sim_handle_main_script, 'minimumAltitude')
+    
+    -- Control continuous movement.
     g_myTargetSetup = false
     g_myTargetLon = 0
     g_myTargetLat = 0
+    g_myAssignedAlt = g_minAltitude
     
     -- Setup the plugin to communicate to the network. Only do this once, for the first drone.
     if(g_myDroneId == 0) then
@@ -152,6 +156,7 @@ function simulateMovementCommands()
             simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') In Lua, target position found: ' .. myNewLon .. ',' .. myNewLat)            
             g_myTargetLon = tonumber(myNewLon)
             g_myTargetLat = tonumber(myNewLat)
+            g_myAssignedAlt = tonumber(myNewAlt)
             
             local targetPoint = {}
             targetPoint['longitude'] = g_myTargetLon            
@@ -163,14 +168,14 @@ function simulateMovementCommands()
     
     -- Move if required.
     if(g_myTargetSetup) then
-        moveTargetTowardsPosition(g_myTargetLon, g_myTargetLat)
+        moveTargetTowardsPosition(g_myTargetLon, g_myTargetLat, g_myAssignedAlt)
     end
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Moves the target to a new position, so the drone will follow it there.
 --/////////////////////////////////////////////////////////////////////////////////////////////
-function moveTargetTowardsPosition(newPositionLon, newPositionLat)
+function moveTargetTowardsPosition(newPositionLon, newPositionLat, newAltitude)
     -- Get the current position of the target.
     local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
     local droneTargetPosition = getObjectPositionInDegrees(droneTargetHandle, -1)
@@ -193,6 +198,9 @@ function moveTargetTowardsPosition(newPositionLon, newPositionLat)
     else
         droneTargetPosition[2] = droneTargetPosition[2] + speed
     end
+    
+    -- The altitude that we were assinged will be set directly, independently of our current one.
+    droneTargetPosition[3] = newAltitude
        
     -- Move the target to a new position, so the drone will follow it there.
     --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Final target position' .. (newPositionLon) .. ',' .. (newPositionLat)..', speed: '..speed)

@@ -21,7 +21,8 @@
 using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
 
-#define REACHED_ACCURACY	                0.0000060                      // Delta (in degrees) to use when checking if we have reached a location.
+#define REACHED_ACCURACY	                0.0000060		// Delta (in degrees) to use when checking if we have reached a location.
+#define ALTITUDE_DIFFERENCE					0.5				// The amount of vertical space (in meters) to leave between drones.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Madara Variable Definitions
@@ -265,6 +266,11 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
     double bottomRightY = variables.get(MV_REGION_BOTRIGHT_LON(myAssignedSearchRegion) ).to_double();
     Region searchArea = Region(Position(topLeftX, topLeftY), Position(bottomRightX, bottomRightY));
 
+	// Calculate and store my assigned or default altitude based on my index on the list.
+	double minAltitude = (int) variables.get(MV_MIN_ALTITUDE).to_double();
+	double myDefaultAltitude = minAltitude + ALTITUDE_DIFFERENCE * myIndexInList;
+	variables.set(MV_ASSIGNED_ALTITUDE("{.id}"), myDefaultAltitude);
+
     // Reset the area coverage, and calculate the actual cell I will be covering, and store it in Madara.
 	// NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
 	// as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
@@ -306,6 +312,8 @@ Madara::Knowledge_Record madaraSetNewTarget (Madara::Knowledge_Engine::Function_
     variables.set(MV_MOVEMENT_TARGET_LAT, NUM_TO_STR(nextTarget.x),
       Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
     variables.set(MV_MOVEMENT_TARGET_LON, NUM_TO_STR(nextTarget.y),
+      Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
+	variables.set(MV_MOVEMENT_TARGET_ALT, MV_ASSIGNED_ALTITUDE("{.id}"),
       Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
     variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
 

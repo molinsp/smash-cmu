@@ -19,14 +19,16 @@ MadaraController* madaraController;
 void registerMadaraSystemControllerSetupLuaCallback()
 {
     // Define the LUA function input parameters.
-    int inArgs[] = {2, sim_lua_arg_int,					      // My ID.
+    int inArgs[] = {3, sim_lua_arg_int,					      // My ID.
                        sim_lua_arg_float,					  // Radio range.
+                       sim_lua_arg_float,					  // Min altitude.
                    };
 
     // Register the simExtGetPositionInBridge function.
     simRegisterCustomLuaFunction("simExtMadaraSystemControllerSetup",                         // The Lua function name.
                                  "simExtMadaraSystemControllerSetup(int myId, "               // A tooltip to be shown to help the user know how to call it.
-                                                         "number radioRange)",
+                                                         "number radioRange,"
+                                                         "number minAltitude)",
                                  inArgs,                                           // The argument types.
                                  simExtMadaraSystemControllerSetup);                          // The C function that will be called by the Lua function.
 }
@@ -42,7 +44,7 @@ void simExtMadaraSystemControllerSetup(SLuaCallBack* p)
     bool paramsOk = true;
 
     // Check we have to correct amount of parameters.
-    if (p->inputArgCount != 2)
+    if (p->inputArgCount != 3)
     { 
         simSetLastError("simExtMadaraSystemControllerSetup", "Not enough arguments.");
         paramsOk = false;
@@ -61,21 +63,28 @@ void simExtMadaraSystemControllerSetup(SLuaCallBack* p)
         paramsOk = false;
     }
 
+    if(p->inputArgTypeAndSize[2*2+0] != sim_lua_arg_float)
+    {
+        simSetLastError("simExtMadaraSystemControllerSetup", "Min altitude parameter is not a float.");
+        paramsOk = false;
+    }
+
     // Continue forward calling the external functions only if we have all parameters ok.
     if(paramsOk)
     { 
         // Get the simple input values.
         int myId = p->inputInt[0];
         double commRange = p->inputFloat[0];
+		double minAltitude = p->inputFloat[1];
 
         // For debugging, print out what we received.
         std::stringstream sstm; 
-        sstm << "Values received inside simExtMadaraSystemControllerSetup function: myId:" << myId << ", commRange:" << commRange << std::endl;
+        sstm << "Values received inside simExtMadaraSystemControllerSetup function: myId:" << myId << ", commRange:" << commRange << "; minAltitude: " << minAltitude << std::endl;
         std::string message = sstm.str();
         simAddStatusbarMessage(message.c_str());
 
         // Simply create the madara controller.
-        madaraController = new MadaraController(myId, commRange);
+        madaraController = new MadaraController(myId, commRange, minAltitude);
     }
 
     simLockInterface(0);

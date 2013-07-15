@@ -20,11 +20,13 @@
 
 // Network information.
 #define MV_TOTAL_DEVICES		            "devices"						                 // The total amount of devices in the system.
+#define MV_MIN_ALTITUDE						"device.min_alt"								 // The minimum altitude to set a device to.
 
 // Information about specific devices.
 #define MV_DEVICE_LOCATION(deviceId)	    "device." + std::string(deviceId) + ".location"	 // The location of a device in the format "lat,long".
 #define MV_MOBILE(deviceId)			        "device." + std::string(deviceId) + ".mobile"	 // Indicates if the device can fly (i.e., if it is a drone with enough battery left).
 #define MV_BUSY(deviceId)			        "device." + std::string(deviceId) + ".busy"		 // Indicates if the device is not available for procedures (such as coverage or bridging).
+#define MV_ASSIGNED_ALTITUDE(deviceId)		"device." + std::string(deviceId) + ".assigned_alt"		 // Indicates the default atitude assigned to this device.
 
 // Region information.
 #define MV_REGION_TYPE(regionId)            "region." + std::string(regionId) + ".type"                  // The type of a particular region.

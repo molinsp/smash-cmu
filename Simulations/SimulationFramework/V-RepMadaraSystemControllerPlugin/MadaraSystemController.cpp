@@ -22,7 +22,7 @@ using namespace SMASH::Utilities;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constructor, sets up a Madara knowledge base and basic values.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-MadaraController::MadaraController(int id, double commRange)
+MadaraController::MadaraController(int id, double commRange, double minAltitude)
 {
     // Start the counter at 0.
     m_regionId = 0;
@@ -58,6 +58,7 @@ MadaraController::MadaraController(int id, double commRange)
     // Set our id and comm range.
     m_id = id;
     m_commRange = commRange;
+	m_minAltitude = minAltitude;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,6 +90,7 @@ void MadaraController::updateNetworkStatus(const int& numberOfDrones)
 {
     // This is done just to ensure this is propagated, since we are just setting this value to the same value it already has.
     m_knowledge->set (MV_COMM_RANGE, m_commRange, Madara::Knowledge_Engine::Eval_Settings(true));
+	m_knowledge->set (MV_MIN_ALTITUDE, m_minAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
 
     // This call has no delay to flush all past changes, and updates the total of drones in the system.
     m_knowledge->set(MV_TOTAL_DEVICES, (Madara::Knowledge_Record::Integer) numberOfDrones);

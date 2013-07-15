@@ -17,8 +17,9 @@ function doInitialSetup()
     -- Setup Madara for communications.
     local myControllerId = 2000    
     local radioRange = simGetScriptSimulationParameter(sim_handle_main_script, 'radioRange')
+    local minAltitude = simGetScriptSimulationParameter(sim_handle_main_script, 'minimumAltitude')
     simAddStatusbarMessage('Calling external method to set up Madara.')
-    simExtMadaraSystemControllerSetup(myControllerId, radioRange)
+    simExtMadaraSystemControllerSetup(myControllerId, radioRange, minAltitude)
 
     -- Set up the search area, getting the boundaries from the parameters.
     g_searchAreaId = 0
