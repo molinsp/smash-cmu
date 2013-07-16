@@ -9,7 +9,7 @@
 #include "utilities/Position.h"
 
 #include "LuaFunctionRegistration.h"
-#include "v_repLib.h"
+#include "LuaExtensionsUtils.h"
 
 using SMASH::Utilities::Position;
 using SMASH::Bridge::BridgeAlgorithm;
@@ -17,6 +17,16 @@ using SMASH::Bridge::BridgeAlgorithm;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Callback of the Lua simExtGetPositionInBridge command.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Define the LUA function input parameters.
+int g_getPositionInBridgeinArgs[] = {6, 
+					sim_lua_arg_int,						// My ID.
+                    sim_lua_arg_float,						// Radio range.
+                    sim_lua_arg_float|sim_lua_arg_table,	// X and Y source position. (size: 3)
+                    sim_lua_arg_float|sim_lua_arg_table,	// X and Y sink position. (size: 3)
+                    sim_lua_arg_int|sim_lua_arg_table,		// IDs of available drones. (size: num available drones)
+                    sim_lua_arg_float|sim_lua_arg_table};	// X and Y posotions for all available drones. (size: num available drones x 2).
+
+// The actual callback.
 void simExtGetPositionInBridge(SLuaCallBack* p)
 {
     simLockInterface(1);
@@ -26,89 +36,8 @@ void simExtGetPositionInBridge(SLuaCallBack* p)
     float myNewX;
     float myNewY;
 
-    bool paramsOk = true;
-
-    // Check we have to correct amount of parameters.
-    if (p->inputArgCount != 6)
-    { 
-        simSetLastError("simExtGetPositionInBridge", "Not enough arguments.");
-        paramsOk = false;
-    }
-
-    // Check we have the correct type of arguments.
-    if ( p->inputArgTypeAndSize[0*2+0] != sim_lua_arg_int )
-    {
-        simSetLastError("simExtGetPositionInBridge", "MyID parameter is not an int.");
-        paramsOk = false;
-    }
-
-    if(p->inputArgTypeAndSize[1*2+0] != sim_lua_arg_float)
-    {
-        simSetLastError("simExtGetPositionInBridge", "RadioRange parameter is not a float.");
-        paramsOk = false;
-    }
-
-    if(p->inputArgTypeAndSize[2*2+0] != (sim_lua_arg_float|sim_lua_arg_table) )
-    {
-        std::string errorMessage = "SourcePosition parameter is not an table of floats, it is a ";
-        std::stringstream sstm; sstm << errorMessage << p->inputArgTypeAndSize[2*2+0] ; std::string fullErrorMessage = sstm.str();
-        simSetLastError("simExtGetPositionInBridge", fullErrorMessage.c_str());
-        paramsOk = false;
-    }
-
-    if(p->inputArgTypeAndSize[2*2+1] != 3)
-    {
-        std::string errorMessage = "SourcePosition parameter does not have 3 elements, it has ";
-        std::stringstream sstm; sstm << errorMessage << p->inputArgTypeAndSize[2*2+1]; std::string fullErrorMessage = sstm.str();
-        simSetLastError("simExtGetPositionInBridge", fullErrorMessage.c_str());
-        paramsOk = false;
-    }
-
-    if(p->inputArgTypeAndSize[3*2+0] != (sim_lua_arg_float|sim_lua_arg_table))
-    {
-        std::string errorMessage = "SinkPosition parameter is not an table of floats, it is a ";
-        std::stringstream sstm; sstm << errorMessage << p->inputArgTypeAndSize[3*2+0] ; std::string fullErrorMessage = sstm.str();
-        simSetLastError("simExtGetPositionInBridge", fullErrorMessage.c_str());
-        paramsOk = false;
-    }        
-        
-    if(p->inputArgTypeAndSize[3*2+1] != 3)
-    {
-        std::string errorMessage = "SinkPosition parameter does not have 3 elements, it has ";
-        std::stringstream sstm; sstm << errorMessage << p->inputArgTypeAndSize[3*2+1]; std::string fullErrorMessage = sstm.str();
-        simSetLastError("simExtGetPositionInBridge", fullErrorMessage.c_str());
-        paramsOk = false;
-    }
-
-    if(p->inputArgTypeAndSize[4*2+0] != (sim_lua_arg_int|sim_lua_arg_table)) 
-    {
-        std::string errorMessage = "AvailableDroneIds parameter is not an table of ints, it is a ";
-        std::stringstream sstm; sstm << errorMessage << p->inputArgTypeAndSize[4*2+0]; std::string fullErrorMessage = sstm.str();
-        simSetLastError("simExtGetPositionInBridge", fullErrorMessage.c_str());
-        paramsOk = false;
-    }             
-        
-    if(p->inputArgTypeAndSize[4*2+1] < 2)
-    {
-        simSetLastError("simExtGetPositionInBridge","AvailableDroneIds parameter is empty.");
-        paramsOk = false;
-    }
-
-    if(p->inputArgTypeAndSize[5*2+0] != (sim_lua_arg_float|sim_lua_arg_table))
-    {
-        std::string errorMessage = "AvailableDronePositions parameter is not an table of floats, it is a ";
-        std::stringstream sstm; sstm << errorMessage << p->inputArgTypeAndSize[5*2+0]; std::string fullErrorMessage = sstm.str();
-        simSetLastError("simExtGetPositionInBridge", fullErrorMessage.c_str());
-        paramsOk = false;
-    }
-        
-    if(p->inputArgTypeAndSize[5*2+1] < 2) 
-    {
-        simSetLastError("simExtGetPositionInBridge", "AvailableDronePositions parameter is empty.");
-        paramsOk = false;
-    }
-
-    // Continue forward calling the external functions only if we have all parameters ok.
+	// Continue forward calling the external functions only if we have all parameters ok.
+	bool paramsOk = checkInputArguments(p, g_getPositionInBridgeinArgs, "simExtGetPositionInBridge");
     if(paramsOk)
     { 
         // Get the simple input values.
@@ -154,8 +83,7 @@ void simExtGetPositionInBridge(SLuaCallBack* p)
 		    Position currentDronePos = iterator->second;
             sstm << "Drone " << currentDroneId << " with pos " << currentDronePos.x << "," << currentDronePos.y << std::endl;
         }
-        std::string message = sstm.str();
-        simAddStatusbarMessage(message.c_str());
+        simAddStatusbarMessage(sstm.str().c_str());
 
         // Call the bridge algorithm to find out if I have to move to help witht the bridge.
         BridgeAlgorithm algorithm;
@@ -170,8 +98,7 @@ void simExtGetPositionInBridge(SLuaCallBack* p)
 
             std::stringstream sstmpos; 
             sstmpos << "Position was found! " << myNewX << "," << myNewY << std::endl;
-            message = sstmpos.str();
-            simAddStatusbarMessage(message.c_str());
+            simAddStatusbarMessage(sstmpos.str().c_str());
         }
     }
 
@@ -204,19 +131,9 @@ void simExtGetPositionInBridge(SLuaCallBack* p)
     simLockInterface(0);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// This is the plugin start routine (called just once, just after the plugin was loaded):
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Register the callback.
 void registerGetPositionInBridgeLuaCallback()
 {
-    // Define the LUA function input parameters.
-    int inArgs1[] = {6, sim_lua_arg_int,					  // My ID.
-                        sim_lua_arg_float,					  // Radio range.
-                        sim_lua_arg_float|sim_lua_arg_table,  // X and Y source position. (size: 3)
-                        sim_lua_arg_float|sim_lua_arg_table,  // X and Y sink position. (size: 3)
-                        sim_lua_arg_int|sim_lua_arg_table,  // IDs of available drones. (size: num available drones)
-                        sim_lua_arg_float|sim_lua_arg_table}; // X and Y posotions for all available drones. (size: num available drones x 2).
-
     // Register the simExtGetPositionInBridge function.
     simRegisterCustomLuaFunction("simExtGetPositionInBridge",                       // The Lua function name.
                                  "number myNewX,number myNewY="                     // A tooltip to be shown to help the user know how to call it.
@@ -226,7 +143,7 @@ void registerGetPositionInBridgeLuaCallback()
                                                            "table_3 sinkPos, "
                                                            "table availableDroneIds, "
                                                            "table availableDronesPos)",
-                                 inArgs1,                                           // The argument types.
+                                 g_getPositionInBridgeinArgs,                                           // The argument types.
                                  simExtGetPositionInBridge);                        // The C function that will be called by the Lua function.
 }
 

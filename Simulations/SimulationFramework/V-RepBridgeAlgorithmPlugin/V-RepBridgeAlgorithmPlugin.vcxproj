@@ -89,6 +89,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.cpp" />
+    <ClCompile Include="..\V-RepCommonPluginUtils\LuaExtensionsUtils.cpp" />
     <ClCompile Include="..\V-RepCommonPluginUtils\v_repExtLuaExtenderPlugin.cpp" />
     <ClCompile Include="..\V-RepImports\v_repLib.cpp" />
     <ClCompile Include="LuaCustomFunctions.cpp" />

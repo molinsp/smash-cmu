@@ -65,5 +65,8 @@
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.cpp">
       <Filter>Source Files\bridge_module</Filter>
     </ClCompile>
+    <ClCompile Include="..\V-RepCommonPluginUtils\LuaExtensionsUtils.cpp">
+      <Filter>Source Files\vrep_plugin</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

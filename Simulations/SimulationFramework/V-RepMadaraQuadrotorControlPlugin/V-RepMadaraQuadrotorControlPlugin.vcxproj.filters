@@ -63,6 +63,9 @@
     <ClInclude Include="..\V-RepCommonPluginUtils\v_repExtPluginInterface.h">
       <Filter>Header Files\vrep_plugin_headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\V-RepCommonPluginUtils\LuaExtensionsUtils.h">
+      <Filter>Header Files\vrep_plugin_headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\V-RepImports\v_repLib.cpp">
@@ -81,6 +84,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\V-RepCommonPluginUtils\v_repExtLuaExtenderPlugin.cpp">
+      <Filter>Source Files\vrep_plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\V-RepCommonPluginUtils\LuaExtensionsUtils.cpp">
       <Filter>Source Files\vrep_plugin</Filter>
     </ClCompile>
   </ItemGroup>

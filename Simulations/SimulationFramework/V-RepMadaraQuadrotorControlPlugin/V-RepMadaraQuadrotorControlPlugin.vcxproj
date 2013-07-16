@@ -87,6 +87,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\V-RepCommonPluginUtils\LuaExtensionsUtils.h" />
     <ClInclude Include="..\V-RepCommonPluginUtils\LuaFunctionRegistration.h" />
     <ClInclude Include="..\V-RepCommonPluginUtils\v_repExtPluginInterface.h" />
     <ClInclude Include="..\V-RepImports\extApiCustomConst.h" />
@@ -98,6 +99,7 @@
     <ClInclude Include="MadaraQuadrotorControl.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\V-RepCommonPluginUtils\LuaExtensionsUtils.cpp" />
     <ClCompile Include="..\V-RepCommonPluginUtils\v_repExtLuaExtenderPlugin.cpp" />
     <ClCompile Include="..\V-RepImports\v_repLib.cpp" />
     <ClCompile Include="..\WindowsMulticastTransport\Windows_Multicast_Transport.cpp" />

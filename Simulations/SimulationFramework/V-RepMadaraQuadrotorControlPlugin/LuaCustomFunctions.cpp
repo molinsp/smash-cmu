@@ -7,6 +7,7 @@
 
 #include "MadaraQuadrotorControl.h"
 #include "LuaFunctionRegistration.h"
+#include "LuaExtensionsUtils.h"
 #include "utilities/CommonMadaraVariables.h"
 #include "utilities/Position.h"
 
@@ -25,23 +26,17 @@ static MadaraQuadrotorControl* control = NULL;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Callback of the Lua simExtMadaraQuadrotorControlSetup command.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Define the LUA function input parameters.
+static int g_setupInArgs[] = {1, sim_lua_arg_int};    // The id of the drone.
+
+// The actual callback function.
 void simExtMadaraQuadrotorControlSetup(SLuaCallBack* p)
 {
 	simLockInterface(1);
 
 	// Check we have to correct amount of parameters.
-	if (p->inputArgCount != 1)
-	{
-		simSetLastError("simExtMadaraQuadrotorControlSetup",
-			"Not enough arguments given.");
-	}
-	// Check we have the correct type of arguments.
-	else if (p->inputArgTypeAndSize[0*2+0] != sim_lua_arg_int)
-	{
-		simSetLastError("simExtMadaraQuadrotorControlUpdateStatus",
-			"The id of the drone is not an int.");
-	}
-	else
+	bool paramsOk = checkInputArguments(p, g_setupInArgs, "simExtMadaraQuadrotorControlSetup");
+	if(paramsOk)
 	{
 		int droneId = p->inputInt[0];
 		if(control != NULL)
@@ -52,55 +47,34 @@ void simExtMadaraQuadrotorControlSetup(SLuaCallBack* p)
 	simLockInterface(0);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Registers the Lua simExtMadaraQuadrotorControlSetup command.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void registerMadaraQuadrotorControlSetupLuaCallback()
 {
-	// Define the LUA function input parameters.
-	int inArgs[] = {1, sim_lua_arg_int};    // the id of the drone
-
 	// Register the simExtGetPositionInBridge function.
 	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlSetup",
 		"simExtMadaraQuadrotorControlSetup(int droneId)",
-		inArgs, simExtMadaraQuadrotorControlSetup);
+		g_setupInArgs, simExtMadaraQuadrotorControlSetup);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Callback of the Lua simExtMadaraQuadrotorControlUpdateStatus command.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Define the LUA function input parameters.
+static int g_updateStatusInArgs[] = {4, 
+	sim_lua_arg_int,      // The id of the drone.
+	sim_lua_arg_string,   // The lat position of the drone.
+	sim_lua_arg_string,   // The long position of the drone.
+	sim_lua_arg_string};  // The alt position of the drone.
+
+
+// The actual callback function.
 void simExtMadaraQuadrotorControlUpdateStatus(SLuaCallBack* p)
 {
 	simLockInterface(1);
 
 	// Check we have to correct amount of parameters.
-	if (p->inputArgCount != 4)
-	{ 
-		simSetLastError("simExtMadaraQuadrotorControlUpdateStatus",
-			"Incorrect number of arguments.");
-	}
-	// Check we have the correct type of arguments.
-	else if (p->inputArgTypeAndSize[0*2+0] != sim_lua_arg_int)
-	{
-		simSetLastError("simExtMadaraQuadrotorControlUpdateStatus",
-			"The id of the drone is not an int.");
-	}
-	else if(p->inputArgTypeAndSize[1*2+0] != sim_lua_arg_string)
-	{
-		simSetLastError("simExtMadaraQuadrotorControlUpdateStatus",
-			"The latitude of the drone is not a float.");
-	}
-	else if(p->inputArgTypeAndSize[2*2+0] != sim_lua_arg_string)
-	{
-		simSetLastError("simExtMadaraQuadrotorControlUpdateStatus",
-			"The longitude of the drone is not a float.");
-	}
-	else if(p->inputArgTypeAndSize[3*2+0] != sim_lua_arg_string)
-	{
-		simSetLastError("simExtMadaraQuadrotorControlUpdateStatus",
-			"The altitude of the drone is not a float.");
-	}
-	else // params checked out
+	bool paramsOk = checkInputArguments(p, g_updateStatusInArgs, "simExtMadaraQuadrotorControlUpdateStatus");
+	if(paramsOk)
 	{
 		// Get the values from the concatenated string with all of them.
 		// NOTE: these parameters are sent as strings since there seems to be problems with large double numbers between Lua and C++ in Vrep.
@@ -128,17 +102,9 @@ void simExtMadaraQuadrotorControlUpdateStatus(SLuaCallBack* p)
 	simLockInterface(0);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Registers the Lua simExtMadaraQuadrotorControlUpdateStatus command.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void registerMadaraQuadrotorControlUpdateStatusLuaCallback()
 {
-	// Define the LUA function input parameters.
-	int inArgs[] = {4, sim_lua_arg_int,     // the id of the drone
-		sim_lua_arg_string,   // The lat position of the drone
-		sim_lua_arg_string,   // The long position of the drone
-		sim_lua_arg_string};  // The alt position of the drone
-
 	// Register the simExtGetPositionInBridge function.
 	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlUpdateStatus",
 		"simExtMadaraQuadrotorControlUpdateStatus"
@@ -146,7 +112,7 @@ void registerMadaraQuadrotorControlUpdateStatusLuaCallback()
 		"number droneLat, "
 		"number droneLong, "
 		"number droneAlt)",
-		inArgs,
+		g_updateStatusInArgs,
 		simExtMadaraQuadrotorControlUpdateStatus);
 }
 
@@ -161,6 +127,10 @@ void registerMadaraQuadrotorControlUpdateStatusLuaCallback()
 //   For the MOVE_TO_ALT command:
 //		- Return 2: the altitude as a string (to avoid some Lua-C loss of precision)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Define the LUA function input parameters.
+static int g_getNewCmdInArgs[] = {1, sim_lua_arg_int};
+
+// The actual callback function.
 void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 {
 	simLockInterface(1);
@@ -168,40 +138,17 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 	MadaraQuadrotorControl::Command *newCommand = NULL;
 
 	// Check we have to correct amount of parameters.
-	if (p->inputArgCount != 1)
-	{ 
-		simSetLastError("simExtMadaraQuadrotorControlGetNewCommand",
-			"Need drone ID arg");
-	}
-	// Check we have the correct type of arguments.
-	else if ( p->inputArgTypeAndSize[0*2+0] != sim_lua_arg_int )
-	{
-		simSetLastError("simExtMadaraQuadrotorControlGetNewCommand",
-			"droneId parameter is not an int.");
-	}
-	else
+	bool paramsOk = checkInputArguments(p, g_getNewCmdInArgs, "simExtMadaraQuadrotorControlGetNewCmd");
+	if(paramsOk)
 	{ 
 		// We check if a new command has arrived for us.
 		int droneId = p->inputInt[0];
 		newCommand = control->getNewCommand(droneId);
 	}
 
-	// Now we prepare the return value(s).
-	p->outputArgCount = 4;			// Always return 4 arguments, even if some are nil.
-	p->outputArgTypeAndSize = (simInt*)simCreateBuffer(p->outputArgCount * (2 * sizeof(simInt)));
-
-	// By default set all results to nil.
-	p->outputArgTypeAndSize[2*0+0] = sim_lua_arg_nil;
-	p->outputArgTypeAndSize[2*0+1] = 1;
-
-	p->outputArgTypeAndSize[2*1+0] = sim_lua_arg_nil;
-	p->outputArgTypeAndSize[2*1+1] = 1;
-
-	p->outputArgTypeAndSize[2*2+0] = sim_lua_arg_nil;
-	p->outputArgTypeAndSize[2*2+1] = 1;
-
-	p->outputArgTypeAndSize[2*3+0] = sim_lua_arg_nil;
-	p->outputArgTypeAndSize[2*3+1] = 1;
+	// Prepare the output description, with nil types by default.
+	int maxNumberOfOutputs = 3;
+	setupDefaultOutput(p, maxNumberOfOutputs);
 
 	// Set the actual return values depending on whether we found a position or not.
 	if(newCommand != NULL)
@@ -211,7 +158,6 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 
 		// All commands will have at least the command name, though they may have different parameters.
 		p->outputArgTypeAndSize[2*0+0] = sim_lua_arg_string; // cmd
-		p->outputArgTypeAndSize[2*0+1] = 1;
 
 		// First case: MOVE_TO_GPS
 		if(strcmp(MO_MOVE_TO_GPS_CMD, newCommand->m_command.c_str()) == 0)
@@ -223,30 +169,19 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 
 			// Move to gps has lat and long parameters, which we will have to return.
 			p->outputArgTypeAndSize[2*1+0] = sim_lua_arg_string; // lat
-			p->outputArgTypeAndSize[2*1+1] = 1;
 			p->outputArgTypeAndSize[2*2+0] = sim_lua_arg_string; // long
-			p->outputArgTypeAndSize[2*2+1] = 1;
 
 			// Turn floats into strings to avoid losing precision when transfering back to Lua.
 			std::string lat(NUM_TO_STR(newCommand->m_loc.m_lat));
 			std::string lon(NUM_TO_STR(newCommand->m_loc.m_long));
 
-			// Create a string buffer to return all return values in it.
-			p->outputChar = (simChar*) simCreateBuffer(
-				(newCommand->m_command.length() + 1 + lat.length()+1 + lon.length()+1) * sizeof(simChar));
-
-			unsigned int pos = 0;
-			for(unsigned int i = 0; i < newCommand->m_command.length(); ++i)
-				p->outputChar[pos++] = newCommand->m_command.at(i);
-			p->outputChar[pos++] = '\0'; // null terminate
-
-			for(unsigned int i = 0; i < lat.length(); ++i)
-				p->outputChar[pos++] = lat.at(i);
-			p->outputChar[pos++] = '\0'; // null terminate
-
-			for(unsigned int i = 0; i < lon.length(); ++i)
-				p->outputChar[pos++] = lon.at(i);
-			p->outputChar[pos++] = '\0'; // null terminate
+			// Put the values in the char output buffer.
+			int numOutputs = 3;
+			std::vector<std::string> outputStrings(numOutputs);
+			outputStrings[0] = newCommand->m_command;
+			outputStrings[1] = lat;
+			outputStrings[1] = lon;
+			setupStringOutputBuffer(p, outputStrings);
 		}
 		else if(strcmp(MO_MOVE_TO_ALTITUDE_CMD, newCommand->m_command.c_str()) == 0)
 		{
@@ -256,23 +191,16 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 
 			// The only parameter other than the command is the altitude.
 			p->outputArgTypeAndSize[2*1+0] = sim_lua_arg_string; // altitude
-			p->outputArgTypeAndSize[2*1+1] = 1;
 
 			// Turn floats into strings to avoid losing precision when transfering back to Lua.
 			std::string alt(NUM_TO_STR(newCommand->m_loc.m_alt));
 
-			// Create a string buffer to return all return values in it.
-			p->outputChar = (simChar*) simCreateBuffer(
-				(newCommand->m_command.length() + 1 + alt.length()+1) * sizeof(simChar));
-
-			unsigned int pos = 0;
-			for(unsigned int i = 0; i < newCommand->m_command.length(); ++i)
-				p->outputChar[pos++] = newCommand->m_command.at(i);
-			p->outputChar[pos++] = '\0'; // null terminate
-
-			for(unsigned int i = 0; i < alt.length(); ++i)
-				p->outputChar[pos++] = alt.at(i);
-			p->outputChar[pos++] = '\0'; // null terminate
+			// Put the values in the char output buffer.
+			int numOutputs = 2;
+			std::vector<std::string> outputStrings(numOutputs);
+			outputStrings[0] = newCommand->m_command;
+			outputStrings[1] = alt;
+			setupStringOutputBuffer(p, outputStrings);
 		}
 
 		// copy x, y, z coords
@@ -289,41 +217,30 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 	simLockInterface(0);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Registers the Lua simExtMadaraQuadrotorControlGetNewCommand command.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void registerMadaraQuadrotorControlGetNewCmdLuaCallback()
 {
-	// Define the LUA function input parameters.
-	int inArgs[] = {1, sim_lua_arg_int};
-
 	// Register the simExtGetPositionInBridge function.
 	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlGetNewCmd",
 		"cmd, lat, long, alt = "
 		"simExtMadaraQuadrotorControlGetNewCmd(int droneId)",
-		inArgs, simExtMadaraQuadrotorControlGetNewCmd);
+		g_getNewCmdInArgs, simExtMadaraQuadrotorControlGetNewCmd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Function used by all the "isXXCommand" functions to check a certain given command.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Define the LUA function input parameters.
+static int g_isCmdInArgs[] = {1, sim_lua_arg_string};
+
+// The common function called by the callbacks.
 void isGivenCommand(SLuaCallBack* p, const char* commandToTest)
 {
 	simLockInterface(1);
 
-	// Check we have to correct amount of parameters.
-	if (p->inputArgCount != 1)
-	{ 
-		simSetLastError("isGivenCommand",
-			"Need command to test.");
-	}
-	// Check we have the correct type of arguments.
-	else if(p->inputArgTypeAndSize[0*2+0] != sim_lua_arg_string)
-	{
-		simSetLastError("isGivenCommand",
-			"Command parameter is not a string.");
-	}
-	else
+	// Check we have to correct parameters.
+	bool paramsOk = checkInputArguments(p, g_getNewCmdInArgs, "isGivenCommand");
+	if(paramsOk)
 	{ 
 		// The only param we received from Lua is a string to test for a certain command.
 		char* receivedCommand =  p->inputChar;
@@ -331,12 +248,13 @@ void isGivenCommand(SLuaCallBack* p, const char* commandToTest)
 		// Check if it is the command we are checking for.
 		bool isExpectedCommand = (strcmp(commandToTest, receivedCommand) == 0);
 
+
+		// Prepare the output description, with nil types by default.
+		int numberOfOutputs = 1;
+		setupDefaultOutput(p, numberOfOutputs);
+
 		// Now we prepare the return value.
-		p->outputArgCount = 1;
-		p->outputArgTypeAndSize = (simInt*)simCreateBuffer(
-			p->outputArgCount * (2 * sizeof(simInt)));
 		p->outputArgTypeAndSize[2*0+0] = sim_lua_arg_bool;
-		p->outputArgTypeAndSize[2*0+1] = 1;
 		p->outputBool = (simBool*)simCreateBuffer(sizeof(simBool));
 		p->outputBool[0] = isExpectedCommand;
 	}
@@ -347,94 +265,86 @@ void isGivenCommand(SLuaCallBack* p, const char* commandToTest)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // isGoToCmd
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// The actual callback function.
 void simExtMadaraQuadrotorControlIsGoToCmd(SLuaCallBack* p)
 {
 	isGivenCommand(p, MO_MOVE_TO_GPS_CMD);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Register test of isGoToCmd
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Register test of isGoToCmd.
 void registerMadaraQuadrotorControlIsGoToCmdLuaCallback()
 {
-	// Define the LUA function input parameters.
-	int inArgs[] = {1, sim_lua_arg_string};
-
 	// Register the simExtGetPositionInBridge function.
 	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlIsGoToCmd",
 		"isGoTo = simExtMadaraQuadrotorControlIsGoToCmd(string cmd)",
-		inArgs, simExtMadaraQuadrotorControlIsGoToCmd);
+		g_isCmdInArgs, simExtMadaraQuadrotorControlIsGoToCmd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// isGoToCmdAlt
+// isGoToCmdAlt.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// The actual callback function.
 void simExtMadaraQuadrotorControlIsGoToAltCmd(SLuaCallBack* p)
 {
 	isGivenCommand(p, MO_MOVE_TO_ALTITUDE_CMD);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Register test of isGoToAltCmd
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Register test of isGoToAltCmd.
 void registerMadaraQuadrotorControlIsGoToAltCmdLuaCallback()
 {
-	// Define the LUA function input parameters.
-	int inArgs[] = {1, sim_lua_arg_string};
-
 	// Register the simExtGetPositionInBridge function.
 	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlIsGoToAltCmd",
 		"isGoTo = simExtMadaraQuadrotorControlIsGoToAltCmd(string cmd)",
-		inArgs, simExtMadaraQuadrotorControlIsGoToAltCmd);
+		g_isCmdInArgs, simExtMadaraQuadrotorControlIsGoToAltCmd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// isOffCmd
+// isOffCmd.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// The actual callback function.
 void simExtMadaraQuadrotorControlIsLandCmd(SLuaCallBack* p)
 {
 	isGivenCommand(p, MO_LAND_CMD);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Regiest test of isOffCmd
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Register test of isOffCmd.
 void registerMadaraQuadrotorControlIsLandCmdLuaCallback()
 {
-	// Define the LUA function input parameters.
-	int inArgs[] = {1, sim_lua_arg_string};
-
 	// Register the simExtGetPositionInBridge function.
 	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlIsLandCmd",
 		"isLand = simExtMadaraQuadrotorControlIsLandCmd(string cmd)",
-		inArgs, simExtMadaraQuadrotorControlIsLandCmd);
+		g_isCmdInArgs, simExtMadaraQuadrotorControlIsLandCmd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // isOnCmd
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// The actual callback function.
 void simExtMadaraQuadrotorControlIsTakeoffCmd(SLuaCallBack* p)
 {
 	isGivenCommand(p, MO_TAKEOFF_CMD);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Register test of isOnCmd
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void registerMadaraQuadrotorControlIsTakeoffCmdLuaCallback()
 {
-	// Define the LUA function input parameters.
-	int inArgs[] = {1, sim_lua_arg_string};
-
 	// Register the simExtGetPositionInBridge function.
 	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlIsTakeoffCmd",
 		"isTakeoff = simExtMadaraQuadrotorControlIsTakeoffCmd(string cmd)",
-		inArgs, simExtMadaraQuadrotorControlIsTakeoffCmd);
+		g_isCmdInArgs, simExtMadaraQuadrotorControlIsTakeoffCmd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Callback of the Lua simExtMadaraQuadrotorControlCleanup command.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Define the LUA function input parameters.
+static int g_cleanupInArgs[] = {0};
+
+// The actual callback function.
 void simExtMadaraQuadrotorControlCleanup(SLuaCallBack* /*p*/)
 {
 	simLockInterface(1);
@@ -451,18 +361,13 @@ void simExtMadaraQuadrotorControlCleanup(SLuaCallBack* /*p*/)
 	simLockInterface(0);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Registers the Lua simExtMadaraQuadrotorControlCleanup command.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void registerMadaraQuadrotorControlCleanupLuaCallback()
 {
-	// Define the LUA function input parameters.
-	int inArgs[] = {0};
-
 	// Register the simExtGetPositionInBridge function.
 	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlCleanup",
 		"simExtMadaraQuadrotorControlCleanup()",
-		inArgs, simExtMadaraQuadrotorControlCleanup);
+		g_cleanupInArgs, simExtMadaraQuadrotorControlCleanup);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
