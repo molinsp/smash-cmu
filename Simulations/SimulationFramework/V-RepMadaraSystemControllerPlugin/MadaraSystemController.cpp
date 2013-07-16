@@ -157,7 +157,7 @@ void MadaraController::requestAreaCoverage(int droneId, int searchAreaId)
     // Set the given search area as the area for this drone to search; and tell it to start searching.
     std::string droneIdString = NUM_TO_STR(droneId);
     m_knowledge->set(MV_ASSIGNED_SEARCH_AREA(droneIdString), (Madara::Knowledge_Record::Integer) searchAreaId,
-      Madara::Knowledge_Engine::Eval_Settings(true));
+      Madara::Knowledge_Engine::Eval_Settings(true)); 
     m_knowledge->set(MV_AREA_COVERAGE_REQUESTED(droneIdString), (Madara::Knowledge_Record::Integer) 1);
 }
 
@@ -183,6 +183,9 @@ void MadaraController::setNewSearchArea(int searchAreaId, SMASH::Utilities::Regi
       Madara::Knowledge_Engine::Eval_Settings(true));
     m_knowledge->set(MV_REGION_BOTRIGHT_LOC(sourceRegionIdString), botRightLocation,
       Madara::Knowledge_Engine::Eval_Settings(true));
+
+	// Ensure that the min altitude is sent.
+	m_knowledge->set (MV_MIN_ALTITUDE, m_minAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
 
     // Update the total amount of search areas. No delay to apply all changes.
     int totalSearchAreas = searchAreaId + 1;

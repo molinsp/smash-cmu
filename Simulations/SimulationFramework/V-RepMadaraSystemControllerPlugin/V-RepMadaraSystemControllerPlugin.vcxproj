@@ -51,7 +51,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\WindowsMulticastTransport;..\V-RepImports;$(MADARA_ROOT)/include;..\..\..\DroneController\packages\madara_client</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\V-RepCommonPluginUtils;..\WindowsMulticastTransport;..\V-RepImports;$(MADARA_ROOT)/include;..\..\..\DroneController\packages\madara_client</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -83,24 +83,24 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\V-RepCommonPluginUtils\v_repExtLuaExtenderPlugin.cpp" />
     <ClCompile Include="..\V-RepImports\v_repLib.cpp" />
     <ClCompile Include="..\WindowsMulticastTransport\Windows_Multicast_Transport.cpp" />
     <ClCompile Include="..\WindowsMulticastTransport\Windows_Multicast_Transport_Read_Thread.cpp" />
     <ClCompile Include="LuaCustomFunctions.cpp" />
     <ClCompile Include="MadaraSystemController.cpp" />
-    <ClCompile Include="v_repExtMadaraSystemController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\utilities\CommonMadaraVariables.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\utilities\Position.h" />
+    <ClInclude Include="..\V-RepCommonPluginUtils\LuaFunctionRegistration.h" />
+    <ClInclude Include="..\V-RepCommonPluginUtils\v_repExtPluginInterface.h" />
     <ClInclude Include="..\V-RepImports\extApiCustomConst.h" />
     <ClInclude Include="..\V-RepImports\v_repConst.h" />
     <ClInclude Include="..\V-RepImports\v_repLib.h" />
     <ClInclude Include="..\WindowsMulticastTransport\Windows_Multicast_Transport.h" />
     <ClInclude Include="..\WindowsMulticastTransport\Windows_Multicast_Transport_Read_Thread.h" />
-    <ClInclude Include="LuaCustomFunctions.h" />
     <ClInclude Include="MadaraSystemController.h" />
-    <ClInclude Include="v_repExtMadaraSystemController.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

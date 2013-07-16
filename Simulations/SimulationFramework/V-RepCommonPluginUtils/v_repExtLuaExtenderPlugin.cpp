@@ -5,17 +5,13 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
-#include "LuaCustomFunctions.h"
+// Includes the declaration of the function that will be used to register all new Lua functions.
+#include "LuaFunctionRegistration.h"
 
-#include "v_repExtMadaraQuadrotorControlPlugin.h"
+#include "v_repExtPluginInterface.h"
 #include "v_repLib.h"
-
 #include <iostream>
-using std::cout;
-using std::endl;
 #include <sstream>
-#include <string>
-using std::string;
 
 //#ifdef _WIN32
 //	#include <afxwin.h>         // MFC core and standard components
@@ -50,13 +46,13 @@ bool _stricmp(const char *left, const char *right)
 #endif
 
 #define PLUGIN_VERSION 1
-#define PLUGIN_NAME "MadaraQuadrotorControlPlugin"
 
 LIBRARY vrepLib; // the V-REP library that we will dynamically load and bind
 
-// This is the plugin start routine
-// called just once, just after the plugin was loaded
-VREP_DLLEXPORT unsigned char v_repStart(void* /*reservedPointer*/, int /*reservedInt*/)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// This is the plugin start routine (called just once, just after the plugin was loaded):
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer,int reservedInt)
 {
     // Dynamically load and bind V-REP functions:
     // ******************************************
@@ -68,9 +64,9 @@ VREP_DLLEXPORT unsigned char v_repStart(void* /*reservedPointer*/, int /*reserve
 #elif defined (__linux) || defined (__APPLE__)
     getcwd(curDirAndFile, sizeof(curDirAndFile));
 #endif
-    string currentDirAndPath(curDirAndFile);
+    std::string currentDirAndPath(curDirAndFile);
     // 2. Append the V-REP library's name:
-    string temp(currentDirAndPath);
+    std::string temp(currentDirAndPath);
 #ifdef _WIN32
     temp+="\\v_rep.dll";
 #elif defined (__linux)
@@ -82,14 +78,12 @@ VREP_DLLEXPORT unsigned char v_repStart(void* /*reservedPointer*/, int /*reserve
     vrepLib=loadVrepLibrary(temp.c_str());
     if (vrepLib==NULL)
     {
-        cout << "Error, could not find or correctly load the V-REP library. ";
-        cout << "Cannot start '" << PLUGIN_NAME << "' plugin." << endl;
+        std::cout << "Error, could not find or correctly load the V-REP library. Cannot start 'PluginSkeleton' plugin.\n";
         return(0); // Means error, V-REP will unload this plugin
     }
     if (getVrepProcAddresses(vrepLib)==0)
     {
-        cout << "Error, could not find all required functions in the V-REP ";
-        cout << "library. Cannot start '" << PLUGIN_NAME << "' plugin." << endl;
+        std::cout << "Error, could not find all required functions in the V-REP library. Cannot start 'PluginSkeleton' plugin.\n";
         unloadVrepLibrary(vrepLib);
         return(0); // Means error, V-REP will unload this plugin
     }
@@ -101,8 +95,7 @@ VREP_DLLEXPORT unsigned char v_repStart(void* /*reservedPointer*/, int /*reserve
     simGetIntegerParameter(sim_intparam_program_version,&vrepVer);
     if (vrepVer<20604) // if V-REP version is smaller than 2.06.04
     {
-        cout << "Sorry, your V-REP copy is somewhat old. Cannot start '";
-        cout << PLUGIN_NAME << "' plugin." << endl;
+        std::cout << "Sorry, your V-REP copy is somewhat old. Cannot start 'PluginSkeleton' plugin.\n";
         unloadVrepLibrary(vrepLib);
         return(0); // Means error, V-REP will unload this plugin
     }
@@ -114,31 +107,25 @@ VREP_DLLEXPORT unsigned char v_repStart(void* /*reservedPointer*/, int /*reserve
 
     // Here you could also register custom Lua functions or custom Lua constants
     // etc.
-  registerMadaraQuadrotorControlSetupLuaCallback();
-  registerMadaraQuadrotorControlCleanupLuaCallback();
-  
-  registerMadaraQuadrotorControlUpdateStatusLuaCallback();
-  registerMadaraQuadrotorControlGetNewCmdLuaCallback();
-
-  registerMadaraQuadrotorControlIsGoToCmdLuaCallback();
-  registerMadaraQuadrotorControlIsLandCmdLuaCallback();
-  registerMadaraQuadrotorControlIsTakeoffCmdLuaCallback();
+    registerAllLuaExtensions();
 
     simLockInterface(0);
     return(PLUGIN_VERSION); // initialization went fine, we return the version number of this plugin (can be queried with simGetModuleName)
 }
 
-// plugin end routine
-// called just once, when V-REP is ending, i.e. releasing this plugin
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// This is the plugin end routine (called just once, when V-REP is ending, i.e. releasing this plugin):
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 VREP_DLLEXPORT void v_repEnd()
 {
     // Here you could handle various clean-up tasks
     unloadVrepLibrary(vrepLib); // release the library
 }
 
-// plugin messaging routine
-// V-REP calls this function very often, with various messages
-VREP_DLLEXPORT void* v_repMessage(int message,int* auxiliaryData,void* customData,int* /*replyData*/)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// This is the plugin messaging routine (i.e. V-REP calls this function very often, with various messages):
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+VREP_DLLEXPORT void* v_repMessage(int message,int* auxiliaryData,void* customData,int* replyData)
 { // This is called quite often. Just watch out for messages/events you want to handle
     // Keep following 6 lines at the beginning and unchanged:
     simLockInterface(1);
@@ -199,7 +186,7 @@ VREP_DLLEXPORT void* v_repMessage(int message,int* auxiliaryData,void* customDat
 
     if (message==sim_message_eventcallback_moduleopen)
     { // A script called simOpenModule (by default the main script). Is only called during simulation.
-        if ( (customData==NULL)||(_stricmp(PLUGIN_NAME,(char*)customData)==0) ) // is the command also meant for this plugin?
+        if ( (customData==NULL)||(_stricmp("PluginSkeleton",(char*)customData)==0) ) // is the command also meant for this plugin?
         {
             // we arrive here only at the beginning of a simulation
         }
@@ -207,7 +194,7 @@ VREP_DLLEXPORT void* v_repMessage(int message,int* auxiliaryData,void* customDat
 
     if (message==sim_message_eventcallback_modulehandle)
     { // A script called simHandleModule (by default the main script). Is only called during simulation.
-        if ( (customData==NULL)||(_stricmp(PLUGIN_NAME,(char*)customData)==0) ) // is the command also meant for this plugin?
+        if ( (customData==NULL)||(_stricmp("PluginSkeleton",(char*)customData)==0) ) // is the command also meant for this plugin?
         {
             // we arrive here only while a simulation is running
         }
@@ -215,7 +202,7 @@ VREP_DLLEXPORT void* v_repMessage(int message,int* auxiliaryData,void* customDat
 
     if (message==sim_message_eventcallback_moduleclose)
     { // A script called simCloseModule (by default the main script). Is only called during simulation.
-        if ( (customData==NULL)||(_stricmp(PLUGIN_NAME,(char*)customData)==0) ) // is the command also meant for this plugin?
+        if ( (customData==NULL)||(_stricmp("PluginSkeleton",(char*)customData)==0) ) // is the command also meant for this plugin?
         {
             // we arrive here only at the end of a simulation
         }

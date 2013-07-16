@@ -49,7 +49,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\DroneController\packages\madara_client;..\V-RepImports;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\V-RepCommonPluginUtils;..\..\..\DroneController\packages\madara_client;..\V-RepImports;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -81,15 +81,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.h" />
+    <ClInclude Include="..\V-RepCommonPluginUtils\LuaFunctionRegistration.h" />
+    <ClInclude Include="..\V-RepCommonPluginUtils\v_repExtPluginInterface.h" />
     <ClInclude Include="..\V-RepImports\extApiCustomConst.h" />
     <ClInclude Include="..\V-RepImports\v_repConst.h" />
     <ClInclude Include="..\V-RepImports\v_repLib.h" />
-    <ClInclude Include="v_repExtBridgeAlgorithm.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.cpp" />
+    <ClCompile Include="..\V-RepCommonPluginUtils\v_repExtLuaExtenderPlugin.cpp" />
     <ClCompile Include="..\V-RepImports\v_repLib.cpp" />
-    <ClCompile Include="v_repExtBridgeAlgorithm.cpp" />
+    <ClCompile Include="LuaCustomFunctions.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

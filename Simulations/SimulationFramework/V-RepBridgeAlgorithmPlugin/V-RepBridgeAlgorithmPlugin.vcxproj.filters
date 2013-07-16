@@ -13,33 +13,57 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\vrep_headers">
+      <UniqueIdentifier>{20613c69-9afd-49cc-afb1-798b4e179806}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\vrep_plugin_headers">
+      <UniqueIdentifier>{3e45ef02-b5ce-41e1-90ed-e4f890d903bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\vrep">
+      <UniqueIdentifier>{3d147b27-cc82-4d91-9e94-2afab63b13ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\vrep_plugin">
+      <UniqueIdentifier>{ae855cab-99b8-4fa9-864d-9aaad0514a4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\bridge_module">
+      <UniqueIdentifier>{179dcd4c-4e41-4660-8190-d7e71234a1a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\bridge_module">
+      <UniqueIdentifier>{a8ea3a94-5d1d-4ba8-85fb-5f0f347b1bb7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="v_repExtBridgeAlgorithm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\V-RepImports\extApiCustomConst.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\vrep_headers</Filter>
     </ClInclude>
     <ClInclude Include="..\V-RepImports\v_repConst.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\vrep_headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\V-RepCommonPluginUtils\v_repExtPluginInterface.h">
+      <Filter>Header Files\vrep_plugin_headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\V-RepCommonPluginUtils\LuaFunctionRegistration.h">
+      <Filter>Header Files\vrep_plugin_headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.h">
+      <Filter>Header Files\bridge_module</Filter>
     </ClInclude>
     <ClInclude Include="..\V-RepImports\v_repLib.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\vrep_headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="v_repExtBridgeAlgorithm.cpp">
+    <ClCompile Include="..\V-RepImports\v_repLib.cpp">
+      <Filter>Source Files\vrep</Filter>
+    </ClCompile>
+    <ClCompile Include="..\V-RepCommonPluginUtils\v_repExtLuaExtenderPlugin.cpp">
+      <Filter>Source Files\vrep_plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="LuaCustomFunctions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\V-RepImports\v_repLib.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\bridge_module</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

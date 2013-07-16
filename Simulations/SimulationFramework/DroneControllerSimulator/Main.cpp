@@ -186,6 +186,7 @@ int main (int argc, char** argv)
 		"Bridging:\t{" MV_BUSY("{.id}") ".bridging}\n"
 		"Target pos:\t{" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n"
         "Search end:\t{.area_coverage.cell.bottom_right.location.latitude},{.area_coverage.cell.bottom_right.location.longitude}\n\n"
+		"Command:\t{" MV_MOVEMENT_REQUESTED "},{" MV_MOVEMENT_TARGET_ALT "}\n"
 		;
 
     // Until the user presses ctrl+c in this terminal, check for input.

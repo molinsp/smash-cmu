@@ -28,6 +28,12 @@
     <Filter Include="Source Files\win_multicast_transport">
       <UniqueIdentifier>{6f9056b9-10dc-481c-9867-d15a60a932dc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\vrep_plugin_headers">
+      <UniqueIdentifier>{0dc5f43e-5f3b-48d0-8775-89f65a609374}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\vrep_plugin">
+      <UniqueIdentifier>{15d0b50e-8fe8-4740-b472-fc154606fe31}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LuaCustomFunctions.cpp">
@@ -35,9 +41,6 @@
     </ClCompile>
     <ClCompile Include="..\V-RepImports\v_repLib.cpp">
       <Filter>Source Files\vrep</Filter>
-    </ClCompile>
-    <ClCompile Include="v_repExtMadaraSystemController.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\WindowsMulticastTransport\Windows_Multicast_Transport_Read_Thread.cpp">
       <Filter>Source Files\win_multicast_transport</Filter>
@@ -48,11 +51,11 @@
     <ClCompile Include="MadaraSystemController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\V-RepCommonPluginUtils\v_repExtLuaExtenderPlugin.cpp">
+      <Filter>Source Files\vrep_plugin</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="LuaCustomFunctions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\utilities\Position.h">
       <Filter>Header Files\utilities_module</Filter>
     </ClInclude>
@@ -68,9 +71,6 @@
     <ClInclude Include="..\V-RepImports\extApiCustomConst.h">
       <Filter>Header Files\vrep_headers</Filter>
     </ClInclude>
-    <ClInclude Include="v_repExtMadaraSystemController.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\WindowsMulticastTransport\Windows_Multicast_Transport.h">
       <Filter>Header Files\win_multicast_transport</Filter>
     </ClInclude>
@@ -79,6 +79,12 @@
     </ClInclude>
     <ClInclude Include="MadaraSystemController.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\V-RepCommonPluginUtils\LuaFunctionRegistration.h">
+      <Filter>Header Files\vrep_plugin_headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\V-RepCommonPluginUtils\v_repExtPluginInterface.h">
+      <Filter>Header Files\vrep_plugin_headers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

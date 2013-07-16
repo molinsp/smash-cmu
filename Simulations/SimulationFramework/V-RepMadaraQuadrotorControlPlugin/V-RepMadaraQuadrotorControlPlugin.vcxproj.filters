@@ -28,6 +28,12 @@
     <Filter Include="Source Files\win_multicast_transport">
       <UniqueIdentifier>{50fe5c4e-7ac8-49ef-aaf0-7a19dd602ed7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\vrep_plugin">
+      <UniqueIdentifier>{7b7ae1e0-a3cd-433d-a157-5f14b040267c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\vrep_plugin_headers">
+      <UniqueIdentifier>{80765be3-9cc4-41ca-ab64-cfcad32f3eed}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\V-RepImports\extApiCustomConst.h">
@@ -45,17 +51,17 @@
     <ClInclude Include="..\WindowsMulticastTransport\Windows_Multicast_Transport_Read_Thread.h">
       <Filter>Header Files\win_multicast_transport</Filter>
     </ClInclude>
-    <ClInclude Include="v_repExtMadaraQuadrotorControlPlugin.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Location.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LuaCustomFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MadaraQuadrotorControl.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\V-RepCommonPluginUtils\LuaFunctionRegistration.h">
+      <Filter>Header Files\vrep_plugin_headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\V-RepCommonPluginUtils\v_repExtPluginInterface.h">
+      <Filter>Header Files\vrep_plugin_headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -68,14 +74,14 @@
     <ClCompile Include="..\WindowsMulticastTransport\Windows_Multicast_Transport_Read_Thread.cpp">
       <Filter>Source Files\win_multicast_transport</Filter>
     </ClCompile>
-    <ClCompile Include="v_repExtMadaraQuadrotorControlPlugin.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="LuaCustomFunctions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MadaraQuadrotorControl.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\V-RepCommonPluginUtils\v_repExtLuaExtenderPlugin.cpp">
+      <Filter>Source Files\vrep_plugin</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
