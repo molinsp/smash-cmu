@@ -80,6 +80,14 @@ namespace SMASH
 		        topLeftCorner = newTopLeftCorner;
 		        bottomRightCorner = newBottomRightCorner;
 	        }
+
+          bool contains(const Position& test)
+          {
+            return ((test.x <= topLeftCorner.x) &&
+                    (test.x >= bottomRightCorner.x) &&
+                    (test.y <= bottomRightCorner.y) &&
+                    (test.y >= topLeftCorner.y));
+          }
         };
     }
 }

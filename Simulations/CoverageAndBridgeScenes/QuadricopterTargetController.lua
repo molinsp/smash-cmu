@@ -204,27 +204,23 @@ function moveTargetTowardsPosition(newPositionLon, newPositionLat, newAltitude)
     local droneTargetPosition = getObjectPositionInDegrees(droneTargetHandle, -1)
     
     local speed = TARGET_SPEED
-    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Curr target position' .. (droneTargetPosition[1]) .. ',' .. ((droneTargetPosition[2]))..', speed: '..speed)
+    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Curr target position' .. droneTargetPosition[1] .. ',' .. droneTargetPosition[2]..':'..speed)
     
-    -- Check if the target is already at the required X position. If not, define that the
-    -- new X position is our current plus the speed we move at in the correct direction.
-    if(droneTargetPosition[1] > newPositionLon) then        
-        droneTargetPosition[1] = droneTargetPosition[1] - speed
-    else
-        droneTargetPosition[1] = droneTargetPosition[1] + speed
-    end
+    local deltaLon = newPositionLon - droneTargetPosition[1]
+    local deltaLat = newPositionLat - droneTargetPosition[2]
+    local deltaTotal = math.abs(deltaLon) + math.abs(deltaLat)
 
-    -- Check if the target is already at the required Y position. If not, define that the
-    -- new Y position is our current plus the speed we move at in the correct direction.    
-    if(droneTargetPosition[2] > newPositionLat) then
-        droneTargetPosition[2] = droneTargetPosition[2] - speed
+    if(deltaTotal < speed) then
+      droneTargetPosition[1] = newPositionLon
+      droneTargetPosition[2] = newPositionLat
     else
-        droneTargetPosition[2] = droneTargetPosition[2] + speed
+      droneTargetPosition[1] = droneTargetPosition[1] + deltaLon / deltaTotal * speed
+      droneTargetPosition[2] = droneTargetPosition[2] + deltaLat / deltaTotal * speed
     end
     
     -- The altitude that we were assinged will be set directly, independently of our current one.
     droneTargetPosition[3] = newAltitude    
-       
+
     -- Move the target to a new position, so the drone will follow it there.
     --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Final target position' .. (newPositionLon) .. ',' .. (newPositionLat)..', speed: '..speed)
     --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Moving target to position' .. ((droneTargetPosition[1]+79.9402)*10000) .. ',' .. ((droneTargetPosition[2]-40.4432)*1000))

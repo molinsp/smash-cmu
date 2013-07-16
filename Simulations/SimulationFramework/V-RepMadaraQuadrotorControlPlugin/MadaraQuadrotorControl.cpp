@@ -12,7 +12,7 @@
 using std::vector;
 #include <string>
 using std::string;
-#include <utilities\Position.h>
+#include "utilities/Position.h"
 
 #ifdef _WIN32
 // Only include the custom transport in Windows, as it is not necessary in Linux.

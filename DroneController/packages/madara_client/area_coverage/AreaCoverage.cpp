@@ -94,6 +94,7 @@ Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
     return deviceCell;
 }
 
+
 // Returns a vector with the two middle divisors of a number (the ones closest
 // to one another).
 vector<int> AreaCoverage::findMiddleDivisors(int numberToEvaluate)

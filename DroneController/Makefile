@@ -52,7 +52,7 @@ ar_drone_2: .make_install_dir
 	@cd $(PACKAGES_ROOT)/$*; make clean
 
 %-realclean:
-	@cd $(PACKAGES_ROOT)/$*; make realclean
+	@cd $(PACKAGES_ROOT)/$*; PACKAGES_ROOT=`pwd`/.. make realclean
 	
 clean:
 	for d in `ls packages`; do make $$d-clean; done

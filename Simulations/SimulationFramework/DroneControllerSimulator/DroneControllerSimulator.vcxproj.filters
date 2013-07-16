@@ -81,6 +81,9 @@
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\AreaCoverage.cpp">
       <Filter>Source Files\area_coverage_module</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\InsideOutAreaCoverage.cpp">
+      <Filter>Source Files\area_coverage_module</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\area_coverage\area_coverage_module.h">
@@ -117,6 +120,9 @@
       <Filter>Header Files\area_coverage_module</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\area_coverage\SnakeAreaCoverage.h">
+      <Filter>Header Files\area_coverage_module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\area_coverage\InsideOutAreaCoverage.h">
       <Filter>Header Files\area_coverage_module</Filter>
     </ClInclude>
   </ItemGroup>

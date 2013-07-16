@@ -11,6 +11,9 @@
 ******************************************************************************/
 
 #include "SnakeAreaCoverage.h"
+
+#include "utilities/CommonMadaraVariables.h"
+
 #include <cmath>
 
 using namespace SMASH::AreaCoverage;
@@ -86,4 +89,14 @@ Position SnakeAreaCoverage::getNextTargetLocation()
     // We updated it internally, but we also return our next target it so it can be used by the movement controller.
     printf("Target location: %.10f, %.10f\n", m_targetLocation.x, m_targetLocation.y);
     return m_targetLocation;
+}
+
+// Query if algorithm has reached final target
+// @return  true if final target has been reached, false otherwise
+bool SnakeAreaCoverage::isTargetingFinalWaypoint()
+{
+  return (fabs(m_targetLocation.x - m_cellToSearch->bottomRightCorner.x) <
+                    (SEARCH_COLUMN_WIDTH / 2)) &&
+         (fabs(m_targetLocation.y - m_cellToSearch->bottomRightCorner.y) <
+                    (SEARCH_COLUMN_WIDTH / 2));
 }

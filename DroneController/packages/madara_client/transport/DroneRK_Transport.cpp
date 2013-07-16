@@ -203,7 +203,12 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
   // set the update to the end of the header
   char * update = header->write(buffer, buffer_remaining);
   uint64_t * message_size =(uint64_t *)buffer;
-  
+  uint32_t * num_updates;
+  if(settings_.send_reduced_message_header)
+    num_updates = (uint32_t *)&buffer[12];
+  else
+    num_updates = (uint32_t *)&buffer[116];
+
   // Message header format
   // [size|id|domain|originator|type|updates|quality|clock|list of updates]
 
@@ -215,6 +220,7 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
   
   // Add the data values that are appropriate for long range transmission
   int j = 0;
+  uint32_t longRangeUpdates = 0;
   for(Madara::Knowledge_Records::const_iterator i = updates.begin();
     i != updates.end(); ++i, ++j)
   {
@@ -236,11 +242,14 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
         " unable to send due to overflow in buffer for update[%d] => %s=%s\n",
         j, i->first.c_str(), i->second->to_string().c_str()));
       }
+      
+      ++longRangeUpdates;
     }
   }
-  int longRangeSize = (int)(settings_.queue_length - buffer_remaining);
+  uint32_t longRangeSize = (uint32_t)(update - buffer);
 
   // Add the remaining data values for wifi transmission
+  uint32_t wifiUpdates = longRangeUpdates;
   for(Madara::Knowledge_Records::const_iterator i = updates.begin();
     i != updates.end(); ++i, ++j)
   {
@@ -262,8 +271,11 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
         " unable to send due to overflow in buffer for update[%d] => %s=%s\n",
         j, i->first.c_str(), i->second->to_string().c_str()));
       }
+
+      ++wifiUpdates;
     }
   }
+  uint64_t wifiSize = (uint64_t)(update - buffer);
   
   if(buffer_remaining > 0)
   {
@@ -289,14 +301,15 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
     }
 
     // TODO: transmit over long range radio
-    *message_size = Madara::Utility::endian_swap((uint64_t)longRangeSize);
+    *message_size = Madara::Utility::endian_swap(longRangeSize);
+    *num_updates = Madara::Utility::endian_swap(longRangeUpdates);
     // int bytes_sent = drk_transmit_long_range(buffer, longRangeSize);
 
     // send the buffer contents to the multicast address
     if(addresses_.size() > 0)
     {
-      int wifiSize =(int)(settings_.queue_length - buffer_remaining);
-      *message_size = Madara::Utility::endian_swap((uint64_t)wifiSize);
+      *message_size = Madara::Utility::endian_swap(wifiSize);
+      *num_updates = Madara::Utility::endian_swap(wifiUpdates);
       int bytes_sent = socket_.send(
         buffer, wifiSize, addresses_[0]);
 
@@ -305,9 +318,9 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
         " Sent packet with size %d\n",
         bytes_sent));
     }
-
-    delete header;
   }
+
+  delete header;
 
   return 0;
 }
