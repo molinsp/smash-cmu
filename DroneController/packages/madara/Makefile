@@ -19,7 +19,7 @@ all:
 
 #Check if packages/madara exists
 ifeq ($(wildcard $(MADARA_ROOT)),)
-	@echo "You must download the MADARA source, press enter to do this now..."
+	@echo "Downloading MADARA source..."
 	@svn checkout http://madara.googlecode.com/svn/trunk/ $(MADARA_ROOT)
 else
 	@echo "MADARA source already exists"
