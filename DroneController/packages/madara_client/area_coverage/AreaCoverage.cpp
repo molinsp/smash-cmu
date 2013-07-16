@@ -106,7 +106,7 @@ vector<int> AreaCoverage::findMiddleDivisors(int numberToEvaluate)
     // itself, to find further divisors.
     int highestDivisorFound = numberToEvaluate;
     for(int currentDivisorCandidate = 1;
-        currentDivisorCandidate < highestDivisorFound; currentDivisorCandidate++)
+        currentDivisorCandidate <= highestDivisorFound; currentDivisorCandidate++)
     {
         // If the modulo operation returns zero, it means that
         // currentFactorCandidate is a divisor.

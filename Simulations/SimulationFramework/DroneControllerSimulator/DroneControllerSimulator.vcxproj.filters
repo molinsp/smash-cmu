@@ -46,6 +46,12 @@
     <Filter Include="Source Files\platform">
       <UniqueIdentifier>{2753fab8-3b4a-49d3-9c53-0d81ced1b770}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\main_module">
+      <UniqueIdentifier>{5fc789f8-13c9-4a96-a41c-e3883aae1e47}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\main_module">
+      <UniqueIdentifier>{b72ee46d-2769-453b-adf7-9d6c81e6eeef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -83,6 +89,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\InsideOutAreaCoverage.cpp">
       <Filter>Source Files\area_coverage_module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\main_functions.cpp">
+      <Filter>Source Files\main_module</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -124,6 +133,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\area_coverage\InsideOutAreaCoverage.h">
       <Filter>Header Files\area_coverage_module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\main_functions.h">
+      <Filter>Header Files\main_module</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

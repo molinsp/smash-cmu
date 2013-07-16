@@ -20,11 +20,7 @@
 #include "utilities/utilities_module.h"
 #include "platforms/platform.h"
 
-#define NUM_TASKS 	3
-#define MAIN_LOGIC 	0
-#define PROCESS_STATE   1
-#define PROCESS_STATE_MOVEMENT_COMMANDS   2
-static Madara::Knowledge_Engine::Compiled_Expression expressions [NUM_TASKS];
+#include "main_functions.h"
 
 //Inturupt handling
 volatile bool g_terminated = false;
@@ -53,80 +49,6 @@ extern Madara::Knowledge_Engine::Knowledge_Base* m_sim_knowledge;
 
 // Flag to indicate if we want to run an internal test configuration.
 bool g_setupTest;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Extra defined function just to force local update settings on global movement variables.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Madara::Knowledge_Record process_state_movement_commands (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
-{
-  return variables.evaluate(expressions[PROCESS_STATE_MOVEMENT_COMMANDS],
-    Madara::Knowledge_Engine::Eval_Settings(false, true));
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Setup of pre-compiled expressions.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
-{
-	expressions[PROCESS_STATE_MOVEMENT_COMMANDS] = knowledge.compile
-	(
-		knowledge.expand_statement
-		(
-			".movement_command=0;"
-			"swarm.movement_command  || device.{.id}.movement_command =>"
-			"("
-				"(( swarm.movement_command => "
-				"("
-					".movement_command = swarm.movement_command;"
-					"copy_vector('swarm.movement_command.*', '.movement_command.');"
-				"))"
-				"||"
-				"( device.{.id}.movement_command => "
-				"(" 
-					".movement_command = device.{.id}.movement_command;"
-					"copy_vector('device.{.id}.movement_command.*', '.movement_command.');"
-				")));"
-				"swarm.movement_command = 0; device.{.id}.movement_command = 0;"
-			")"
-		)
-	);
-	knowledge.define_function("process_state_movement_commands", process_state_movement_commands);
-
-	expressions[PROCESS_STATE] = knowledge.compile
-	(
-		knowledge.expand_statement
-		(
-            "("
-                MV_BUSY("{" MV_MY_ID "}") "=" MV_BUSY("{" MV_MY_ID "}") ";"
-                MV_MOBILE("{" MV_MY_ID "}") "=" MV_MOBILE("{" MV_MY_ID "}") ";"
-            ");"
-
-			"device.{.id}.location=.location;"
-			"inflate_coords(.location, '.location');"
-			"inflate_coord_array_to_local('device.*');"
-			"inflate_coord_array_to_local('region.*');"
-			"process_state_movement_commands();"
-		)
-	);
-	
-	knowledge.define_function("process_state", expressions[PROCESS_STATE]);
-	
-	std::string areaMainLogicCall = SMASH::AreaCoverage::get_core_function();
-    std::string bridgeMainLogicCall = SMASH::Bridge::get_core_function();
-	expressions[MAIN_LOGIC] = knowledge.compile
-	(
-		"read_sensors ();"
-		"process_state ();"
-		"(.movement_command"
-		"||"
-		//"(.needs_bridge => " + bridgeMainLogicCall + " )"
-        "(" + bridgeMainLogicCall + " )"
-		"||"
-		"" + areaMainLogicCall + ");"
-		".movement_command => process_movement_commands();"
-	);
-
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Enntry point.
@@ -174,7 +96,7 @@ int main (int argc, char** argv)
     // Indicate we start moving.
     knowledge.set(MV_MOBILE("{" MV_MY_ID "}"), 1.0, Madara::Knowledge_Engine::Eval_Settings(true));
 
-    compile_expressions(knowledge);
+    main_compile_expressions(knowledge);
 
     // Visual settings to show console output.
 	Madara::Knowledge_Engine::Eval_Settings eval_settings;
@@ -190,9 +112,10 @@ int main (int argc, char** argv)
 		;
 
     // Until the user presses ctrl+c in this terminal, check for input.
+	Madara::Knowledge_Engine::Compiled_Expression mainExpression = main_get_main_expression();
     while (!g_terminated)
     {
-        knowledge.evaluate (expressions[MAIN_LOGIC], eval_settings);
+        knowledge.evaluate (mainExpression, eval_settings);
         ACE_OS::sleep (1);
     }
 

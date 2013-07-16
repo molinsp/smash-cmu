@@ -10,7 +10,7 @@ CC = $(LOCAL_GPLUSPLUS)
 
 LOCAL_EXECUTABLE = madara_client
 
-LOCAL_SOURCES = madara_client.cpp
+LOCAL_SOURCES = madara_client.cpp main_functions.cpp
 		
 LOCAL_CFLAGS = -D$(PLATFORM) -ggdb
 LOCAL_LIBS = -lMADARA -lACE
