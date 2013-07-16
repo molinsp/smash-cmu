@@ -163,7 +163,7 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 		if(strcmp(MO_MOVE_TO_GPS_CMD, newCommand->m_command.c_str()) == 0)
 		{
 			// For debugging, print out what we received.
-			sstm << "Values received inside simExtMadaraQuadrotorControlGetNewCmd function: command:" << newCommand->m_command << ", "
+			sstm << "Values received inside simExtMadaraQuadrotorControlGetNewCmd function: command: " << newCommand->m_command << ", "
 				<< " (" << std::setprecision(10) << newCommand->m_loc.m_lat << "," << newCommand->m_loc.m_long << ")"
 				<< std::endl;
 
@@ -180,13 +180,13 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 			std::vector<std::string> outputStrings(numOutputs);
 			outputStrings[0] = newCommand->m_command;
 			outputStrings[1] = lat;
-			outputStrings[1] = lon;
+			outputStrings[2] = lon;
 			setupStringOutputBuffer(p, outputStrings);
 		}
 		else if(strcmp(MO_MOVE_TO_ALTITUDE_CMD, newCommand->m_command.c_str()) == 0)
 		{
 			// For debugging, print out what we received.
-			sstm << "Values received inside simExtMadaraQuadrotorControlGetNewCmd function: command:" << newCommand->m_command << ", "
+			sstm << "Values received inside simExtMadaraQuadrotorControlGetNewCmd function: command: " << newCommand->m_command << ", "
 				<< " (" << std::setprecision(10) << newCommand->m_loc.m_alt << ")" << std::endl;
 
 			// The only parameter other than the command is the altitude.
@@ -239,7 +239,7 @@ void isGivenCommand(SLuaCallBack* p, const char* commandToTest)
 	simLockInterface(1);
 
 	// Check we have to correct parameters.
-	bool paramsOk = checkInputArguments(p, g_getNewCmdInArgs, "isGivenCommand");
+	bool paramsOk = checkInputArguments(p, g_isCmdInArgs, "isGivenCommand");
 	if(paramsOk)
 	{ 
 		// The only param we received from Lua is a string to test for a certain command.

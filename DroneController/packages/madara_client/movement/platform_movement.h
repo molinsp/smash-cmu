@@ -21,5 +21,6 @@ void move_forward();
 void move_backward();
 
 void move_to_location(double, double);
+void move_to_altitude(double);
 
 #endif

@@ -1,9 +1,9 @@
 /*********************************************************************
- * Usage of this software requires acceptance of the SMASH-CMU License,
- * which can be found at the following URL:
- *
- * https://code.google.com/p/smash-cmu/wiki/License
- *********************************************************************/
+* Usage of this software requires acceptance of the SMASH-CMU License,
+* which can be found at the following URL:
+*
+* https://code.google.com/p/smash-cmu/wiki/License
+*********************************************************************/
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include "MadaraQuadrotorControl.h"
 #include "utilities/CommonMadaraVariables.h"
@@ -15,8 +15,8 @@ using std::string;
 #include <utilities\Position.h>
 
 #ifdef _WIN32
-  // Only include the custom transport in Windows, as it is not necessary in Linux.
-  #include "Windows_Multicast_Transport.h"
+// Only include the custom transport in Windows, as it is not necessary in Linux.
+#include "Windows_Multicast_Transport.h"
 #endif
 
 // Multicast address.
@@ -60,35 +60,35 @@ MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
 // Destructor, simply cleans up.
 MadaraQuadrotorControl::~MadaraQuadrotorControl()
 {    
-  terminate();
+    terminate();
 }
 
 // Cleanup, terminating all threads and open communications.
 void MadaraQuadrotorControl::terminate()
 {
-  if(m_knowledge != NULL)
-  {
-    m_knowledge->close_transport();
-    m_knowledge->clear();
-    delete m_knowledge;
-    m_knowledge = NULL;
-  }
+    if(m_knowledge != NULL)
+    {
+        m_knowledge->close_transport();
+        m_knowledge->clear();
+        delete m_knowledge;
+        m_knowledge = NULL;
+    }
 }
 
 void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const double& lat,
-  const double& lon, const double& z) // need to update for altitude
+    const double& lon, const double& z) // need to update for altitude
 {
-  // update the location of this drone (this would be done by its sensors).
-  // NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
-  // as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
-  string droneIdString = std::to_string(static_cast<long long>(id));
-  m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LAT(droneIdString), NUM_TO_STR(lat),
-    Madara::Knowledge_Engine::Eval_Settings(true));
-  m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LON(droneIdString), NUM_TO_STR(lon),
-    Madara::Knowledge_Engine::Eval_Settings(true));
-  m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_ALT(droneIdString), NUM_TO_STR(z));
+    // update the location of this drone (this would be done by its sensors).
+    // NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
+    // as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
+    string droneIdString = std::to_string(static_cast<long long>(id));
+    m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LAT(droneIdString), NUM_TO_STR(lat),
+        Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LON(droneIdString), NUM_TO_STR(lon),
+        Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_ALT(droneIdString), NUM_TO_STR(z));
 
-  m_knowledge->print_knowledge(1);
+    m_knowledge->print_knowledge(1);
 }
 
 // Updates the status of the drones in Madara.
@@ -105,7 +105,7 @@ MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(int drone
     string droneIdString = std::to_string(static_cast<long long>(droneId));
     string commandStr =
         m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
-                         MV_MOVEMENT_REQUESTED).to_string();
+        MV_MOVEMENT_REQUESTED).to_string();
     if(commandStr == "0")
         return NULL;
 
@@ -121,16 +121,25 @@ MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(int drone
             MV_MOVEMENT_TARGET_LAT).to_double();
         double targetPosLon = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
             MV_MOVEMENT_TARGET_LON).to_double();
-        double targetPosZ = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
-            MV_MOVEMENT_TARGET_ALT).to_double();
-        Location targetLocation = Location(targetPosLat, targetPosLon , targetPosZ);
+
+		// We don't care about alt here.
+        Location targetLocation = Location(targetPosLat, targetPosLon, 0);
         command->m_loc = targetLocation;
     }
+	else if(commandStr == MO_MOVE_TO_ALTITUDE_CMD)
+	{
+        double targetAltitude = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
+            MV_MOVEMENT_TARGET_ALT).to_double();
+
+		// We don't care about lat and long here.
+        Location targetLocation = Location(0, 0, targetAltitude);
+        command->m_loc = targetLocation;
+	}
 
     // Set the command as 0 locally, to indicate that we already read it.
     m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString +
         MV_MOVEMENT_REQUESTED, "0",
-    Madara::Knowledge_Engine::Eval_Settings(false, true));
+        Madara::Knowledge_Engine::Eval_Settings(false, true));
 
     return command;
 }

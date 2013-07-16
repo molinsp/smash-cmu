@@ -8,7 +8,7 @@
 require("Utils")
     
 -- The speed defines how far the target moves, and therefore how fast the drone will follow.
-TARGET_SPEED = 0.0000005    -- This is rougly equivalent to 5 cm.
+TARGET_SPEED = 0.0000003    -- This is rougly equivalent to 3 cm.
 
 -- This margin (in degrees) indicates how close to a person we use to declare that we found it.
 PERSON_FOUND_ERROR_MARGIN = 0.000002    -- This is roughly equivalent to 20 cm.
@@ -28,11 +28,11 @@ function doInitialSetup()
     -- Min default altitude.
     g_minAltitude = simGetScriptSimulationParameter(sim_handle_main_script, 'minimumAltitude')
     
-    -- Control continuous movement.
-    g_myTargetSetup = false
+    -- Control continuous movement.    
+    g_myTargetPositionSetup = false
     g_myTargetLon = 0
     g_myTargetLat = 0
-    g_myAssignedAlt = g_minAltitude
+    g_myAssignedAlt = g_minAltitude    
     
     -- Setup the plugin to communicate to the network. Only do this once, for the first drone.
     if(g_myDroneId == 0) then
@@ -146,17 +146,40 @@ function simulateMovementCommands()
     local command = ''
     
     -- We check if there is a new command.
-    command, myNewLon, myNewLat, myNewAlt = simExtMadaraQuadrotorControlGetNewCmd(g_myDroneId)
+    command, result1, result2, result3 = simExtMadaraQuadrotorControlGetNewCmd(g_myDroneId)
     if(not (command == nil)) then
         --simAddStatusbarMessage('Command: '..command)    
+        local isGoToAltCmd = simExtMadaraQuadrotorControlIsGoToAltCmd(command) 
+        if(isGoToAltCmd) then
+            myNewAlt = result1
+        
+            if(g_myTargetPositionSetup == false) then
+                
+                -- Get the current position of the target.
+                local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
+                local droneTargetPosition = getObjectPositionInDegrees(droneTargetHandle, -1) 
+
+                -- If no position has been setup, set the current lat and long for the target.                
+                g_myTargetLon = droneTargetPosition[1]
+                g_myTargetLat = droneTargetPosition[2]
+                simAddStatusbarMessage("Target lat and long: " .. g_myTargetLon .. "," .. g_myTargetLat)
+            end
+            
+            -- We only set the altitude, keeping the previously set long and lat.
+            g_myTargetPositionSetup = true
+            g_myAssignedAlt = tonumber(myNewAlt)            
+        end          
+        
         local isGoToCmd = simExtMadaraQuadrotorControlIsGoToCmd(command) 
-        if(isGoToCmd == true) then
+        if(isGoToCmd) then
+            myNewLon = result1
+            myNewLat = result2
+            
             -- If we have to move to a new location, move our target there so the drone will follow it. Altitude is ignored.
-            g_myTargetSetup = true
+            g_myTargetPositionSetup = true
             simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') In Lua, target position found: ' .. myNewLon .. ',' .. myNewLat)            
             g_myTargetLon = tonumber(myNewLon)
             g_myTargetLat = tonumber(myNewLat)
-            g_myAssignedAlt = tonumber(myNewAlt)
             
             local targetPoint = {}
             targetPoint['longitude'] = g_myTargetLon            
@@ -167,9 +190,9 @@ function simulateMovementCommands()
     end
     
     -- Move if required.
-    if(g_myTargetSetup) then
+    if(g_myTargetPositionSetup) then
         moveTargetTowardsPosition(g_myTargetLon, g_myTargetLat, g_myAssignedAlt)
-    end
+    end    
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,7 +223,7 @@ function moveTargetTowardsPosition(newPositionLon, newPositionLat, newAltitude)
     end
     
     -- The altitude that we were assinged will be set directly, independently of our current one.
-    droneTargetPosition[3] = newAltitude
+    droneTargetPosition[3] = newAltitude    
        
     -- Move the target to a new position, so the drone will follow it there.
     --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Final target position' .. (newPositionLon) .. ',' .. (newPositionLat)..', speed: '..speed)

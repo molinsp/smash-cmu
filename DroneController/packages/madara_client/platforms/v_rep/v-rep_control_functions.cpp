@@ -25,7 +25,10 @@ Madara::Knowledge_Engine::Knowledge_Base* m_sim_knowledge;
 enum VRepMadaraExpressionId 
 {
     // Expression to send a movement command.
-	VE_SEND_MOVE_COMMAND,
+	VE_SEND_MOVE_TO_GPS_COMMAND,
+
+    // Expression to send a move to altitude command.
+	VE_SEND_MOVE_TO_ALT_COMMAND,
 };
 
 // Map of Madara expressions.
@@ -69,15 +72,23 @@ bool init_platform()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base* knowledge)
 {
-    // Expression to update the list of available drone positions, simply calls the predefined function.
-    m_expressions[VE_SEND_MOVE_COMMAND] = knowledge->compile(
+    m_expressions[VE_SEND_MOVE_TO_GPS_COMMAND] = knowledge->compile(
         // Simulator variables sent to V-Rep to simulate movements.
         "("
             MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_REQUESTED) + "=" + MV_MOVEMENT_REQUESTED + ";"
             MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_TARGET_LAT) + "=" + MV_MOVEMENT_TARGET_LAT + ";"
-            MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_TARGET_LON) + "=" + MV_MOVEMENT_TARGET_LON + ";"
+			MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_TARGET_LON) + "=" + MV_MOVEMENT_TARGET_LON + ";"
         ")"
     );
+
+    m_expressions[VE_SEND_MOVE_TO_ALT_COMMAND] = knowledge->compile(
+        // Simulator variables sent to V-Rep to simulate movements.
+        "("
+            MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_REQUESTED) + "=" + MV_MOVEMENT_REQUESTED + ";"
+            MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_TARGET_ALT) + "=" + MV_MOVEMENT_TARGET_ALT + ";"
+        ")"
+    );
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -161,7 +172,16 @@ void move_backward()
 void move_to_location(double lat, double lon)
 {
     // We will assume that lat and lon have already been loaded in the local Madara variables.
-    m_sim_knowledge->evaluate(m_expressions[VE_SEND_MOVE_COMMAND]);
+    m_sim_knowledge->evaluate(m_expressions[VE_SEND_MOVE_TO_GPS_COMMAND]);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void move_to_altitude(double alt)
+{
+    // We will assume that alt has already been loaded in the local Madara variables.
+    m_sim_knowledge->evaluate(m_expressions[VE_SEND_MOVE_TO_ALT_COMMAND]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,14 +1,14 @@
 /*******************************************************************************
- * Usage of this software requires acceptance of the SMASH-CMU License,
- * which can be found at the following URL:
- *
- * https://code.google.com/p/smash-cmu/wiki/License
- ******************************************************************************/
+* Usage of this software requires acceptance of the SMASH-CMU License,
+* which can be found at the following URL:
+*
+* https://code.google.com/p/smash-cmu/wiki/License
+******************************************************************************/
 
 /*******************************************************************************
- * SnakeAreaCoverage.cpp - Defines the methods for the algorithm to perform a
- * snaking area coverage search.
- ******************************************************************************/
+* SnakeAreaCoverage.cpp - Defines the methods for the algorithm to perform a
+* snaking area coverage search.
+******************************************************************************/
 
 #include "SnakeAreaCoverage.h"
 #include <cmath>
@@ -20,28 +20,35 @@ using namespace SMASH::Utilities;
 const double SnakeAreaCoverage::SEARCH_COLUMN_WIDTH = 0.000005;
 
 // Constructors
-SnakeAreaCoverage::SnakeAreaCoverage(const SMASH::Utilities::Region& region) :
-  AreaCoverage(region) {}
+SnakeAreaCoverage::SnakeAreaCoverage() :
+AreaCoverage() {}
 
 // Destructor
 SnakeAreaCoverage::~SnakeAreaCoverage() {}
 
 // Initialize the area for the drone
-Region SnakeAreaCoverage::initialize(int deviceIdx, const Region& grid, int numDrones)
+Region* SnakeAreaCoverage::initialize(int deviceIdx, const Region& grid, int numDrones)
 {
-  return calculateCellToSearch(deviceIdx, grid, numDrones);
+    return calculateCellToSearch(deviceIdx, grid, numDrones);
 }
 
 // Called when we reach the next target location, updates and returns the next
 // target location.
 Position SnakeAreaCoverage::getNextTargetLocation()
 {
+    if(m_cellToSearch == NULL)
+    {
+        // We should improve error handling here somehow.
+        printf("Error! Attempting to get next target when cell to search has not been set.\n");
+        return Position(0,0);
+    }
+
     // If we are being called for the first time to start a search, return the
     // top left corner of the area as the next target.
     if(!m_started)
     {
         m_started = true;
-        m_targetLocation = m_searchRegion.topLeftCorner;
+        m_targetLocation = m_cellToSearch->topLeftCorner;
     }
     else
     {
@@ -59,16 +66,16 @@ Position SnakeAreaCoverage::getNextTargetLocation()
             // If we are in here, we just moved to the beginning of a search column (either on the top or the bottom).
 
             // Check if we are at the end of a column on the top or the bottom of the area.
-            bool bottomReached = m_targetLocation.y == m_searchRegion.bottomRightCorner.y;
+            bool bottomReached = m_targetLocation.y == m_cellToSearch->bottomRightCorner.y;
             if(bottomReached)
             {
                 // Since we are on the bottom, set our next target to the top.
-                m_targetLocation.y = m_searchRegion.topLeftCorner.y;
+                m_targetLocation.y = m_cellToSearch->topLeftCorner.y;
             }
             else
             {
                 // Since we are on the top, set our next target to the bottom.
-                m_targetLocation.y = m_searchRegion.bottomRightCorner.y;
+                m_targetLocation.y = m_cellToSearch->bottomRightCorner.y;
             }
 
             // Indicate that now we are going to be moving on the Y axis.
@@ -77,6 +84,6 @@ Position SnakeAreaCoverage::getNextTargetLocation()
     }
 
     // We updated it internally, but we also return our next target it so it can be used by the movement controller.
-	printf("Target location: %.10f, %.10f\n", m_targetLocation.x, m_targetLocation.y);
+    printf("Target location: %.10f, %.10f\n", m_targetLocation.x, m_targetLocation.y);
     return m_targetLocation;
 }

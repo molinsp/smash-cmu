@@ -26,7 +26,6 @@
 #define MV_DEVICE_LOCATION(deviceId)	    "device." + std::string(deviceId) + ".location"	 // The location of a device in the format "lat,long".
 #define MV_MOBILE(deviceId)			        "device." + std::string(deviceId) + ".mobile"	 // Indicates if the device can fly (i.e., if it is a drone with enough battery left).
 #define MV_BUSY(deviceId)			        "device." + std::string(deviceId) + ".busy"		 // Indicates if the device is not available for procedures (such as coverage or bridging).
-#define MV_ASSIGNED_ALTITUDE(deviceId)		"device." + std::string(deviceId) + ".assigned_alt"		 // Indicates the default atitude assigned to this device.
 
 // Region information.
 #define MV_REGION_TYPE(regionId)            "region." + std::string(regionId) + ".type"                  // The type of a particular region.
@@ -61,6 +60,7 @@
 #define MV_DEVICE_LAT(i)			    ".device." + std::string(i) + ".location.latitude"		        // The latitude of a device with id i.
 #define MV_DEVICE_LON(i)			    ".device." + std::string(i) + ".location.longitude"		        // The longtude of a device with id i.
 #define MV_DEVICE_ALT(i)			    ".device." + std::string(i) + ".location.altitude"		        // The longtude of a device with id i.
+#define MV_ASSIGNED_ALTITUDE(deviceId)	".device." + std::string(deviceId) + ".assigned_alt"		 // Indicates the default atitude assigned to this device.
 
 // Information about region bounding box.
 #define MV_REGION_TOPLEFT_LAT(regionId)  ".region." + std::string(regionId) + ".top_left.location.latitude"      // Latitude of top left corner of a rectangular region.
@@ -70,10 +70,17 @@
 
 // Movement commands.
 #define MV_MOVEMENT_REQUESTED   ".movement_command"   // Command to tell that we want certain movement.
+
+// Move to GPS.
+#define MO_MOVE_TO_GPS_CMD      "move_to_gps"         // Command used to tell drone to move to that a location.
 #define MV_MOVEMENT_TARGET_LAT  ".movement_command.0" // The latitude of the position the device is headed towards.
 #define MV_MOVEMENT_TARGET_LON  ".movement_command.1" // The longitude of the position the device is headed towards.
-#define MV_MOVEMENT_TARGET_ALT  ".movement_command.2" // The altitude of the position the device is headed towards.
-#define MO_MOVE_TO_GPS_CMD      "move_to_gps"         // Command used to tell drone to move to that a location.
+
+// Move to altitude.
+#define MO_MOVE_TO_ALTITUDE_CMD "move_to_altitude"    // Command used to tell drone to move to a specific altitude.
+#define MV_MOVEMENT_TARGET_ALT  ".movement_command.0" // The altitude of the position the device is headed towards.
+
+// Land and takeoff
 #define MO_LAND_CMD             "land"                // Command used to tell drone to land at current location
 #define MO_TAKEOFF_CMD          "takeoff"             // Command used to tell drone to takeoff
 

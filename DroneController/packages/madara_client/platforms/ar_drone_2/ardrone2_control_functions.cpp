@@ -120,4 +120,10 @@ void move_to_location(double lat, double lon)
 	printf("In platform move_to_location(%02f, %02f)\n", lat, lon);
 }
 
+
+void move_to_altitude(double alt)
+{
+	printf("In platform move_to_altitude(%02f)\n", alt);
+}
+
 #endif

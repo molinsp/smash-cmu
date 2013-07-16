@@ -21,7 +21,7 @@
 using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
 
-#define REACHED_ACCURACY	                0.0000060		// Delta (in degrees) to use when checking if we have reached a location.
+#define REACHED_ACCURACY	                0.0000050		// Margin (in degrees) to use when checking if we have reached a location.
 #define ALTITUDE_DIFFERENCE					0.5				// The amount of vertical space (in meters) to leave between drones.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,9 +30,10 @@ using namespace SMASH::Utilities;
 // Functions.
 #define MF_MAIN_LOGIC               "area_coverage_doAreaCoverage"			// Function that checks if there is area coverage to be done, and does it.
 #define MF_INIT_SEARCH_CELL         "area_coverage_initSearchCell"          // Initializes the cell that we will be searching.
-#define MF_NEXT_TARGET_REACHED       "area_coverage_checkNextTargetReached"      // Checks if the current target has been reached.
+#define MF_CALC_AND_MOVE_TO_ALT     "area_coverage_calcAndMoveToAlt"        // Initializes the cell that we will be searching.
+#define MF_NEXT_TARGET_REACHED      "area_coverage_checkNextTargetReached"  // Checks if the current target has been reached.
 #define MF_FINAL_TARGET_REACHED     "area_coverage_checkFinalTargetReached" // Checks if the final target has been reached.
-#define MF_TARGET_REACHED       "area_coverage_checkTargetReached"      // Checks if the current target has been reached.
+#define MF_TARGET_REACHED			"area_coverage_checkTargetReached"      // Checks if the current target has been reached.
 #define MF_SET_NEW_TARGET           "area_coverage_setNewTarget"            // Sets the next target.
 #define MF_UPDATE_AVAILABLE_DRONES	"area_coverage_updateAvailableDrones"   // Function that checks the amount and positions of drones ready for covering.
 
@@ -70,11 +71,14 @@ static AreaCoverage* m_coverageAlgorithm;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
 static void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
+
 static Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Function_Arguments &args,
              Madara::Knowledge_Engine::Variables &variables);
 static Madara::Knowledge_Record madaraSetNewTarget (Madara::Knowledge_Engine::Function_Arguments &args,
              Madara::Knowledge_Engine::Variables &variables);
 static Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::Function_Arguments &args,
+             Madara::Knowledge_Engine::Variables &variables);
+static Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowledge_Engine::Function_Arguments &args,
              Madara::Knowledge_Engine::Variables &variables);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,18 +120,19 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     knowledge.define_function(MF_MAIN_LOGIC, 
         "(" MV_AREA_COVERAGE_REQUESTED("{.id}") " => "
             "("
-                "("
-                    // If we haven't found our cell yet, do it and get an initial target (which will be one corner of that cell).
-                    "(!" MV_CELL_INITIALIZED ")"
-                        " => (" MF_INIT_SEARCH_CELL "() && (" MV_CELL_INITIALIZED " = 1) && " MF_SET_NEW_TARGET  "())"
-                ");"
                 "(" 
                     "("MV_CELL_INITIALIZED ")"
                         " => (" 
-                                // Check if we reached the next target, but not the end of the area, to set the next waypoint.                                
+                                // Check if we are just initializing, or if we reached the next target, but not the end of the area, to set the next waypoint.
+								"((" MV_NEXT_TARGET_LAT " == 0) && (" MV_NEXT_TARGET_LON " == 0)) || "
                                 "(" MF_NEXT_TARGET_REACHED "()" " && !" MF_FINAL_TARGET_REACHED "() )"
                                     " => " MF_SET_NEW_TARGET  "()" 
                             ")"
+                ");"
+                "("
+                    // If we haven't found our cell yet, do it and calculate and move to our altitude.
+                    "(!" MV_CELL_INITIALIZED ")"
+                        " => ( (" MF_INIT_SEARCH_CELL "() && " MF_CALC_AND_MOVE_TO_ALT "() ) => (" MV_CELL_INITIALIZED " = 1))"
                 ");"
             ")"
         ")"
@@ -155,10 +160,6 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     // Returns 1 if we are closer than MV_ACCURACY to the current target of our search.
     knowledge.define_function(MF_NEXT_TARGET_REACHED, 
         "("
-            "("
-                "(" MV_NEXT_TARGET_LAT " == 0) && (" MV_NEXT_TARGET_LON " == 0)"
-            ")"
-            " || "
 			"(" MF_TARGET_REACHED "(" MV_DEVICE_LAT("{.id}") "," MV_NEXT_TARGET_LAT "," MV_DEVICE_LON("{.id}") "," MV_NEXT_TARGET_LON ")" ")"
             //"("
             //    "((" MV_DEVICE_LAT("{.id}") " - " MV_NEXT_TARGET_LAT ") < " MV_ACCURACY ") && "
@@ -196,6 +197,9 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     knowledge.define_function(MF_INIT_SEARCH_CELL, madaraInitSearchCell);
 
     // Function that can be included in main loop of another method to introduce area coverage.
+    knowledge.define_function(MF_CALC_AND_MOVE_TO_ALT, madaraCalculateAndMoveToAltitude);
+
+    // Function that can be included in main loop of another method to introduce area coverage.
     knowledge.define_function(MF_SET_NEW_TARGET, madaraSetNewTarget);
 }
 
@@ -225,8 +229,8 @@ Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::Function
 	double currLon = args[2].to_double();
 	double targetLon = args[3].to_double();
 
-	printf("Curr and target lats are %.10f,%.10f, and diff is %.10f\n", currLat, targetLat, (currLat-targetLat));
-	printf("Curr and target lats are %.10f,%.10f, and diff is %.10f\n", currLon, targetLon, (currLon-targetLon));
+	//printf("Curr and target lats are %.10f,%.10f, and diff is %.10f\n", currLat, targetLat, (currLat-targetLat));
+	//printf("Curr and target lats are %.10f,%.10f, and diff is %.10f\n", currLon, targetLon, (currLon-targetLon));
 
 	if(fabs(currLat - targetLat) < REACHED_ACCURACY &&
 	   fabs(currLon - targetLon) < REACHED_ACCURACY)
@@ -245,7 +249,7 @@ Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::Function
 /**
  * Method that invocates the functionality of defining our cell to search, which will be called from Madara when required.
  * Will be called from an external Madara function.
- * @return  Returns true (1) if it can calculate the cell. (Always for now).
+ * @return  Returns true (1) if it can calculate the cell, false (0) if it couldn't for some reason.
  **/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Function_Arguments &args,
@@ -268,21 +272,53 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
     double bottomRightY = variables.get(MV_REGION_BOTRIGHT_LON(myAssignedSearchRegion) ).to_double();
     Region searchArea = Region(Position(topLeftX, topLeftY), Position(bottomRightX, bottomRightY));
 
-	// Calculate and store my assigned or default altitude based on my index on the list.
-	double minAltitude = (int) variables.get(MV_MIN_ALTITUDE).to_double();
-	double myDefaultAltitude = minAltitude + ALTITUDE_DIFFERENCE * myIndexInList;
-	variables.set(MV_ASSIGNED_ALTITUDE("{.id}"), myDefaultAltitude);
-
-    // Reset the area coverage, and calculate the actual cell I will be covering, and store it in Madara.
+    // Calculate the actual cell I will be covering.
 	// NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
 	// as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
-    //m_coverageAlgorithm = new RandomAreaCoverage(searchArea, false);
-	m_coverageAlgorithm = new SnakeAreaCoverage(searchArea);
-    Region myCell = m_coverageAlgorithm->initialize(myIndexInList, searchArea, availableDrones);
-    variables.set(MV_MY_CELL_TOP_LEFT_LAT, NUM_TO_STR(myCell.topLeftCorner.x));
-    variables.set(MV_MY_CELL_TOP_LEFT_LON, NUM_TO_STR(myCell.topLeftCorner.y));
-    variables.set(MV_MY_CELL_BOT_RIGHT_LAT, NUM_TO_STR(myCell.bottomRightCorner.x));
-    variables.set(MV_MY_CELL_BOT_RIGHT_LON, NUM_TO_STR(myCell.bottomRightCorner.y));
+    //m_coverageAlgorithm = new RandomAreaCoverage(false);
+	m_coverageAlgorithm = new SnakeAreaCoverage();
+    Region* myCell = m_coverageAlgorithm->initialize(myIndexInList, searchArea, availableDrones);
+
+	if(myCell != NULL)
+	{
+		// Store this cell in Madara.
+		variables.set(MV_MY_CELL_TOP_LEFT_LAT, NUM_TO_STR(myCell->topLeftCorner.x));
+		variables.set(MV_MY_CELL_TOP_LEFT_LON, NUM_TO_STR(myCell->topLeftCorner.y));
+		variables.set(MV_MY_CELL_BOT_RIGHT_LAT, NUM_TO_STR(myCell->bottomRightCorner.x));
+		variables.set(MV_MY_CELL_BOT_RIGHT_LON, NUM_TO_STR(myCell->bottomRightCorner.y));
+
+		return Madara::Knowledge_Record(1.0);
+	}
+	else
+	{
+		// If we couldn't generate our cell for some reason, the function was not successful.
+		return Madara::Knowledge_Record(0.0);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Method that sets up the altitude of a drone, based on is index in the search area (which will be 0 if it has not
+ * been set).
+ * @return  Returns true (1) always.
+ **/
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowledge_Engine::Function_Arguments &args,
+             Madara::Knowledge_Engine::Variables &variables)
+{
+	// Calculate and store my assigned or default altitude based on my index on the list.
+	// (If the search area has not been initialized, all drones will end up at the same, default height).
+	double minAltitude = (double) variables.get(MV_MIN_ALTITUDE).to_double();
+	int myIndexInList = (int) variables.get(MV_AVAILABLE_DRONES_MY_IDX).to_integer();
+	double myDefaultAltitude = minAltitude + ALTITUDE_DIFFERENCE * (double) myIndexInList;
+	variables.set(MV_ASSIGNED_ALTITUDE("{.id}"), myDefaultAltitude);
+
+	// Send the command to go to this altitude.
+	// NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
+	// as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
+	variables.set(MV_MOVEMENT_TARGET_ALT, myDefaultAltitude);
+    variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_ALTITUDE_CMD));
+	printf("Moving to altitude %d!\n", myDefaultAltitude);
 
     return Madara::Knowledge_Record(1.0);
 }
@@ -314,8 +350,6 @@ Madara::Knowledge_Record madaraSetNewTarget (Madara::Knowledge_Engine::Function_
     variables.set(MV_MOVEMENT_TARGET_LAT, NUM_TO_STR(nextTarget.x),
       Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
     variables.set(MV_MOVEMENT_TARGET_LON, NUM_TO_STR(nextTarget.y),
-      Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
-	variables.set(MV_MOVEMENT_TARGET_ALT, MV_ASSIGNED_ALTITUDE("{.id}"),
       Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
     variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
 

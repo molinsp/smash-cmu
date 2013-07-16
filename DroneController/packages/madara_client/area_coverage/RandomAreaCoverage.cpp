@@ -20,8 +20,7 @@ using std::cerr;
 using std::endl;
 
 // Constructors
-RandomAreaCoverage::RandomAreaCoverage(const SMASH::Utilities::Region& region, 
-  bool split, int seed) : AreaCoverage(region), m_split(split)
+RandomAreaCoverage::RandomAreaCoverage(bool split, int seed) : AreaCoverage(), m_split(split)
 {
   // seed the random number generator
   //if(seed == -1)
@@ -35,14 +34,14 @@ RandomAreaCoverage::~RandomAreaCoverage() {}
 
 
 // Initialize the area for the drone
-Region RandomAreaCoverage::initialize(int deviceIdx, const Region& grid,
+Region* RandomAreaCoverage::initialize(int deviceIdx, const Region& grid,
   int numDrones)
 {
   if(m_split)
-    m_searchRegion = calculateCellToSearch(deviceIdx, grid, numDrones);
+    m_cellToSearch = calculateCellToSearch(deviceIdx, grid, numDrones);
   else
-    m_searchRegion = grid;
-  return m_searchRegion;
+    m_cellToSearch = new Region(grid);
+  return m_cellToSearch;
 }
 
 // Calculates the next location to move to, assuming we have reached our
@@ -52,10 +51,10 @@ Position RandomAreaCoverage::getNextTargetLocation()
   enum side_t { NORTH = 0, EAST, SOUTH, WEST, NUM_SIDES };
 
   // region information
-  const double maxLon = m_searchRegion.bottomRightCorner.y;
-  const double minLon = m_searchRegion.topLeftCorner.y;
-  const double minLat = m_searchRegion.bottomRightCorner.x;
-  const double maxLat = m_searchRegion.topLeftCorner.x;
+  const double maxLon = m_cellToSearch->bottomRightCorner.y;
+  const double minLon = m_cellToSearch->topLeftCorner.y;
+  const double minLat = m_cellToSearch->bottomRightCorner.x;
+  const double maxLat = m_cellToSearch->topLeftCorner.x;
 
   // select a side to go to
   side_t side;

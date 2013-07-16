@@ -116,7 +116,7 @@ function setObjectPositionFromDegrees(objectHandle, relativeTo, latAndLongPositi
     
     -- Return the new coordindates. Note that the height was already in meters.
     local vrepPosition = {cartesianPosition['x'], cartesianPosition['y'], latAndLongPosition[3]}
-    simAddStatusbarMessage('Moving to pos in cart: ' .. vrepPosition[1] .. ',' .. vrepPosition[2] .. ',' .. vrepPosition[3])
+    --simAddStatusbarMessage('Moving to pos in cart: ' .. vrepPosition[1] .. ',' .. vrepPosition[2] .. ',' .. vrepPosition[3])
     simSetObjectPosition(objectHandle, relativeTo, vrepPosition)
 end    
     
