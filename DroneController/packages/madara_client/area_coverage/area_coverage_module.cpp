@@ -307,8 +307,6 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
 	Region searchArea = Region(Position(topLeftX, topLeftY), Position(bottomRightX, bottomRightY));
 
 	// Calculate the actual cell I will be covering.
-	// NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
-	// as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
 	//m_coverageAlgorithm = new RandomAreaCoverage(false);
 	m_coverageAlgorithm = new SnakeAreaCoverage();
 	Region* myCell = m_coverageAlgorithm->initialize(myIndexInList, searchArea, availableDrones);
@@ -316,10 +314,10 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
 	if(myCell != NULL)
 	{
 		// Store this cell in Madara.
-		variables.set(MV_MY_CELL_TOP_LEFT_LAT, NUM_TO_STR(myCell->topLeftCorner.x));
-		variables.set(MV_MY_CELL_TOP_LEFT_LON, NUM_TO_STR(myCell->topLeftCorner.y));
-		variables.set(MV_MY_CELL_BOT_RIGHT_LAT, NUM_TO_STR(myCell->bottomRightCorner.x));
-		variables.set(MV_MY_CELL_BOT_RIGHT_LON, NUM_TO_STR(myCell->bottomRightCorner.y));
+		variables.set(MV_MY_CELL_TOP_LEFT_LAT, (myCell->topLeftCorner.x));
+		variables.set(MV_MY_CELL_TOP_LEFT_LON, (myCell->topLeftCorner.y));
+		variables.set(MV_MY_CELL_BOT_RIGHT_LAT, (myCell->bottomRightCorner.x));
+		variables.set(MV_MY_CELL_BOT_RIGHT_LON, (myCell->bottomRightCorner.y));
 
 		return Madara::Knowledge_Record(1.0);
 	}
@@ -348,8 +346,6 @@ Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowledge_Eng
 	variables.set(MV_ASSIGNED_ALTITUDE("{.id}"), myDefaultAltitude);
 
 	// Send the command to go to this altitude.
-	// NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
-	// as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
 	variables.set(MV_MOVEMENT_TARGET_ALT, myDefaultAltitude);
 	variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_ALTITUDE_CMD));
 	printf("Moving to altitude %d!\n", myDefaultAltitude);
@@ -371,19 +367,15 @@ Madara::Knowledge_Record madaraSetNewTarget (Madara::Knowledge_Engine::Function_
 	Position nextTarget = m_coverageAlgorithm->getNextTargetLocation();
 
 	// Update the drone status for the next target.
-	// NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
-	// as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
-	variables.set(MV_NEXT_TARGET_LAT, NUM_TO_STR(nextTarget.x),
+	variables.set(MV_NEXT_TARGET_LAT, (nextTarget.x),
 		Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
-	variables.set(MV_NEXT_TARGET_LON, NUM_TO_STR(nextTarget.y),
+	variables.set(MV_NEXT_TARGET_LON, (nextTarget.y),
 		Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
 
 	// Set the movement command for the movement module.
-	// NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
-	// as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
-	variables.set(MV_MOVEMENT_TARGET_LAT, NUM_TO_STR(nextTarget.x),
+	variables.set(MV_MOVEMENT_TARGET_LAT, (nextTarget.x),
 		Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
-	variables.set(MV_MOVEMENT_TARGET_LON, NUM_TO_STR(nextTarget.y),
+	variables.set(MV_MOVEMENT_TARGET_LON, (nextTarget.y),
 		Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
 	variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
 
@@ -416,15 +408,13 @@ Madara::Knowledge_Record madaraSetNewCoverage(Madara::Knowledge_Engine::Function
 	Region searchArea = Region(Position(topLeftX, topLeftY), Position(bottomRightX, bottomRightY));
 
 	// set cell information
-	// NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
-	// as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
 	delete m_coverageAlgorithm;
 	m_coverageAlgorithm = new RandomAreaCoverage();
 	Region* myCell = m_coverageAlgorithm->initialize(myIndexInList, searchArea, availableDrones);
-	variables.set(MV_MY_CELL_TOP_LEFT_LAT, NUM_TO_STR(topLeftX));
-	variables.set(MV_MY_CELL_TOP_LEFT_LON, NUM_TO_STR(topLeftY));
-	variables.set(MV_MY_CELL_BOT_RIGHT_LAT, NUM_TO_STR(topLeftX));
-	variables.set(MV_MY_CELL_BOT_RIGHT_LON, NUM_TO_STR(topLeftY));
+	variables.set(MV_MY_CELL_TOP_LEFT_LAT, (topLeftX));
+	variables.set(MV_MY_CELL_TOP_LEFT_LON, (topLeftY));
+	variables.set(MV_MY_CELL_BOT_RIGHT_LAT, (topLeftX));
+	variables.set(MV_MY_CELL_BOT_RIGHT_LON, (topLeftY));
 
 	return Madara::Knowledge_Record(1.0);
 }
