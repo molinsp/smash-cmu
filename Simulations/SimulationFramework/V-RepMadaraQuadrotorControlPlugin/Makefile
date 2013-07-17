@@ -1,32 +1,42 @@
 CC = g++
 STD = --std=c++0x
-WARN = -Wall -Wextra -pedantic
-#OPT = -O3
-DEBUG = -ggdb
+WARN = -Wall
+OPT = -O3
+#DEBUG = -ggdb
 ifndef REPO_ROOT
   REPO_ROOT=$(HOME)/dev/smash-cmu
 endif
 MADARA_CLIENT = $(REPO_ROOT)/DroneController/packages/madara_client
-INC = -I../V-RepImports -I$(ACE_ROOT) -I$(MADARA_ROOT)/include -I$(MADARA_CLIENT)
+INC = -I../V-RepCommonPluginUtils -I../WindowsMulticastTransport -I../V-RepImports -I$(MADARA_ROOT)/include -I$(MADARA_CLIENT) -I$(ACE_ROOT)
 LIB_PATH = -L$(MADARA_ROOT)/lib -L$(ACE_ROOT)/lib
+LIBS = -lMADARA -lACE
 OS = -D__linux
+
+SOURCES = ../V-RepCommonPluginUtils/LuaExtensionsUtils.cpp ../V-RepCommonPluginUtils/v_repExtLuaExtenderPlugin.cpp ../V-RepImports/v_repLib.cpp LuaCustomFunctions.cpp MadaraQuadrotorControl.cpp
+
+OBJ = $(SOURCES:.cpp=.o)
+
+BOLD  = $(shell tput bold)
+RED   = $(shell tput setaf 1)
+GREEN = $(shell tput setaf 2)
+RESET = $(shell tput sgr0)
+
+OK    = $(BOLD)$(GREEN)[OK]$(RESET)
+FAIL  = $(BOLD)$(RED)[FAIL]$(RESET)
 
 all: libv_repExtMadaraQuadrotorControlPlugin.so
 
-libv_repExtMadaraQuadrotorControlPlugin.so: v_repExtMadaraQuadrotorControlPlugin.o ../V-RepImports/v_repLib.cpp MadaraQuadrotorControl.o LuaCustomFunctions.o v_repLib.o
-	$(CC) $(STD) $(WARN) $(OPT) $(DEBUG) $(OS) $(INC) $(LIB_PATH) -fPIC -shared -o libv_repExtMadaraQuadrotorControlPlugin.so v_repExtMadaraQuadrotorControlPlugin.o v_repLib.o LuaCustomFunctions.o MadaraQuadrotorControl.o -lMADARA -lACE -ldl -lrt
-
-v_repLib.o: ../V-RepImports/v_repLib.cpp
-	$(CC) $(STD) $(WARN) $(OPT) $(DEBUG) $(OS) $(INC) -fPIC -c -o v_repLib.o ../V-RepImports/v_repLib.cpp > /dev/null 2> /dev/null
-
-v_repExtMadaraQuadrotorControlPlugin.o: v_repExtMadaraQuadrotorControlPlugin.cpp v_repExtMadaraQuadrotorControlPlugin.h LuaCustomFunctions.o
-	$(CC) $(STD) $(WARN) $(OPT) $(DEBUG) $(OS) $(INC) -fPIC -c -o v_repExtMadaraQuadrotorControlPlugin.o v_repExtMadaraQuadrotorControlPlugin.cpp
+libv_repExtMadaraQuadrotorControlPlugin.so: $(SOURCES) $(OBJ)
+	@echo -n "$(BOLD)Linking $@...$(RESET)"
+	@_ERROR=$$($(CC) $(STD) -fPIC -shared $(WARN) $(OPT) $(DEBUG) $(INC) $(OS) $(LIB_PATH) $(OBJ) -o $@ $(LIBS) 2>&1); \
+	if [ $$? -eq 0 ]; then echo "$(OK)"; \
+	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
 	
-MadaraQuadrotorControl.o: MadaraQuadrotorControl.cpp MadaraQuadrotorControl.h
-	$(CC) $(STD) $(WARN) $(OPT) $(DEBUG) $(OS) $(INC) -fPIC -c -o MadaraQuadrotorControl.o MadaraQuadrotorControl.cpp
-
-LuaCustomFunctions.o: LuaCustomFunctions.cpp LuaCustomFunctions.h MadaraQuadrotorControl.h 
-	$(CC) $(STD) $(WARN) $(OPT) $(DEBUG) $(OS) $(INC) -fPIC -c -o LuaCustomFunctions.o LuaCustomFunctions.cpp
+.cpp.o:
+	@echo -n "$(BOLD)Compiling $<...$(RESET)"
+	@_ERROR=$$($(CC) $(STD) -fPIC $(WARN) $(OPT) $(DEBUG) $(INC) $(OS) -c $< -o $@ 2>&1); \
+	if [ $$? -eq 0 ]; then echo "$(OK)"; \
+	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
 
 clean:
 	rm -f LuaCustomFunctions.o

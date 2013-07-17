@@ -2,7 +2,7 @@ all:
 	@echo "nothing to do here"
 
 clean:
-	@echo "nothing to do here"
+	rm -f *.o
 
 realclean:
 	@echo "nothing to do here"
