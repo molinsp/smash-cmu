@@ -71,6 +71,7 @@ void main_compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowle
             ");"
 
 			"device.{.id}.location=.location;"
+			".device.{.id}.location.altitude=.location.altitude;"
 			"inflate_coords(.location, '.location');"
 			"inflate_coord_array_to_local('device.*');"
 			"inflate_coord_array_to_local('region.*');"
