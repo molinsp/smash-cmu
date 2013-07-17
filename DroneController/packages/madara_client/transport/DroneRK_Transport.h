@@ -37,10 +37,12 @@ public:
    * @param   context  knowledge context
    * @param   config   transport configuration settings
    * @param   launch_transport  whether or not to launch this transport
+   * @param   size  size threshold
    **/
   DroneRK_Transport(const std::string & id, 
     Madara::Knowledge_Engine::Thread_Safe_Context & context, 
-    Madara::Transport::Settings& config, bool launch_transport, int size);
+    Madara::Transport::Settings& config, bool launch_transport,
+    int size_threshold);
 
   /**
    * Destructor
