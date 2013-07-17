@@ -312,7 +312,7 @@ Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowledge_Eng
 	// as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
 	variables.set(MV_MOVEMENT_TARGET_ALT, myDefaultAltitude);
 	variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_ALTITUDE_CMD));
-	printf("Moving to altitude %d!\n", myDefaultAltitude);
+	printf("Moving to altitude %f!\n", myDefaultAltitude);
 
 	return Madara::Knowledge_Record(1.0);
 }
