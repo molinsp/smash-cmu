@@ -11,7 +11,7 @@ CC = $(LOCAL_GPLUSPLUS)
 LOCAL_EXECUTABLE = madara_client
 
 LOCAL_SOURCES = madara_client.cpp main_functions.cpp
-		
+
 LOCAL_CFLAGS = -D$(PLATFORM) -ggdb
 LOCAL_LIBS = -lMADARA -lACE
 LOCAL_LD_PATH = -L$(INSTALL_ROOT)/lib
@@ -40,7 +40,13 @@ RESET = $(shell tput sgr0)
 OK    = $(BOLD)$(GREEN)[OK]$(RESET)
 FAIL  = $(BOLD)$(RED)[FAIL]$(RESET)
 
+ifeq ($(TARGET),AR_DRONE_2)
+TEST_BROADCAST_SOURCES = platforms/ar_drone_2/test_broadcast.cpp transport/DroneRK_Transport.cpp transport/DroneRK_Transport_Read_Thread.cpp
+TEST_BROADCAST_OBJ = $(TEST_BROADCAST_SOURCES:.cpp=.o)
+default: test_broadcast_custom_transport $(LOCAL_EXECUTABLE)
+else
 default: $(LOCAL_EXECUTABLE)
+endif
 
 $(LOCAL_EXECUTABLE): $(LOCAL_SOURCES) $(LOCAL_OBJ)
 	@echo -n "$(BOLD)Linking $(LOCAL_EXECUTABLE)...$(RESET)"
@@ -60,6 +66,13 @@ $(LOCAL_EXECUTABLE): $(LOCAL_SOURCES) $(LOCAL_OBJ)
 	if [ $$? -eq 0 ]; then echo "$(OK)"; \
 	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
 
+test_broadcast_custom_transport: $(TEST_BROADCAST_SOURCES) $(TEST_BROADCAST_OBJ)
+	@echo -n "$(BOLD)Linking $@...$(RESET)"
+	@mkdir -p bin
+	@_ERROR=$$($(CC) $(LOCAL_LD_PATH) $(TEST_BROADCAST_OBJ) -o bin/$@ -lACE -lMADARA 2>&1); \
+	if [ $$? -eq 0 ]; then echo "$(OK)"; \
+	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
+
 .PHONY: clean
 clean:
 	rm -rf bin
@@ -67,3 +80,4 @@ clean:
 
 realclean: clean
 	rm -f bin/$(LOCAL_EXECUTABLE)
+	rm -f test_broadcast_custom_transport

@@ -1,14 +1,17 @@
 /*******************************************************************************
-* Usage of this software requires acceptance of the SMASH-CMU License,
-* which can be found at the following URL:
-*
-* https://code.google.com/p/smash-cmu/wiki/License
-******************************************************************************/
+ * Usage of this software requires acceptance of the SMASH-CMU License,
+ * which can be found at the following URL:
+ *
+ * https://code.google.com/p/smash-cmu/wiki/License
+ ******************************************************************************/
 
 /*******************************************************************************
-* RandomAreCoverage.h - Declares the structures and methods for the algorithm
-* to perform a snaking area coverage search.
-******************************************************************************/
+ * RandomAreCoverage.h - Declares the structures and methods for the algorithm
+ * to perform a random area coverage search.
+ *
+ * Drone selects a random side it is not currently on, then selects a random
+ * point on that side and moves to it. Repeat until told to quit
+ ******************************************************************************/
 
 #ifndef _RANDOM_AREA_COVERAGE_H
 #define _RANDOM_AREA_COVERAGE_H
@@ -28,7 +31,7 @@ namespace SMASH { namespace AreaCoverage {
 		/**
 		* Constructors
 		*/
-		RandomAreaCoverage(bool split = true, int seed = -1);
+		RandomAreaCoverage(int seed = -1);
 
 		/**
 		* Destructor
@@ -45,7 +48,7 @@ namespace SMASH { namespace AreaCoverage {
 		*
 		* @return  The region that this device will be covering.
 		*/
-		virtual Region* initialize(int deviceIdx, const Region& grid, int numDrones);
+		virtual Region* initialize(const Region& grid, int deviceIdx = 0, int numDrones = 1);
 
 		/** 
 		* Calculates the next location to move to, assuming we have reached our
@@ -63,9 +66,6 @@ namespace SMASH { namespace AreaCoverage {
 		virtual bool isTargetingFinalWaypoint();
 
 	protected:
-		// split the area into separate regions for each drone
-		bool m_split;
-
 		/**
 		* Returns a random float between lower and upper
 		*/

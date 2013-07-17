@@ -10,7 +10,8 @@ MADARA_CLIENT = $(REPO_ROOT)/DroneController/packages/madara_client
 INC = -I$(ACE_ROOT) -I$(MADARA_ROOT)/include -I$(MADARA_CLIENT)
 LIB_PATH = -L$(MADARA_ROOT)/lib -L$(ACE_ROOT)/lib -L.
 
-all: libMadaraQuadrotorControl.so GoToLocation
+all:
+	@echo "nothing to do here"
 
 libMadaraQuadrotorControl.so: MadaraQuadrotorControl.o
 	$(CC) $(STD) $(WARN) $(OPT) $(DEBUG) $(INC) $(LIB_PATH) -fPIC -shared -o libMadaraQuadrotorControl.so MadaraQuadrotorControl.o -lMADARA -lACE -ldl -lrt

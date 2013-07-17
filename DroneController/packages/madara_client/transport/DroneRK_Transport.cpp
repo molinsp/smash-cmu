@@ -19,9 +19,10 @@
 
 DroneRK_Transport::DroneRK_Transport(const std::string& id,
   Madara::Knowledge_Engine::Thread_Safe_Context& context,
-  Madara::Transport::Settings& config, bool launch_transport, int size) :
+  Madara::Transport::Settings& config, bool launch_transport,
+  int size_threshold) :
   Base(config, context), id_(id), thread_(0), valid_setup_(false),
-  size_threshold_(size)
+  size_threshold_(size_threshold)
 {
   if(launch_transport)
     setup();
@@ -205,7 +206,7 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
   uint64_t * message_size =(uint64_t *)buffer;
   uint32_t * num_updates;
   if(settings_.send_reduced_message_header)
-    num_updates = (uint32_t *)&buffer[12];
+    num_updates = (uint32_t *)&buffer[16];
   else
     num_updates = (uint32_t *)&buffer[116];
 
@@ -219,10 +220,9 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
   // [key|value]
   
   // Add the data values that are appropriate for long range transmission
-  int j = 0;
   uint32_t longRangeUpdates = 0;
   for(Madara::Knowledge_Records::const_iterator i = updates.begin();
-    i != updates.end(); ++i, ++j)
+    i != updates.end(); ++i)
   {
     if(i->second->size() < size_threshold_) 
     {
@@ -233,14 +233,14 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
         MADARA_DEBUG(MADARA_LOG_MINOR_EVENT,(LM_DEBUG, 
           DLINFO "DroneRK_Transport::send_data:" \
           " update[%d] => %s=%s\n",
-          j, i->first.c_str(), i->second->to_string().c_str()));
+          longRangeUpdates, i->first.c_str(), i->second->to_string().c_str()));
       }
       else
       {
-      MADARA_DEBUG(MADARA_LOG_EMERGENCY,(LM_DEBUG, 
-        DLINFO "DroneRK_Transport::send_data:" \
-        " unable to send due to overflow in buffer for update[%d] => %s=%s\n",
-        j, i->first.c_str(), i->second->to_string().c_str()));
+        MADARA_DEBUG(MADARA_LOG_EMERGENCY,(LM_DEBUG, 
+          DLINFO "DroneRK_Transport::send_data:" \
+          " unable to send due to overflow in buffer for update[%d] => %s=%s\n",
+          longRangeUpdates, i->first.c_str(), i->second->to_string().c_str()));
       }
       
       ++longRangeUpdates;
@@ -251,7 +251,7 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
   // Add the remaining data values for wifi transmission
   uint32_t wifiUpdates = longRangeUpdates;
   for(Madara::Knowledge_Records::const_iterator i = updates.begin();
-    i != updates.end(); ++i, ++j)
+    i != updates.end(); ++i)
   {
     if(i->second->size() >= size_threshold_)
     {
@@ -262,14 +262,14 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
         MADARA_DEBUG(MADARA_LOG_MINOR_EVENT,(LM_DEBUG, 
           DLINFO "DroneRK_Transport::send_data:" \
           " update[%d] => %s=%s\n",
-          j, i->first.c_str(), i->second->to_string().c_str()));
+          wifiUpdates, i->first.c_str(), i->second->to_string().c_str()));
       }
       else
       {
-      MADARA_DEBUG(MADARA_LOG_EMERGENCY,(LM_DEBUG, 
-        DLINFO "DroneRK_Transport::send_data:" \
-        " unable to send due to overflow in buffer for update[%d] => %s=%s\n",
-        j, i->first.c_str(), i->second->to_string().c_str()));
+        MADARA_DEBUG(MADARA_LOG_EMERGENCY,(LM_DEBUG, 
+          DLINFO "DroneRK_Transport::send_data:" \
+          " unable to send due to overflow in buffer for update[%d] => %s=%s\n",
+          wifiUpdates, i->first.c_str(), i->second->to_string().c_str()));
       }
 
       ++wifiUpdates;
@@ -301,8 +301,8 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
     }
 
     // TODO: transmit over long range radio
-    *message_size = Madara::Utility::endian_swap(longRangeSize);
-    *num_updates = Madara::Utility::endian_swap(longRangeUpdates);
+    //*message_size = Madara::Utility::endian_swap(longRangeSize);
+    //*num_updates = Madara::Utility::endian_swap(longRangeUpdates);
     // int bytes_sent = drk_transmit_long_range(buffer, longRangeSize);
 
     // send the buffer contents to the multicast address

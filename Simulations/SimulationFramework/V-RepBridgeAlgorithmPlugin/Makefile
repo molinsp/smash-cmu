@@ -11,7 +11,8 @@ INC = -I$(MADARA_ROOT)/include -I$(ACE_ROOT) -I../V-RepImports -I$(MADARA_CLIENT
 LIB_PATH = -L$(MADARA_ROOT)/lib -L$(ACE_ROOT)/lib
 OS = -D__linux
 
-all: libv_repExtBridgeAlgorithm.so
+all:
+	@echo "nothing to do here"
 
 libv_repExtBridgeAlgorithm.so: v_repExtBridgeAlgorithm.o libv_rep.o ../V-RepMadaraQuadrotorControlPlugin/MadaraQuadrotorControl.cpp
 	$(CC) $(STD) $(WARN) $(OPT) $(OS) $(INC) $(LIB_PATH) -fPIC -shared -o libv_repExtBridgeAlgorithm.so v_repExtBridgeAlgorithm.o libv_rep.o ../V-RepMadaraQuadrotorControlPlugin/MadaraQuadrotorControl.cpp -lMADARA -lACE -ldl -lrt
