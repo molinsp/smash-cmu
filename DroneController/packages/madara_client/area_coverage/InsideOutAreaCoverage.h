@@ -50,7 +50,7 @@ public:
    *
    * @return  The region that this device will be covering.
    */
-  virtual Region* initialize(int deviceIdx, const Region& grid, int numDrones);
+  virtual Region* initialize(const Region& grid, int deviceIdx = 0, int numDrones = 1);
 
   /** 
    * Calculates the next location to move to, assuming we have reached our

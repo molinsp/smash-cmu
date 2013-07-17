@@ -28,10 +28,7 @@ AreaCoverage::AreaCoverage() : m_started(false),
 // Destructor
 AreaCoverage::~AreaCoverage() 
 {
-	if(m_cellToSearch != NULL)
-	{
-		delete m_cellToSearch;
-	}
+	delete m_cellToSearch;
 }
 
 // Calculates the grid that will be used for area coverage, and returns the

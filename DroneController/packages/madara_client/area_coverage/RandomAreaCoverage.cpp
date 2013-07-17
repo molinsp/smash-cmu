@@ -7,7 +7,10 @@
 
 /*******************************************************************************
  * RandomAreaCoverage.cpp - Declares the structures and methods for the
- * algorithm to perform a snaking area coverage search.
+ * algorithm to perform a random area coverage search.
+ *
+ * Drone selects a random side it is not currently on, then selects a random
+ * point on that side and moves to it. Repeat until told to quit
  ******************************************************************************/
 
 #include "RandomAreaCoverage.h"
@@ -22,13 +25,13 @@ using std::cerr;
 using std::endl;
 
 // Constructors
-RandomAreaCoverage::RandomAreaCoverage(bool split, int seed) : AreaCoverage(), m_split(split)
+RandomAreaCoverage::RandomAreaCoverage(int seed) : AreaCoverage()
 {
   // seed the random number generator
-  //if(seed == -1)
+  if(seed == -1)
     srand((unsigned)time(NULL));
-  //else
-    //srand(seed);
+  else
+    srand(seed);
 }
 
 // Destructor
@@ -42,13 +45,13 @@ bool RandomAreaCoverage::isTargetingFinalWaypoint()
 }
 
 // Initialize the area for the drone
-Region* RandomAreaCoverage::initialize(int deviceIdx, const Region& grid,
+Region* RandomAreaCoverage::initialize(const Region& grid, int deviceIdx,
   int numDrones)
 {
-  if(m_split)
-    m_cellToSearch = calculateCellToSearch(deviceIdx, grid, numDrones);
-  else
+  if(numDrones == 1)
     m_cellToSearch = new Region(grid);
+  else
+    m_cellToSearch = calculateCellToSearch(deviceIdx, grid, numDrones);
   return m_cellToSearch;
 }
 
@@ -56,7 +59,7 @@ Region* RandomAreaCoverage::initialize(int deviceIdx, const Region& grid,
 // current target.
 Position RandomAreaCoverage::getNextTargetLocation()
 {
-  enum side_t { NORTH = 0, EAST, SOUTH, WEST, NUM_SIDES };
+  enum side_t { NORTH, EAST, SOUTH, WEST, NUM_SIDES };
 
   // region information
   const double maxLon = m_cellToSearch->bottomRightCorner.y;
@@ -92,22 +95,18 @@ Position RandomAreaCoverage::getNextTargetLocation()
   switch(side)
   {
     case NORTH:
-      cerr << "moving to north" << endl;
       lon = frand(minLon, maxLon);
       lat = maxLat;
       break;
     case EAST:
-      cerr << "moving to east" << endl;
       lon = maxLon;
       lat = frand(minLat, maxLat);
       break;
     case SOUTH:
-      cerr << "moving to south" << endl;
       lon = frand(minLon, maxLon);
       lat = minLat;
       break;
-    case WEST: // case WEST
-      cerr << "moving to west" << endl;
+    case WEST:
       lon = minLon;
       lat = frand(minLat, maxLat);
       break;
@@ -116,9 +115,6 @@ Position RandomAreaCoverage::getNextTargetLocation()
       exit(-1);
   }
 
-  cerr << "bottom right: <" << minLat << "," << maxLon << ">" << endl;
-  cerr << "top left    : <" << maxLat << "," << minLon << ">" << endl;
-  cerr << "moving to   : <" << lat << "," << lon << ">" << endl;
   // update target
   m_targetLocation.x = lat;
   m_targetLocation.y = lon;

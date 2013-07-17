@@ -19,19 +19,19 @@
 using std::cerr;
 using std::endl;
 
-
 using namespace SMASH::Utilities;
 using namespace SMASH::AreaCoverage;
 
 // Constructor
-InsideOutAreaCoverage::InsideOutAreaCoverage( float delta, direction_t heading, bool clockwise) : AreaCoverage(),
-  m_delta(delta), m_clockwise(clockwise), m_heading(heading), m_iteration(2) {}
+InsideOutAreaCoverage::InsideOutAreaCoverage(float delta, direction_t heading,
+	bool clockwise) : AreaCoverage(), m_delta(delta), m_clockwise(clockwise),
+	m_heading(heading), m_iteration(2) {}
 
 // Destructor
 InsideOutAreaCoverage::~InsideOutAreaCoverage() {}
 
 // Initialize the area for the drone
-Region* InsideOutAreaCoverage::initialize(int deviceIdx, const Region& grid,
+Region* InsideOutAreaCoverage::initialize(const Region& grid, int deviceIdx, 
   int numDrones)
 {
   // trick to get initial heading correct
@@ -54,7 +54,12 @@ Region* InsideOutAreaCoverage::initialize(int deviceIdx, const Region& grid,
       exit(-1);
   }
 
-  return m_cellToSearch = calculateCellToSearch(deviceIdx, grid, numDrones);
+	// find search region
+	if(numDrones == 1)
+		m_cellToSearch = new Region(grid);
+	else
+		m_cellToSearch = calculateCellToSearch(deviceIdx, grid, numDrones);
+	return m_cellToSearch;
 }
 
 // Calculates the next location to move to, assuming we have reached our
