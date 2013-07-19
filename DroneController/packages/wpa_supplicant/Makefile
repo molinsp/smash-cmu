@@ -7,6 +7,9 @@
 
 CC_ROOT=$(HOME_DIR)/toolchain/arm-none-linux-gnueabi/bin/arm-none-linux-gnueabi-
 
+BOLD  = $(shell tput bold)
+RESET = $(shell tput sgr0)
+
 all:
 
 	@echo "Starting wpa_supplicant"
@@ -44,6 +47,9 @@ else
 endif
 
 	@echo "Done with wpa_supplicant"
+
+update: realclean
+	@echo "$(BOLD)wpa_supplicant requires manual update$(RESET)"
 
 clean:
 

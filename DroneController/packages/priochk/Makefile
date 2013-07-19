@@ -42,6 +42,9 @@ $(LOCAL_EXECUTABLE): $(LOCAL_SOURCES) $(LOCAL_OBJ)
 	if [ $$? -eq 0 ]; then echo "$(OK)"; \
 	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
 
+update:
+	@echo "$(BOLD)priochk updated automatically$(RESET)"
+
 .PHONY: clean
 clean:
 	rm -rf bin

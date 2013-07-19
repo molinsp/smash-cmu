@@ -32,6 +32,9 @@ endif
 
 	@echo "Done with OpenSSL"
 
+update: realclean
+	cd openssl; git pull
+
 clean:
 
 realclean:

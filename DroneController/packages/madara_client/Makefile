@@ -73,6 +73,9 @@ test_broadcast_custom_transport: $(TEST_BROADCAST_SOURCES) $(TEST_BROADCAST_OBJ)
 	if [ $$? -eq 0 ]; then echo "$(OK)"; \
 	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
 
+update:
+	@echo "$(BOLD)madara_client updated automatically$(RESET)"
+
 .PHONY: clean
 clean:
 	rm -rf bin
