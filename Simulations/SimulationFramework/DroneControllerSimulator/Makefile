@@ -29,16 +29,14 @@ FAIL  = $(BOLD)$(RED)[FAIL]$(RESET)
 all: DroneControllerSimulator
 
 DroneControllerSimulator: $(SOURCES) $(OBJ)
-	@echo -n "$(BOLD)Linking $@...$(RESET)"
 	@_ERROR=$$($(CC) $(STD) $(WARN) $(OPT) $(DEBUG) $(INC) $(OS) $(PLATFORM) $(LIB_PATH) $(OBJ) -o $@ $(LIBS) 2>&1); \
-	if [ $$? -eq 0 ]; then echo "$(OK)"; \
-	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
+	if [ $$? -eq 0 ]; then echo "$(BOLD)Linking $@...$(RESET)$(OK)"; \
+	else echo "$(BOLD)Linking $@...$(RESET)$(FAIL)\n$$_ERROR"; exit 1; fi
 
 .cpp.o:
-	@echo -n "$(BOLD)Compiling $<...$(RESET)"
 	@_ERROR=$$($(CC) $(STD) $(WARN) $(OPT) $(DEBUG) $(INC) $(OS) $(PLATFORM) -c $< -o $@ 2>&1); \
-	if [ $$? -eq 0 ]; then echo "$(OK)"; \
-	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
+	if [ $$? -eq 0 ]; then echo "$(BOLD)Compiling $<...$(RESET)$(OK)"; \
+	else echo "$(BOLD)Compiling $<...$(RESET)$(FAIL)\n$$_ERROR"; exit 1; fi
 
 clean:
 	rm -f Main.o

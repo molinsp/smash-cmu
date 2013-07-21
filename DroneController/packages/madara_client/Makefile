@@ -49,38 +49,32 @@ default: $(LOCAL_EXECUTABLE)
 endif
 
 $(LOCAL_EXECUTABLE): $(LOCAL_SOURCES) $(LOCAL_OBJ)
-	@echo -n "$(BOLD)Linking $(LOCAL_EXECUTABLE)...$(RESET)"
 	@mkdir -p bin
 	@_ERROR=$$($(CC) $(LOCAL_LD_PATH) $(LOCAL_CFLAGS) $(LOCAL_OBJ) -o bin/$@ $(LOCAL_LIBS) 2>&1); \
-	if [ $$? -eq 0 ]; then echo "$(OK)"; \
-	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
+	if [ $$? -eq 0 ]; then echo "$(BOLD)Linking $(LOCAL_EXECUTABLE)...$(RESET)$(OK)"; \
+	else echo "$(BOLD)Linking $(LOCAL_EXECUTABLE)...$(RESET)$(FAIL)\n$$_ERROR"; exit 1; fi
 	
-	@echo -n "$(BOLD)Installing $(LOCAL_EXECUTABLE)...$(RESET)"
 	@_ERROR=$$(mkdir -p $(INSTALL_ROOT)/bin; cp bin/$(LOCAL_EXECUTABLE) $(INSTALL_ROOT)/bin/; chmod 755 $(INSTALL_ROOT)/bin/$(EXECUTABLE)); \
-	if [ $$? -eq 0 ]; then echo "$(OK)"; \
-	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
+	if [ $$? -eq 0 ]; then echo "$(BOLD)Installing $(LOCAL_EXECUTABLE)...$(RESET)$(OK)"; \
+	else echo "$(BOLD)Installing $(LOCAL_EXECUTABLE)...$(RESET)$(FAIL)\n$$_ERROR"; exit 1; fi
 
 .cpp.o:
-	@echo -n "$(BOLD)Compiling $<...$(RESET)"
 	@_ERROR=$$($(CC) $(LOCAL_LD_PATH) $(LOCAL_INCLUDES) $(LOCAL_CFLAGS) -c $< -o $@ 2>&1); \
-	if [ $$? -eq 0 ]; then echo "$(OK)"; \
-	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
+	if [ $$? -eq 0 ]; then echo "$(BOLD)Compiling $<...$(RESET)$(OK)"; \
+	else echo "$(BOLD)Compiling $<...$(RESET)$(FAIL)\n$$_ERROR"; exit 1; fi
 
 test_broadcast_custom_transport: $(TEST_BROADCAST_SOURCES) $(TEST_BROADCAST_OBJ)
-	@echo -n "$(BOLD)Linking $@...$(RESET)"
 	@mkdir -p bin
 	@_ERROR=$$($(CC) $(LOCAL_LD_PATH) $(TEST_BROADCAST_OBJ) -o bin/$@ -lACE -lMADARA 2>&1); \
-	if [ $$? -eq 0 ]; then echo "$(OK)"; \
-	else echo "$(FAIL)\n$$_ERROR"; exit 1; fi
+	if [ $$? -eq 0 ]; then echo "$(BOLD)Linking $@...$(RESET)$(OK)"; \
+	else echo "$(BOLD)Linking $@...$(RESET)$(FAIL)\n$$_ERROR"; exit 1; fi
 
 update:
 	@echo "$(BOLD)madara_client updated automatically$(RESET)"
 
 .PHONY: clean
 clean:
-	rm -rf bin
-	rm -rf $(LOCAL_OBJ)
+	for f in `find . -regex .*\.o`; do rm $$f; done
 
 realclean: clean
-	rm -f bin/$(LOCAL_EXECUTABLE)
-	rm -f test_broadcast_custom_transport
+	rm -rf bin

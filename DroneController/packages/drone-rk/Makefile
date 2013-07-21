@@ -17,7 +17,7 @@ all: download
 #Check if packages/drone-rk/drone-rk exists
 ifeq ($(wildcard $(DRK_ROOT)/src/include/libdrk.so),)
 	@echo "Building libdrk"
-	cd $(DRK_ROOT)/src/include; make
+	cd $(DRK_ROOT)/src/include; make -j $(JOBS)
 else
 	@echo "libdrk already built"
 endif

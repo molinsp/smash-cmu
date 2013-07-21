@@ -40,7 +40,7 @@ v_rep: .make_install_dir
 	cd $(PACKAGES_ROOT)/ace; $(V_REP_CMD)
 	cd $(PACKAGES_ROOT)/madara; $(V_REP_CMD)
 	make madara_client-realclean # hack to force recompile, should implement ACE/MADARA build pattern for multiple platforms
-	cd $(PACKAGES_ROOT)/madara_client; $(V_REP_CMD)
+	cd $(PACKAGES_ROOT)/madara_client; $(V_REP_CMD) -j $(JOBS)
 
 ##################################################
 # PACKAGE DEPENDENCIES 
@@ -56,7 +56,7 @@ ar_drone_2: .make_install_dir
 	cd $(PACKAGES_ROOT)/ace; $(AR_DRONE_2_CMD)
 	cd $(PACKAGES_ROOT)/madara; $(AR_DRONE_2_CMD)
 	make madara_client-realclean # hack to force recompile, should implement ACE/MADARA build pattern for multiple platforms
-	cd $(PACKAGES_ROOT)/madara_client; $(AR_DRONE_2_CMD)
+	cd $(PACKAGES_ROOT)/madara_client; $(AR_DRONE_2_CMD) -j $(JOBS)
 
 update:
 	for d in `ls packages`; do make $$d-update; done
