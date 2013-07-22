@@ -41,6 +41,7 @@ Madara::Knowledge_Record read_gps_sensor (Madara::Knowledge_Engine::Function_Arg
 	std::stringstream buffer;
 	buffer << std::setprecision(10) << gps.latitude << "," << gps.longitude;
 	variables.set(".location", buffer.str());
+	variables.set(".location.altitude", gps.altitude);
 	variables.set(".location.gps.locks", Madara::Knowledge_Record::Integer(gps.num_sats));
 	
 	return Madara::Knowledge_Record::Integer(1);

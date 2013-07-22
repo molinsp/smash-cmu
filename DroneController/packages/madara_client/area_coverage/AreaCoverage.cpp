@@ -36,12 +36,10 @@ AreaCoverage::~AreaCoverage()
 Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
     int numDrones)
 {
-    // This should never happen.
-    if(numDrones == 0)
+    // If there is only 1 drone, we should not be called. If there are 0, there was a problem.
+    if(numDrones <= 1)
     {
-        // This means something is really bad... we don't have a way to notify of
-        // errors, so we just return an empty region.
-        printf("Error! It is not possible to calculate the region to search if the number of drones is 0.\n");
+        printf("Error! It is not possible to calculate the region to search if the number of drones is 0 or 1.\n");
         return NULL;
     }
 
@@ -103,7 +101,7 @@ vector<int> AreaCoverage::findMiddleDivisors(int numberToEvaluate)
     // itself, to find further divisors.
     int highestDivisorFound = numberToEvaluate;
     for(int currentDivisorCandidate = 1;
-        currentDivisorCandidate <= highestDivisorFound; currentDivisorCandidate++)
+        currentDivisorCandidate < highestDivisorFound; currentDivisorCandidate++)
     {
         // If the modulo operation returns zero, it means that
         // currentFactorCandidate is a divisor.

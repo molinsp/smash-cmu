@@ -79,14 +79,12 @@ void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const double
     const double& lon, const double& z) // need to update for altitude
 {
     // update the location of this drone (this would be done by its sensors).
-    // NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
-    // as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
     string droneIdString = std::to_string(static_cast<long long>(id));
-    m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LAT(droneIdString), NUM_TO_STR(lat),
+    m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LAT(droneIdString), (lat),
         Madara::Knowledge_Engine::Eval_Settings(true));
-    m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LON(droneIdString), NUM_TO_STR(lon),
+    m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LON(droneIdString), (lon),
         Madara::Knowledge_Engine::Eval_Settings(true));
-    m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_ALT(droneIdString), NUM_TO_STR(z));
+    m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_ALT(droneIdString), (z));
 
     m_knowledge->print_knowledge(1);
 }

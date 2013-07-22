@@ -22,7 +22,8 @@
 using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
 
-#define REACHED_ACCURACY	                0.0000050		// Margin (in degrees) to use when checking if we have reached a location.
+#define REACHED_ACCURACY_DEGREES            0.0000050		// Margin (in degrees) to use when checking if we have reached a location.
+#define REACHED_ACCURACY_METERS             0.20			// Margin (in meters) to use when checking if we have reached a location.
 #define ALTITUDE_DIFFERENCE					0.5				// The amount of vertical space (in meters) to leave between drones.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,6 +36,7 @@ using namespace SMASH::Utilities;
 #define MF_NEXT_TARGET_REACHED      "area_coverage_checkNextTargetReached"  // Checks if the current target has been reached.
 #define MF_FINAL_TARGET_REACHED     "area_coverage_checkFinalTargetReached" // Checks if the final target has been reached.
 #define MF_TARGET_REACHED			"area_coverage_checkTargetReached"      // Checks if the current target has been reached.
+#define MF_ALTITUDE_REACHED			"area_coverage_checkAltitudeReached"    // Checks if the assigned altitude has been reached.
 #define MF_SET_NEW_TARGET           "area_coverage_setNewTarget"            // Sets the next target.
 #define MF_UPDATE_AVAILABLE_DRONES	"area_coverage_updateAvailableDrones"   // Function that checks the amount and positions of drones ready for covering.
 
@@ -49,6 +51,7 @@ using namespace SMASH::Utilities;
 #define MV_MY_CELL_TOP_LEFT_LON     ".area_coverage.cell.top_left.location.longitude"       // The y of the top left corner of the cell I am searching.
 #define MV_MY_CELL_BOT_RIGHT_LAT    ".area_coverage.cell.bottom_right.location.latitude"    // The x of the bottom right corner of the cell I am searching.
 #define MV_MY_CELL_BOT_RIGHT_LON    ".area_coverage.cell.bottom_right.location.longitude"   // The y of the bottom right corner of the cell I am searching.
+#define MV_ALTITUDE_HAS_BEEN_REACHED ".area_coverage.altitude_reached"			// Flag to check if the assigned altitude has been reached.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private variables.
@@ -82,6 +85,8 @@ static Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::F
 static Madara::Knowledge_Record madaraReachedFinalTarget(Madara::Knowledge_Engine::Function_Arguments &args,
 	Madara::Knowledge_Engine::Variables &variables);
 static Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowledge_Engine::Function_Arguments &args,
+	Madara::Knowledge_Engine::Variables &variables);
+static Madara::Knowledge_Record madaraAltitudeReached (Madara::Knowledge_Engine::Function_Arguments &args,
 	Madara::Knowledge_Engine::Variables &variables);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,10 +131,16 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 				"(" 
 					"("MV_CELL_INITIALIZED ")"
 					" => (" 
-						// Check if we are just initializing, or if we reached the next target, but not the end of the area, to set the next waypoint.
-						"((" MV_NEXT_TARGET_LAT " == 0) && (" MV_NEXT_TARGET_LON " == 0)) || "
-						"((" MF_NEXT_TARGET_REACHED "()" " && !" MF_FINAL_TARGET_REACHED "() ))" // && " MF_SET_NEW_COVERAGE "() ))"
-							" => " MF_SET_NEW_TARGET  "()" 
+						// Check if we have reached our assigned height. If not, wait.
+						"(" MV_ALTITUDE_HAS_BEEN_REACHED " || " MF_ALTITUDE_REACHED "(" MV_DEVICE_ALT("{.id}") "," MV_ASSIGNED_ALTITUDE("{.id}")  "))" 
+						" => "
+							"(" MV_ALTITUDE_HAS_BEEN_REACHED " = 1 ) && "
+							"("
+								// Check if we are just initializing, or if we reached the next target, but not the end of the area, to set the next waypoint.
+								"((" MV_NEXT_TARGET_LAT " == 0) && (" MV_NEXT_TARGET_LON " == 0)) || "
+								"((" MF_NEXT_TARGET_REACHED "()" " && !" MF_FINAL_TARGET_REACHED "() ))" // && " MF_SET_NEW_COVERAGE "() ))"
+									" => " MF_SET_NEW_TARGET  "()" 
+							")"
 						")"
 				");"
 				"("
@@ -176,10 +187,14 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 		");"
 		);
 
+	// Checks if the final target of the area coverage strategy has been reached.
 	knowledge.define_function(MF_FINAL_TARGET_REACHED, madaraReachedFinalTarget);
 
 	// Returns 1 if we are closer than MV_ACCURACY to certain target location. 
 	knowledge.define_function(MF_TARGET_REACHED, madaraTargetReached);
+
+	// Checks if a certain altitude has been reached.
+	knowledge.define_function(MF_ALTITUDE_REACHED, madaraAltitudeReached);
 
 	// Function that can be included in main loop of another method to introduce area coverage.
 	knowledge.define_function(MF_INIT_SEARCH_CELL, madaraInitSearchCell);
@@ -220,8 +235,8 @@ Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::Function
 	//printf("Curr and target lats are %.10f,%.10f, and diff is %.10f\n", currLat, targetLat, (currLat-targetLat));
 	//printf("Curr and target lats are %.10f,%.10f, and diff is %.10f\n", currLon, targetLon, (currLon-targetLon));
 
-	if(fabs(currLat - targetLat) < REACHED_ACCURACY &&
-		fabs(currLon - targetLon) < REACHED_ACCURACY)
+	if(fabs(currLat - targetLat) < REACHED_ACCURACY_DEGREES &&
+		fabs(currLon - targetLon) < REACHED_ACCURACY_DEGREES)
 	{
 		printf("HAS reached target\n");
 		return Madara::Knowledge_Record(1.0);
@@ -229,6 +244,31 @@ Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::Function
 	else
 	{
 		printf("HAS NOT reached target\n");
+		return Madara::Knowledge_Record(0.0);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+* Checks if we are within a certain accuracy of a target's altitude.
+* @return  Returns true (1) if we are, or false (0) if not.
+**/
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Madara::Knowledge_Record madaraAltitudeReached (Madara::Knowledge_Engine::Function_Arguments &args,
+	Madara::Knowledge_Engine::Variables &variables)
+{
+	// All the params come from Madara.
+	double currAlt = args[0].to_double();
+	double targetAlt = args[1].to_double();
+
+	if(fabs(currAlt - targetAlt) < REACHED_ACCURACY_METERS)
+	{
+		printf("HAS reached target altitude.\n");
+		return Madara::Knowledge_Record(1.0);
+	}
+	else
+	{
+		printf("HAS NOT reached target altitude.\n");
 		return Madara::Knowledge_Record(0.0);
 	}
 }
@@ -261,8 +301,6 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
 	Region searchArea = Region(Position(topLeftX, topLeftY), Position(bottomRightX, bottomRightY));
 
 	// Calculate the actual cell I will be covering.
-	// NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
-	// as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
 	//m_coverageAlgorithm = new RandomAreaCoverage(false);
 	m_coverageAlgorithm = new SnakeAreaCoverage();
 	Region* myCell = m_coverageAlgorithm->initialize(searchArea, myIndexInList, availableDrones);
@@ -270,10 +308,10 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
 	if(myCell != NULL)
 	{
 		// Store this cell in Madara.
-		variables.set(MV_MY_CELL_TOP_LEFT_LAT, NUM_TO_STR(myCell->topLeftCorner.x));
-		variables.set(MV_MY_CELL_TOP_LEFT_LON, NUM_TO_STR(myCell->topLeftCorner.y));
-		variables.set(MV_MY_CELL_BOT_RIGHT_LAT, NUM_TO_STR(myCell->bottomRightCorner.x));
-		variables.set(MV_MY_CELL_BOT_RIGHT_LON, NUM_TO_STR(myCell->bottomRightCorner.y));
+		variables.set(MV_MY_CELL_TOP_LEFT_LAT, (myCell->topLeftCorner.x));
+		variables.set(MV_MY_CELL_TOP_LEFT_LON, (myCell->topLeftCorner.y));
+		variables.set(MV_MY_CELL_BOT_RIGHT_LAT, (myCell->bottomRightCorner.x));
+		variables.set(MV_MY_CELL_BOT_RIGHT_LON, (myCell->bottomRightCorner.y));
 
 		return Madara::Knowledge_Record(1.0);
 	}
@@ -302,8 +340,6 @@ Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowledge_Eng
 	variables.set(MV_ASSIGNED_ALTITUDE("{.id}"), myDefaultAltitude);
 
 	// Send the command to go to this altitude.
-	// NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
-	// as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
 	variables.set(MV_MOVEMENT_TARGET_ALT, myDefaultAltitude);
 	variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_ALTITUDE_CMD));
 	printf("Moving to altitude %f!\n", myDefaultAltitude);
@@ -325,19 +361,15 @@ Madara::Knowledge_Record madaraSetNewTarget (Madara::Knowledge_Engine::Function_
 	Position nextTarget = m_coverageAlgorithm->getNextTargetLocation();
 
 	// Update the drone status for the next target.
-	// NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
-	// as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
-	variables.set(MV_NEXT_TARGET_LAT, NUM_TO_STR(nextTarget.x),
+	variables.set(MV_NEXT_TARGET_LAT, (nextTarget.x),
 		Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
-	variables.set(MV_NEXT_TARGET_LON, NUM_TO_STR(nextTarget.y),
+	variables.set(MV_NEXT_TARGET_LON, (nextTarget.y),
 		Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
 
 	// Set the movement command for the movement module.
-	// NOTE: we are storing the cell location as a string instead of doubles to ensure we have enough precision, since Madara,
-	// as of version 0.9.44, has only 6 digits of precision for doubles (usually 4 decimals for latitudes and longitudes).
-	variables.set(MV_MOVEMENT_TARGET_LAT, NUM_TO_STR(nextTarget.x),
+	variables.set(MV_MOVEMENT_TARGET_LAT, (nextTarget.x),
 		Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
-	variables.set(MV_MOVEMENT_TARGET_LON, NUM_TO_STR(nextTarget.y),
+	variables.set(MV_MOVEMENT_TARGET_LON, (nextTarget.y),
 		Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
 	variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
 

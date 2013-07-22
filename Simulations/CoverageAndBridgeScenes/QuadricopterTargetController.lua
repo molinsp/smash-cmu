@@ -11,7 +11,7 @@ require("Utils")
 TARGET_SPEED = 0.0000003    -- This is rougly equivalent to 3 cm.
 
 -- This margin (in degrees) indicates how close to a person we use to declare that we found it.
-PERSON_FOUND_ERROR_MARGIN = 0.000002    -- This is roughly equivalent to 20 cm.
+PERSON_FOUND_ERROR_MARGIN = 0.000005    -- This is roughly equivalent to 50 cm.
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Method called when the simulation starts.

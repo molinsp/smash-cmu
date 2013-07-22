@@ -35,7 +35,7 @@ Region* SnakeAreaCoverage::initialize(const Region& grid, int deviceIdx, int num
 	if(numDrones == 1)
 		m_cellToSearch = new Region(grid);
 	else
-    m_cellToSearch = calculateCellToSearch(deviceIdx, grid, numDrones);
+		m_cellToSearch = calculateCellToSearch(deviceIdx, grid, numDrones);
 	return m_cellToSearch;
 }
 

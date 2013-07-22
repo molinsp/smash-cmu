@@ -212,6 +212,7 @@ void read_gps(struct madara_gps * ret)
     // Get the latitude and longitude that the simulator set for this drone, in variables with the sim prefix.
     double latitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_PREFIX MV_DEVICE_LAT("{"MV_MY_ID"}"))).to_double();
     double longitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_PREFIX MV_DEVICE_LON("{"MV_MY_ID"}"))).to_double();
+	double altitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_PREFIX MV_DEVICE_ALT("{"MV_MY_ID"}"))).to_double();
 
     //std::cout << "Lat " << latitude << ", Long " << longitude << " from: " << std::string(MS_SIM_PREFIX MV_DEVICE_LAT("{"MV_MY_ID"}")) << std::endl;
     //m_sim_knowledge->print_knowledge();
@@ -219,6 +220,7 @@ void read_gps(struct madara_gps * ret)
     // Set the values in the return structure.
 	ret->latitude = latitude;
 	ret->longitude = longitude;
+	ret->altitude = altitude;
 	ret->num_sats = 10;             // Just because it should be really exact with the simulator.
 }
 
