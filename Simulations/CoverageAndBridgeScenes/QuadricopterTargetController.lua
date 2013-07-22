@@ -8,7 +8,7 @@
 require("Utils")
     
 -- The speed defines how far the target moves, and therefore how fast the drone will follow.
-TARGET_SPEED = 0.0000003    -- This is rougly equivalent to 3 cm.
+TARGET_SPEED = 0.0000010    -- 0.0000003 is approx 3cm (/s?)
 
 -- This margin (in degrees) indicates how close to a person we use to declare that we found it.
 PERSON_FOUND_ERROR_MARGIN = 0.000002    -- This is roughly equivalent to 20 cm.
