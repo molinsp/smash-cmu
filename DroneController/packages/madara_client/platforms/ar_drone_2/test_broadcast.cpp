@@ -90,43 +90,41 @@ void handle_arguments (int argc, char ** argv)
 
 int main (int argc, char ** argv)
 {
-  settings.hosts_.resize (1);
-  settings.hosts_[0] = default_broadcast;
-  handle_arguments (argc, argv);
-
-  Madara::Knowledge_Engine::Wait_Settings wait_settings;
-  wait_settings.max_wait_time = 10;
-
-  settings.type = Madara::Transport::NO_TRANSPORT;
-  Madara::Knowledge_Engine::Knowledge_Base knowledge(host,
-    Madara::Transport::NO_TRANSPORT);
-  stringstream out;
-  out << settings.id;
-  DroneRK_Transport transport(out.str(), knowledge.get_context(),
-    settings,
-    true, 500000);
-  knowledge.attach_transport(&transport);
-
-  knowledge.set (".id", (Madara::Knowledge_Record::Integer) settings.id);
+    settings.hosts_.resize (1);
+    settings.hosts_[0] = default_broadcast;
+    handle_arguments (argc, argv);
   
-  if (settings.id == 0)
-  {
-    Madara::Knowledge_Engine::Compiled_Expression compiled = 
-      knowledge.compile (
-        "(var2 = 1) ;> (var1 = 0) ;> (var4 = -2.0/3) ;> var3"
-      );
-
-    knowledge.wait (compiled, wait_settings);
-  }
-  else
-  {
-    Madara::Knowledge_Engine::Compiled_Expression compiled = 
-      knowledge.compile ("!var1 && var2 => var3 = 1");
-
-    knowledge.wait (compiled, wait_settings);
-  }
-
-  knowledge.print_knowledge ();
-
-  return 0;
+    Madara::Knowledge_Engine::Wait_Settings wait_settings;
+    wait_settings.max_wait_time = 10;
+  
+    settings.delay_launch = true;
+    Madara::Knowledge_Engine::Knowledge_Base knowledge(host,
+        Madara::Transport::NO_TRANSPORT);
+    stringstream out;
+    out << settings.id;
+    knowledge.attach_transport(new DroneRK_Transport(out.str(),
+        knowledge.get_context(), settings, true, 500));
+  
+    knowledge.set (".id", (Madara::Knowledge_Record::Integer) settings.id);
+    
+    if (settings.id == 0)
+    {
+        Madara::Knowledge_Engine::Compiled_Expression compiled = 
+            knowledge.compile (
+                "(var2 = 1) ;> (var1 = 0) ;> (var4 = -2.0/3) ;> var3"
+            );
+  
+        knowledge.wait (compiled, wait_settings);
+    }
+    else
+    {
+        Madara::Knowledge_Engine::Compiled_Expression compiled = 
+            knowledge.compile ("!var1 && var2 => var3 = 1");
+  
+        knowledge.wait (compiled, wait_settings);
+    }
+  
+    knowledge.print_knowledge ();
+  
+    return 0;
 }

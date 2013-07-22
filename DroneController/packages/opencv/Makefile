@@ -76,6 +76,9 @@ endif
 
 	@echo "Done in OpenCV"
 
+update: realclean
+	cd opencv; git pull
+
 clean:
 
 realclean: clean

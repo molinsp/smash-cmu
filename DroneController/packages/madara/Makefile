@@ -68,6 +68,9 @@ endif
 #END MADARA
 #================================
 
+update: realclean
+	cd madara; svn update
+
 clean:
 	rm -rf $(MADARA_ROOT)/.shobj $(MADARA_ROOT)/.obj $(MADARA_ROOT)/.depend* $(MADARA_ROOT)/GNUmakefile* $(MADARA_ROOT)/libMADARA* $(MADARA_ROOT)/test_* $(MADARA_ROOT)/tutorial_*
 

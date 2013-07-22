@@ -127,6 +127,9 @@ endif
 #END BUILD TARGET
 #================================
 
+update: realclean
+	cd ACE_wrappers; svn up
+
 #================================
 #END ACE
 #================================

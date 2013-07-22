@@ -14,16 +14,11 @@ JOBS:=6
 include v_rep.mk
 include ar_drone_2.mk
 
-#LOCAL_CMD = 
-#	PLATFORM=$(PLATFORM) \
-#	HOME_DIR=$(HOME_DIR) \
-#	PACKAGES_ROOT=$(PACKAGES_ROOT) \
-#	INSTALL_ROOT=$(INSTALL_ROOT) \
-#	LOCAL_CROSS=$(LOCAL_CROSS) \
-#	LOCAL_CROSS_PREFIX=$(LOCAL_CROSS_PREFIX) \
-#	LOCAL_GCC=$(LOCAL_GCC) \
-#	LOCAL_GPLUSPLUS=$(LOCAL_GPLUSPLUS) \
-#	make
+LOCAL_CMD = PLATFORM=$(PLATFORM) \
+	HOME_DIR=$(HOME_DIR) \
+	PACKAGES_ROOT=$(PACKAGES_ROOT) \
+	INSTALL_ROOT=$(INSTALL_ROOT) \
+	make
 
 .make_install_dir:
 	rm -rf $(INSTALL_ROOT)
@@ -33,17 +28,41 @@ include ar_drone_2.mk
 	mkdir -p $(INSTALL_ROOT)/doc
 	mkdir -p $(INSTALL_ROOT)/share
 
+##################################################
+# PACKAGE DEPENDENCIES 
+#
+# MADARA -> ACE
+#
+# madara_client -> MADARA
+##################################################
+
 v_rep: .make_install_dir
 	cd $(PACKAGES_ROOT)/ace; $(V_REP_CMD)
 	cd $(PACKAGES_ROOT)/madara; $(V_REP_CMD)
-	make madara_client-realclean # hack to force recompile, should be better way to do this
-	cd $(PACKAGES_ROOT)/madara_client; $(V_REP_CMD)
+	make madara_client-realclean # hack to force recompile, should implement ACE/MADARA build pattern for multiple platforms
+	cd $(PACKAGES_ROOT)/madara_client; $(V_REP_CMD) -j $(JOBS)
+
+##################################################
+# PACKAGE DEPENDENCIES 
+#
+# MADARA -> ACE
+#
+# madara_client -> MADARA
+#               -> drone-rk
+##################################################
 
 ar_drone_2: .make_install_dir
+	cd $(PACKAGES_ROOT)/drone-rk; $(AR_DRONE_2_CMD)
 	cd $(PACKAGES_ROOT)/ace; $(AR_DRONE_2_CMD)
 	cd $(PACKAGES_ROOT)/madara; $(AR_DRONE_2_CMD)
-	make madara_client-realclean # hack to force recompile, should be better way to do this
-	cd $(PACKAGES_ROOT)/madara_client; $(AR_DRONE_2_CMD)
+	make madara_client-realclean # hack to force recompile, should implement ACE/MADARA build pattern for multiple platforms
+	cd $(PACKAGES_ROOT)/madara_client; $(AR_DRONE_2_CMD) -j $(JOBS)
+
+update:
+	for d in `ls packages`; do make $$d-update; done
+
+%-update:
+	@cd $(PACKAGES_ROOT)/$*; $(LOCAL_CMD) update
 
 #%:
 #	@cd $(PACKAGES_ROOT)/$@; make
