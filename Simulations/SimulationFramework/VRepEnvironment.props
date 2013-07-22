@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <VRepPath>C:\Datadisk\Trabajos\SEI\V-REP_PRO_EDU</VRepPath>
+    <VRepPath>C:\SEI\Tools\Programs\V-REP_PRO_EDU</VRepPath>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />

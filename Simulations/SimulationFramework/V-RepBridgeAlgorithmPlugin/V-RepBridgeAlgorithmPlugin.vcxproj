@@ -51,6 +51,7 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\V-RepCommonPluginUtils;..\..\..\DroneController\packages\madara_client;..\V-RepImports;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PreprocessorDefinitions>WIN32;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

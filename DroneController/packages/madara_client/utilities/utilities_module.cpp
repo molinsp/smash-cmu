@@ -23,12 +23,10 @@ Madara::Knowledge_Record inflate_coords (Madara::Knowledge_Engine::Function_Argu
 	std::vector<std::string> splitters;
 	std::vector<std::string> pivots;
 	
-	double latitude, longitude;
-	
 	splitters.push_back(",");
 	Madara::Utility::tokenizer(input, splitters, tokens, pivots);
 	
-	for (int x = 0; x < tokens.size(); x++)
+	for (unsigned int x = 0; x < tokens.size(); x++)
 	{
 		std::stringstream doubleBuffer;
 		std::stringstream nameBuffer;
