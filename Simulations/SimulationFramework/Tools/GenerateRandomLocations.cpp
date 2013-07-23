@@ -16,11 +16,11 @@ using std::endl;
 void printProgramSummary(const char* const progName)
 {
     cerr << "use output redirection to direct to desired file" << endl;
-    cerr << " -n <num_bodies>" << endl;
-    cerr << " -x <min_x_coord>" << endl;
-    cerr << " -X <max_x_coord>" << endl;
-    cerr << " -y <min_y_coord>" << endl;
-    cerr << " -Y <max_y_coord>" << endl;
+    cerr << " -i <num_bodies>" << endl;
+    cerr << " -w <western_longitude>" << endl;
+    cerr << " -e <eastern_longitude>" << endl;
+    cerr << " -n <northern_latitude>" << endl;
+    cerr << " -s <souther_latitude>" << endl;
 }
 
 void handleArgs(const int& argc, const char* const argv[],
@@ -36,27 +36,27 @@ void handleArgs(const int& argc, const char* const argv[],
     {
         std::string arg1 (argv[i]);
     
-        if (arg1 == "-n")
+        if (arg1 == "-i")
         {
             if (i + 1 < argc)
                 sscanf(argv[++i], "%d", &numBills);
         }
-        else if (arg1 == "-x")
+        else if (arg1 == "-w")
         {
             if (i + 1 < argc)
                 sscanf(argv[++i], "%lf", &minX);
         }
-        else if (arg1 == "-X")
+        else if (arg1 == "-e")
         {
             if (i + 1 < argc)
                 sscanf(argv[++i], "%lf", &maxX);
         }
-        else if (arg1 == "-y")
+        else if (arg1 == "-s")
         {
             if (i + 1 < argc)
                 sscanf(argv[++i], "%lf", &minY);
         }
-        else if (arg1 == "-Y")
+        else if (arg1 == "-n")
         {
             if (i + 1 < argc)
                 sscanf(argv[++i], "%lf", &maxY);
@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
         cout << "g_bill_locs[" << i << "] = {}" << endl;
         double x = frand(minX, maxX);
         double y = frand(minY, maxY);
-        double z = 0.08 - (x - 10) / 10 * 0.2 - (y - 10) / 10 * 0.1;
+        double z = 0;
         cout << "g_bill_locs[" << i << "][1] = " << x << endl;
         cout << "g_bill_locs[" << i << "][2] = " << y << endl;
         cout << "g_bill_locs[" << i << "][3] = " << z << endl;
