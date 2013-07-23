@@ -28,8 +28,9 @@ namespace SMASH { namespace AreaCoverage {
 	public:
 		/**
 		* Constructors
+        * @param   width    width of column offset
 		*/
-		SnakeAreaCoverage();
+		SnakeAreaCoverage(const double& width = 0.000005);
 
 		/**
 		* Destructor
@@ -67,7 +68,7 @@ namespace SMASH { namespace AreaCoverage {
 	protected:
 		// The width of each column the device will move over when searching the area.
 		// It will roughly have the same width as the device.
-		static const double SEARCH_COLUMN_WIDTH;
+		const double m_searchColumnWidth;
 
 		// Flag to check whether we are moving on the X or Y axis (to know whether we
 		// have to turn or not).
