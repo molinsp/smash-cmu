@@ -97,7 +97,7 @@ function getObjectPositionInDegrees(objectHandle, relativeTo)
     -- Get the long and lat now.
     local latAndLong = getLatAndLong(cartesianPosition)
     
-    -- Return the new coordindates. Note that the height was already in meters, and will be still in meters.
+    -- Return the new coordinates. Note that the height was already in meters, and will be still in meters.
     local newPosition = {latAndLong['longitude'], latAndLong['latitude'], vrepPosition[3]}
     return newPosition
 end
@@ -114,7 +114,7 @@ function setObjectPositionFromDegrees(objectHandle, relativeTo, latAndLongPositi
     -- Get the cartesian position.
     local cartesianPosition = getXYpos(degreePosition)
     
-    -- Return the new coordindates. Note that the height was already in meters.
+    -- Return the new coordinates. Note that the height was already in meters.
     local vrepPosition = {cartesianPosition['x'], cartesianPosition['y'], latAndLongPosition[3]}
     --simAddStatusbarMessage('Moving to pos in cart: ' .. vrepPosition[1] .. ',' .. vrepPosition[2] .. ',' .. vrepPosition[3])
     simSetObjectPosition(objectHandle, relativeTo, vrepPosition)

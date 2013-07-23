@@ -116,14 +116,14 @@ void simExtMadaraSystemControllerBridgeRequest(SLuaCallBack* p)
         startRegion.bottomRightCorner.y = atof(sourceBotRightY.c_str());
 
         Region endRegion;
-        endRegion.topLeftCorner.x = atof(sourceTopLeftX.c_str());
-        endRegion.topLeftCorner.y = atof(sourceTopLeftY.c_str());
-        endRegion.bottomRightCorner.x = atof(sourceBotRightX.c_str());
-        endRegion.bottomRightCorner.y = atof(sourceBotRightY.c_str());
+        endRegion.topLeftCorner.x = atof(sinkTopLeftX.c_str());
+        endRegion.topLeftCorner.y = atof(sinkTopLeftY.c_str());
+        endRegion.bottomRightCorner.x = atof(sinkBotRightX.c_str());
+        endRegion.bottomRightCorner.y = atof(sinkBotRightY.c_str());
 
         // For debugging, print out what we received.
         std::stringstream sstm; 
-        sstm << "Values received inside simExtMadaraSystemControllerBridgeRequest function: bridgeId:" << bridgeId << ", "
+        sstm << "Values received inside simExtMadaraSystemControllerBridgeRequest function: bridgeId:" << bridgeId << ", " << std::setprecision(10)
             << " (" << startRegion.topLeftCorner.x << "," << startRegion.topLeftCorner.y << ")"
             << " (" << startRegion.bottomRightCorner.x << "," << startRegion.bottomRightCorner.y << ")"
             << " (" << endRegion.topLeftCorner.x << "," << endRegion.topLeftCorner.y << ")"

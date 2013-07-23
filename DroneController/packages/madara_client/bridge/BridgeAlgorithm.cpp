@@ -53,7 +53,7 @@ Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Posit
 	int numberOfRelays = (int) ceil(bridgeLength/commRange + 1);    // +1 to add a relay in each end point.
 
 #if BRIDGE_ALGORITHM_DEBUG
-    outputFile << "Source: (" << sourcePosition.x << ", " << sourcePosition.y  << "), sink: (" << sinkPosition.x << ", " << sinkPosition.y << ")" << endl;
+    outputFile << "Source: (" << std::setprecision(10) << sourcePosition.x << ", " << sourcePosition.y  << "), sink: (" << sinkPosition.x << ", " << sinkPosition.y << ")" << endl;
 	outputFile << "Num Relays " << numberOfRelays << endl;
 #endif
 

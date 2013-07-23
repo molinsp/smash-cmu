@@ -97,6 +97,8 @@ function checkForBridgeRequest()
         local sinkName, sinkPosition = getSinkInfo()
         local sourceName, sourcePosition = getSourceInfo()
         
+		simAddStatusbarMessage('Bridge req: ' .. '(' .. tostring(sourcePosition[1]) ..','.. tostring(sourcePosition[2]) ..')' .. '('..	tostring(sinkPosition[1]) ..','.. tostring(sinkPosition[2]) .. ')')
+		
         -- Do the external bridge request.        
         simExtMadaraSystemControllerBridgeRequest(g_bridgeRequestId, 
                                                   tostring(sourcePosition[1]), tostring(sourcePosition[2]), tostring(sourcePosition[1]), tostring(sourcePosition[2]), 

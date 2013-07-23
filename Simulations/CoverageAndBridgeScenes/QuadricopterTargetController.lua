@@ -11,7 +11,7 @@ require("Utils")
 TARGET_SPEED = 0.0000003    -- This is rougly equivalent to 3 cm.
 
 -- This margin (in degrees) indicates how close to a person we use to declare that we found it.
-PERSON_FOUND_ERROR_MARGIN = 0.000005    -- This is roughly equivalent to 50 cm.
+PERSON_FOUND_ERROR_MARGIN = 0.000008    -- This is roughly equivalent to 80 cm.
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Method called when the simulation starts.
@@ -129,7 +129,7 @@ function lookForPersonBelow()
                 simSetScriptSimulationParameter(sim_handle_main_script, 'personFound', 'true')
                 simSetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound', sourceSuffix)
                 simSetScriptSimulationParameter(sim_handle_main_script, 'personFoundId', i)
-                simAddStatusbarMessage('Drone with suffix ' .. sourceSuffix .. ' found person ' .. i .. '!')
+                simAddStatusbarMessage('Drone with suffix ' .. sourceSuffix .. ' is seeing person ' .. i .. '!')
             end
         end
         counter = counter + 2
