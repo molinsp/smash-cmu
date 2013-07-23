@@ -47,8 +47,10 @@
 #define MV_BRIDGE_SINK_REGION_ID(bridgeId)   "bridge." + std::string(bridgeId) + ".endpoint.2"  // The region where the other endpoint of the bridge is.
 
 // For simulation purposes.
-#define MS_SIM_PREFIX                        "sim"                                             // Prefix used to disseminate local device variables for simulator.
-#define MS_SIM_DEVICES_PREFIX                "sim.device."                                     // Prefix used to disseminate local device variables for simulator.
+#define MS_SIM_PREFIX                        "sim"                   // Prefix used to disseminate local device variables for simulator.
+#define MS_SIM_DEVICES_PREFIX                "sim.device."           // Prefix used to disseminate local device variables for simulator.
+#define MS_SIM_CMD_SENT_ID		             ".sent_commmand_id"     // Suffix used to indicate the id of the last command sent, to resend for lost ones.
+#define MS_SIM_CMD_RCVD_ID	                 ".received_command_id"  // Suffix used to indicate the id of the command received, to resend for lost ones.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Local preprocessed variables, filled in by other modules in each drone.

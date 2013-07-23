@@ -56,9 +56,20 @@ MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
         m_knowledge->get_context (), settings, true));
 #endif
 
-	// Initialize the internal command variable so that we start with no commands.
-	string droneIdString = std::to_string(static_cast<long long>(droneId));
+}
+
+// Initializes Madara variables for the drone.
+void MadaraQuadrotorControl::initInternalData(int droneId)
+{
+    // Initialize the internal command variable so that we start with no commands.
+    string droneIdString = std::to_string(static_cast<long long>(droneId));
     clearCommand(droneIdString);
+
+    // Indicate that we have not received or replied to commands yet.
+    m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MS_SIM_CMD_SENT_ID, (Madara::Knowledge_Record::Integer) 0,
+                Madara::Knowledge_Engine::Eval_Settings(true, true));
+    m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MS_SIM_CMD_RCVD_ID, (Madara::Knowledge_Record::Integer) 0,
+                Madara::Knowledge_Engine::Eval_Settings(true, true));
 }
 
 // Destructor, simply cleans up.
@@ -103,15 +114,19 @@ void MadaraQuadrotorControl::updateQuadrotorStatus(const Status& s)
 // Gets a target position where a drone should move to.
 MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(int droneId)
 {
-    // Check for command.
     string droneIdString = std::to_string(static_cast<long long>(droneId));
-    string commandStr =
-        m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
-        MV_MOVEMENT_REQUESTED).to_string();
+
+    // Check if commands have started being received for the requested drone.
+    int recievedCommandId = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MS_SIM_CMD_SENT_ID).to_integer();
+    if(recievedCommandId == 0)
+        return NULL;
+    
+    // Get the actual command, if there is a new one.
+    string commandStr = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_REQUESTED).to_string();
     if(commandStr == "0")
         return NULL;
 
-    // create the movement command to return
+    // Create the movement command to return.
     Command* command = new Command();
     command->m_command = commandStr;
 
@@ -124,22 +139,27 @@ MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(int drone
         double targetPosLon = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
             MV_MOVEMENT_TARGET_LON).to_double();
 
-		// We don't care about alt here.
+        // We don't care about alt here.
         Location targetLocation = Location(targetPosLat, targetPosLon, 0);
         command->m_loc = targetLocation;
     }
-	else if(commandStr == MO_MOVE_TO_ALTITUDE_CMD)
-	{
+    else if(commandStr == MO_MOVE_TO_ALTITUDE_CMD)
+    {
         double targetAltitude = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
             MV_MOVEMENT_TARGET_ALT).to_double();
 
-		// We don't care about lat and long here.
+        // We don't care about lat and long here.
         Location targetLocation = Location(0, 0, targetAltitude);
         command->m_loc = targetLocation;
-	}
+    }
 
     // Set the command as 0 locally, to indicate that we already read it.
-	clearCommand(droneIdString);
+    clearCommand(droneIdString);
+
+    // Indicate that this is the last command we have received.
+    int lastSentCmdId = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MS_SIM_CMD_SENT_ID).to_integer();
+    m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MS_SIM_CMD_RCVD_ID, (Madara::Knowledge_Record::Integer) lastSentCmdId,
+        Madara::Knowledge_Engine::Eval_Settings(false, false));
 
     return command;
 }
@@ -148,5 +168,5 @@ void MadaraQuadrotorControl::clearCommand(std::string droneIdString)
 {
     // Set the command as 0 locally, to indicate that we already read it.
     m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_REQUESTED, "0",
-        Madara::Knowledge_Engine::Eval_Settings(false, true));
+        Madara::Knowledge_Engine::Eval_Settings(true, true));
 }

@@ -64,6 +64,15 @@ bool init_platform()
 
     compileExpressions(m_sim_knowledge);
 
+	// Indicate that we have not sent or received replied to commands yet. The first id sent will be 1.
+    // NOTE: this is currently not being used for anything other than debugging. It could be used to fix a bug where
+    // commands some times do not get sent for some reason to the Madara base in VRep, by checking if no "acks" have
+    // beeen recieved from VRep.
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{.id}" MS_SIM_CMD_SENT_ID, (Madara::Knowledge_Record::Integer) 0,
+                Madara::Knowledge_Engine::Eval_Settings(true, true));
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{.id}" MS_SIM_CMD_RCVD_ID, (Madara::Knowledge_Record::Integer) 0,
+                Madara::Knowledge_Engine::Eval_Settings(true, true));
+
 	return true;
 }
 
@@ -73,19 +82,27 @@ bool init_platform()
 void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base* knowledge)
 {
     m_expressions[VE_SEND_MOVE_TO_GPS_COMMAND] = knowledge->compile(
-        // Simulator variables sent to V-Rep to simulate movements.
+        // Send move to latitude and longitude command to VRep.
         "("
-            MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_REQUESTED) + "=" + MV_MOVEMENT_REQUESTED + ";"
-            MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_TARGET_LAT) + "=" + MV_MOVEMENT_TARGET_LAT + ";"
-			MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_TARGET_LON) + "=" + MV_MOVEMENT_TARGET_LON + ";"
+			// Send the actual command and its parameters.
+            MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_REQUESTED "=" MV_MOVEMENT_REQUESTED ";"
+            MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_TARGET_LAT "=" MV_MOVEMENT_TARGET_LAT ";"
+			MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_TARGET_LON "=" MV_MOVEMENT_TARGET_LON ";"
+
+			// Send the command id after increasing it. We first increase it so the first id sent is 1.
+			"++" MS_SIM_DEVICES_PREFIX "{.id}" MS_SIM_CMD_SENT_ID";"
         ")"
     );
 
     m_expressions[VE_SEND_MOVE_TO_ALT_COMMAND] = knowledge->compile(
-        // Simulator variables sent to V-Rep to simulate movements.
+        // Send move to altitude command to VRep.
         "("
-            MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_REQUESTED) + "=" + MV_MOVEMENT_REQUESTED + ";"
-            MS_SIM_DEVICES_PREFIX "{.id}" + std::string(MV_MOVEMENT_TARGET_ALT) + "=" + MV_MOVEMENT_TARGET_ALT + ";"
+			// Send the actual command and its parameters.
+            MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_REQUESTED "=" MV_MOVEMENT_REQUESTED ";"
+            MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_TARGET_ALT "=" MV_MOVEMENT_TARGET_ALT ";"
+
+			// Send the command id after increasing it. We first increase it so the first id sent is 1.
+			"++" MS_SIM_DEVICES_PREFIX "{.id}" MS_SIM_CMD_SENT_ID";"
         ")"
     );
 

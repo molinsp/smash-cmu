@@ -39,9 +39,23 @@ void simExtMadaraQuadrotorControlSetup(SLuaCallBack* p)
 	if(paramsOk)
 	{
 		int droneId = p->inputInt[0];
-		if(control != NULL)
-			delete control;
-		control = new MadaraQuadrotorControl(droneId);
+
+		// For debugging, print out what we received.
+		std::stringstream sstm; 
+		sstm << "Values received inside simExtMadaraQuadrotorControlSetup function: droneId:" << droneId;
+
+        // Only set this up once (this has to be checked since this function will be called by many drones.
+        if(control == NULL)
+        {
+		    control = new MadaraQuadrotorControl(droneId);
+            sstm << " + control initialized.";
+        }
+
+        sstm << std::endl;
+		simAddStatusbarMessage(sstm.str().c_str());
+
+        // Setupt internal drone variables.
+        control->initInternalData(droneId);
 	}
 
 	simLockInterface(0);

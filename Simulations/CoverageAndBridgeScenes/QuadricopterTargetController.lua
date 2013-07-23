@@ -34,10 +34,8 @@ function doInitialSetup()
     g_myTargetLat = 0
     g_myAssignedAlt = g_minAltitude    
     
-    -- Setup the plugin to communicate to the network. Only do this once, for the first drone.
-    if(g_myDroneId == 0) then
-        simExtMadaraQuadrotorControlSetup(g_myDroneId)   
-    end
+    -- Setup the plugin to communicate to the network.
+	simExtMadaraQuadrotorControlSetup(g_myDroneId)   
     
     --local droneHandle = simGetObjectHandle('Quadricopter')
     --local degreePosition = getObjectPositionInDegrees(droneHandle, -1)    
