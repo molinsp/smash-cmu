@@ -154,18 +154,18 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 	if(newCommand != NULL)
 	{
 		// For debugging, to print out what we received.
-		std::stringstream sstm; 
-
-		// All commands will have at least the command name, though they may have different parameters.
-		p->outputArgTypeAndSize[2*0+0] = sim_lua_arg_string; // cmd
+		std::stringstream sstm;
+		sstm << "Values received inside simExtMadaraQuadrotorControlGetNewCmd function: command: " << newCommand->m_command << std::endl;
 
 		// First case: MOVE_TO_GPS
 		if(strcmp(MO_MOVE_TO_GPS_CMD, newCommand->m_command.c_str()) == 0)
 		{
 			// For debugging, print out what we received.
-			sstm << "Values received inside simExtMadaraQuadrotorControlGetNewCmd function: command: " << newCommand->m_command << ", "
-				<< " (" << std::setprecision(10) << newCommand->m_loc.m_lat << "," << newCommand->m_loc.m_long << ")"
+			sstm << "Values received inside simExtMadaraQuadrotorControlGetNewCmd function: (" << std::setprecision(10) << newCommand->m_loc.m_lat << "," << newCommand->m_loc.m_long << ")"
 				<< std::endl;
+
+			// All commands will have at least the command name, though they may have different parameters.
+			p->outputArgTypeAndSize[0] = sim_lua_arg_string; // cmd
 
 			// Move to gps has lat and long parameters, which we will have to return.
 			p->outputArgTypeAndSize[2*1+0] = sim_lua_arg_string; // lat
@@ -186,8 +186,10 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 		else if(strcmp(MO_MOVE_TO_ALTITUDE_CMD, newCommand->m_command.c_str()) == 0)
 		{
 			// For debugging, print out what we received.
-			sstm << "Values received inside simExtMadaraQuadrotorControlGetNewCmd function: command: " << newCommand->m_command << ", "
-				<< " (" << std::setprecision(10) << newCommand->m_loc.m_alt << ")" << std::endl;
+			sstm << "Values received inside simExtMadaraQuadrotorControlGetNewCmd function: (" << std::setprecision(10) << newCommand->m_loc.m_alt << ")" << std::endl;
+
+			// All commands will have at least the command name, though they may have different parameters.
+			p->outputArgTypeAndSize[0] = sim_lua_arg_string; // cmd
 
 			// The only parameter other than the command is the altitude.
 			p->outputArgTypeAndSize[2*1+0] = sim_lua_arg_string; // altitude
@@ -210,8 +212,7 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 		//p->outputFloat[2] = (float) temp->m_loc.m_alt;
 
 		// For debugging, print out what we received.
-		std::string message = sstm.str();
-		simAddStatusbarMessage(message.c_str());
+		simAddStatusbarMessage(sstm.str().c_str());
 	}
 
 	simLockInterface(0);

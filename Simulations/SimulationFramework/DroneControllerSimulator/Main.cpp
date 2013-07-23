@@ -93,8 +93,9 @@ int main (int argc, char** argv)
         SMASH::AreaCoverage::setupSearchTest(knowledge);
     }
 
-    // Indicate we start moving.
+    // Indicate we start moving and we are not busy.
     knowledge.set(MV_MOBILE("{" MV_MY_ID "}"), 1.0, Madara::Knowledge_Engine::Eval_Settings(true));
+	knowledge.set(MV_BUSY("{" MV_MY_ID "}"), 0.0, Madara::Knowledge_Engine::Eval_Settings(true));
 
     main_compile_expressions(knowledge);
 
@@ -105,7 +106,7 @@ int main (int argc, char** argv)
 		"Total:\t\t{" MV_TOTAL_DEVICES "}\n"
 		"Position:\t{" MV_DEVICE_LAT("{.id}") "},{" MV_DEVICE_LON("{.id}") "}\n"
 		"Mobile:\t\t{" MV_MOBILE("{.id}") "}\n"
-		"Bridging:\t{" MV_BUSY("{.id}") ".bridging}\n"
+		"Bridge ID:\t{" MV_BRIDGE_ID("{.id}") "}\n"
 		"Target pos:\t{" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n"
         "Search end:\t{.area_coverage.cell.bottom_right.location.latitude},{.area_coverage.cell.bottom_right.location.longitude}\n\n"
 		"Command:\t{" MV_MOVEMENT_REQUESTED "},{" MV_MOVEMENT_TARGET_ALT "}\n"

@@ -55,6 +55,10 @@ MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
     m_knowledge->attach_transport(new Windows_Multicast_Transport (m_knowledge->get_id (),
         m_knowledge->get_context (), settings, true));
 #endif
+
+	// Initialize the internal command variable so that we start with no commands.
+	string droneIdString = std::to_string(static_cast<long long>(droneId));
+    clearCommand(droneIdString);
 }
 
 // Destructor, simply cleans up.
@@ -135,9 +139,14 @@ MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(int drone
 	}
 
     // Set the command as 0 locally, to indicate that we already read it.
-    m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString +
-        MV_MOVEMENT_REQUESTED, "0",
-        Madara::Knowledge_Engine::Eval_Settings(false, true));
+	clearCommand(droneIdString);
 
     return command;
+}
+
+void MadaraQuadrotorControl::clearCommand(std::string droneIdString)
+{
+    // Set the command as 0 locally, to indicate that we already read it.
+    m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_REQUESTED, "0",
+        Madara::Knowledge_Engine::Eval_Settings(false, true));
 }

@@ -66,7 +66,7 @@ end
 -- Method called in each step of the simulation.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function runMainLogic()
-    -- NOTE: This is done here just for convinience of simulation. In reality, it would be issued by a rescuer at any moment, not when someone is found.        
+    -- NOTE: This is done here just for convenience of simulation. In reality, it would be issued by a rescuer at any moment, not when someone is found.        
     checkForBridgeRequest()
     
     -- Update the drone status to the network.        

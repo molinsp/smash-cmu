@@ -22,15 +22,20 @@ class MadaraQuadrotorControl
 {
 private:
   /**
-   * Madara knowlege base
+   * Madara knowlege base.
    */
   Madara::Knowledge_Engine::Knowledge_Base* m_knowledge;
   
   /**
-   * update position in the knowledge base
+   * Update position in the knowledge base.
    */
   void updateQuadrotorPosition(const int& id, const double& x, const double& y,
     const double& z);
+
+  /**
+   * Clears the current command locally from Madara.
+   */
+  void clearCommand(std::string droneIdString);
 
 public:
   /**

@@ -67,12 +67,13 @@ void setupDefaultOutput(SLuaCallBack* p, int numberOfOutputs)
 {
 	// Setup the amount of arguments, and create the buffer for their types and sizes.
 	p->outputArgCount = numberOfOutputs;
-	p->outputArgTypeAndSize = (simInt*)simCreateBuffer(p->outputArgCount * (2 * sizeof(simInt)));
+	int bufferSize = p->outputArgCount * (2 * sizeof(simInt));
+	p->outputArgTypeAndSize = (simInt*)simCreateBuffer(bufferSize);
 
 	// By default set all results to nil.
 	for(int i=0; i<p->outputArgCount; i++)
 	{
-		int currOutputTypePos = i*2+0;
+		int currOutputTypePos = i*2;
 		int currOutputSizePos = currOutputTypePos + 1;
 		p->outputArgTypeAndSize[currOutputTypePos] = sim_lua_arg_nil;
 		p->outputArgTypeAndSize[currOutputSizePos] = 1;

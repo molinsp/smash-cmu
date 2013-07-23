@@ -124,7 +124,7 @@ function lookForPersonBelow()
     for i=1, g_numPeople, 1 do
         if( (dronePos[1] >= g_personCoords[counter] - margin) and (dronePos[1] <= g_personCoords[counter] + margin) ) then
             if((dronePos[2] >= g_personCoords[counter + 1] - margin) and (dronePos[2] <= g_personCoords[counter + 1] + margin)) then
-                -- Notifiy our shared memory that a person was found, and that I was the one to find it.
+                -- Notify our shared memory that a person was found, and that I was the one to find it.
                 local sourceSuffix, sourceName = simGetNameSuffix(nil)
                 simSetScriptSimulationParameter(sim_handle_main_script, 'personFound', 'true')
                 simSetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound', sourceSuffix)
@@ -146,7 +146,7 @@ function simulateMovementCommands()
     local command = ''
     
     -- We check if there is a new command.
-    command, result1, result2, result3 = simExtMadaraQuadrotorControlGetNewCmd(g_myDroneId)
+    command, result1, result2, result3 = simExtMadaraQuadrotorControlGetNewCmd(g_myDroneId)    
     if(not (command == nil)) then
         --simAddStatusbarMessage('Command: '..command)    
         local isGoToAltCmd = simExtMadaraQuadrotorControlIsGoToAltCmd(command) 
@@ -159,7 +159,7 @@ function simulateMovementCommands()
                 local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
                 local droneTargetPosition = getObjectPositionInDegrees(droneTargetHandle, -1) 
 
-                -- If no position has been setup, set the current lat and long for the target.                
+                -- If no position has been set up, set the current lat and long for the target.                
                 g_myTargetLon = droneTargetPosition[1]
                 g_myTargetLat = droneTargetPosition[2]
                 simAddStatusbarMessage("Target lat and long: " .. g_myTargetLon .. "," .. g_myTargetLat)
@@ -188,8 +188,8 @@ function simulateMovementCommands()
             simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') In Lua, cartesian target position: ' ..cartesianPoint['x'] .. ',' .. cartesianPoint['y'])            
         end
     end
-    
-    -- Move if required.
+	
+    -- Move if required.	
     if(g_myTargetPositionSetup) then
         moveTargetTowardsPosition(g_myTargetLon, g_myTargetLat, g_myAssignedAlt)
     end    
