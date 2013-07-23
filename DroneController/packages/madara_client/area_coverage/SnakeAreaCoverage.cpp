@@ -19,12 +19,9 @@
 using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
 
-// We set the search column width to roughly the width of the device, in meters.
-const double SnakeAreaCoverage::SEARCH_COLUMN_WIDTH = 0.000005;
-
 // Constructors
-SnakeAreaCoverage::SnakeAreaCoverage() :
-AreaCoverage() {}
+SnakeAreaCoverage::SnakeAreaCoverage(const double& width) :
+    AreaCoverage(), m_searchColumnWidth(width) {}
 
 // Destructor
 SnakeAreaCoverage::~SnakeAreaCoverage() {}
@@ -65,7 +62,7 @@ Position SnakeAreaCoverage::getNextTargetLocation()
             // If we were moving on the Y axis, that means that we just finished searching in the current search column.
             // We set our next target to the right, to the start of the next column.
             // After we reach this target, we will be ready to move down or up the search column.
-            m_targetLocation.x -= SEARCH_COLUMN_WIDTH;
+            m_targetLocation.x -= m_searchColumnWidth;
             m_movingOnYAxis = false;
         }
         else
@@ -100,7 +97,7 @@ Position SnakeAreaCoverage::getNextTargetLocation()
 bool SnakeAreaCoverage::isTargetingFinalWaypoint()
 {
   return (fabs(m_targetLocation.x - m_cellToSearch->bottomRightCorner.x) <
-                    (SEARCH_COLUMN_WIDTH / 2)) &&
+                    (m_searchColumnWidth / 2)) &&
          (fabs(m_targetLocation.y - m_cellToSearch->bottomRightCorner.y) <
-                    (SEARCH_COLUMN_WIDTH / 2));
+                    (m_searchColumnWidth / 2));
 }
