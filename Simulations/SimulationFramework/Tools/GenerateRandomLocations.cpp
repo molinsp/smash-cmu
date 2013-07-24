@@ -12,11 +12,14 @@ using std::cerr;
 using std::cout;
 using std::endl;
 #include <time.h>
+#include <string>
+using std::string;
 
 void printProgramSummary(const char* const progName)
 {
     cerr << "use output redirection to direct to desired file" << endl;
-    cerr << " -i <num_bodies>" << endl;
+    cerr << " -m <matrix_name" << endl;
+    cerr << " -i <num_data>" << endl;
     cerr << " -w <western_longitude>" << endl;
     cerr << " -e <eastern_longitude>" << endl;
     cerr << " -n <northern_latitude>" << endl;
@@ -24,9 +27,10 @@ void printProgramSummary(const char* const progName)
 }
 
 void handleArgs(const int& argc, const char* const argv[],
-    int& numBills, double& minX, double& maxX, double& minY, double& maxY)
+    int& numBills, double& minX, double& maxX, double& minY, double& maxY,
+    string& name)
 {
-    if(argc != 11)
+    if(argc != 13)
     {
         printProgramSummary(argv[0]);
         exit(-1);
@@ -40,6 +44,11 @@ void handleArgs(const int& argc, const char* const argv[],
         {
             if (i + 1 < argc)
                 sscanf(argv[++i], "%d", &numBills);
+        }
+        else if (arg1 == "-m")
+        {
+            if (i + 1 < argc)
+                name = string(argv[++i]);
         }
         else if (arg1 == "-w")
         {
@@ -78,21 +87,21 @@ int main(int argc, char* argv[])
 {
     int numBills;
     double minX, maxX, minY, maxY;
-    handleArgs(argc, argv, numBills, minX, maxX, minY, maxY);
+    string name;
+    handleArgs(argc, argv, numBills, minX, maxX, minY, maxY, name);
 
     srand(time(NULL));
 
-    cout << "g_bill_index = 1" << endl;
-    cout << "g_bill_locs = {}" << endl;
+    cout << name << " = {}" << endl;
     for(int i = 1; i <= numBills; ++i)
     {
-        cout << "g_bill_locs[" << i << "] = {}" << endl;
+        cout << name << "[" << i << "] = {}" << endl;
         double x = frand(minX, maxX);
         double y = frand(minY, maxY);
         double z = 0;
-        cout << "g_bill_locs[" << i << "][1] = " << x << endl;
-        cout << "g_bill_locs[" << i << "][2] = " << y << endl;
-        cout << "g_bill_locs[" << i << "][3] = " << z << endl;
+        cout << name << "[" << i << "][1] = " << x << endl;
+        cout << name << "[" << i << "][2] = " << y << endl;
+        cout << name << "[" << i << "][3] = " << z << endl;
     }
 
     return 0;

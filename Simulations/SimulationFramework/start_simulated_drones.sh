@@ -1,8 +1,13 @@
 #!/bin/sh
-xterm -hold -e DroneControllerSimulator/DroneControllerSimulator -i 0 &
-sleep 1.5
-xterm -hold -e DroneControllerSimulator/DroneControllerSimulator -i 1 &
-sleep 1.5
-xterm -hold -e DroneControllerSimulator/DroneControllerSimulator -i 2 &
-sleep 1.5
-xterm -hold -e DroneControllerSimulator/DroneControllerSimulator -i 3 &
+if [ $# != 2 ]
+then
+    echo "usage: $0 <NUM_DRONES> <SLEEP>"
+    echo "Launches <NUM_DRONES> with <SLEEP> between launches"
+else
+    for i in $(seq 1 1 $1)
+    do
+        id=`expr $i - 1`
+        xterm -hold -e DroneControllerSimulator/DroneControllerSimulator -i $id &
+        sleep $2
+    done
+fi

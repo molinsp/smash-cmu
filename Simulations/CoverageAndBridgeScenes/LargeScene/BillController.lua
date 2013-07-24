@@ -1,5 +1,5 @@
 require('Params')
-require('random_locations')
+require('BillLocations')
 
 function setColor(objectTable, colorName, color)
     for i=1, #objectTable, 1 do
@@ -25,7 +25,7 @@ function doInitialSetup()
         previousSelection = simGetObjectSelection()
         simRemoveObjectFromSelection(sim_handle_all, -1)
         simAddObjectToSelection(sim_handle_tree, modelHandle)
-        for i = 1, g_numBills do
+        for i = 2, g_numPeople do
             simCopyPasteSelectedObjects()
         end
     end
@@ -51,13 +51,14 @@ function doInitialSetup()
     -- set random location
     local index = simGetNameSuffix(nil) + 2;
     if(index ~= 1) then
-        index = index - g_rows * g_columns + 1 -- hack requires floors to be init first
+        index = index - (g_rows * g_columns - 1) -- hack requires floors to be init first
     end
-    local position = g_bill_locs[index]
-    position[1] = position[1] - g_nwLong
-    position[2] = position[2] - g_seLat
-    g_bill_index = g_bill_index + 1
-    simSetObjectPosition(handle,  -1,  position)
+    if(index <= g_numPeople) then
+        local position = g_billLocs[index]
+        position[1] = position[1] - g_nwLong
+        position[2] = position[2] - g_seLat
+        simSetObjectPosition(handle,  -1,  position)
+    end
 end
 
 function cleanUp()
