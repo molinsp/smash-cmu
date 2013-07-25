@@ -15,6 +15,8 @@
 #include <sstream>      // std::ostringstream
 #include <iomanip>		// std::setprecision
 #include <cstdarg>
+#include <string>
+using std::string;
 
 // Macro to convert from int to std::string.
 #define NUM_TO_STR( x ) dynamic_cast< std::ostringstream & >( \
@@ -27,6 +29,22 @@
 //   as the rest of the array values.
 // - callerFunctionName: a string indicating the function that is processing this, to set error messages if required.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct type_to_string
+{
+    int type;
+    string description;
+};
+const type_to_string TYPES[] =
+{
+    { sim_lua_arg_nil, "nil" },
+    { sim_lua_arg_bool, "bool" },
+    { sim_lua_arg_int, "int" },
+    { sim_lua_arg_float, "float" },
+    { sim_lua_arg_string, "string" },
+};
+unsigned int TYPES_SIZE = sizeof(TYPES) / sizeof(TYPES[0]);
+
 bool checkInputArguments(SLuaCallBack* p, int inputArgumentsDescription[], const char* callerFunctionName)
 {
 	// The first value in the array is the number of arguments, which determines how many more values are in the array too.
@@ -42,14 +60,42 @@ bool checkInputArguments(SLuaCallBack* p, int inputArgumentsDescription[], const
 	// Loop over all arguments to check if we have the correct type for each one.
 	for(int i = 0; i < numberOfArguments; i++)
 	{
-		int currInputArgTypePosition = i*2+0;
-		int expectedInputArgTypePosition = i + 1;
+        int actualInputType = p->inputArgTypeAndSize[i * 2];
+        int expectInputType = inputArgumentsDescription[i + 1];
 
 		// Check we have the correct type of arguments.
-		if ( p->inputArgTypeAndSize[currInputArgTypePosition] != inputArgumentsDescription[expectedInputArgTypePosition] )
+		if (actualInputType != expectInputType)
 		{
-			std::string errorMessage = std::string("Input parameter ") + NUM_TO_STR(expectedInputArgTypePosition) + 
-				                       " is not of the expected type " + NUM_TO_STR(inputArgumentsDescription[expectedInputArgTypePosition]);
+			string errorMessage = std::string("Input parameter ") +
+                NUM_TO_STR(i + 1) + " is of type ";
+            string actual = "INVALID_TYPE";
+            for(unsigned int i = 0; i < TYPES_SIZE; ++i)
+            {
+                if((actualInputType & ~sim_lua_arg_table) == TYPES[i].type)
+                {
+                    actual = TYPES[i].description;
+                    if(actualInputType & sim_lua_arg_table)
+                    {
+                        actual += " table";
+                    }
+                    break;
+                }
+            }
+            errorMessage += actual + " and not of expected type ";
+            string expected = "INVALID_TYPE";
+            for(unsigned int i = 0; i < TYPES_SIZE; ++i)
+            {
+                if((expectInputType & ~sim_lua_arg_table) == TYPES[i].type)
+                {
+                    expected = TYPES[i].description;
+                    if(expectInputType & sim_lua_arg_table)
+                    {
+                        expected += " table";
+                    }
+                    break;
+                }
+            }
+            errorMessage += expected;
 			simSetLastError(callerFunctionName, errorMessage.c_str());
 			return false;
 		}
