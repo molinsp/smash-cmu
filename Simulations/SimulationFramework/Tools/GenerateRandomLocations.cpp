@@ -11,6 +11,8 @@
 using std::cerr;
 using std::cout;
 using std::endl;
+#include <iomanip>
+using std::setprecision;
 #include <time.h>
 #include <string>
 using std::string;
@@ -18,7 +20,7 @@ using std::string;
 void printProgramSummary(const char* const progName)
 {
     cerr << "use output redirection to direct to desired file" << endl;
-    cerr << " -m <matrix_name" << endl;
+    cerr << " -m <matrix_name>" << endl;
     cerr << " -i <num_data>" << endl;
     cerr << " -w <western_longitude>" << endl;
     cerr << " -e <eastern_longitude>" << endl;
@@ -92,16 +94,15 @@ int main(int argc, char* argv[])
 
     srand(time(NULL));
 
+    cout << setprecision(15);
     cout << name << " = {}" << endl;
     for(int i = 1; i <= numBills; ++i)
     {
         cout << name << "[" << i << "] = {}" << endl;
         double x = frand(minX, maxX);
         double y = frand(minY, maxY);
-        double z = 0;
         cout << name << "[" << i << "][1] = " << x << endl;
         cout << name << "[" << i << "][2] = " << y << endl;
-        cout << name << "[" << i << "][3] = " << z << endl;
     }
 
     return 0;

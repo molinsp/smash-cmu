@@ -22,12 +22,12 @@ function doInitialSetup()
 
         -- set position
         local x = index % g_columns
-        local y = math.floor(index / g_rows)
+        local y = math.floor(index / g_columns)
         local position = {}
-        position[1] = g_floorDeltaLong / 2 + x * g_floorDeltaLong
-        position[2] = g_floorDeltaLat / 2 + y * g_floorDeltaLat
+        position[1] = g_floorSideLengthMeters / 2 + x * g_floorSideLengthMeters
+        position[2] = g_floorSideLengthMeters / 2 + y * g_floorSideLengthMeters
         position[3] = 0
-        --simAddStatusbarMessage('x: '..x..' y: '..y)
+        --simAddStatusbarMessage('index: '..index..' x: '..x..' rows: '..g_rows..' y: '..y..' cols: '..g_columns..' posX: '..position[1]..' posY: '..position[2])
         simSetObjectPosition(handle, -1, position)
 
         -- create checkerboard pattern

@@ -55,9 +55,13 @@ function doInitialSetup()
     end
     if(index <= g_numPeople) then
         local position = g_billLocs[index]
-        position[1] = position[1] - g_nwLong
-        position[2] = position[2] - g_seLat
-        simSetObjectPosition(handle,  -1,  position)
+        position['longitude'] = position[1]
+        position['latitude'] = position[2]
+        position = getXYpos(position, g_origin)
+        position[1] = position['x']
+        position[2] = position['y']
+        position[3] = 0
+        simSetObjectPosition(handle, -1, position)
     end
 end
 

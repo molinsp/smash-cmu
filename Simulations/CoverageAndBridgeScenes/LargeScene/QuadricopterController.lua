@@ -56,8 +56,11 @@ function doInitialSetup()
     end
     if(index <= g_numDrones) then
         local position = g_droneLocs[index]
-        position[1] = position[1] - g_nwLong
-        position[2] = position[2] - g_seLat
+        position['longitude'] = position[1]
+        position['latitude'] = position[2]
+        position = getXYpos(position, g_origin)
+        position[1] = position['x']
+        position[2] = position['y']
         position[3] = g_minAltitude
         simSetObjectPosition(handle, -1, position)
         g_myTargetLon = position[1]
@@ -67,6 +70,14 @@ function doInitialSetup()
 
     -- Setup the plugin to communicate to the network.
 	simExtMadaraQuadrotorControlSetup(g_myDroneId)   
+
+    -- zero the angles
+    local zero = {}
+    zero[1] = 0
+    zero[2] = 0
+    zero[3] = 0
+    local targetHandle = simGetObjectHandle('Quadricopter_target')
+    simSetObjectOrientation(targetHandle, -1, zero)
 
     --local droneHandle = simGetObjectHandle('Quadricopter')
     --local degreePosition = getObjectPositionInDegrees(droneHandle, -1)    

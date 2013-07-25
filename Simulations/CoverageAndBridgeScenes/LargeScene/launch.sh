@@ -3,6 +3,9 @@ SCENE_DIR=`pwd`
 V_REP_HOME=$HOME/bin/V-REP_PRO_EDU_V3_0_4_64_Linux
 FRAMEWORK_DIR=$SCENE_DIR/../../SimulationFramework
 
+# delete previous log
+rm -f vrep_output.log
+
 # create random location files if necessary
 if [ ! -e "$FRAMEWORK_DIR/Tools/GenerateRandomLocations" ]
 then
@@ -33,4 +36,4 @@ ln -s $SCENE_DIR/Utils.lua
 
 # launch vrep
 rm -f vrep_output.txt
-./vrep.sh $SCENE_DIR/large_area_coverage.ttt >> $SCENE_DIR/vrep_output.txt 2>> $SCENE_DIR/vrep_output.txt &
+./vrep.sh $SCENE_DIR/large_area_coverage.ttt >> $SCENE_DIR/vrep_output.log 2>> $SCENE_DIR/vrep_output.log &
