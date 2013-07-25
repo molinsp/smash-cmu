@@ -24,12 +24,13 @@ fi
 
 # create symlinks
 cd $V_REP_HOME
-rm -f BillController.lua BillLocations.lua FloorController.lua LaptopController.lua Params.lua QuadricopterController.lua QuadricopterLocations.lua Utils.lua
+rm -f BillController.lua BillLocations.lua FloorController.lua LaptopController.lua Params.lua IndependentParams.lua QuadricopterController.lua QuadricopterLocations.lua Utils.lua
 ln -s $SCENE_DIR/BillController.lua
 ln -s $SCENE_DIR/BillLocations.lua
 ln -s $SCENE_DIR/FloorController.lua
 ln -s $SCENE_DIR/LaptopController.lua
 ln -s $SCENE_DIR/Params.lua
+ln -s $SCENE_DIR/IndependentParams.lua
 ln -s $SCENE_DIR/QuadricopterController.lua
 ln -s $SCENE_DIR/QuadricopterLocations.lua
 ln -s $SCENE_DIR/Utils.lua

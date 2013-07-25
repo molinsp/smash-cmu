@@ -10,7 +10,8 @@ require('Utils')
 require('QuadricopterLocations')
     
 -- The speed defines how far the target moves, and therefore how fast the drone will follow.
-TARGET_SPEED = 0.0000003    -- This is rougly equivalent to 3 cm.
+--TARGET_SPEED = 0.0000003    -- This is rougly equivalent to 3 cm.
+TARGET_SPEED = 0.0000008
 
 -- This margin (in degrees) indicates how close to a person we use to declare that we found it.
 PERSON_FOUND_ERROR_MARGIN = 0.000008    -- This is roughly equivalent to 80 cm.
@@ -78,11 +79,6 @@ function doInitialSetup()
     zero[3] = 0
     local targetHandle = simGetObjectHandle('Quadricopter_target')
     simSetObjectOrientation(targetHandle, -1, zero)
-
-    --local droneHandle = simGetObjectHandle('Quadricopter')
-    --local degreePosition = getObjectPositionInDegrees(droneHandle, -1)    
-    --simAddStatusbarMessage('Pos in degrees: ' .. degreePosition[1] .. ',' .. degreePosition[2] .. ',' .. degreePosition[3])    
-    --setObjectPositionFromDegrees(droneHandle, degreePosition)    
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -104,7 +100,7 @@ function simulateSensors()
     updateDronePosition()
     
     -- "Thermal": Check if we have found a person to stop on top of it (only if we are patrolling)
-    lookForPersonBelow()
+    --lookForPersonBelow()
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////

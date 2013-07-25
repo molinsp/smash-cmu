@@ -1,22 +1,5 @@
 require('Utils')
-
--- Environment parameters
-g_nwLat = 40.444161
-g_nwLong = -79.941011
-g_seLat = 40.442497
-g_seLong = -79.938853
-
--- SW corner of area; currently at CMU
-g_origin = {}
-g_origin['latitude'] = g_seLat
-g_origin['longitude'] = g_nwLong
-
--- Bill Parameters
-g_numPeople = 20
-
--- Drone Parameters
-g_numDrones = 20
-g_minAltitude = 1.5
+require('IndependentParams')
 
 -- Floor consts and globals
 g_degreesInCircumference = 360
@@ -36,6 +19,3 @@ g_laptopPosition = {}
 g_laptopPosition['latitude'] = (3 * g_seLat + g_nwLat) / 4
 g_laptopPosition['longitude'] = (3 * g_nwLong + g_seLong) / 4
 g_laptopPosition['altitude'] = 0.0075
-
--- Laptop and Drone parameters
-g_radioRange = 4.0
