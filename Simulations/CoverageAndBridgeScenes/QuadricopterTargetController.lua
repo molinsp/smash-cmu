@@ -206,14 +206,16 @@ function moveTargetTowardsPosition(newPositionLon, newPositionLat, newAltitude)
     
     local deltaLon = newPositionLon - droneTargetPosition[1]
     local deltaLat = newPositionLat - droneTargetPosition[2]
-    local deltaTotal = math.abs(deltaLon) + math.abs(deltaLat)
+    local deltaTotal = math.sqrt(math.pow(deltaLon, 2) + math.pow(deltaLat, 2))
 
     if(deltaTotal < speed) then
-      droneTargetPosition[1] = newPositionLon
-      droneTargetPosition[2] = newPositionLat
+        droneTargetPosition[1] = newPositionLon
+        droneTargetPosition[2] = newPositionLat
     else
-      droneTargetPosition[1] = droneTargetPosition[1] + deltaLon / deltaTotal * speed
-      droneTargetPosition[2] = droneTargetPosition[2] + deltaLat / deltaTotal * speed
+        deltaLon = speed / deltaTotal * deltaLon
+        deltaLat = speed / deltaTotal * deltaLat
+        droneTargetPosition[1] = droneTargetPosition[1] + deltaLon 
+        droneTargetPosition[2] = droneTargetPosition[2] + deltaLat
     end
     
     -- The altitude that we were assinged will be set directly, independently of our current one.
