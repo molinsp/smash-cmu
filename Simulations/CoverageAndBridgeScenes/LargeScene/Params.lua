@@ -13,9 +13,3 @@ g_sizeLat = g_nwLat - g_seLat
 g_sizeLong = g_seLong - g_nwLong
 g_rows = math.ceil(g_sizeLat / g_floorDeltaLat)
 g_columns = math.ceil(g_sizeLong / g_floorDeltaLong)
-
--- Laptop parameters
-g_laptopPosition = {}
-g_laptopPosition['latitude'] = (3 * g_seLat + g_nwLat) / 4
-g_laptopPosition['longitude'] = (3 * g_nwLong + g_seLong) / 4
-g_laptopPosition['altitude'] = 0.0075

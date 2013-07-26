@@ -3,38 +3,42 @@ SCENE_DIR=`pwd`
 V_REP_HOME=$HOME/bin/V-REP_PRO_EDU_V3_0_4_64_Linux
 FRAMEWORK_DIR=$SCENE_DIR/../../SimulationFramework
 
+# check args
+if [ $# != 1 ]
+then
+    echo "usage: $0 <LOCATIONS_SET>"
+    echo "Launches vrep using the LOCATIONS_SET"
+    exit -1
+fi
+if [ ! -e "parameters/$1/BillLocations.lua" ]
+then
+    echo "parameters/$1/BillLocations.lua does not exist"
+    exit -1
+fi
+if [ ! -e "parameters/$1/QuadricopterLocations.lua" ]
+then
+    echo "parameters/$1/QuadricopterLocations.lua does not exist"
+    exit -1
+fi
+
 # delete previous log
 rm -f vrep_output.log
-
-# create random location files if necessary
-if [ ! -e "$FRAMEWORK_DIR/Tools/GenerateRandomLocations" ]
-then
-    make -C $FRAMEWORK_DIR
-fi
-
-if [ ! -e "BillLocation.lua" ]
-then
-    $FRAMEWORK_DIR/Tools/GenerateRandomLocations -m g_billLocs -i 20 -w -90 -e 0 -n 90 -s 0 > BillLocations.lua
-fi
-
-if [ ! -e "QuadricopterLocations.lua" ]
-then
-    $FRAMEWORK_DIR/Tools/GenerateRandomLocations -m g_droneLocs -i 20 -w -90 -e 0 -n 90 -s 0 > QuadricopterLocations.lua
-fi
 
 # create symlinks
 cd $V_REP_HOME
 rm -f BillController.lua BillLocations.lua FloorController.lua LaptopController.lua Params.lua IndependentParams.lua QuadricopterController.lua QuadricopterLocations.lua Utils.lua
 ln -s $SCENE_DIR/BillController.lua
-ln -s $SCENE_DIR/BillLocations.lua
+ln -s $SCENE_DIR/parameters/$1/BillLocations.lua
 ln -s $SCENE_DIR/FloorController.lua
 ln -s $SCENE_DIR/LaptopController.lua
 ln -s $SCENE_DIR/Params.lua
-ln -s $SCENE_DIR/IndependentParams.lua
+ln -s $SCENE_DIR/parameters/$1/IndependentParams.lua
 ln -s $SCENE_DIR/QuadricopterController.lua
-ln -s $SCENE_DIR/QuadricopterLocations.lua
+ln -s $SCENE_DIR/parameters/$1/QuadricopterLocations.lua
 ln -s $SCENE_DIR/Utils.lua
 
 # launch vrep
-rm -f vrep_output.txt
-./vrep.sh $SCENE_DIR/large_area_coverage.ttt >> $SCENE_DIR/vrep_output.log 2>> $SCENE_DIR/vrep_output.log &
+rm -f $SCENE_DIR/vrep_output.txt
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$V_REP_HOME
+export LD_LIBRARY_PATH
+./vrep $SCENE_DIR/large_area_coverage.ttt >> $SCENE_DIR/vrep_output.log 2>> $SCENE_DIR/vrep_output.log &

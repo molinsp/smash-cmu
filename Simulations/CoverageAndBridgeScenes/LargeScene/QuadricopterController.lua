@@ -8,6 +8,7 @@
 require('Params')
 require('Utils')
 require('QuadricopterLocations')
+require('BillLocations') -- for people locations
     
 -- The speed defines how far the target moves, and therefore how fast the drone will follow.
 --TARGET_SPEED = 0.0000003    -- This is rougly equivalent to 3 cm.
@@ -70,7 +71,9 @@ function doInitialSetup()
     end
 
     -- Setup the plugin to communicate to the network.
-	simExtMadaraQuadrotorControlSetup(g_myDroneId)   
+    if(index == 1) then
+	    simExtMadaraQuadrotorControlSetup(g_myDroneId)   
+    end
 
     -- zero the angles
     local zero = {}
@@ -100,7 +103,9 @@ function simulateSensors()
     updateDronePosition()
     
     -- "Thermal": Check if we have found a person to stop on top of it (only if we are patrolling)
-    --lookForPersonBelow()
+    if(g_performBridge ~= nil and g_performBridge == true) then
+        lookForPersonBelow()
+    end
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -112,6 +117,29 @@ function updateDronePosition()
         --simAddStatusbarMessage('Sending pos ' ..tostring(dronePosition[1])..','.. tostring(dronePosition[2]))
 		simExtMadaraQuadrotorControlUpdateStatus(g_myDroneId, tostring(dronePosition[1]), tostring(dronePosition[2]), tostring(dronePosition[3]))
 	end
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Check if we have found a person to stop on top of it.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function lookForPersonBelow()
+    -- Get my drone position.
+    local droneName, dronePos = getDroneInfoFromSuffix(g_mySuffix)
+
+    -- Check if we found a person, to stop.
+    local margin = PERSON_FOUND_ERROR_MARGIN
+    for i=1, g_numPeople do
+        if( (dronePos[1] >= g_billLocs[i][1] - margin) and (dronePos[1] <= g_billLocs[i][1] + margin) ) then
+            if((dronePos[2] >= g_billLocs[i][2] - margin) and (dronePos[2] <= g_billLocs[i][2] + margin)) then
+                -- Notify our shared memory that a person was found, and that I was the one to find it.
+                local sourceSuffix, sourceName = simGetNameSuffix(nil)
+                simSetScriptSimulationParameter(sim_handle_main_script, 'personFound', 'true')
+                simSetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound', sourceSuffix)
+                simSetScriptSimulationParameter(sim_handle_main_script, 'personFoundId', i)
+                simAddStatusbarMessage('Drone with suffix ' .. sourceSuffix .. ' is seeing person ' .. i .. '!')
+            end
+        end
+    end
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -208,4 +236,8 @@ function moveTargetTowardsPosition(newPositionLon, newPositionLat, newAltitude)
 end
 
 function cleanUp()
+    -- Stop the network plugin.
+    if(g_myDroneId == 0) then    
+        simExtMadaraQuadrotorControlCleanup()
+    end
 end

@@ -69,7 +69,9 @@ end
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function runMainLogic()
     -- NOTE: This is done here just for convenience of simulation. In reality, it would be issued by a rescuer at any moment, not when someone is found.        
-    --checkForBridgeRequest()
+    if(g_performBridge ~= nil and g_performBridge == true) then
+        checkForBridgeRequest()
+    end
     
     -- Update the drone status to the network.        
     simExtMadaraSystemControllerUpdateStatus(g_numDrones)
