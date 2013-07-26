@@ -17,7 +17,9 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include <vector>
 #include <string>
+using std::string;
 #include "utilities/Position.h"
+#include "utilities/CommonMadaraVariables.h"
 
 // Class that simulates the Madara controller of the system (though it also acts as a bridge between
 // the drone information given by the simualted drones and the Madara knowledge base).
@@ -45,7 +47,7 @@ private:
     // A counter for the regions created.
     int m_regionId;
 public:
-	MadaraController(int id, double commRange, double minAltitude);
+    MadaraController(int id, double commRange, double minAltitude);
     ~MadaraController();
     void terminate();
 
@@ -57,7 +59,7 @@ public:
 
     // Area coverage methods.
     void setNewSearchArea(int searchAreaId, SMASH::Utilities::Region areaBoundaries);
-    void requestAreaCoverage(int droneId, int searchAreaId);
+    void requestAreaCoverage(int droneId, int searchAreaId, string algo = AREA_COVERAGE_SNAKE);
 };
 
 #endif

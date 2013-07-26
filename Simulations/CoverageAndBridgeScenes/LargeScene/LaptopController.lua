@@ -60,7 +60,7 @@ end
 function addDronesToSearchArea(numDrones, areaId)
     for currDroneIdx = 1, g_numDrones, 1 do
         local currDroneId = currDroneIdx-1         -- Actual drone IDs start at 0, but Lua table indexes start at 1.       
-        simExtMadaraSystemControllerSearchRequest(currDroneId, areaId)        
+        simExtMadaraSystemControllerAreaCoverageRequest(currDroneId, areaId, 'inside_out')
     end
 end
 
@@ -101,10 +101,10 @@ function checkForBridgeRequest()
         local sinkName, sinkPosition = getSinkInfo()
         local sourceName, sourcePosition = getSourceInfo()
         
-		simAddStatusbarMessage('Bridge req: ' ..
+        simAddStatusbarMessage('Bridge req: ' ..
             '(' .. tostring(sourcePosition[1]) ..','.. tostring(sourcePosition[2]) ..')' ..
-            '('..	tostring(sinkPosition[1]) ..','.. tostring(sinkPosition[2]) .. ')')
-		
+            '('..    tostring(sinkPosition[1]) ..','.. tostring(sinkPosition[2]) .. ')')
+        
         -- Do the external bridge request.        
         simExtMadaraSystemControllerBridgeRequest(g_bridgeRequestId,
             tostring(sourcePosition[1]), tostring(sourcePosition[2]),

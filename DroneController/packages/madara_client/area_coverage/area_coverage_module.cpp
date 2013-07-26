@@ -9,18 +9,20 @@
 * area_coverage_module.cpp - Defines the manager for area coverage.
 *********************************************************************/
 
-#include <vector>
-#include <map>
-#include <math.h>
 #include "area_coverage_module.h"
 #include "utilities/CommonMadaraVariables.h"
 #include "AreaCoverage.h"
 #include "SnakeAreaCoverage.h"
 #include "RandomAreaCoverage.h"
 #include "InsideOutAreaCoverage.h"
-
 using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
+
+#include <vector>
+#include <map>
+#include <math.h>
+#include <string>
+using std::string;
 
 #define REACHED_ACCURACY_DEGREES        0.0000100   // Margin (in degrees) to use when checking if we have reached a location.
 #define REACHED_ACCURACY_METERS         2.0         // Margin (in meters) to use when checking if we have reached a location.
@@ -273,6 +275,30 @@ Madara::Knowledge_Record madaraAltitudeReached (Madara::Knowledge_Engine::Functi
     }
 }
 
+/**
+ * Selects an area coverage algorithm given the string from the madara variable
+ *
+ * @param algo  string determining which algorithm to select
+ */
+AreaCoverage* selectAreaCoverageAlgorithm(string algo)
+{
+    AreaCoverage* retVal = NULL;
+    if(algo == AREA_COVERAGE_RANDOM)
+        retVal = new RandomAreaCoverage();
+    else if(algo == AREA_COVERAGE_SNAKE)
+        retVal = new SnakeAreaCoverage(REACHED_ACCURACY_DEGREES);
+    else if(algo == AREA_COVERAGE_INSIDEOUT)
+        retVal = new InsideOutAreaCoverage(REACHED_ACCURACY_DEGREES);
+    else
+    {
+        string err = "selectAreaCoverageAlgorithm(algo = \"";
+        err += algo;
+        err += "\") failed to find match\n";
+        printf(err.c_str());
+    }
+    return retVal;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
 * Method that invocates the functionality of defining our cell to search, which will be called from Madara when required.
@@ -295,31 +321,31 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
     std::string myAssignedSearchArea = variables.get(MV_ASSIGNED_SEARCH_AREA("{.id}")).to_string();
     std::string myAssignedSearchRegion = variables.get(MV_SEARCH_AREA_REGION(myAssignedSearchArea)).to_string();
     double topLeftX = variables.get(MV_REGION_TOPLEFT_LAT(myAssignedSearchRegion)).to_double();
-    double topLeftY = variables.get(MV_REGION_TOPLEFT_LON(myAssignedSearchRegion) ).to_double();
+    double topLeftY = variables.get(MV_REGION_TOPLEFT_LON(myAssignedSearchRegion)).to_double();
     double bottomRightX = variables.get(MV_REGION_BOTRIGHT_LAT(myAssignedSearchRegion)).to_double();
-    double bottomRightY = variables.get(MV_REGION_BOTRIGHT_LON(myAssignedSearchRegion) ).to_double();
+    double bottomRightY = variables.get(MV_REGION_BOTRIGHT_LON(myAssignedSearchRegion)).to_double();
     Region searchArea = Region(Position(topLeftX, topLeftY), Position(bottomRightX, bottomRightY));
 
     // Calculate the actual cell I will be covering.
-    //m_coverageAlgorithm = new RandomAreaCoverage(false);
-    m_coverageAlgorithm = new SnakeAreaCoverage();
-    Region* myCell = m_coverageAlgorithm->initialize(searchArea, myIndexInList, availableDrones);
-
-    if(myCell != NULL)
+    string algo = variables.get(MV_AREA_COVERAGE_REQUESTED("{.id}")).to_string();
+    m_coverageAlgorithm = selectAreaCoverageAlgorithm(algo);
+    if(m_coverageAlgorithm != NULL)
     {
-        // Store this cell in Madara.
-        variables.set(MV_MY_CELL_TOP_LEFT_LAT, (myCell->topLeftCorner.x));
-        variables.set(MV_MY_CELL_TOP_LEFT_LON, (myCell->topLeftCorner.y));
-        variables.set(MV_MY_CELL_BOT_RIGHT_LAT, (myCell->bottomRightCorner.x));
-        variables.set(MV_MY_CELL_BOT_RIGHT_LON, (myCell->bottomRightCorner.y));
-
-        return Madara::Knowledge_Record(1.0);
+        Region* myCell = m_coverageAlgorithm->initialize(searchArea, myIndexInList, availableDrones);
+    
+        if(myCell != NULL)
+        {
+            // Store this cell in Madara.
+            variables.set(MV_MY_CELL_TOP_LEFT_LAT, (myCell->topLeftCorner.x));
+            variables.set(MV_MY_CELL_TOP_LEFT_LON, (myCell->topLeftCorner.y));
+            variables.set(MV_MY_CELL_BOT_RIGHT_LAT, (myCell->bottomRightCorner.x));
+            variables.set(MV_MY_CELL_BOT_RIGHT_LON, (myCell->bottomRightCorner.y));
+    
+            return Madara::Knowledge_Record(1.0);
+        }
     }
-    else
-    {
-        // If we couldn't generate our cell for some reason, the function was not successful.
-        return Madara::Knowledge_Record(0.0);
-    }
+    // If we couldn't generate our cell for some reason, the function was not successful.
+    return Madara::Knowledge_Record(0.0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
