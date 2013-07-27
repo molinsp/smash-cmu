@@ -63,6 +63,11 @@ namespace SMASH
         class Region
         {
         public:
+            /**
+             * Mark the corners of the Region
+             */
+            enum Corner { SOUTH_WEST, SOUTH_EAST, NORTH_WEST, NORTH_EAST };
+
             Position topLeftCorner;
             Position bottomRightCorner;
 

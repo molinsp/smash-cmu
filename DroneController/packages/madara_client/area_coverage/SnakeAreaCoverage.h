@@ -27,10 +27,12 @@ namespace SMASH { namespace AreaCoverage {
 	{
 	public:
 		/**
-		* Constructors
-        * @param   width    width of column offset
-		*/
-		SnakeAreaCoverage(const double& width = 0.000005);
+		 * Constructors
+		 * @param    start   corner of the region to start at
+         * @param    width   width of column offset
+		 */
+		SnakeAreaCoverage(const Region::Corner& start = Region::NORTH_WEST,
+            const double& width = 0.000005);
 
 		/**
 		* Destructor
@@ -64,8 +66,15 @@ namespace SMASH { namespace AreaCoverage {
 		*/
 		virtual bool isTargetingFinalWaypoint();
 
+        /**
+         * Determines the next area coverage that should be used
+         */
+        virtual AreaCoverage* getNextCoverage();
 
 	protected:
+		// Start corner
+		const Region::Corner m_startCorner;
+
 		// The width of each column the device will move over when searching the area.
 		// It will roughly have the same width as the device.
 		const double m_searchColumnWidth;

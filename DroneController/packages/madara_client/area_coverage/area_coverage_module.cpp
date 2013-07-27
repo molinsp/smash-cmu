@@ -41,6 +41,7 @@ using std::string;
 #define MF_ALTITUDE_REACHED             "area_coverage_checkAltitudeReached"        // Checks if the assigned altitude has been reached.
 #define MF_SET_NEW_TARGET               "area_coverage_setNewTarget"                // Sets the next target.
 #define MF_UPDATE_AVAILABLE_DRONES      "area_coverage_updateAvailableDrones"       // Function that checks the amount and positions of drones ready for covering.
+#define MF_SET_NEW_COVERAGE             "area_coverage_setNewCoverage"              // Sets the new coverage to use when a coverage reaches its final target
 
 // Internal variables.
 #define MV_ACCURACY                     "0.0000020"                                             // Delta (in degrees) to use when checking if we have reached a location.
@@ -85,6 +86,8 @@ static Madara::Knowledge_Record madaraSetNewTarget (Madara::Knowledge_Engine::Fu
 static Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::Function_Arguments &args,
     Madara::Knowledge_Engine::Variables &variables);
 static Madara::Knowledge_Record madaraReachedFinalTarget(Madara::Knowledge_Engine::Function_Arguments &args,
+    Madara::Knowledge_Engine::Variables &variables);
+static Madara::Knowledge_Record madaraSetNewCoverage(Madara::Knowledge_Engine::Function_Arguments &args,
     Madara::Knowledge_Engine::Variables &variables);
 static Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowledge_Engine::Function_Arguments &args,
     Madara::Knowledge_Engine::Variables &variables);
@@ -140,7 +143,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                             "("
                                 // Check if we are just initializing, or if we reached the next target, but not the end of the area, to set the next waypoint.
                                 "((" MV_NEXT_TARGET_LAT " == 0) && (" MV_NEXT_TARGET_LON " == 0)) || "
-                                "((" MF_NEXT_TARGET_REACHED "()" " && !" MF_FINAL_TARGET_REACHED "() ))" // && " MF_SET_NEW_COVERAGE "() ))"
+                                "(" MF_NEXT_TARGET_REACHED "() && !(" MF_FINAL_TARGET_REACHED "() && !" MF_SET_NEW_COVERAGE "() ))"
                                     " => " MF_SET_NEW_TARGET  "()" 
                             ")"
                         ")"
@@ -191,6 +194,9 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 
     // Checks if the final target of the area coverage strategy has been reached.
     knowledge.define_function(MF_FINAL_TARGET_REACHED, madaraReachedFinalTarget);
+
+    // Sets the new coverage after reaching final target
+    knowledge.define_function(MF_SET_NEW_COVERAGE, madaraSetNewCoverage);
 
     // Returns 1 if we are closer than MV_ACCURACY to certain target location. 
     knowledge.define_function(MF_TARGET_REACHED, madaraTargetReached);
@@ -286,7 +292,7 @@ AreaCoverage* selectAreaCoverageAlgorithm(string algo)
     if(algo == AREA_COVERAGE_RANDOM)
         retVal = new RandomAreaCoverage();
     else if(algo == AREA_COVERAGE_SNAKE)
-        retVal = new SnakeAreaCoverage(REACHED_ACCURACY_DEGREES);
+        retVal = new SnakeAreaCoverage(Region::NORTH_WEST, REACHED_ACCURACY_DEGREES);
     else if(algo == AREA_COVERAGE_INSIDEOUT)
         retVal = new InsideOutAreaCoverage(REACHED_ACCURACY_DEGREES);
     else
@@ -294,7 +300,7 @@ AreaCoverage* selectAreaCoverageAlgorithm(string algo)
         string err = "selectAreaCoverageAlgorithm(algo = \"";
         err += algo;
         err += "\") failed to find match\n";
-        printf(err.c_str());
+        printf("%s", err.c_str());
     }
     return retVal;
 }
@@ -412,6 +418,38 @@ Madara::Knowledge_Record madaraReachedFinalTarget(Madara::Knowledge_Engine::Func
     // change to new coverage algorithm
     if(m_coverageAlgorithm->isTargetingFinalWaypoint())
         return Madara::Knowledge_Record(1.0);
+    return Madara::Knowledge_Record(0.0);
+}
+
+/**
+ * Sets the new coverage to use
+ * @return  Returns true (1) if new coverage selected, else returns false (0)
+ */
+Madara::Knowledge_Record madaraSetNewCoverage(Madara::Knowledge_Engine::Function_Arguments &args,
+    Madara::Knowledge_Engine::Variables &variables)
+{
+    printf("Setting new coverage");
+    string next = variables.get(MV_NEXT_AREA_COVERAGE_REQUEST("{.id}")).to_string();
+    AreaCoverage* temp = m_coverageAlgorithm;
+    Region searchArea(*(m_coverageAlgorithm->getSearchRegion()));
+    m_coverageAlgorithm = AreaCoverage::continueCoverage(m_coverageAlgorithm, next);
+    delete temp;
+    if(m_coverageAlgorithm != NULL)
+    {
+        Region* myCell = m_coverageAlgorithm->initialize(searchArea);
+    
+        if(myCell != NULL)
+        {
+            // Store this cell in Madara.
+            variables.set(MV_MY_CELL_TOP_LEFT_LAT, (myCell->topLeftCorner.x));
+            variables.set(MV_MY_CELL_TOP_LEFT_LON, (myCell->topLeftCorner.y));
+            variables.set(MV_MY_CELL_BOT_RIGHT_LAT, (myCell->bottomRightCorner.x));
+            variables.set(MV_MY_CELL_BOT_RIGHT_LON, (myCell->bottomRightCorner.y));
+    
+            return Madara::Knowledge_Record(1.0);
+        }
+    }
+    // If we couldn't generate our cell for some reason, the function was not successful.
     return Madara::Knowledge_Record(0.0);
 }
 

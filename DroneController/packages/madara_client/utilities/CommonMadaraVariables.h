@@ -33,13 +33,14 @@
 #define MV_REGION_BOTRIGHT_LOC(regionId)        "region." + std::string(regionId) + ".bottom_right.location"    // The location of the top left corner of the region.
 
 // Area coverage information.
-#define MV_AREA_COVERAGE_REQUESTED(deviceId)    "device." + std::string(deviceId) + ".area_coverage_requested"  // Tells if this device was tasked with area coverage.
-#define AREA_COVERAGE_RANDOM                    "random"                                                        // selects RandomAreaCoverage
-#define AREA_COVERAGE_SNAKE                     "snake"                                                         // selects SnakeAreaCoverage
-#define AREA_COVERAGE_INSIDEOUT                 "inside_out"                                                    // selects InsideOutAreaCoverage
-#define MV_ASSIGNED_SEARCH_AREA(deviceId)       "device." + std::string(deviceId) + ".search_area_id"           // The id of the area that I have been assigned to search.
-#define MV_TOTAL_SEARCH_AREAS                   "search_areas"                                                  // The total number of search areas requested so far.
-#define MV_SEARCH_AREA_REGION(areaId)           "search_area." + std::string(areaId) + ""                       // Returns the region associated to a certain search area.
+#define MV_AREA_COVERAGE_REQUESTED(deviceId)    "device." + std::string(deviceId) + ".area_coverage_requested"      // Tells if this device was tasked with area coverage.
+#define AREA_COVERAGE_RANDOM                    "random"                                                            // selects RandomAreaCoverage
+#define AREA_COVERAGE_SNAKE                     "snake"                                                             // selects SnakeAreaCoverage
+#define AREA_COVERAGE_INSIDEOUT                 "inside_out"                                                        // selects InsideOutAreaCoverage
+#define MV_NEXT_AREA_COVERAGE_REQUEST(deviceId) "device." + std::string(deviceId) + ".next_area_coverage_requested" // next area coverage to be used
+#define MV_ASSIGNED_SEARCH_AREA(deviceId)       "device." + std::string(deviceId) + ".search_area_id"               // The id of the area that I have been assigned to search.
+#define MV_TOTAL_SEARCH_AREAS                   "search_areas"                                                      // The total number of search areas requested so far.
+#define MV_SEARCH_AREA_REGION(areaId)           "search_area." + std::string(areaId) + ""                           // Returns the region associated to a certain search area.
 
 // Bridge information.
 #define MV_BRIDGE_REQUESTED                     "bridge.bridge_requested"                          // Tells if a bridge was requested.

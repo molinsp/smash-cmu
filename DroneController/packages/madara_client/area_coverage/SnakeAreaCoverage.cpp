@@ -20,8 +20,8 @@ using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
 
 // Constructors
-SnakeAreaCoverage::SnakeAreaCoverage(const double& width) :
-    AreaCoverage(), m_searchColumnWidth(width) {}
+SnakeAreaCoverage::SnakeAreaCoverage(const Region::Corner& start, const double& width) :
+    AreaCoverage(), m_startCorner(start), m_searchColumnWidth(width) {}
 
 // Destructor
 SnakeAreaCoverage::~SnakeAreaCoverage() {}
@@ -70,7 +70,7 @@ Position SnakeAreaCoverage::getNextTargetLocation()
             // If we are in here, we just moved to the beginning of a search column (either on the top or the bottom).
 
             // Check if we are at the end of a column on the top or the bottom of the area.
-            bool bottomReached = m_targetLocation.y == m_cellToSearch->bottomRightCorner.y;
+            bool bottomReached = (m_targetLocation.y == m_cellToSearch->bottomRightCorner.y);
             if(bottomReached)
             {
                 // Since we are on the bottom, set our next target to the top.
@@ -100,4 +100,11 @@ bool SnakeAreaCoverage::isTargetingFinalWaypoint()
                     (m_searchColumnWidth / 2)) &&
          (fabs(m_targetLocation.y - m_cellToSearch->bottomRightCorner.y) <
                     (m_searchColumnWidth / 2));
+}
+
+
+// Determines the next area coverage that should be used
+AreaCoverage* SnakeAreaCoverage::getNextCoverage()
+{
+    return new SnakeAreaCoverage((Region::Corner)((m_startCorner + 2) % 4), m_searchColumnWidth);
 }

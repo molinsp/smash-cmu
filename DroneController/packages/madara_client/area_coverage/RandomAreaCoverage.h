@@ -65,6 +65,11 @@ namespace SMASH { namespace AreaCoverage {
 		*/
 		virtual bool isTargetingFinalWaypoint();
 
+        /**
+         * Determines the next area coverage that should be used
+         */
+        virtual AreaCoverage* getNextCoverage();
+
 	protected:
 		/**
 		* Returns a random float between lower and upper

@@ -6,7 +6,7 @@
  ******************************************************************************/
 
 /*******************************************************************************
- * InsideOutAreaCoverage.h - Declares the structures and methods for the
+ * InsideOutAreaCoverage.cpp - Declares the structures and methods for the
  * algorithm to perform an inside out area search
  ******************************************************************************/
 
@@ -24,8 +24,8 @@ using namespace SMASH::AreaCoverage;
 
 // Constructor
 InsideOutAreaCoverage::InsideOutAreaCoverage(float delta, direction_t heading,
-	bool clockwise) : AreaCoverage(), m_delta(delta), m_clockwise(clockwise),
-	m_heading(heading), m_iteration(2) {}
+	bool clockwise) : AreaCoverage(), m_delta(delta), 	m_iteration(2),m_clockwise(clockwise),
+ m_heading(heading) {}
 
 // Destructor
 InsideOutAreaCoverage::~InsideOutAreaCoverage() {}
@@ -129,4 +129,11 @@ Position InsideOutAreaCoverage::getNextTargetLocation()
 bool InsideOutAreaCoverage::isTargetingFinalWaypoint()
 {
   return !m_cellToSearch->contains(m_targetLocation);
+}
+
+// Determines the next area coverage that should be used
+// TODO: Fix this to do OutsideInCoverage
+AreaCoverage* InsideOutAreaCoverage::getNextCoverage()
+{
+    return new InsideOutAreaCoverage(m_delta, m_heading, m_clockwise);
 }

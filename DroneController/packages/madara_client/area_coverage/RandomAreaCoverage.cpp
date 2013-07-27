@@ -128,3 +128,13 @@ double RandomAreaCoverage::frand(const double& lower, const double& upper)
   double norm = ((double)rand()) / ((double)RAND_MAX);
   return (norm * (upper - lower)) + lower;
 }
+
+/**
+ * Determines the next area coverage that should be used
+ * This should probably never be called
+ */
+AreaCoverage* RandomAreaCoverage::getNextCoverage()
+{
+    AreaCoverage* retVal = new RandomAreaCoverage(rand());
+    return retVal;
+}
