@@ -30,6 +30,7 @@ namespace SMASH
         class Position
         {
         public:
+            // TODO: fix other code so this no longer has to be a union
             union { double x; double longitude; };
 	        union { double y; double latitude; };
 
@@ -68,6 +69,7 @@ namespace SMASH
              */
             enum Corner { SOUTH_WEST, SOUTH_EAST, NORTH_WEST, NORTH_EAST };
 
+            // TODO: fix other code so this no longer has to be a union
             union { Position topLeftCorner; Position southEast; };
             union { Position bottomRightCorner; Position northWest; };
 
