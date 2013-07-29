@@ -30,24 +30,38 @@ namespace SMASH
         class Position
         {
         public:
-            // TODO: fix other code so this no longer has to be a union
-            union { double x; double longitude; };
-	        union { double y; double latitude; };
+            // TODO: fix other code so this is no longer necessary
+            double x;
+            double& longitude;
+	        double y;
+            double& latitude;
 
             /**
 	         * Blank default constructor.
              **/
-	        Position() {}
+	        Position() : longitude(x), latitude(y) {}
 
 	        /** Constructor from data.
              * @param   newX    The value for the X coordinate.
              * @param   newY    The value for the Y coordinate.
              **/
-	        Position(double newX, double newY)
+	        Position(double newX, double newY) : longitude(x), latitude(y)
 	        {
 		        x = newX;
 		        y = newY;
 	        }
+
+            Position(const Position& copy) : longitude(x), latitude(y)
+            {
+                x = copy.x;
+                y = copy.y;
+            }
+
+            const Position& operator=(const Position& right)
+            {
+                x = right.x;
+                y = right.y;
+            }
 
 	        /** Turns a position into a string.
              * @return a string of the form "x,y".
@@ -69,24 +83,39 @@ namespace SMASH
              */
             enum Corner { SOUTH_WEST, SOUTH_EAST, NORTH_WEST, NORTH_EAST };
 
-            // TODO: fix other code so this no longer has to be a union
-            union { Position topLeftCorner; Position southEast; };
-            union { Position bottomRightCorner; Position northWest; };
+            // TODO: fix other code so this is no longer needed
+            Position topLeftCorner;
+            Position& southEast;
+            Position bottomRightCorner;
+            Position& northWest;
 
             /**
 	         * Blank default constructor.
              **/
-	        Region() {}
+	        Region() : southEast(topLeftCorner), northWest(bottomRightCorner) {}
 
 	        /** Constructor from data.
              * @param   newTopLeftCorner        The Position for the top left corner.
              * @param   newBottomRightCorner    The Position for the bottom right corner.
              **/
-	        Region(Position newTopLeftCorner, Position newBottomRightCorner)
+	        Region(Position newTopLeftCorner, Position newBottomRightCorner) :
+                southEast(topLeftCorner), northWest(bottomRightCorner)
 	        {
 		        topLeftCorner = newTopLeftCorner;
 		        bottomRightCorner = newBottomRightCorner;
 	        }
+
+            Region(const Region& copy) : southEast(topLeftCorner), northWest(bottomRightCorner)
+            {
+                topLeftCorner = copy.topLeftCorner;
+                bottomRightCorner = copy.bottomRightCorner;
+            }
+
+            const Region& operator=(const Region& copy)
+            {
+                topLeftCorner = copy.topLeftCorner;
+                bottomRightCorner = copy.bottomRightCorner;
+            }
 
             bool contains(const Position& test)
             {
