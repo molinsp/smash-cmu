@@ -30,8 +30,8 @@ namespace SMASH
         class Position
         {
         public:
-	        double x;
-	        double y;
+            union { double x; double longitude; };
+	        union { double y; double latitude; };
 
             /**
 	         * Blank default constructor.
@@ -58,7 +58,7 @@ namespace SMASH
         };
 
         /**
-         * @brief Represents a rectangular region defined by its top left and bottom right corners.
+         * @brief Represents a rectangular region defined by its top left and bottom right corners
          **/
         class Region
         {
@@ -68,8 +68,8 @@ namespace SMASH
              */
             enum Corner { SOUTH_WEST, SOUTH_EAST, NORTH_WEST, NORTH_EAST };
 
-            Position topLeftCorner;
-            Position bottomRightCorner;
+            union { Position topLeftCorner; Position southEast; };
+            union { Position bottomRightCorner; Position northWest; };
 
             /**
 	         * Blank default constructor.
@@ -86,13 +86,13 @@ namespace SMASH
 		        bottomRightCorner = newBottomRightCorner;
 	        }
 
-          bool contains(const Position& test)
-          {
-            return ((test.x <= topLeftCorner.x) &&
-                    (test.x >= bottomRightCorner.x) &&
-                    (test.y <= bottomRightCorner.y) &&
-                    (test.y >= topLeftCorner.y));
-          }
+            bool contains(const Position& test)
+            {
+                return ((test.x <= topLeftCorner.x) &&
+                        (test.x >= bottomRightCorner.x) &&
+                        (test.y <= bottomRightCorner.y) &&
+                        (test.y >= topLeftCorner.y));
+            }
         };
     }
 }
