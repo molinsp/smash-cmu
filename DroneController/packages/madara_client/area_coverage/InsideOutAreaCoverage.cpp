@@ -24,8 +24,8 @@ using namespace SMASH::AreaCoverage;
 
 // Constructor
 InsideOutAreaCoverage::InsideOutAreaCoverage(float delta, direction_t heading,
-	bool clockwise) : AreaCoverage(), m_delta(delta), 	m_iteration(2),m_clockwise(clockwise),
- m_heading(heading) {}
+    bool clockwise) : AreaCoverage(), m_delta(delta), m_iteration(2), m_clockwise(clockwise),
+    m_heading(heading), m_nsMultiplier(1.0), m_ewMultiplier(1.0) {}
 
 // Destructor
 InsideOutAreaCoverage::~InsideOutAreaCoverage() {}
@@ -59,6 +59,15 @@ Region* InsideOutAreaCoverage::initialize(const Region& grid, int deviceIdx,
 		m_cellToSearch = new Region(grid);
 	else
 		m_cellToSearch = calculateCellToSearch(deviceIdx, grid, numDrones);
+
+    // set multipliers
+    double deltaLong = m_cellToSearch->southEast.longitude - m_cellToSearch->northWest.longitude;
+    double deltaLat = m_cellToSearch->northWest.latitude - m_cellToSearch->southEast.latitude;
+    if(deltaLong > deltaLat)
+        m_ewMultiplier = deltaLong / deltaLat;
+    else
+        m_nsMultiplier = deltaLat / deltaLong;
+
 	return m_cellToSearch;
 }
 
@@ -68,10 +77,10 @@ Position InsideOutAreaCoverage::getNextTargetLocation()
 {
   if(!m_started) // start in center of the region
   {
-    m_targetLocation.x = (m_cellToSearch->bottomRightCorner.x +
-                          m_cellToSearch->topLeftCorner.x) / 2;
-    m_targetLocation.y = (m_cellToSearch->bottomRightCorner.y +
-                          m_cellToSearch->topLeftCorner.y) / 2;
+    m_targetLocation.latitude = (m_cellToSearch->southEast.latitude +
+                                 m_cellToSearch->northWest.latitude) / 2;
+    m_targetLocation.longitude = (m_cellToSearch->southEast.longitude +
+                                  m_cellToSearch->northWest.longitude) / 2;
     m_started = true;
   }
   else
@@ -100,16 +109,16 @@ Position InsideOutAreaCoverage::getNextTargetLocation()
     switch(m_heading)
     {
       case NORTH:
-        m_targetLocation.x += (m_iteration / 2) * m_delta;
+        m_targetLocation.latitude += (m_iteration / 2) * m_delta * m_nsMultiplier;
         break;
       case EAST:
-        m_targetLocation.y += (m_iteration / 2) * m_delta;
+        m_targetLocation.longitude += (m_iteration / 2) * m_delta * m_ewMultiplier;
         break;
       case SOUTH:
-        m_targetLocation.x -= (m_iteration / 2) * m_delta;
+        m_targetLocation.latitude -= (m_iteration / 2) * m_delta * m_nsMultiplier;
         break;
       case WEST:
-        m_targetLocation.y -= (m_iteration / 2) * m_delta;
+        m_targetLocation.longitude -= (m_iteration / 2) * m_delta * m_ewMultiplier;
         break;
       default:
         cerr << "Invalid direction" << endl;

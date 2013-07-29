@@ -52,9 +52,11 @@ function doInitialSetup()
     index = simGetNameSuffix(nil) + 2;
     if(index ~= 1) then
         index = index - (g_rows * g_columns - 1) -- hack requires floors to be init first
-        index = index - (g_numPeople - 1) -- requires Bills be init first
         g_myDroneId = g_myDroneId - (g_rows * g_columns - 1)
-        g_myDroneId = g_myDroneId - (g_numPeople - 1)
+        if(g_numPeople > 1) then
+            index = index - (g_numPeople - 1) -- requires Bills be init first
+            g_myDroneId = g_myDroneId - (g_numPeople - 1)
+        end
     end
     if(index <= g_numDrones) then
         local position = g_droneLocs[index]

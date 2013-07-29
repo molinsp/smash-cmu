@@ -82,6 +82,11 @@ protected:
     // rotation style
     bool m_clockwise;
   
+    // Determine distance multiplier for traveling in specified direction
+    // For when area is not square
+    double m_nsMultiplier;
+    double m_ewMultiplier;
+
     // current heading
     direction_t m_heading;
 }; // class InsideOutAreaCoverage
