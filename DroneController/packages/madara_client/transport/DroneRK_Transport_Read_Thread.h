@@ -1,5 +1,5 @@
 /*******************************************************************************
- * DroneRK_Transport_Read_Thread.cpp
+ * DroneRK_Transport_Read_Thread.h
  *
  * Usage of this software requires acceptance of the SMASH-CMU License,
  * which can be found at the following URL:

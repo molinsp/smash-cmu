@@ -11,6 +11,8 @@ using std::stringstream;
 
 #include "transport/DroneRK_Transport.h"
 
+#include "drk.h"
+
 std::string host ("");
 const std::string default_broadcast ("192.168.1.255:15000");
 Madara::Transport::Settings settings;
@@ -90,6 +92,8 @@ void handle_arguments (int argc, char ** argv)
 
 int main (int argc, char ** argv)
 {
+    drk_init();
+
     settings.hosts_.resize (1);
     settings.hosts_[0] = default_broadcast;
     handle_arguments (argc, argv);
@@ -98,8 +102,8 @@ int main (int argc, char ** argv)
     wait_settings.max_wait_time = 10;
   
     settings.delay_launch = true;
-    Madara::Knowledge_Engine::Knowledge_Base knowledge(host,
-        Madara::Transport::NO_TRANSPORT);
+    Madara::Knowledge_Engine::Knowledge_Base knowledge("",
+        Madara::Knowledge_Engine::Knowledge_Base::NO_TRANSPORT);
     stringstream out;
     out << settings.id;
     knowledge.attach_transport(new DroneRK_Transport(out.str(),

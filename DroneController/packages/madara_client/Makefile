@@ -23,9 +23,6 @@ include sensors/sensors_module.mk
 include bridge/bridge_module.mk
 include utilities/utilities_module.mk
 
-#will need to modify based on desired transport settings
-include transport/transport_module.mk
-
 ifdef PLATFORM
 include platforms/$(PLATFORM).mk
 endif
@@ -65,15 +62,21 @@ $(LOCAL_EXECUTABLE): $(LOCAL_SOURCES) $(LOCAL_OBJ)
 
 test_broadcast_custom_transport: $(TEST_BROADCAST_SOURCES) $(TEST_BROADCAST_OBJ)
 	@mkdir -p bin
-	@_ERROR=$$($(CC) $(LOCAL_LD_PATH) $(TEST_BROADCAST_OBJ) -o bin/$@ -lACE -lMADARA 2>&1); \
+	@_ERROR=$$($(CC) -I$(INSTALL_ROOT)/include $(LOCAL_LD_PATH) $(TEST_BROADCAST_OBJ) -o bin/$@ -lACE -lMADARA -ldrk 2>&1); \
 	if [ $$? -eq 0 ]; then echo "$(BOLD)Linking $@...$(RESET)$(OK)"; \
 	else echo "$(BOLD)Linking $@...$(RESET)$(FAIL)\n$$_ERROR"; exit 1; fi
+	
+	@_ERROR=$$(mkdir -p $(INSTALL_ROOT)/bin; cp bin/$@ $(INSTALL_ROOT)/bin/; chmod 755 $(INSTALL_ROOT)/bin/$@); \
+	if [ $$? -eq 0 ]; then echo "$(BOLD)Installing $@...$(RESET)$(OK)"; \
+	else echo "$(BOLD)Installing $@...$(RESET)$(FAIL)\n$$_ERROR"; exit 1; fi
 
 update:
 	@echo "$(BOLD)madara_client updated automatically$(RESET)"
 
 .PHONY: clean
 clean:
+	rm -f *.o
+	rm -f $(TEST_BROADCAST_OBJ)
 	for f in `find . -regex .*\.o`; do rm $$f; done
 
 realclean: clean
