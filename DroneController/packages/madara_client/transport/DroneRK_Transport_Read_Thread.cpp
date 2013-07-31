@@ -139,7 +139,6 @@ int DroneRK_Transport_Read_Thread::svc(void)
         // read the message from wifi
         int bytes_read = socket_.recv((void *)buffer, 
           settings_.queue_length, remote, 0, &wait_time);
-        int bytes_read = 0;
 
         MADARA_DEBUG(MADARA_LOG_MAJOR_EVENT,(LM_DEBUG, 
           DLINFO "DroneRK_Transport_Read_Thread::svc:" \
