@@ -29,11 +29,11 @@ SnakeAreaCoverage::~SnakeAreaCoverage() {}
 // Initialize the area for the drone
 Region* SnakeAreaCoverage::initialize(const Region& grid, int deviceIdx, int numDrones)
 {
-	if(numDrones == 1)
-		m_cellToSearch = new Region(grid);
-	else
-		m_cellToSearch = calculateCellToSearch(deviceIdx, grid, numDrones);
-	return m_cellToSearch;
+    if(numDrones == 1)
+        m_cellToSearch = new Region(grid);
+    else
+        m_cellToSearch = calculateCellToSearch(deviceIdx, grid, numDrones);
+    return m_cellToSearch;
 }
 
 // Called when we reach the next target location, updates and returns the next
