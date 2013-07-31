@@ -92,12 +92,13 @@ void handle_arguments (int argc, char ** argv)
 
 int main (int argc, char ** argv)
 {
-    drk_init();
 
     settings.hosts_.resize (1);
     settings.hosts_[0] = default_broadcast;
     handle_arguments (argc, argv);
   
+    drk_init();
+
     Madara::Knowledge_Engine::Wait_Settings wait_settings;
     wait_settings.max_wait_time = 10;
   
@@ -109,6 +110,7 @@ int main (int argc, char ** argv)
     knowledge.attach_transport(new DroneRK_Transport(out.str(),
         knowledge.get_context(), settings, true, 500));
   
+
     knowledge.set (".id", (Madara::Knowledge_Record::Integer) settings.id);
     
     if (settings.id == 0)
@@ -129,6 +131,8 @@ int main (int argc, char ** argv)
     }
   
     knowledge.print_knowledge ();
+
+    drk_exit(EXIT_SUCCESS);
   
     return 0;
 }
