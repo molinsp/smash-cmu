@@ -85,8 +85,10 @@ int main (int argc, char** argv)
     cout << "Init Knowlege Base..." << endl;
     Madara::Transport::Settings settings;
     settings.hosts_.resize (1);
-    settings.hosts_[0] = "192.168.1.255:15000";
-    settings.type = Madara::Transport::BROADCAST;
+    //settings.hosts_[0] = "192.168.1.255:15000";
+    //settings.type = Madara::Transport::BROADCAST;
+    settings.hosts_[0] = "239.255.0.1:4150";
+    settings.type = Madara::Transport::MULTICAST;
     settings.id = id;
     settings.queue_length = 1024; //Smaller queue len to preserve memory
     MADARA_debug_level = local_debug_level;
@@ -114,6 +116,8 @@ int main (int argc, char** argv)
     knowledge->set(MV_REGION_BOTRIGHT_LOC(sourceRegionIdString), botRightLocation,
       Madara::Knowledge_Engine::Eval_Settings(true));
 
+    knowledge->set(MV_TOTAL_DEVICES, Madara::Knowledge_Record::Integer(numDrones));
+
     knowledge->set(MV_MIN_ALTITUDE, Madara::Knowledge_Record::Integer(3), Madara::Knowledge_Engine::Eval_Settings(true));
 
     knowledge->set(MV_TOTAL_SEARCH_AREAS, Madara::Knowledge_Record::Integer(1));
@@ -128,6 +132,8 @@ int main (int argc, char** argv)
 
 
     printf("\nExiting...\n");
+
+    knowledge->print_knowledge();
 
     delete knowledge;
 

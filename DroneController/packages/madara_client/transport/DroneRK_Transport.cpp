@@ -311,8 +311,8 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
         {
             *message_size = Madara::Utility::endian_swap(wifiSize);
             *num_updates = Madara::Utility::endian_swap(wifiUpdates);
-            //int bytes_sent = socket_.send(
-                //buffer, wifiSize, addresses_[0]);
+            int bytes_sent = socket_.send(
+                buffer, wifiSize, addresses_[0]);
 
             MADARA_DEBUG(MADARA_LOG_MAJOR_EVENT,(LM_DEBUG, 
                 DLINFO "DroneRK_Transport::send_data:" \
