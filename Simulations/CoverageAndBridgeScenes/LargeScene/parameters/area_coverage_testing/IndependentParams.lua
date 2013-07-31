@@ -10,7 +10,7 @@ g_origin['latitude'] = g_seLat
 g_origin['longitude'] = g_nwLong
 
 -- Bill Parameters
-g_numPeople = 10
+g_numPeople = 0
 
 -- Drone Parameters
 g_numDrones = 9

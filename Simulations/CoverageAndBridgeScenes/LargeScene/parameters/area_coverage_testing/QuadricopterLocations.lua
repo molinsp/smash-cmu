@@ -1,0 +1,41 @@
+require('IndependentParams')
+
+g_longOffset = 0.00002
+
+g_droneLocs = {}
+g_droneLocs[1] = {}
+g_droneLocs[1][1] = g_laptopPosition['longitude'] + g_longOffset
+g_droneLocs[1][2] = g_laptopPosition['latitude']
+g_droneLocs[1][3] = 0
+g_droneLocs[2] = {}
+g_droneLocs[2][1] = g_droneLocs[1][1] + g_longOffset
+g_droneLocs[2][2] = g_droneLocs[1][2]
+g_droneLocs[2][3] = 0
+g_droneLocs[3] = {}
+g_droneLocs[3][1] = g_droneLocs[2][1] + g_longOffset
+g_droneLocs[3][2] = g_droneLocs[1][2]
+g_droneLocs[3][3] = 0
+g_droneLocs[4] = {}
+g_droneLocs[4][1] = g_droneLocs[3][1] + g_longOffset
+g_droneLocs[4][2] = g_droneLocs[1][2]
+g_droneLocs[4][3] = 0
+g_droneLocs[5] = {}
+g_droneLocs[5][1] = g_droneLocs[4][1] + g_longOffset
+g_droneLocs[5][2] = g_droneLocs[1][2]
+g_droneLocs[5][3] = 0
+g_droneLocs[6] = {}
+g_droneLocs[6][1] = g_droneLocs[5][1] + g_longOffset
+g_droneLocs[6][2] = g_droneLocs[1][2]
+g_droneLocs[6][3] = 0
+g_droneLocs[7] = {}
+g_droneLocs[7][1] = g_droneLocs[6][1] + g_longOffset
+g_droneLocs[7][2] = g_droneLocs[1][2]
+g_droneLocs[7][3] = 0
+g_droneLocs[8] = {}
+g_droneLocs[8][1] = g_droneLocs[7][1] + g_longOffset
+g_droneLocs[8][2] = g_droneLocs[1][2]
+g_droneLocs[8][3] = 0
+g_droneLocs[9] = {}
+g_droneLocs[9][1] = g_droneLocs[8][1] + g_longOffset
+g_droneLocs[9][2] = g_droneLocs[1][2]
+g_droneLocs[9][3] = 0
