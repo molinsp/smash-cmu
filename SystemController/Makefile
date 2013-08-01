@@ -29,7 +29,6 @@ OK    = $(BOLD)$(GREEN)[OK]$(RESET)
 FAIL  = $(BOLD)$(RED)[FAIL]$(RESET)
 
 $(LOCAL_EXECUTABLE): $(LOCAL_SOURCES) $(LOCAL_OBJ)
-	make -C ../DroneController v_rep
 	@_ERROR=$$($(CC) $(LOCAL_LD_PATH) $(LOCAL_CFLAGS) $(LOCAL_OBJ) -o $@ $(LOCAL_LIBS) 2>&1); \
 	if [ $$? -eq 0 ]; then echo "$(BOLD)Linking $(LOCAL_EXECUTABLE)...$(RESET)$(OK)"; \
 	else echo "$(BOLD)Linking $(LOCAL_EXECUTABLE)...$(RESET)$(FAIL)\n$$_ERROR"; exit 1; fi
