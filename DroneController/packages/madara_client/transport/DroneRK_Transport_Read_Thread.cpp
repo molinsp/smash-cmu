@@ -339,7 +339,7 @@ int DroneRK_Transport_Read_Thread::svc(void)
 //            printf("\n");
 //        }
 //        char temp_buffer[2000];
-        bytes_read = drk_modem_rx(buffer);
+//        bytes_read = drk_modem_rx(buffer);
 //        printf("temp_buffer:\n");
 //        for(unsigned int i = 0; i < 50; ++i)
 //        {
@@ -351,6 +351,7 @@ int DroneRK_Transport_Read_Thread::svc(void)
 //                printf("%c", temp_buffer[i * 4 + j]);
 //            printf("\n");
 //        }
+        bytes_read = 0;
 
         MADARA_DEBUG(MADARA_LOG_MAJOR_EVENT,(LM_DEBUG, 
           DLINFO "DroneRK_Transport_Read_Thread::svc:" \

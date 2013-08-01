@@ -304,7 +304,7 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
         // TODO: transmit over long range radio
         *message_size = Madara::Utility::endian_swap(longRangeSize);
         *num_updates = Madara::Utility::endian_swap(longRangeUpdates);
-        int bytes_sent = drk_modem_tx(buffer, longRangeSize);
+        //int bytes_sent = drk_modem_tx(buffer, longRangeSize);
 
         // send the buffer contents to the multicast address
         if(addresses_.size() > 0)

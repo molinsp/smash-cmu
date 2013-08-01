@@ -13,7 +13,7 @@
 Madara::Knowledge_Record control_functions_takeoff (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
 	printf("In Madara::takeoff()\n");
-	//takeoff();
+	takeoff();
 	return Madara::Knowledge_Record::Integer(1);
 }
 
@@ -120,6 +120,7 @@ void SMASH::Movement::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowl
 	printf("SMASH::Movement::initialize()\n");
 	init_control_functions();
 	define_control_functions(knowledge);
+	printf("leaving SMASH::Movement::initialize()\n");
 }
 
 std::string SMASH::Movement::main_logic()

@@ -99,11 +99,13 @@ static Madara::Knowledge_Record madaraAltitudeReached (Madara::Knowledge_Engine:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SMASH::AreaCoverage::initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 {
+    printf("SMASH::AreaCoverage::initialize...\n");
     // Defines internal and external functions.
     defineFunctions(knowledge);
 
     // Registers all default expressions, to have them compiled for faster access.
     compileExpressions(knowledge);
+    printf("leaving SMASH::AreaCoverage::initialize...\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////

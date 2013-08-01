@@ -12,8 +12,10 @@
 Madara::Knowledge_Record inflate_coords (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
 
-	if (args.size() != 2)
+	if(args.size() != 2)
+    {
 		return Madara::Knowledge_Record::Integer(0);
+    }
 
 	//inflate_lat_long(String input_data, String output_variable_prefix)
 	//Example: inflate_lat_long("12,5", ".reigon.1.topleft");
@@ -46,6 +48,7 @@ Madara::Knowledge_Record inflate_coords (Madara::Knowledge_Engine::Function_Argu
 		//printf("Curr string: %s; value %.10f\n",nameBuffer.str().c_str(), current_value);
 		variables.set(nameBuffer.str(), NUM_TO_STR(current_value));
 	}
+
 	return Madara::Knowledge_Record::Integer(1);
 }
 
@@ -106,6 +109,8 @@ void define_utilities_functions (Madara::Knowledge_Engine::Knowledge_Base & know
 
 void SMASH::Utilities::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
+    printf("SMASH::Utilities::initialize...\n");
 	define_utilities_functions(knowledge);
+    printf("leaving SMASH::Utilities::initialize...\n");
 }
 

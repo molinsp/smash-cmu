@@ -96,6 +96,8 @@ int main (int argc, char** argv)
 
     printf("\nExiting...\n");
 
+    cleanup_platform();
+
     delete knowledge;
 
     return 0;

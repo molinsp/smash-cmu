@@ -241,4 +241,9 @@ void read_gps(struct madara_gps * ret)
 	ret->num_sats = 10;             // Just because it should be really exact with the simulator.
 }
 
+bool cleanup_platform()
+{
+    return true;
+}
+
 #endif

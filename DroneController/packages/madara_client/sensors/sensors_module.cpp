@@ -35,7 +35,6 @@ Madara::Knowledge_Record read_thermal_sensor (Madara::Knowledge_Engine::Function
 
 Madara::Knowledge_Record read_gps_sensor (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-	printf("in Madara::read_gps\n");
 	struct madara_gps gps;
 	read_gps(&gps);
 	std::stringstream buffer;
@@ -49,7 +48,6 @@ Madara::Knowledge_Record read_gps_sensor (Madara::Knowledge_Engine::Function_Arg
 
 Madara::Knowledge_Record read_sensors (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-	printf("read_sensors();\n");
 	return variables.evaluate(expressions2[EVALUATE_SENSORS], Madara::Knowledge_Engine::Eval_Settings(false, true));
 }
 
@@ -75,10 +73,12 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
 
 void SMASH::Sensors::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
+    printf("SMASH::Sensors::initialize...\n");
 	init_sensor_functions();
 
 	define_sensor_functions(knowledge);
 	compile_sensor_function_expressions(knowledge);
+    printf("leaving SMASH::Sensors::initialize...\n");
 }
 std::string SMASH::Sensors::main_logic()
 {

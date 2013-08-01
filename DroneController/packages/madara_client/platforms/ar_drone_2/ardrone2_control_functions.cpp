@@ -42,7 +42,7 @@ bool init_control_functions()
 void takeoff()
 {
 	printf("In AR_DRDONE_2 execute_takeoff()\n");
-	drk_takeoff();
+	//drk_takeoff();
 }
 void land()
 {
@@ -107,18 +107,17 @@ void read_thermal(double buffer[8][8])
 
 void read_gps(struct madara_gps * ret)
 {
-	printf("In DRK read gps\n");
+	printf("entering platform::read_gps()...\n", ret);
 	struct gps gps= drk_gps_data();
 	ret->latitude = gps.latitude;
 	ret->longitude = gps.longitude;
 	ret->num_sats = gps.num_sats;
-	printf("done in DRK read\n");
 }
 
 void move_to_location(double lat, double lon)
 {
-	printf("In platform move_to_location(%02f, %02f)\n", lat, lon);
-    drk_gps_goto_coordinate_async(lat, lon);
+	printf("entering platform::move_to_location(%08f, %08f)...\n", lat, lon);
+    drk_gps_goto_coordinate(lat, lon, 2, 0.1, 5, 1);
 }
 
 
@@ -126,6 +125,12 @@ void move_to_altitude(double alt)
 {
 	printf("In platform move_to_altitude(%02f)\n", alt);
     drk_goto_altitude(alt);
+}
+
+bool cleanup_platform()
+{
+    drk_land();
+    drk_exit(EXIT_SUCCESS);
 }
 
 #endif

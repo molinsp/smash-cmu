@@ -65,10 +65,10 @@ void main_compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowle
 		knowledge.expand_statement
 		(
 			// TODO: remove this. Just for now, we are constantly setting the values for mobile and busy, to disseminate them.
-            "("
-                MV_BUSY("{" MV_MY_ID "}") "=" MV_BUSY("{" MV_MY_ID "}") ";"
-                MV_MOBILE("{" MV_MY_ID "}") "=" MV_MOBILE("{" MV_MY_ID "}") ";"
-            ");"
+//            "("
+//                MV_BUSY("{" MV_MY_ID "}") "=" MV_BUSY("{" MV_MY_ID "}") ";"
+//                MV_MOBILE("{" MV_MY_ID "}") "=" MV_MOBILE("{" MV_MY_ID "}") ";"
+//            ");"
 
 			"device.{.id}.location=.location;"
 			".device.{.id}.location.altitude=.location.altitude;"

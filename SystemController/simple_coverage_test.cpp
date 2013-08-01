@@ -109,18 +109,26 @@ int main (int argc, char** argv)
     string sourceRegionIdString = NUM_TO_STR(0);
     string topLeftLocation = areaBoundaries.topLeftCorner.toString();
     string botRightLocation = areaBoundaries.bottomRightCorner.toString();
-    knowledge->set(MV_REGION_TYPE(sourceRegionIdString), (Madara::Knowledge_Record::Integer) rectangleType,
-      Madara::Knowledge_Engine::Eval_Settings(true));
+    knowledge->set(MV_REGION_TYPE(sourceRegionIdString),
+        (Madara::Knowledge_Record::Integer) rectangleType,
+        Madara::Knowledge_Engine::Eval_Settings(true));
     knowledge->set(MV_REGION_TOPLEFT_LOC(sourceRegionIdString), topLeftLocation,
-      Madara::Knowledge_Engine::Eval_Settings(true));
+        Madara::Knowledge_Engine::Eval_Settings(true));
     knowledge->set(MV_REGION_BOTRIGHT_LOC(sourceRegionIdString), botRightLocation,
-      Madara::Knowledge_Engine::Eval_Settings(true));
-
-    knowledge->set(MV_TOTAL_DEVICES, Madara::Knowledge_Record::Integer(numDrones));
-
-    knowledge->set(MV_MIN_ALTITUDE, Madara::Knowledge_Record::Integer(3), Madara::Knowledge_Engine::Eval_Settings(true));
-
+        Madara::Knowledge_Engine::Eval_Settings(true));
+    knowledge->set(MV_TOTAL_DEVICES, Madara::Knowledge_Record::Integer(numDrones),
+        Madara::Knowledge_Engine::Eval_Settings(true));
+    knowledge->set(MV_MIN_ALTITUDE, Madara::Knowledge_Record::Integer(3),
+        Madara::Knowledge_Engine::Eval_Settings(true));
     knowledge->set(MV_TOTAL_SEARCH_AREAS, Madara::Knowledge_Record::Integer(1));
+
+    printf("\nSet drones as mobile...\n");
+    for(int i = 0; i < numDrones; ++i)
+    {
+        knowledge->set(MV_MOBILE(NUM_TO_STR(i)), 1.0,
+            Madara::Knowledge_Engine::Eval_Settings(true));
+        knowledge->set(MV_BUSY(NUM_TO_STR(i)), 0.0);
+    }
 
     printf("\nAssigning search area...\n");
     for(int i = 0; i < numDrones; ++i)

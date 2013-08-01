@@ -10,4 +10,6 @@
 
 bool init_platform();
 
+bool cleanup_platform();
+
 #endif
