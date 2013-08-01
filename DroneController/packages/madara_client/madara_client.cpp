@@ -6,6 +6,7 @@
  *********************************************************************/
  
 #include <string>
+using std::string;
 #include <vector>
 #include <iostream>
 #include <sstream>
@@ -26,6 +27,11 @@
 #include "area_coverage/area_coverage_module.h"
 
 #include "main_functions.h"
+
+#include <sstream>
+using std::stringstream;
+
+#include "transport/DroneRK_Transport.h"
 
 //Inturupt handling
 volatile bool terminated = false;
@@ -67,10 +73,17 @@ int main (int argc, char** argv)
     settings.hosts_.resize (1);
     settings.hosts_[0] = "192.168.1.255:15000";
     settings.type = Madara::Transport::BROADCAST;
+    //settings.type = Madara::Transport::NO_TRANSPORT;
     settings.id = id;
     settings.queue_length = 1024; //Smaller queue len to preserve memory
-    knowledge = new Madara::Knowledge_Engine::Knowledge_Base("", settings);
-
+    char host[30];
+    sprintf(host, "drone%d", id);
+    knowledge = new Madara::Knowledge_Engine::Knowledge_Base(host, settings);
+    stringstream out;
+    out << settings.id;
+    //knowledge->attach_transport(new DroneRK_Transport(out.str(),
+        //knowledge->get_context(), settings, true, 500));
+ 
     //First thing we do is set our ID, this needs to be changed to actually set it
     //Set our ID
     knowledge->set(".id", Madara::Knowledge_Record::Integer(id));

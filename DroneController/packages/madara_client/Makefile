@@ -40,7 +40,9 @@ FAIL  = $(BOLD)$(RED)[FAIL]$(RESET)
 ifeq ($(TARGET),AR_DRONE_2)
 TEST_BROADCAST_SOURCES = platforms/ar_drone_2/test_broadcast.cpp transport/DroneRK_Transport.cpp transport/DroneRK_Transport_Read_Thread.cpp
 TEST_BROADCAST_OBJ = $(TEST_BROADCAST_SOURCES:.cpp=.o)
-default: test_broadcast_custom_transport $(LOCAL_EXECUTABLE)
+TEST_LISTEN_BROADCAST_SOURCES = platforms/ar_drone_2/test_listen_broadcast.cpp
+TEST_LISTEN_BROADCAST_OBJ = $(TEST_LISTEN_BROADCAST_SOURCES:.cpp=.o)
+default: test_listen_broadcast test_broadcast_custom_transport $(LOCAL_EXECUTABLE)
 else
 default: $(LOCAL_EXECUTABLE)
 endif
@@ -61,6 +63,16 @@ $(LOCAL_EXECUTABLE): $(LOCAL_SOURCES) $(LOCAL_OBJ)
 	else echo "$(BOLD)Compiling $<...$(RESET)$(FAIL)\n$$_ERROR"; exit 1; fi
 
 test_broadcast_custom_transport: $(TEST_BROADCAST_SOURCES) $(TEST_BROADCAST_OBJ)
+	@mkdir -p bin
+	@_ERROR=$$($(CC) -I$(INSTALL_ROOT)/include $(LOCAL_LD_PATH) $(TEST_BROADCAST_OBJ) -o bin/$@ -lACE -lMADARA -ldrk 2>&1); \
+	if [ $$? -eq 0 ]; then echo "$(BOLD)Linking $@...$(RESET)$(OK)"; \
+	else echo "$(BOLD)Linking $@...$(RESET)$(FAIL)\n$$_ERROR"; exit 1; fi
+	
+	@_ERROR=$$(mkdir -p $(INSTALL_ROOT)/bin; cp bin/$@ $(INSTALL_ROOT)/bin/; chmod 755 $(INSTALL_ROOT)/bin/$@); \
+	if [ $$? -eq 0 ]; then echo "$(BOLD)Installing $@...$(RESET)$(OK)"; \
+	else echo "$(BOLD)Installing $@...$(RESET)$(FAIL)\n$$_ERROR"; exit 1; fi
+
+test_listen_broadcast: $(TEST_LISTEN_BROADCAST_SOURCES) $(TEST_LISTEN_BROADCAST_OBJ)
 	@mkdir -p bin
 	@_ERROR=$$($(CC) -I$(INSTALL_ROOT)/include $(LOCAL_LD_PATH) $(TEST_BROADCAST_OBJ) -o bin/$@ -lACE -lMADARA -ldrk 2>&1); \
 	if [ $$? -eq 0 ]; then echo "$(BOLD)Linking $@...$(RESET)$(OK)"; \
