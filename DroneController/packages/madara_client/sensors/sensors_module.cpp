@@ -9,6 +9,8 @@
 #include "platform_sensors.h"
 #include <iomanip>		// std::setprecision
 
+#include "utilities/CommonMadaraVariables.h"
+
 #define TASK_COUNT		1
 #define EVALUATE_SENSORS	0
 
@@ -53,7 +55,7 @@ Madara::Knowledge_Record read_gps_sensor (Madara::Knowledge_Engine::Function_Arg
 
 Madara::Knowledge_Record read_ultrasound (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-    double ultrAlt = read_ultrasound();
+    double ultraAlt = read_ultrasound();
     double estAlt = variables.get(".location.altitude").to_double();
 
     // Use ultrasound if below 6 meters
