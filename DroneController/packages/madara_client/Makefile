@@ -42,7 +42,7 @@ TEST_BROADCAST_SOURCES = platforms/ar_drone_2/test_broadcast.cpp transport/Drone
 TEST_BROADCAST_OBJ = $(TEST_BROADCAST_SOURCES:.cpp=.o)
 TEST_LISTEN_BROADCAST_SOURCES = platforms/ar_drone_2/test_listen_broadcast.cpp
 TEST_LISTEN_BROADCAST_OBJ = $(TEST_LISTEN_BROADCAST_SOURCES:.cpp=.o)
-default: test_listen_broadcast test_broadcast_custom_transport $(LOCAL_EXECUTABLE)
+default: $(LOCAL_EXECUTABLE)
 else
 default: $(LOCAL_EXECUTABLE)
 endif
