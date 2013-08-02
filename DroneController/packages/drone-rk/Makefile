@@ -22,11 +22,15 @@ else
 	@echo "libdrk already built"
 endif
 
-	@echo "copying libdrk and include files to install dir"
+	@make -C $(DRK_ROOT)/src/projects/experimental/gps
+
+	@echo "copying libdrk.so, kernel mods, some experimental programs, and include files to install dir"
 	@cp $(DRK_ROOT)/src/include/libdrk.so $(INSTALL_ROOT)/lib
 	@cp $(DRK_ROOT)/src/include/*.h $(INSTALL_ROOT)/include
 	@cp $(DRK_ROOT)/src/libs/drk-api/*.h $(INSTALL_ROOT)/include
 	@cp $(DRK_ROOT)/src/libs/drk_sched/*.h $(INSTALL_ROOT)/include
+	@cp $(DRK_ROOT)/kernel/serial_modules/2.3.3/*.ko $(INSTALL_ROOT)/kernel_modules/
+	@cp $(DRK_ROOT)/src/projects/experimental/gps/gps $(INSTALL_ROOT)/bin/gps
 
 #================================
 #DOWNLOAD DRK

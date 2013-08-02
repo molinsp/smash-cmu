@@ -27,6 +27,7 @@ LOCAL_CMD = PLATFORM=$(PLATFORM) \
 	mkdir -p $(INSTALL_ROOT)/include
 	mkdir -p $(INSTALL_ROOT)/doc
 	mkdir -p $(INSTALL_ROOT)/share
+	mkdir -p $(INSTALL_ROOT)/kernel_modules
 
 ##################################################
 # PACKAGE DEPENDENCIES 
