@@ -40,10 +40,30 @@ Madara::Knowledge_Record read_gps_sensor (Madara::Knowledge_Engine::Function_Arg
 	std::stringstream buffer;
 	buffer << std::setprecision(10) << gps.latitude << "," << gps.longitude;
 	variables.set(".location", buffer.str());
-	variables.set(".location.altitude", gps.altitude);
+    double estAlt = variables.get(".location.altitude").to_double();
+    if(gps.altitude > 5.5 || estAlt > 5.5)
+    {
+	    variables.set(".location.altitude", gps.altitude);
+        variables.set(MV_DEVICE_ALT("{.id}"), gps.altitude);
+    }
 	variables.set(".location.gps.locks", Madara::Knowledge_Record::Integer(gps.num_sats));
 	
 	return Madara::Knowledge_Record::Integer(1);
+}
+
+Madara::Knowledge_Record read_ultrasound (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
+{
+    double ultrAlt = read_ultrasound();
+    double estAlt = variables.get(".location.altitude").to_double();
+
+    // Use ultrasound if below 6 meters
+    if(ultraAlt < 5.5 || estAlt < 5.5)
+    {
+        variables.set(MV_DEVICE_ALT("{.id}"), ultraAlt);
+        variables.set(".location.altitude", ultraAlt);
+    }
+
+    return Madara::Knowledge_Record::Integer(1);
 }
 
 Madara::Knowledge_Record read_sensors (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
@@ -57,6 +77,7 @@ void define_sensor_functions (Madara::Knowledge_Engine::Knowledge_Base & knowled
 {
 	knowledge.define_function ("read_thermal", read_thermal_sensor);
 	knowledge.define_function ("read_gps", read_gps_sensor);
+    knowledge.define_function ("read_ultrasound", read_ultrasound);
 	knowledge.define_function ("read_sensors", read_sensors);
 }
 
@@ -68,6 +89,7 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
 	(
 		//"read_thermal();"
 		"read_gps();"
+        "read_ultrasound();"
 	);
 }
 

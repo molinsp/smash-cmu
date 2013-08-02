@@ -79,8 +79,8 @@ int main (int argc, char** argv)
     char host[30];
     sprintf(host, "drone%d", id);
     knowledge = new Madara::Knowledge_Engine::Knowledge_Base(host, settings);
-    stringstream out;
-    out << settings.id;
+    //stringstream out;
+    //out << settings.id;
     //knowledge->attach_transport(new DroneRK_Transport(out.str(),
         //knowledge->get_context(), settings, true, 500));
  
@@ -98,6 +98,9 @@ int main (int argc, char** argv)
     main_compile_expressions(*knowledge);
 
     Madara::Knowledge_Engine::Eval_Settings eval_settings;
+
+    // TODO: move this into control loop
+    knowledge->evaluate("takeoff();");
 
     Madara::Knowledge_Engine::Compiled_Expression mainExpression = main_get_main_expression();
     while (!terminated)

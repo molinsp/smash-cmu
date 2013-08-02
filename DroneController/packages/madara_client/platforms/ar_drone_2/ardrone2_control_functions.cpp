@@ -42,18 +42,20 @@ bool init_control_functions()
 void takeoff()
 {
 	printf("In AR_DRDONE_2 execute_takeoff()\n");
-	//drk_takeoff();
+    drk_ar_flat_trim();
+	drk_takeoff();
 }
 void land()
 {
 	printf("In AR_DRDONE_2 execute_land()\n");
+    drk_hover(0);
 	drk_land();
 }
 
 void move_up()
 {
-	printf("In AR_DRDONE_2 move_up()\n");
-	drk_move_up(0.5, 1000, DRK_HOVER);
+    printf("In AR_DRDONE_2 move_up()\n");
+    drk_move_up(0.5, 1000, DRK_HOVER);
 }
 
 void move_down()
@@ -107,19 +109,23 @@ void read_thermal(double buffer[8][8])
 
 void read_gps(struct madara_gps * ret)
 {
-	printf("entering platform::read_gps()...\n", ret);
 	struct gps gps= drk_gps_data();
 	ret->latitude = gps.latitude;
 	ret->longitude = gps.longitude;
 	ret->num_sats = gps.num_sats;
 }
 
+double read_ultrasound()
+{
+    return drk_ultrasound_altitude();
+}
+
 void move_to_location(double lat, double lon)
 {
 	printf("entering platform::move_to_location(%08f, %08f)...\n", lat, lon);
-    drk_gps_goto_coordinate(lat, lon, 2, 0.1, 5, 1);
+    drk_gps_goto_coordinate(lat, lon, 2, 0.1, 5, true);
+    // lat, long alt, max speed, tolerance, threaded
 }
-
 
 void move_to_altitude(double alt)
 {
@@ -129,6 +135,7 @@ void move_to_altitude(double alt)
 
 bool cleanup_platform()
 {
+    drk_hover(0);
     drk_land();
     drk_exit(EXIT_SUCCESS);
 }

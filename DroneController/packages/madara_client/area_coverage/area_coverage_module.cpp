@@ -278,7 +278,9 @@ Madara::Knowledge_Record madaraAltitudeReached (Madara::Knowledge_Engine::Functi
     }
     else
     {
-        printf("HAS NOT reached target altitude.\n");
+        printf("HAS NOT reached target altitude. Sending command again...\n");
+        variables.evaluate(".movement_command.0", targetAlt);
+        variables.evaluate("move_to_altitude();");
         return Madara::Knowledge_Record(0.0);
     }
 }
