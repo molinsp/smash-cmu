@@ -41,8 +41,9 @@ bool init_control_functions()
 
 void takeoff()
 {
-	printf("In AR_DRDONE_2 execute_takeoff()\n");
-	//drk_takeoff();
+    printf("In AR_DRDONE_2 execute_takeoff()\n");
+    drk_ar_flat_trim();
+    drk_takeoff();
 }
 void land()
 {
