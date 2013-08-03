@@ -9,24 +9,39 @@
 #include "movement/movement_module.h"
 #include "platform_movement.h"
 
+void ensureTakeoff(Madara::Knowledge_Engine::Variables& variables)
+{
+    variables.evaluate(MV_IS_LANDED " == 0 => takeoff();");
+}
+
+void attainAltitude(Madara::Knowledge_Engine::Variables& variables)
+{
+    ensureTakeoff(variables);
+    variables.evaluate(MV_IS_AT_ALTITUDE " == 0 => (.movement_command.0 = " MV_ASSIGNED_ALTITUDE "; move_to_altitude();)");
+}
+
 //Madara function to interface with takeoff()
 Madara::Knowledge_Record control_functions_takeoff (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
 	printf("In Madara::takeoff()\n");
 	takeoff();
+    variables.set(MV_IS_LANDED, 0.0);
 	return Madara::Knowledge_Record::Integer(1);
 }
 
 //Madara function to interface with land()
 Madara::Knowledge_Record control_functions_land (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
+	printf("In Madara::land()\n");
 	land();
+    variables.set(MV_IS_LANDED, 1.0);
 	return Madara::Knowledge_Record::Integer(1);
 }
 
 //Madara function to interface with move_up()
 Madara::Knowledge_Record control_functions_move_up (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
+    ensureTakeoff(variables);
 	move_up();
 	return Madara::Knowledge_Record::Integer(1);
 }
@@ -34,6 +49,7 @@ Madara::Knowledge_Record control_functions_move_up (Madara::Knowledge_Engine::Fu
 //Madara function to interface with move_down()
 Madara::Knowledge_Record control_functions_move_down (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
+    ensureTakeoff(variables);
 	move_down();
 	return Madara::Knowledge_Record::Integer(1);
 }
@@ -41,6 +57,7 @@ Madara::Knowledge_Record control_functions_move_down (Madara::Knowledge_Engine::
 //Madara function to interface with move_left()
 Madara::Knowledge_Record control_functions_move_left (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
+    attainAltitude(variables);
 	move_left();
 	return Madara::Knowledge_Record::Integer(1);
 }
@@ -48,6 +65,7 @@ Madara::Knowledge_Record control_functions_move_left (Madara::Knowledge_Engine::
 //Madara function to interface with move_right()
 Madara::Knowledge_Record control_functions_move_right (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
+    attainAltitude(variables);
 	move_right();
 	return Madara::Knowledge_Record::Integer(1);
 }
@@ -55,6 +73,7 @@ Madara::Knowledge_Record control_functions_move_right (Madara::Knowledge_Engine:
 //Madara function to interface with move_forward()
 Madara::Knowledge_Record control_functions_move_forward (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
+    attainAltitude(variables);
 	move_forward();
 	return Madara::Knowledge_Record::Integer(1);
 }
@@ -62,15 +81,17 @@ Madara::Knowledge_Record control_functions_move_forward (Madara::Knowledge_Engin
 //Madara function to interface with move_backward()
 Madara::Knowledge_Record control_functions_move_backward (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
+    attainAltitude(variables);
 	move_backward();
 	return Madara::Knowledge_Record::Integer(1);
 }
 
 Madara::Knowledge_Record madara_move_to_gps (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-		
 	double lat = variables.get(".movement_command.0").to_double();
 	double lon = variables.get(".movement_command.1").to_double();
+
+    attainAltitude(variables);
 	
 	printf("Moving to %02f, %02f\n", lat, lon);
 	
@@ -82,6 +103,8 @@ Madara::Knowledge_Record madara_move_to_gps (Madara::Knowledge_Engine::Function_
 Madara::Knowledge_Record madara_move_to_altitude (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {		
 	double alt = variables.get(".movement_command.0").to_double();
+
+    ensureTakeoff(variables);
 	
 	printf("Moving to altitude %02f\n", alt);
 	

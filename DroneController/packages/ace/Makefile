@@ -30,7 +30,7 @@ all:
 #Check if packages/ace/ACE_wrappers exists
 ifeq ($(wildcard $(ACE_ROOT)),)
 	@echo "Downloading ACE Source"
-	@svn co svn://svn.dre.vanderbilt.edu/DOC/Middleware/sets-anon/ACE+TAO+CIAO $(ACE_HOME)
+	@svn co svn://svn.dre.vanderbilt.edu/DOC/Middleware/sets-anon/ACE $(ACE_HOME)
 else
 	@echo "ACE source already exists"
 endif

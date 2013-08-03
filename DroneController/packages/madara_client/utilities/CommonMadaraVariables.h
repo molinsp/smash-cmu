@@ -87,7 +87,9 @@
 #define MV_MOVEMENT_TARGET_ALT              ".movement_command.0"   // The altitude of the position the device is headed towards.
 
 // Land and takeoff
-#define MO_LAND_CMD                         "land"      // Command used to tell drone to land at current location
-#define MO_TAKEOFF_CMD                      "takeoff"   // Command used to tell drone to takeoff
+#define MO_LAND_CMD                         "land"          // Command used to tell drone to land at current location
+#define MO_TAKEOFF_CMD                      "takeoff"       // Command used to tell drone to takeoff
+#define MV_IS_LANDED                        ".landed"       // 1 if drone is landed, 0 otherwise
+#define MV_IS_AT_ALTITUDE                   ".atAltitude"   // 1 if drone is at specified altitude, 0 otherwise
 
 #endif

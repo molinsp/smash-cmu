@@ -92,6 +92,14 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
 		//"read_thermal();"
 		"read_gps();"
         "read_ultrasound();"
+
+        // set MV_IS_AT_ALTITUDE
+        MV_IS_AT_ALTITUDE " = 0;"
+            MV_DEVICE_ALT("{.id}") " > " MV_ASSIGNED_ALT("{.id}") " => " MV_IS_AT_ALTITUDE " = 1;"
+
+        // set MV_IS_LANDED
+        MV_IS_LANDED " = 1;"
+        MV_DEVICE_ALT("{.id}") " > 0.1 => " MV_IS_LANDED " = 0;"
 	);
 }
 
