@@ -186,7 +186,7 @@ void move_backward()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void move_to_location(double lat, double lon)
+void move_to_location(double lat, double lon, double alt)
 {
     // We will assume that lat and lon have already been loaded in the local Madara variables.
     m_sim_knowledge->evaluate(m_expressions[VE_SEND_MOVE_TO_GPS_COMMAND]);
@@ -239,6 +239,11 @@ void read_gps(struct madara_gps * ret)
 	ret->longitude = longitude;
 	ret->altitude = altitude;
 	ret->num_sats = 10;             // Just because it should be really exact with the simulator.
+}
+
+double read_ultrasound()
+{
+    return m_sim_knowledge->get(MV_DEVICE_ALT("{.id}")).to_double();
 }
 
 bool cleanup_platform()

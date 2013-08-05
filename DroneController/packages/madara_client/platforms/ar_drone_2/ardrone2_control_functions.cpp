@@ -120,10 +120,10 @@ double read_ultrasound()
     return drk_ultrasound_altitude();
 }
 
-void move_to_location(double lat, double lon)
+void move_to_location(double lat, double lon, double alt)
 {
 	printf("entering platform::move_to_location(%08f, %08f)...\n", lat, lon);
-    drk_gps_goto_coordinate(lat, lon, 2, 0.1, 5, true);
+    drk_gps_goto_coordinate(lat, lon, alt, 0.1, 5, true);
     // lat, long alt, max speed, tolerance, threaded
 }
 

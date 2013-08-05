@@ -8,6 +8,7 @@
 
 #include "movement/movement_module.h"
 #include "platform_movement.h"
+#include "utilities/CommonMadaraVariables.h"
 
 void ensureTakeoff(Madara::Knowledge_Engine::Variables& variables)
 {
@@ -17,7 +18,7 @@ void ensureTakeoff(Madara::Knowledge_Engine::Variables& variables)
 void attainAltitude(Madara::Knowledge_Engine::Variables& variables)
 {
     ensureTakeoff(variables);
-    variables.evaluate(MV_IS_AT_ALTITUDE " == 0 => (.movement_command.0 = " MV_ASSIGNED_ALTITUDE "; move_to_altitude();)");
+    variables.evaluate(MV_IS_AT_ALTITUDE " == 0 => (.movement_command.0 = " MV_ASSIGNED_ALTITUDE("{.id}") "; move_to_altitude();)");
 }
 
 //Madara function to interface with takeoff()
@@ -90,12 +91,13 @@ Madara::Knowledge_Record madara_move_to_gps (Madara::Knowledge_Engine::Function_
 {
 	double lat = variables.get(".movement_command.0").to_double();
 	double lon = variables.get(".movement_command.1").to_double();
+    double alt = variables.get(MV_DEVICE_ALT("{.id}")).to_double();
 
     attainAltitude(variables);
 	
-	printf("Moving to %02f, %02f\n", lat, lon);
+	printf("Moving to %08f, %08f, %02f\n", lat, lon, alt);
 	
-	move_to_location(lat, lon);
+	move_to_location(lat, lon, alt);
 		
 	return Madara::Knowledge_Record::Integer(1);;
 }
