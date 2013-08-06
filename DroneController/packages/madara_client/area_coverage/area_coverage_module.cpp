@@ -244,10 +244,13 @@ Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::Function
     double currLon = args[2].to_double();
     double targetLon = args[3].to_double();
 
-    printf("Lat:   %.10f Long:   %.10f Alt: %.2f\n", currLat, currLon, variables.get(MV_DEVICE_ALT("{.id}")).to_double());
-    printf("T_Lat: %.10f T_Long: %.10f\n", targetLat, targetLon);
+    printf("Lat:      %.10f Long:   %.10f Alt: %.2f\n", currLat, currLon, variables.get(MV_DEVICE_ALT("{.id}")).to_double());
+    printf("T_Lat:    %.10f T_Long: %.10f\n", targetLat, targetLon);
 
-    if(get_distance_to_gps(targetLat, targetLon) < REACHED_ACCURACY_METERS)
+    double dist = get_distance_to_gps(targetLat, targetLon);
+    printf("Distance: %.2f\n", dist);
+
+    if(dist < REACHED_ACCURACY_METERS)
     {
         printf("HAS reached target\n");
         return Madara::Knowledge_Record(1.0);

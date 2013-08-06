@@ -91,7 +91,7 @@ Madara::Knowledge_Record madara_move_to_gps (Madara::Knowledge_Engine::Function_
 {
 	double lat = variables.get(".movement_command.0").to_double();
 	double lon = variables.get(".movement_command.1").to_double();
-    double alt = variables.get(MV_DEVICE_ALT("{.id}")).to_double();
+    double alt = variables.get(MV_ASSIGNED_ALTITUDE("{.id}")).to_double();
 
     attainAltitude(variables);
 	
