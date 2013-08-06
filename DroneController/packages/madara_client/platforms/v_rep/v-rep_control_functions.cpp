@@ -18,6 +18,10 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include <string>
 
+#include <cmath>
+
+#define DEG_TO_RAD(x) x * M_PI / 180
+
 // NOTE: We are using a hack here, assuming that an external Main module will set this KB to the common KB used by the system.
 Madara::Knowledge_Engine::Knowledge_Base* m_sim_knowledge;
 
@@ -201,6 +205,10 @@ void move_to_altitude(double alt)
     m_sim_knowledge->evaluate(m_expressions[VE_SEND_MOVE_TO_ALT_COMMAND]);
 }
 
+void stop_movement()
+{
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Sensor Functions.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -249,6 +257,34 @@ double read_ultrasound()
 bool cleanup_platform()
 {
     return true;
+}
+
+/* Calculate the distance between two coordinate pairs */
+double gps_coordinates_distance (double lat1, double long1, double lat2, double long2)
+{
+    const double EARTH_RADIUS = 6371000;
+
+    // Get the difference between our two points then convert the difference into radians
+    double lat_diff = DEG_TO_RAD(lat2 - lat1);
+    double long_diff = DEG_TO_RAD(long2 - long1);
+
+    lat1 =  DEG_TO_RAD(lat1);
+    lat2 =  DEG_TO_RAD(lat2);
+
+    double a =  pow(sin(lat_diff/2),2)+
+                cos(lat1) * cos(lat2) *
+                pow ( sin(long_diff/2), 2 );
+
+    double c = 2 * atan2( sqrt(a), sqrt( 1 - a));
+    return EARTH_RADIUS * c;
+}
+
+double get_distance_to_gps(double lat, double lon)
+{
+    double curLat = m_sim_knowledge->get(MV_DEVICE_LAT("{.id}")).to_double();
+    double curLong = m_sim_knowledge->get(MV_DEVICE_LON("{.id}")).to_double();
+
+    return gps_coordinates_distance(curLat, curLong, lat, lon);
 }
 
 #endif

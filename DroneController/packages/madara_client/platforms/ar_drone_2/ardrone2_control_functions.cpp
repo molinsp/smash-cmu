@@ -8,7 +8,8 @@
 #ifdef AR_DRONE_2
 
 #include <stdio.h>
-#include <drk.h>
+
+#include "drk.h"
 
 #include "platforms/platform.h"
 #include "movement/platform_movement.h"
@@ -109,10 +110,12 @@ void read_thermal(double buffer[8][8])
 
 void read_gps(struct madara_gps * ret)
 {
+    printf("entering read_gps\n");
 	struct gps gps= drk_gps_data();
 	ret->latitude = gps.latitude;
 	ret->longitude = gps.longitude;
 	ret->num_sats = gps.num_sats;
+    printf("leaving read_gps\n");
 }
 
 double read_ultrasound()
@@ -120,11 +123,33 @@ double read_ultrasound()
     return drk_ultrasound_altitude();
 }
 
+double get_distance_to_gps(double lat, double lon)
+{
+    return drk_gps_coordinates_mydistance(lat, lon);
+}
+
+/**
+ * Global to be able to stop movement
+ */
+pthread_t moving;
+
+void stop_movement()
+{
+    // from drk library
+    stop = 1;
+    if(moving != 0)
+        pthread_join(moving, NULL);
+    moving = 0;
+    stop = 0;
+    drk_hover(0);
+}
+
 void move_to_location(double lat, double lon, double alt)
 {
 	printf("entering platform::move_to_location(%08f, %08f)...\n", lat, lon);
-    drk_gps_goto_coordinate(lat, lon, alt, 0.1, 5, true);
+    moving = drk_gps_goto_coordinate(lat, lon, alt, 0.1, 2, true);
     // lat, long alt, max speed, tolerance, threaded
+    drk_hover(0);
 }
 
 void move_to_altitude(double alt)

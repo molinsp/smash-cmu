@@ -24,8 +24,10 @@ using namespace SMASH::Utilities;
 #include <string>
 using std::string;
 
+#include "sensors/platform_sensors.h"
+
 #define REACHED_ACCURACY_DEGREES        0.0000100   // Margin (in degrees) to use when checking if we have reached a location.
-#define REACHED_ACCURACY_METERS         2.0         // Margin (in meters) to use when checking if we have reached a location.
+#define REACHED_ACCURACY_METERS         7.0         // Margin (in meters) to use when checking if we have reached a location.
 #define ALTITUDE_DIFFERENCE             0.5         // The amount of vertical space (in meters) to leave between drones.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -242,11 +244,10 @@ Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::Function
     double currLon = args[2].to_double();
     double targetLon = args[3].to_double();
 
-    //printf("Curr and target lats are %.10f,%.10f, and diff is %.10f\n", currLat, targetLat, (currLat-targetLat));
-    //printf("Curr and target lats are %.10f,%.10f, and diff is %.10f\n", currLon, targetLon, (currLon-targetLon));
+    printf("Lat:   %.10f Long:   %.10f Alt: %.2f\n", currLat, currLon, variables.get(MV_DEVICE_ALT("{.id}")).to_double());
+    printf("T_Lat: %.10f T_Long: %.10f\n", targetLat, targetLon);
 
-    if(fabs(currLat - targetLat) < REACHED_ACCURACY_DEGREES &&
-        fabs(currLon - targetLon) < REACHED_ACCURACY_DEGREES)
+    if(get_distance_to_gps(targetLat, targetLon) < REACHED_ACCURACY_METERS)
     {
         printf("HAS reached target\n");
         return Madara::Knowledge_Record(1.0);
@@ -271,7 +272,7 @@ Madara::Knowledge_Record madaraAltitudeReached (Madara::Knowledge_Engine::Functi
     double currAlt = args[0].to_double();
     double targetAlt = args[1].to_double();
 
-    if(fabs(currAlt - targetAlt) < REACHED_ACCURACY_METERS)
+    if(fabs(currAlt - targetAlt) < ALTITUDE_DIFFERENCE)
     {
         printf("HAS reached target altitude.\n");
         return Madara::Knowledge_Record(1.0);
@@ -416,7 +417,8 @@ Madara::Knowledge_Record madaraSetNewTarget (Madara::Knowledge_Engine::Function_
 * Determines if this algorithm has ended.
 * @return  Returns true (1) if ended, else returns false (0)
 **/
-Madara::Knowledge_Record madaraReachedFinalTarget(Madara::Knowledge_Engine::Function_Arguments &args,
+Madara::Knowledge_Record madaraReachedFinalTarget(
+    Madara::Knowledge_Engine::Function_Arguments &args,
     Madara::Knowledge_Engine::Variables &variables)
 {
     // change to new coverage algorithm
