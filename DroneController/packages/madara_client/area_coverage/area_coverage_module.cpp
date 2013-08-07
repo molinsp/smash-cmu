@@ -296,13 +296,13 @@ Madara::Knowledge_Record madaraAltitudeReached (Madara::Knowledge_Engine::Functi
  */
 AreaCoverage* selectAreaCoverageAlgorithm(string algo)
 {
-    AreaCoverage* retVal = NULL;
+    AreaCoverage* coverageAlgorithm = NULL;
     if(algo == AREA_COVERAGE_RANDOM)
-        retVal = new RandomAreaCoverage();
+        coverageAlgorithm = new RandomAreaCoverage();
     else if(algo == AREA_COVERAGE_SNAKE)
-        retVal = new SnakeAreaCoverage(Region::NORTH_WEST, REACHED_ACCURACY_DEGREES);
+        coverageAlgorithm = new SnakeAreaCoverage(Region::NORTH_WEST, REACHED_ACCURACY_DEGREES);
     else if(algo == AREA_COVERAGE_INSIDEOUT)
-        retVal = new InsideOutAreaCoverage(REACHED_ACCURACY_DEGREES);
+        coverageAlgorithm = new InsideOutAreaCoverage((float)REACHED_ACCURACY_DEGREES);
     else
     {
         string err = "selectAreaCoverageAlgorithm(algo = \"";
@@ -310,7 +310,7 @@ AreaCoverage* selectAreaCoverageAlgorithm(string algo)
         err += "\") failed to find match\n";
         printf("%s", err.c_str());
     }
-    return retVal;
+    return coverageAlgorithm;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
