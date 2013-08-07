@@ -42,7 +42,6 @@ extern "C" void terminate (int)
 
 int main (int argc, char** argv)
 {
-    
     ACE_Sig_Action sa ((ACE_SignalHandler) terminate, SIGINT);
     
     int local_debug_level = 0;
@@ -51,7 +50,7 @@ int main (int argc, char** argv)
         id = atoi(argv[1]);
     else
     {
-        printf("You must supply an ID as the first arguement\n");
+        printf("You must supply an ID as the first argument\n");
         return 0;
     }
     if (argc > 2)
@@ -84,25 +83,12 @@ int main (int argc, char** argv)
     //knowledge->attach_transport(new DroneRK_Transport(out.str(),
         //knowledge->get_context(), settings, true, 500));
  
-    //First thing we do is set our ID, this needs to be changed to actually set it
-    //Set our ID
-    knowledge->set(".id", Madara::Knowledge_Record::Integer(id));
+	// Setup everything else.
+	initializeDroneController(settings.id, knowledge);
 
-    SMASH::Movement::initialize(*knowledge);
-    SMASH::Sensors::initialize(*knowledge);
-    SMASH::Utilities::initialize(*knowledge);
-    SMASH::AreaCoverage::initialize(*knowledge);
-    //SMASH::Bridge::initialize(knowledge);
-
-    //Compile the main logic
-    main_compile_expressions(*knowledge);
-
-    Madara::Knowledge_Engine::Eval_Settings eval_settings;
-
-    // TODO: move this into control loop
-    knowledge->evaluate("takeoff();");
-
+	// Main loop.
     Madara::Knowledge_Engine::Compiled_Expression mainExpression = main_get_main_expression();
+    Madara::Knowledge_Engine::Eval_Settings eval_settings;
     while (!terminated)
     {
         knowledge->evaluate (mainExpression, eval_settings);
@@ -112,7 +98,9 @@ int main (int argc, char** argv)
 
     printf("\nExiting...\n");
 
-    cleanup_platform();
+	cleanupDroneController(knowledge);
+
+	cleanup_platform();
 
     delete knowledge;
 

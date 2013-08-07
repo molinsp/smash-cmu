@@ -4,19 +4,30 @@
  *
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
- 
+
+/*********************************************************************
+ * sensors_module.h - Declares the module for sensors.
+ *********************************************************************/
+
 #ifndef _SENSORS_MODULE_H
 #define _SENSORS_MODULE_H
 
-#include <stdlib.h>
-#include "madara/knowledge_engine/Knowledge_Base.h"
+#include "module.h"
 
 namespace SMASH
 {
 	namespace Sensors
 	{
-		void initialize(Madara::Knowledge_Engine::Knowledge_Base&);
-		std::string main_logic();
+		/**
+		  * Class that implements the IModule interface for sensors.
+		  */
+		class SensorsModule: public IModule
+		{
+		public:
+			virtual void initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
+			virtual void cleanup(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
+			virtual std::string get_core_function();
+		};
 	}
 }
 
