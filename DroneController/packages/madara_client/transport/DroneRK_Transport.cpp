@@ -314,6 +314,19 @@ long DroneRK_Transport::send_data(const Madara::Knowledge_Records & updates)
             int bytes_sent = socket_.send(
                 buffer, wifiSize, addresses_[0]);
 
+            // DEBUG OUTPUT MESSAGE CONTENTS
+//            printf("\nsending message:\n");
+//            for(unsigned int i = 0; i < wifiSize / 4; ++i)
+//            {
+//                printf("%04X: ", i);
+//                for(unsigned int j = 0; j < 4; ++j)
+//                    printf("%02X ", buffer[i * 4 + j]);
+//                printf("    ");
+//                for(unsigned int j = 0; j < 4; ++j)
+//                    printf("%c", buffer[i * 4 + j]);
+//                printf("\n");
+//            }
+
             MADARA_DEBUG(MADARA_LOG_MAJOR_EVENT,(LM_DEBUG, 
                 DLINFO "DroneRK_Transport::send_data:" \
                 " Sent packet with size %d\n",

@@ -62,10 +62,10 @@ Position RandomAreaCoverage::getNextTargetLocation()
   enum side_t { NORTH, EAST, SOUTH, WEST, NUM_SIDES };
 
   // region information
-  const double maxLon = m_cellToSearch->bottomRightCorner.y;
-  const double minLon = m_cellToSearch->topLeftCorner.y;
-  const double minLat = m_cellToSearch->bottomRightCorner.x;
-  const double maxLat = m_cellToSearch->topLeftCorner.x;
+  const double maxLon = m_cellToSearch->southEast.longitude;
+  const double minLon = m_cellToSearch->northWest.longitude;
+  const double minLat = m_cellToSearch->southEast.latitude;
+  const double maxLat = m_cellToSearch->northWest.latitude;
 
   // select a side to go to
   side_t side;
@@ -77,13 +77,13 @@ Position RandomAreaCoverage::getNextTargetLocation()
   else // select a random different edge than we are on
   {
     // what side are we on now
-    if(m_targetLocation.x == minLat)
+    if(m_targetLocation.latitude == minLat)
       side = SOUTH;
-    else if(m_targetLocation.x == maxLat)
+    else if(m_targetLocation.latitude == maxLat)
       side = NORTH;
-    else if(m_targetLocation.y == minLon)
+    else if(m_targetLocation.longitude == minLon)
       side = WEST;
-    else // m_targetLocation.y == maxLon)
+    else // if(m_targetLocation.longitude == maxLon)
       side = EAST;
 
     // get a noncurrent side
@@ -94,11 +94,11 @@ Position RandomAreaCoverage::getNextTargetLocation()
   double lat, lon;
   switch(side)
   {
-    case NORTH:
+    case EAST:
       lon = frand(minLon, maxLon);
       lat = maxLat;
       break;
-    case EAST:
+    case NORTH:
       lon = maxLon;
       lat = frand(minLat, maxLat);
       break;
@@ -116,8 +116,8 @@ Position RandomAreaCoverage::getNextTargetLocation()
   }
 
   // update target
-  m_targetLocation.x = lat;
-  m_targetLocation.y = lon;
+  m_targetLocation.longitude = lon;
+  m_targetLocation.latitude = lat;
 
   return m_targetLocation;
 }

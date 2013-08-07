@@ -14,7 +14,7 @@
 
 #include <iostream>     // std::dec
 #include <sstream>      // std::ostringstream
-#include <iomanip>		// std::setprecision
+#include <iomanip>        // std::setprecision
 
 // Macro to convert from int to std::string.
 #define NUM_TO_STR( x ) dynamic_cast< std::ostringstream & >( \
@@ -33,23 +33,23 @@ namespace SMASH
             // TODO: fix other code so this is no longer necessary
             double x;
             double& longitude;
-	        double y;
+            double y;
             double& latitude;
 
             /**
-	         * Blank default constructor.
+             * Blank default constructor.
              **/
-	        Position() : longitude(x), latitude(y) {}
+            Position() : longitude(x), latitude(y) {}
 
-	        /** Constructor from data.
+            /** Constructor from data.
              * @param   newX    The value for the X coordinate.
              * @param   newY    The value for the Y coordinate.
              **/
-	        Position(double newX, double newY) : longitude(x), latitude(y)
-	        {
-		        x = newX;
-		        y = newY;
-	        }
+            Position(double newX, double newY) : longitude(x), latitude(y)
+            {
+                x = newX;
+                y = newY;
+            }
 
             Position(const Position& copy) : longitude(x), latitude(y)
             {
@@ -61,9 +61,10 @@ namespace SMASH
             {
                 x = right.x;
                 y = right.y;
+                return *this;
             }
 
-	        /** Turns a position into a string.
+            /** Turns a position into a string.
              * @return a string of the form "x,y".
              **/
             std::string toString()
@@ -85,27 +86,27 @@ namespace SMASH
 
             // TODO: fix other code so this is no longer needed
             Position topLeftCorner;
-            Position& southEast;
-            Position bottomRightCorner;
             Position& northWest;
+            Position bottomRightCorner;
+            Position& southEast;
 
             /**
-	         * Blank default constructor.
+             * Blank default constructor.
              **/
-	        Region() : southEast(topLeftCorner), northWest(bottomRightCorner) {}
+            Region() : southEast(bottomRightCorner), northWest(topLeftCorner) {}
 
-	        /** Constructor from data.
+            /** Constructor from data.
              * @param   newTopLeftCorner        The Position for the top left corner.
              * @param   newBottomRightCorner    The Position for the bottom right corner.
              **/
-	        Region(Position newTopLeftCorner, Position newBottomRightCorner) :
-                southEast(topLeftCorner), northWest(bottomRightCorner)
-	        {
-		        topLeftCorner = newTopLeftCorner;
-		        bottomRightCorner = newBottomRightCorner;
-	        }
+            Region(Position newTopLeftCorner, Position newBottomRightCorner) :
+                southEast(bottomRightCorner), northWest(topLeftCorner)
+            {
+                topLeftCorner = newTopLeftCorner;
+                bottomRightCorner = newBottomRightCorner;
+            }
 
-            Region(const Region& copy) : southEast(topLeftCorner), northWest(bottomRightCorner)
+            Region(const Region& copy) : southEast(bottomRightCorner), northWest(topLeftCorner)
             {
                 topLeftCorner = copy.topLeftCorner;
                 bottomRightCorner = copy.bottomRightCorner;
@@ -115,14 +116,15 @@ namespace SMASH
             {
                 topLeftCorner = copy.topLeftCorner;
                 bottomRightCorner = copy.bottomRightCorner;
+                return *this;
             }
 
             bool contains(const Position& test)
             {
-                return ((test.x <= topLeftCorner.x) &&
-                        (test.x >= bottomRightCorner.x) &&
-                        (test.y <= bottomRightCorner.y) &&
-                        (test.y >= topLeftCorner.y));
+                return ((test.x >= topLeftCorner.x) &&
+                        (test.x <= bottomRightCorner.x) &&
+                        (test.y >= bottomRightCorner.y) &&
+                        (test.y <= topLeftCorner.y));
             }
         };
     }
