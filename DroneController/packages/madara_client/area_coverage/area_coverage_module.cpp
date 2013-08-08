@@ -28,7 +28,7 @@ using namespace SMASH::Utilities;
 using std::string;
 
 #define REACHED_ACCURACY_DEGREES        0.0000100   // Margin (in degrees) to use when checking if we have reached a location.
-#define REACHED_ACCURACY_METERS         7.0         // Margin (in meters) to use when checking if we have reached a location.
+#define REACHED_ACCURACY_METERS         0.5         // Margin (in meters) to use when checking if we have reached a location.
 #define ALTITUDE_DIFFERENCE             0.5         // The amount of vertical space (in meters) to leave between drones.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,9 +136,11 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 {
     // Function that can be included in main loop of another method to introduce area coverage.
     knowledge.define_function(MF_MAIN_LOGIC, 
+        // If there is any string value for the requested area coverage (other than the default of 0), setup area coverage.
         "(" MV_AREA_COVERAGE_REQUESTED("{.id}") " => "
             "("
                 "(" 
+                    // Only do the following if the cell we will be searching in has alerady been set up.
                     "("MV_CELL_INITIALIZED ")"
                     " => (" 
                         // Check if we have reached our assigned height. If not, wait.
@@ -297,11 +299,17 @@ AreaCoverage* selectAreaCoverageAlgorithm(string algo)
 {
     AreaCoverage* coverageAlgorithm = NULL;
     if(algo == AREA_COVERAGE_RANDOM)
+    {
         coverageAlgorithm = new RandomAreaCoverage();
+    }
     else if(algo == AREA_COVERAGE_SNAKE)
+    {
         coverageAlgorithm = new SnakeAreaCoverage(Region::NORTH_WEST, REACHED_ACCURACY_DEGREES);
+    }
     else if(algo == AREA_COVERAGE_INSIDEOUT)
+    {
         coverageAlgorithm = new InsideOutAreaCoverage((float)REACHED_ACCURACY_DEGREES);
+    }
     else
     {
         string err = "selectAreaCoverageAlgorithm(algo = \"";
@@ -309,6 +317,7 @@ AreaCoverage* selectAreaCoverageAlgorithm(string algo)
         err += "\") failed to find match\n";
         printf("%s", err.c_str());
     }
+
     return coverageAlgorithm;
 }
 

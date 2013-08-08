@@ -63,7 +63,9 @@ The source code for the plugins is in smash-cmu\Simulations\SimulationFramework.
 
     The following are parameters that can be used to play with the simulation: 
      - radioRange: the range (radius) of the Wi-Fi radio on the drones,
-       required to calculate how many drones are needed for the bridge.       
+       required to calculate how many drones are needed for the bridge.  
+	 - coverageAlgorithm: can be "random", "snake" or "inside_out", and determines
+	   which algorithm will be used for the area coverage.
        
     Moving the locations of the laptop and the people on the scene can also be useful
     to check different behaviors.   

@@ -9,7 +9,6 @@
 
 #ifdef V_REP
 
-
 #include "platforms/platform.h"
 #include "movement/platform_movement.h"
 #include "sensors/platform_sensors.h"
@@ -24,7 +23,7 @@
 	#define M_PI 3.14159265358979323846
 #endif
 
-#define DEG_TO_RAD(x) x * M_PI / 180
+#define DEG_TO_RAD(x) (x)*M_PI/180.0
 
 // NOTE: We are using a hack here, assuming that an external Main module will set this KB to the common KB used by the system.
 Madara::Knowledge_Engine::Knowledge_Base* m_sim_knowledge;
@@ -269,8 +268,10 @@ double read_ultrasound()
     return m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_PREFIX MV_DEVICE_ALT("{"MV_MY_ID"}"))).to_double();
 }
 
-/* Calculate the distance between two coordinate pairs */
-double gps_coordinates_distance (double lat1, double long1, double lat2, double long2)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Calculate the distance between two coordinate pairs.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static double gps_coordinates_distance (double lat1, double long1, double lat2, double long2)
 {
     const double EARTH_RADIUS = 6371000;
 
@@ -289,6 +290,9 @@ double gps_coordinates_distance (double lat1, double long1, double lat2, double 
     return EARTH_RADIUS * c;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Calculate the distance between a given GPS location and our current GPS location.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 double get_distance_to_gps(double lat, double lon)
 {
     double curLat = m_sim_knowledge->get(MV_DEVICE_LAT("{.id}")).to_double();

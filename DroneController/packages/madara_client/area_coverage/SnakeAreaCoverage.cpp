@@ -29,6 +29,7 @@ SnakeAreaCoverage::~SnakeAreaCoverage() {}
 // Initialize the area for the drone
 Region* SnakeAreaCoverage::initialize(const Region& grid, int deviceIdx, int numDrones)
 {
+    printf("Initializing snake area coverage algorithm.\n");
     if(numDrones == 1)
         m_cellToSearch = new Region(grid);
     else

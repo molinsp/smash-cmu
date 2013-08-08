@@ -56,9 +56,10 @@ end
 -- Adds drones to a search area, by requesting that out of each of them.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function addDronesToSearchArea(numDrones, areaId)
+	local coverageAlgorithm = simGetScriptSimulationParameter(sim_handle_main_script, 'coverageAlgorithm')
     for currDroneIdx = 1, numDrones, 1 do
         local currDroneId = currDroneIdx-1         -- Actual drone IDs start at 0, but Lua table indexes start at 1.       
-        simExtMadaraSystemControllerSearchRequest(currDroneId, areaId)        
+        simExtMadaraSystemControllerAreaCoverageRequest(currDroneId, areaId, coverageAlgorithm)        
     end
 end
 
