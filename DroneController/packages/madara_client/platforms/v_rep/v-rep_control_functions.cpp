@@ -261,9 +261,12 @@ void read_gps(struct madara_gps * ret)
 	ret->num_sats = 10;             // Just because it should be really exact with the simulator.
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Gets the altitude from the ultrasound sensor.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 double read_ultrasound()
 {
-    return m_sim_knowledge->get(MV_DEVICE_ALT("{.id}")).to_double();
+    return m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_PREFIX MV_DEVICE_ALT("{"MV_MY_ID"}"))).to_double();
 }
 
 /* Calculate the distance between two coordinate pairs */
