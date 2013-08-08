@@ -84,7 +84,7 @@ int main (int argc, char** argv)
         //knowledge->get_context(), settings, true, 500));
  
 	// Setup everything else.
-	initializeDroneController(settings.id, knowledge);
+	initializeDroneController(settings.id, *knowledge);
 
 	// Main loop.
     Madara::Knowledge_Engine::Compiled_Expression mainExpression = main_get_main_expression();
@@ -98,7 +98,7 @@ int main (int argc, char** argv)
 
     printf("\nExiting...\n");
 
-	cleanupDroneController(knowledge);
+	cleanupDroneController(*knowledge);
 
 	cleanup_platform();
 
