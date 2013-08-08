@@ -91,7 +91,7 @@ Madara::Knowledge_Record madara_move_to_gps (Madara::Knowledge_Engine::Function_
 {
 	double lat = variables.get(".movement_command.0").to_double();
 	double lon = variables.get(".movement_command.1").to_double();
-    double alt = variables.get(MV_DEVICE_ALT("{.id}")).to_double();
+    double alt = variables.get(MV_ASSIGNED_ALTITUDE("{.id}")).to_double();
 
     attainAltitude(variables);
 	
@@ -140,7 +140,7 @@ void define_control_functions (Madara::Knowledge_Engine::Knowledge_Base & knowle
 }
 
 
-void SMASH::Movement::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
+void SMASH::Movement::MovementModule::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
 	printf("SMASH::Movement::initialize()\n");
 	init_control_functions();
@@ -148,7 +148,11 @@ void SMASH::Movement::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowl
 	printf("leaving SMASH::Movement::initialize()\n");
 }
 
-std::string SMASH::Movement::main_logic()
+void SMASH::Movement::MovementModule::cleanup(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
+{
+}
+
+std::string SMASH::Movement::MovementModule::get_core_function()
 {
 	return "process_movement_commands()";
 }

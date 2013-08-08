@@ -15,17 +15,20 @@
 #include "SnakeAreaCoverage.h"
 #include "RandomAreaCoverage.h"
 #include "InsideOutAreaCoverage.h"
-using namespace SMASH::AreaCoverage;
-using namespace SMASH::Utilities;
+
+#include "sensors/platform_sensors.h"
 
 #include <vector>
 #include <map>
 #include <math.h>
 #include <string>
+
+using namespace SMASH::AreaCoverage;
+using namespace SMASH::Utilities;
 using std::string;
 
 #define REACHED_ACCURACY_DEGREES        0.0000100   // Margin (in degrees) to use when checking if we have reached a location.
-#define REACHED_ACCURACY_METERS         2.0         // Margin (in meters) to use when checking if we have reached a location.
+#define REACHED_ACCURACY_METERS         0.5         // Margin (in meters) to use when checking if we have reached a location.
 #define ALTITUDE_DIFFERENCE             0.5         // The amount of vertical space (in meters) to leave between drones.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -74,7 +77,7 @@ static std::map<AreaCoverageMadaraExpressionId, Madara::Knowledge_Engine::Compil
 static AreaCoverage* m_coverageAlgorithm;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Private function declarations.
+// Private function declarations. Static linkage so they are not seen oustide of the module.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
 static void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
@@ -97,7 +100,7 @@ static Madara::Knowledge_Record madaraAltitudeReached (Madara::Knowledge_Engine:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Initializer, gets the refence to the knowledge base and compiles expressions.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void SMASH::AreaCoverage::initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
+void SMASH::AreaCoverage::AreaCoverageModule::initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 {
     printf("SMASH::AreaCoverage::initialize...\n");
     // Defines internal and external functions.
@@ -111,7 +114,7 @@ void SMASH::AreaCoverage::initialize(Madara::Knowledge_Engine::Knowledge_Base &k
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Cleanup, cleans up the dynamically allocated search algorithm
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void SMASH::AreaCoverage::cleanup(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
+void SMASH::AreaCoverage::AreaCoverageModule::cleanup(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 {
     // should only need to delete the coverage algorithm
     delete m_coverageAlgorithm;
@@ -120,7 +123,7 @@ void SMASH::AreaCoverage::cleanup(Madara::Knowledge_Engine::Knowledge_Base &know
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Gets the main logic to be run. This returns a function call that can be included in another block of logic.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::string SMASH::AreaCoverage::get_core_function()
+std::string SMASH::AreaCoverage::AreaCoverageModule::get_core_function()
 {
     return MF_MAIN_LOGIC "()";
 }
@@ -133,9 +136,11 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 {
     // Function that can be included in main loop of another method to introduce area coverage.
     knowledge.define_function(MF_MAIN_LOGIC, 
+        // If there is any string value for the requested area coverage (other than the default of 0), setup area coverage.
         "(" MV_AREA_COVERAGE_REQUESTED("{.id}") " => "
             "("
                 "(" 
+                    // Only do the following if the cell we will be searching in has alerady been set up.
                     "("MV_CELL_INITIALIZED ")"
                     " => (" 
                         // Check if we have reached our assigned height. If not, wait.
@@ -242,11 +247,13 @@ Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::Function
     double currLon = args[2].to_double();
     double targetLon = args[3].to_double();
 
-    //printf("Curr and target lats are %.10f,%.10f, and diff is %.10f\n", currLat, targetLat, (currLat-targetLat));
-    //printf("Curr and target lats are %.10f,%.10f, and diff is %.10f\n", currLon, targetLon, (currLon-targetLon));
+    printf("Lat:      %.10f Long:   %.10f Alt: %.2f\n", currLat, currLon, variables.get(MV_DEVICE_ALT("{.id}")).to_double());
+    printf("T_Lat:    %.10f T_Long: %.10f\n", targetLat, targetLon);
 
-    if(fabs(currLat - targetLat) < REACHED_ACCURACY_DEGREES &&
-        fabs(currLon - targetLon) < REACHED_ACCURACY_DEGREES)
+    double dist = get_distance_to_gps(targetLat, targetLon);
+    printf("Distance: %.2f\n", dist);
+
+    if(dist < REACHED_ACCURACY_METERS)
     {
         printf("HAS reached target\n");
         return Madara::Knowledge_Record(1.0);
@@ -271,16 +278,14 @@ Madara::Knowledge_Record madaraAltitudeReached (Madara::Knowledge_Engine::Functi
     double currAlt = args[0].to_double();
     double targetAlt = args[1].to_double();
 
-    if(fabs(currAlt - targetAlt) < REACHED_ACCURACY_METERS)
+    if(fabs(currAlt - targetAlt) < ALTITUDE_DIFFERENCE)
     {
         printf("HAS reached target altitude.\n");
         return Madara::Knowledge_Record(1.0);
     }
     else
     {
-        printf("HAS NOT reached target altitude. Sending command again...\n");
-        variables.evaluate(".movement_command.0", targetAlt);
-        variables.evaluate("move_to_altitude();");
+        printf("HAS NOT reached target altitude yet.\n");
         return Madara::Knowledge_Record(0.0);
     }
 }
@@ -292,13 +297,19 @@ Madara::Knowledge_Record madaraAltitudeReached (Madara::Knowledge_Engine::Functi
  */
 AreaCoverage* selectAreaCoverageAlgorithm(string algo)
 {
-    AreaCoverage* retVal = NULL;
+    AreaCoverage* coverageAlgorithm = NULL;
     if(algo == AREA_COVERAGE_RANDOM)
-        retVal = new RandomAreaCoverage();
+    {
+        coverageAlgorithm = new RandomAreaCoverage();
+    }
     else if(algo == AREA_COVERAGE_SNAKE)
-        retVal = new SnakeAreaCoverage(Region::NORTH_WEST, REACHED_ACCURACY_DEGREES);
+    {
+        coverageAlgorithm = new SnakeAreaCoverage(Region::NORTH_WEST, REACHED_ACCURACY_DEGREES);
+    }
     else if(algo == AREA_COVERAGE_INSIDEOUT)
-        retVal = new InsideOutAreaCoverage(REACHED_ACCURACY_DEGREES);
+    {
+        coverageAlgorithm = new InsideOutAreaCoverage((float)REACHED_ACCURACY_DEGREES);
+    }
     else
     {
         string err = "selectAreaCoverageAlgorithm(algo = \"";
@@ -306,7 +317,8 @@ AreaCoverage* selectAreaCoverageAlgorithm(string algo)
         err += "\") failed to find match\n";
         printf("%s", err.c_str());
     }
-    return retVal;
+
+    return coverageAlgorithm;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -416,7 +428,8 @@ Madara::Knowledge_Record madaraSetNewTarget (Madara::Knowledge_Engine::Function_
 * Determines if this algorithm has ended.
 * @return  Returns true (1) if ended, else returns false (0)
 **/
-Madara::Knowledge_Record madaraReachedFinalTarget(Madara::Knowledge_Engine::Function_Arguments &args,
+Madara::Knowledge_Record madaraReachedFinalTarget(
+    Madara::Knowledge_Engine::Function_Arguments &args,
     Madara::Knowledge_Engine::Variables &variables)
 {
     // change to new coverage algorithm
@@ -455,68 +468,4 @@ Madara::Knowledge_Record madaraSetNewCoverage(Madara::Knowledge_Engine::Function
     }
     // If we couldn't generate our cell for some reason, the function was not successful.
     return Madara::Knowledge_Record(0.0);
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Test method used to setup drones in certain locations and issue a search request.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void SMASH::AreaCoverage::setupSearchTest(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
-{
-    // Setup the algorithm inputs.
-    std::string id = "0";
-    std::map<int, Position> availableDrones;
-    availableDrones[0] = Position(3.48578,6.9078);
-    availableDrones[2] = Position(2.99198,3.6877);
-    availableDrones[5] = Position(8.99198,3.6877);
-    availableDrones[8] = Position(3.98820,3.6670);
-
-    // Generate information about my position and the position of others, also indicating we are mobile.
-    knowledge.set(MV_DEVICE_LAT("0"), availableDrones[0].x);
-    knowledge.set(MV_DEVICE_LON("0"), availableDrones[0].y);
-    knowledge.set(MV_MOBILE("0"), 1.0);
-
-    knowledge.set(MV_DEVICE_LAT("2"), availableDrones[5].x);    
-    knowledge.set(MV_DEVICE_LON("2"), availableDrones[5].y);
-    knowledge.set(MV_MOBILE("2"), 1.0);
-
-    knowledge.set(MV_DEVICE_LAT("5"), availableDrones[5].x);    
-    knowledge.set(MV_DEVICE_LON("5"), availableDrones[5].y);
-    knowledge.set(MV_MOBILE("5"), 1.0);
-
-    knowledge.set(MV_DEVICE_LAT("8"), availableDrones[8].x);
-    knowledge.set(MV_DEVICE_LON("8"), availableDrones[8].y);
-    knowledge.set(MV_MOBILE("8"), 1.0);
-
-    // Generate information that should be set by sink when sending command for bridge.
-    knowledge.set(MV_TOTAL_DEVICES, 9.0);
-
-    // Simulate the sink actually sending the command to search.
-    knowledge.set(MV_ASSIGNED_SEARCH_AREA(id), (Madara::Knowledge_Record::Integer) 0,
-        Madara::Knowledge_Engine::Eval_Settings(true));
-    knowledge.set(MV_ASSIGNED_SEARCH_AREA("2"), (Madara::Knowledge_Record::Integer) 0,
-        Madara::Knowledge_Engine::Eval_Settings(true));
-    knowledge.set(MV_ASSIGNED_SEARCH_AREA("5"), (Madara::Knowledge_Record::Integer) 0,
-        Madara::Knowledge_Engine::Eval_Settings(true));
-    knowledge.set(MV_ASSIGNED_SEARCH_AREA("8"), (Madara::Knowledge_Record::Integer) 0,
-        Madara::Knowledge_Engine::Eval_Settings(true));
-
-    knowledge.set(MV_SEARCH_AREA_REGION("0"), (Madara::Knowledge_Record::Integer) 0,
-        Madara::Knowledge_Engine::Eval_Settings(true));
-
-    // Set the bounding box of the regions. For now, the rectangle will actually just be a point.
-    // NOTE: we use substring below to store the information not in the local but a global variable, which is only needed in a simulation.
-    std::string sourceRegionIdString = "0";
-    knowledge.set(MV_REGION_TYPE("0"), (Madara::Knowledge_Record::Integer) 0,
-        Madara::Knowledge_Engine::Eval_Settings(true));
-    knowledge.set((MV_REGION_TOPLEFT_LAT(sourceRegionIdString)), 0.0,
-        Madara::Knowledge_Engine::Eval_Settings(true));
-    knowledge.set((MV_REGION_TOPLEFT_LON(sourceRegionIdString)), 10.0,
-        Madara::Knowledge_Engine::Eval_Settings(true));
-    knowledge.set((MV_REGION_BOTRIGHT_LAT(sourceRegionIdString)), 10.0,
-        Madara::Knowledge_Engine::Eval_Settings(true));
-    knowledge.set((MV_REGION_BOTRIGHT_LON(sourceRegionIdString)), 0.0,
-        Madara::Knowledge_Engine::Eval_Settings(true));
-
-    knowledge.set(MV_AREA_COVERAGE_REQUESTED(id), 1.0);
 }

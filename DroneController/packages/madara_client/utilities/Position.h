@@ -61,6 +61,7 @@ namespace SMASH
             {
                 x = right.x;
                 y = right.y;
+				return *this;
             }
 
 	        /** Turns a position into a string.

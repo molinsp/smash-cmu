@@ -9,6 +9,8 @@
 #include <iomanip>		// std::setprecision
 #include "Position.h"
 
+#define STRING_ENDS_WITH(str, end) (str.length() >= end.length() ? (0 == str.compare (str.length() - end.length(), end.length(), end)) : false)
+
 Madara::Knowledge_Record inflate_coords (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
 
@@ -107,10 +109,19 @@ void define_utilities_functions (Madara::Knowledge_Engine::Knowledge_Base & know
 	knowledge.define_function("copy_vector", copy_vector);
 }
 
-void SMASH::Utilities::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
+void SMASH::Utilities::UtilitiesModule::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
     printf("SMASH::Utilities::initialize...\n");
 	define_utilities_functions(knowledge);
     printf("leaving SMASH::Utilities::initialize...\n");
+}
+
+void SMASH::Utilities::UtilitiesModule::cleanup(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
+{
+}
+
+std::string SMASH::Utilities::UtilitiesModule::get_core_function()
+{
+	return "";
 }
 
