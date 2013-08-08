@@ -10,10 +10,25 @@
 ******************************************************************************/
 
 #include "HumanDetection.h"
+#include "sensors/platform_sensors.h"
 
 using namespace SMASH::HumanDetection;
 
 bool HumanDetection::check_if_human (double temp)
 {
+  // Get current height.
+  double curr_height = read_ultrasound();
+  
+  // Based on current height, compare given temperature to expected 
+  // human temperature range.
+  if (curr_height <= 1 && temp >= 78 && temp <= 92)
+    return true;
+
+  if (curr_height > 1 && curr_height <= 2 && temp >= 70 && temp <= 78)
+    return true;
+
+  if (curr_height > 2 && temp >= 65 && temp <= 75)
+    return true;  
+
   return false;
 }
