@@ -17,6 +17,8 @@
 static bool drk_init_status = false;
 
 int frame_number;
+int prev_frame_number;
+
 double thermal_data[8][8];
 
 bool init_platform()
@@ -90,15 +92,20 @@ void move_backward()
 
 void read_thermal(double buffer[8][8])
 {
-	printf("in read_thermal()\n");
+	printf("In read_thermal()\n");
+  while (frame_number <= prev_frame_number)
+  {
     sem_wait(serial_buf->semaphore);
     memcpy(&buffer, &((serial_buf->grideye_buf).temperature), sizeof(buffer));
+    frame_number = serial_buf->grideye_buf.index;
     sem_post(serial_buf->semaphore);
-    printf("done copying\n");
+  }
+  prev_frame_number = frame_number;
+  printf("Done copying to thermal buffer\n");
     
-    int x, y;
-    for (y = 0; y < 8; y++)
-    {
+  int x, y;
+  for (y = 0; y < 8; y++)
+  {
 		for (x = 0; x < 8; x++)
 		{
 			printf("in loop %d, %d\n", x, y);

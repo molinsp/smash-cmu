@@ -22,6 +22,7 @@ include movement/movement_module.mk
 include sensors/sensors_module.mk
 include bridge/bridge_module.mk
 include utilities/utilities_module.mk
+include human_detection/human_detection_module.mk
 
 ifdef PLATFORM
 include platforms/$(PLATFORM).mk
