@@ -21,6 +21,23 @@ function doInitialSetup()
     simAddStatusbarMessage('Calling external method to set up Madara.')
     simExtMadaraSystemControllerSetup(myControllerId, radioRange, minAltitude)
 
+    -- Used to identify each bridge request.
+    g_bridgeRequestId = 0
+    
+    -- Array used to ensure that we automatically request a bridge for a certain person only once. Only useful to simplify the simulation.
+    g_peopleFound = {}
+
+	-- Setup the search area through the network.
+	setupSearchArea()
+    
+    -- Tell drones to be part of this search area.
+    addDronesToSearchArea(g_numDrones, g_searchAreaId)
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Sets up the search area for the whole network.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function setupSearchArea()
     -- Set up the search area, getting the boundaries from the parameters.
     g_searchAreaId = 0
     local x1 = simGetScriptSimulationParameter(sim_handle_main_script, 'x1')
@@ -38,18 +55,10 @@ function doInitialSetup()
     endPoint['y'] = y2    
     local endInDegrees = getLatAndLong(endPoint)
     
+	-- Send command through network.
     simAddStatusbarMessage("Search area: " .. tostring(startInDegrees['longitude']) .. ',' .. startInDegrees['latitude'] .. '; ' .. endInDegrees['longitude'] .. ',' .. endInDegrees['latitude'])
     simExtMadaraSystemControllerSetupSearchArea(g_searchAreaId, tostring(startInDegrees['longitude']), tostring(startInDegrees['latitude']), 
                                                 tostring(endInDegrees['longitude']), tostring(endInDegrees['latitude']))
-    
-    -- Tell drones to be part of this search area.
-    addDronesToSearchArea(g_numDrones, g_searchAreaId)
-
-    -- Used to identify each bridge request.
-    g_bridgeRequestId = 0
-    
-    -- Array used to ensure that we automatically request a bridge for a certain person only once. Only useful to simplify the simulation.
-    g_peopleFound = {}
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////

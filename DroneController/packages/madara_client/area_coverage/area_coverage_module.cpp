@@ -388,7 +388,7 @@ Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowledge_Eng
     variables.set(MV_ASSIGNED_ALTITUDE("{.id}"), myDefaultAltitude);
 
     // Send the command to go to this altitude.
-    variables.set(MV_MOVEMENT_TARGET_ALT, myDefaultAltitude);
+    variables.set(MV_MOVEMENT_TARGET_ALT, myDefaultAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
     variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_ALTITUDE_CMD));
     printf("Moving to altitude %f!\n", myDefaultAltitude);
 

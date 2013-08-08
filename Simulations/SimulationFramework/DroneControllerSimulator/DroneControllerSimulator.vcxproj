@@ -101,6 +101,7 @@
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\module.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\movement\movement_module.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\movement\platform_movement.h" />
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\platforms\v_rep\v-rep_madara_variables.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\sensors\platform_sensors.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\sensors\sensors_module.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\utilities\CommonMadaraVariables.h" />

@@ -37,10 +37,8 @@ const string DEFAULT_MULTICAST_ADDRESS ("239.255.0.1:4150");
 // Used for updating various transport settings
 Madara::Transport::Settings g_settings;
 
-Madara::Knowledge_Record::Integer g_id;
-
-// NOTE: Hack to pass the knowledge base to the V-Rep simulation platform.
-extern Madara::Knowledge_Engine::Knowledge_Base* m_sim_knowledge;
+// The id of the drone.
+int g_id;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Enntry point.
@@ -57,13 +55,10 @@ int main (int argc, char** argv)
 
     // Handle arguments, if any (include recieving an external ID).
     handle_arguments (argc, argv);
-    g_settings.id = (int) g_id;
+    g_settings.id = g_id;
     
     // Create the knowledge base.
     Madara::Knowledge_Engine::Knowledge_Base knowledge (g_host, g_settings);
-
-    // NOTE: Hack to pass the knowledge base to the V-Rep simulation platform.
-    m_sim_knowledge = &knowledge;
     
     //knowledge.log_to_file(string("madaralog" + NUM_TO_STR(g_id) + ".txt").c_str(), false);
     //knowledge.evaluate("#log_level(10)");
@@ -72,7 +67,7 @@ int main (int argc, char** argv)
 	init_platform();
 
 	// Startup the drone.
-	bool success = initializeDroneController((int) g_id, knowledge);
+	bool success = initializeDroneController(g_id, knowledge);
 	if(!success)
 	{
 		return 1;

@@ -87,6 +87,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\platforms\v_rep\v-rep_madara_variables.h" />
     <ClInclude Include="..\V-RepCommonPluginUtils\LuaExtensionsUtils.h" />
     <ClInclude Include="..\V-RepCommonPluginUtils\LuaFunctionRegistration.h" />
     <ClInclude Include="..\V-RepCommonPluginUtils\v_repExtPluginInterface.h" />

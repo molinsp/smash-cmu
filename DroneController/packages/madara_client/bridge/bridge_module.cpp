@@ -264,7 +264,9 @@ Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::F
 				Madara::Knowledge_Engine::Eval_Settings(true));
 			variables.set(MV_BRIDGE_ID("{" MV_MY_ID "}"), (Madara::Knowledge_Record::Integer) bridgeId,
 				Madara::Knowledge_Engine::Eval_Settings(true));
-			variables.set(MV_MOVEMENT_TARGET_LAT, myNewPosition->x,
+
+            // Set all the command parameters.
+            variables.set(MV_MOVEMENT_TARGET_LAT, myNewPosition->x,
 				Madara::Knowledge_Engine::Eval_Settings(true));
 			variables.set(MV_MOVEMENT_TARGET_LON, myNewPosition->y,
 				Madara::Knowledge_Engine::Eval_Settings(true));

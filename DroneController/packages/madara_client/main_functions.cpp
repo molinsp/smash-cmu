@@ -80,7 +80,9 @@ void initializeDrone(int droneId, Madara::Knowledge_Engine::Knowledge_Base& know
     knowledge.set(MV_BUSY("{" MV_MY_ID "}"), 0.0);
 
     // TODO: move this into control loop
-    knowledge.evaluate("takeoff();");
+    // Tell the drone to take off.
+    knowledge.set(MV_DEVICE_MOVE_REQUESTED("{" MV_MY_ID "}"), MO_TAKEOFF_CMD);
+    //knowledge.print_knowledge();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -52,6 +52,9 @@
     <Filter Include="Header Files\main_module">
       <UniqueIdentifier>{b72ee46d-2769-453b-adf7-9d6c81e6eeef}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\platform">
+      <UniqueIdentifier>{b3f80664-4c7d-4e6a-8613-698b57742260}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -142,6 +145,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\utilities\utilities_module.h">
       <Filter>Header Files\utilities_module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\platforms\v_rep\v-rep_madara_variables.h">
+      <Filter>Header Files\platform</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
