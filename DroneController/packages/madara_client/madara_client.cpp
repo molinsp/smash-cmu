@@ -24,6 +24,7 @@ using std::string;
 #include "movement/movement_module.h"
 #include "sensors/sensors_module.h"
 #include "utilities/utilities_module.h"
+#include "utilities/CommonMadaraVariables.h"
 #include "area_coverage/area_coverage_module.h"
 
 #include "main_functions.h"
@@ -85,6 +86,8 @@ int main (int argc, char** argv)
  
 	// Setup everything else.
 	initializeDroneController(settings.id, *knowledge);
+
+  knowledge->set(MV_HUMAN_DETECTION_REQUESTED("{.id}"), 1.0);
 
 	// Main loop.
     Madara::Knowledge_Engine::Compiled_Expression mainExpression = main_get_main_expression();

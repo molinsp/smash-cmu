@@ -143,8 +143,12 @@ Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Function_A
   m_humanDetectionAlgorithm = selectHumanDetectionAlgorithm(algo);
   
   int result_map[8][8];
+  int result;
 
-  m_humanDetectionAlgorithm->detect_human(result_map, NULL);  
+  result = m_humanDetectionAlgorithm->detect_human(result_map, NULL);
+
+  if (result > 0)
+    variables.set(MV_HUMAN_DETECTED("{.id}"), 1.0);  
 
   return Madara::Knowledge_Record(1.0);
 }
