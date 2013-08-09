@@ -36,7 +36,7 @@ MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
     // Setup the actual transport.
 #ifdef __linux
     // In Linux we can use the default Mulitcast transport.
-    settings.type = Madara::Transport::MULTICAST;
+    transportSettings.type = Madara::Transport::MULTICAST;
 #elif defined(WIN32)
     // In Windows we need to delay the transport launch to use a custom transport.
     transportSettings.delay_launch = true;
