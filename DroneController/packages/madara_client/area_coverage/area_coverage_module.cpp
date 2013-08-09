@@ -150,7 +150,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                             "("
                                 // Check if we are just initializing, or if we reached the next target, but not the end of the area, to set the next waypoint.
                                 "((" MV_NEXT_TARGET_LAT " == 0) && (" MV_NEXT_TARGET_LON " == 0)) || "
-                                "(" MF_NEXT_TARGET_REACHED "() && !(" MF_FINAL_TARGET_REACHED "() && !" MF_SET_NEW_COVERAGE "() ))"
+                                "(" MF_NEXT_TARGET_REACHED "() && !(" MF_FINAL_TARGET_REACHED "()))" //&& !" MF_SET_NEW_COVERAGE "() ))"
                                     " => " MF_SET_NEW_TARGET  "()" 
                             ")"
                         ")"
