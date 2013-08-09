@@ -450,10 +450,10 @@ Madara::Knowledge_Record madaraSetNewCoverage(Madara::Knowledge_Engine::Function
         if(myCell != NULL)
         {
             // Store this cell in Madara.
-            variables.set(MV_MY_CELL_NORTH_WEST_LAT, (myCell->northWest.latitude));
-            variables.set(MV_MY_CELL_NORTH_WEST_LON, (myCell->northWest.longitude));
-            variables.set(MV_MY_CELL_SOUTH_EAST_LAT, (myCell->southEast.latitude));
-            variables.set(MV_MY_CELL_SOUTH_EAST_LON, (myCell->southEast.longitude));
+            variables.set(MV_MY_CELL_TOP_LEFT_LAT, (myCell->northWest.latitude));
+            variables.set(MV_MY_CELL_TOP_LEFT_LON, (myCell->northWest.longitude));
+            variables.set(MV_MY_CELL_BOTTOM_RIGHT_LAT, (myCell->southEast.latitude));
+            variables.set(MV_MY_CELL_BOTTOM_RIGHT_LON, (myCell->southEast.longitude));
     
             return Madara::Knowledge_Record(1.0);
         }

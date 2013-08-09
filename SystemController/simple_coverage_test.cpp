@@ -35,7 +35,7 @@ void programSummary(char* arg)
     cerr << "  [-s] southern latitude" << endl;
     cerr << "  [-e] eastern longitude" << endl;
     cerr << "  [-w] western longitude" << endl;
-    cerr << "  [-l ] MADARA log level" << endl;
+    cerr << "  [-l] MADARA log level" << endl;
     exit(-1);
 }
 
@@ -105,7 +105,7 @@ int main (int argc, char** argv)
     int rectangleType = 0;
     SMASH::Utilities::Position nwCorner(wLong, nLat);
     SMASH::Utilities::Position seCorner(eLong, sLat);
-    SMASH::Utilities::Region areaBoundaries(seCorner, nwCorner);
+    SMASH::Utilities::Region areaBoundaries(nwCorner, seCorner);
     string sourceRegionIdString = NUM_TO_STR(0);
     string topLeftLocation = areaBoundaries.topLeftCorner.toString();
     string botRightLocation = areaBoundaries.bottomRightCorner.toString();

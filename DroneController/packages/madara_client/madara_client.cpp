@@ -99,9 +99,6 @@ int main (int argc, char** argv)
 
     Madara::Knowledge_Engine::Eval_Settings eval_settings;
 
-    // TODO: move this into control loop
-    knowledge->evaluate("takeoff();");
-
     Madara::Knowledge_Engine::Compiled_Expression mainExpression = main_get_main_expression();
     while (!terminated)
     {

@@ -69,7 +69,7 @@ namespace SMASH
              **/
             std::string toString()
             {
-                return NUM_TO_STR(x) + std::string(",") + NUM_TO_STR(y);
+                return NUM_TO_STR(latitude) + std::string(",") + NUM_TO_STR(longitude);
             }
         };
 
