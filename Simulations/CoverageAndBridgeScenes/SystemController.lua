@@ -90,10 +90,25 @@ end
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function addDronesToSearchArea(numDrones, areaId)
 	local coverageAlgorithm = simGetScriptSimulationParameter(sim_handle_main_script, 'coverageAlgorithm')
+    
+    local droneIdsString = ''
+    local firstInList = true
     for currDroneIdx = 1, numDrones, 1 do
-        local currDroneId = currDroneIdx-1         -- Actual drone IDs start at 0, but Lua table indexes start at 1.       
-        simExtMadaraSystemControllerAreaCoverageRequest(currDroneId, areaId, coverageAlgorithm)        
+        local currDroneId = currDroneIdx-1         -- Actual drone IDs start at 0, but Lua table indexes start at 1.               
+        
+        -- Add a comma if appropriate, and concatenate with the next drone id.
+        if(firstInList) then
+            firstInList = false
+        else
+            droneIdsString = droneIdsString .. ','
+        end
+        droneIdsString = droneIdsString .. currDroneId
     end
+    simAddStatusbarMessage("Drone ids string: " .. droneIdsString)
+    
+    
+    -- Ask Madara to send the search request.
+    simExtMadaraSystemControllerAreaCoverageRequest(droneIdsString, areaId, coverageAlgorithm)        
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////

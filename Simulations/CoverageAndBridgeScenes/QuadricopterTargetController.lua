@@ -17,7 +17,7 @@ PERSON_FOUND_ERROR_MARGIN = 0.000008    -- This is roughly equivalent to 80 cm.
 TAKEOFF_ALTITUDE = 1.5
 
 -- Altitude to reach when landing.
-LAND_ALTITUDE = 0.0
+LAND_ALTITUDE = 0.5
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Method called when the simulation starts.

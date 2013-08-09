@@ -10,6 +10,10 @@
 #include "LuaExtensionsUtils.h"
 #include "v_repLib.h"
 
+#include <string>
+#include <sstream>
+#include <vector>
+
 using namespace SMASH::Utilities;
 
 // The controller used to manage the Madara stuff.
@@ -261,10 +265,25 @@ void registerMadaraSystemControllerSetupSearchAreaLuaCallback()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define the LUA function input parameters.
 static int g_areaCoverageRequestInArgs[] = {3, 
-                                    sim_lua_arg_int,                    // Drone ID.
+                                    sim_lua_arg_string,                 // Drone IDs, separated by a comma.
                                     sim_lua_arg_int,                    // Area ID.
                                     sim_lua_arg_string                  // Area coverage algorithm to implement.
                 };
+
+std::vector<std::string> &stringSplit(const std::string &s, char delim, std::vector<std::string> &elems) {
+    std::stringstream ss(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        elems.push_back(item);
+    }
+    return elems;
+}
+
+std::vector<std::string> stringSplit(const std::string &s, char delim) {
+    std::vector<std::string> elems;
+    stringSplit(s, delim, elems);
+    return elems;
+}
 
 // The actual callback function.
 void simExtMadaraSystemControllerAreaCoverageRequest(SLuaCallBack* p)
@@ -277,19 +296,34 @@ void simExtMadaraSystemControllerAreaCoverageRequest(SLuaCallBack* p)
     if(paramsOk)
     { 
         // Get the simple input values.
-        int droneId = p->inputInt[0];
-        int searchAreaId = p->inputInt[1];
-        std::string algorithm = p->inputChar;
+        int searchAreaId = p->inputInt[0];
+
+        // Get the values from the concatenated string with all of them.		
+		// First the concatenated list of drones.
+		std::string droneIdsString = p->inputChar;
+
+        // Now the algorithm.
+        std::string algorithm(p->inputChar+droneIdsString.length()+1);
 
         // For debugging, print out what we received.
         std::stringstream sstm; 
         sstm << "Values received inside simExtMadaraSystemControllerAreaCoverageRequest(" <<
-            "droneId = " << droneId << ", areaId= " << searchAreaId <<
+            "droneIds = " << droneIdsString << ", areaId= " << searchAreaId <<
             ", algorithm: \"" << algorithm << "\")" << std::endl;
         simAddStatusbarMessage(sstm.str().c_str());
 
+		// Parse the drone ids.
+		std::vector<std::string> droneIdParsedList = stringSplit(droneIdsString, ',');
+		
+		// Turn the drone ids into ints.
+		std::vector<int> droneIdList = std::vector<int>(droneIdParsedList.size());
+		for(unsigned int i=0; i<droneIdParsedList.size(); i++)
+		{
+			droneIdList[i] = atoi(droneIdParsedList[i].c_str());
+		}
+
         // Tell the controller to actually set this drone to search this area.
-        madaraController->requestAreaCoverage(droneId, searchAreaId, algorithm);
+        madaraController->requestAreaCoverage(droneIdList, searchAreaId, algorithm);
     }
 
     simLockInterface(0);
