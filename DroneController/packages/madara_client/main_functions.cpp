@@ -13,6 +13,7 @@
 #include "movement/movement_module.h"
 #include "sensors/sensors_module.h"
 #include "utilities/utilities_module.h"
+#include "human_detection/human_detection_module.h"
 
 #include "utilities/CommonMadaraVariables.h"
 #include "platforms/platform.h"
@@ -27,6 +28,7 @@ using namespace SMASH::Bridge;
 using namespace SMASH::Movement;
 using namespace SMASH::Sensors;
 using namespace SMASH::Utilities;
+using namespace SMASH::HumanDetection;
 
 // Compiled expressions that we expect to be called frequently
 static Madara::Knowledge_Engine::Compiled_Expression expressions [NUM_TASKS];
@@ -37,6 +39,7 @@ static BridgeModule m_bridgeModule;
 static MovementModule m_movementModule;
 static SensorsModule m_sensorsModule;
 static UtilitiesModule m_utilitiesModule;
+static HumanDetectionModule m_humanDetectionModule;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -155,10 +158,12 @@ void main_compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowle
     std::string bridgeMainLogicCall = m_bridgeModule.get_core_function();	
 	std::string movementMainLogicCall = m_movementModule.get_core_function();
     std::string sensorsMainLogicCall = m_sensorsModule.get_core_function();	
+  std::string humanDetectionMainLogicCall = m_humanDetectionModule.get_core_function();  
 
 	expressions[MAIN_LOGIC] = knowledge.compile
 	(
-		sensorsMainLogicCall + ";"
+		sensorsMainLogicCall + ";" +
+    bridgeMainLogicCall + ";"
 		"process_state ();"
 		"(.movement_command"
 		"||"

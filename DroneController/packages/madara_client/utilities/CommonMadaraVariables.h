@@ -56,6 +56,12 @@
 #define MS_SIM_CMD_SENT_ID                      ".sent_commmand_id"     // Suffix used to indicate the id of the last command sent, to resend for lost ones.
 #define MS_SIM_CMD_RCVD_ID                      ".received_command_id"  // Suffix used to indicate the id of the command received, to resend for lost ones.
 
+// Human detection information
+#define MV_HUMAN_DETECTION_REQUESTED(deviceId)  "device." + std::string(deviceId) + ".human_detection_requested"  // Tells if this device was tasked with human detection.
+#define MV_DETECTING_HUMAN(deviceId)            "device." + std::string(deviceId) + ".detecting_human"            // Tells if the device is already detecting human.
+#define HUMAN_DETECTION_BASIC                   "basic"                                                           // Selects BasicHumanDetection strategy.
+#define HUMAN_DETECTION_SLIDING_WINDOW          "sliding_window"                                                  // Selects SlidingWindowHumanDetection strategy.    
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Local preprocessed variables, filled in by other modules in each drone.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
