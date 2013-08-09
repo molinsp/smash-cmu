@@ -36,9 +36,9 @@ function checkForButtonPress()
     buttonHandle, eventDetails = simGetUIEventButton(commandsUIHandle)
     
     -- If the button handle is valid and the second event detail is 1, it means a button was pressed.
-    if(not (buttonHandle == -1) and (eventDetails[2] == 1)) then
+    if(not (buttonHandle == -1) and (eventDetails[2] == 0)) then
         local buttonLabel = simGetUIButtonLabel(commandsUIHandle, buttonHandle)
-        simAddStatusbarMessage('Button pressed! ' .. buttonLabel)
+        simAddStatusbarMessage('Button pressed and released! ' .. buttonLabel)
         
         -- If this button is pressed, we send a search request.
         if(buttonLabel == 'Start Search') then

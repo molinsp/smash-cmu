@@ -81,6 +81,7 @@ int main (int argc, char** argv)
 		"Position:\t{" MV_DEVICE_LAT("{.id}") "},{" MV_DEVICE_LON("{.id}") "}\n"
 		"Mobile:\t\t{" MV_MOBILE("{.id}") "}\n"
 		"Bridge ID:\t{" MV_BRIDGE_ID("{.id}") "}\n"
+        "Move to Br:\t{.bridge.moving_to_bridge}\n"
         "Search alg:\t{" MV_AREA_COVERAGE_REQUESTED("{.id}") "}\n"
 		"Target pos:\t{" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n"
         "Search end:\t{.area_coverage.cell.bottom_right.location.latitude},{.area_coverage.cell.bottom_right.location.longitude}\n\n"

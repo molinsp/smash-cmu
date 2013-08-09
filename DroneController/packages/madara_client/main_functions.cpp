@@ -51,11 +51,11 @@ void initializeModules(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 	m_utilitiesModule = UtilitiesModule();
 
 	// Initialize them.
+    m_utilitiesModule.initialize(knowledge);
     m_areaCoverageModule.initialize(knowledge);
     m_bridgeModule.initialize(knowledge);
     m_movementModule.initialize(knowledge);
     m_sensorsModule.initialize(knowledge);
-    m_utilitiesModule.initialize(knowledge);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -162,12 +162,13 @@ void main_compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowle
 	(
 		sensorsMainLogicCall + ";"
 		"process_state ();"
-		"(.movement_command"
-		"||"
-		//"(.needs_bridge =>" + SMASH::Bridge::Main_Function + ")"
-        "(" + bridgeMainLogicCall + " )"
-		"||"
-		"" + areaMainLogicCall + ");"
+		"("
+            ".movement_command"
+		    "||"
+            "(" + bridgeMainLogicCall + " )"
+	        "||"
+        	"(" + areaMainLogicCall + ")"
+        ");"
 		".movement_command => " + movementMainLogicCall + ";"
 	);
 

@@ -26,6 +26,7 @@ using namespace SMASH::Utilities;
 #define MF_UPDATE_AVAILABLE_DRONES	"bridge_updateAvailableDrones"				// Function that checks the amount and positions of drones ready for bridging.
 #define MF_FIND_POS_IN_BRIDGE		"bridge_findPositionInBridge"				// Function that finds and sets the position in the bridge for this drone, if any.
 #define MF_TURN_OFF_BRIDGE_REQUEST	"bridge_turnOffBridgeRequest"				// Function to turn off a bridge request locally.
+#define MF_BRIDGE_LOCATION_REACHED  "bridge_bridgeLocationReached"              // Function to check if the bridge location we are assigned to has been reached.
 
 // Internal variables.
 #define MV_AVAILABLE_DRONES_AMOUNT	".bridge.devices.available.total"			    // The amount of available drones.
@@ -34,6 +35,9 @@ using namespace SMASH::Utilities;
 #define MV_AVAILABLE_DRONES_LON	    ".bridge.devices.available.longitudes"		    // Array of the long part of the position of the drones indicated by MV_AVAILABLE_DRONES_IDS.
 #define MV_CURR_BRIDGE_ID	        ".bridge.curr_bridge_id"		                // Indicates the id of the bridge we are currently part of.
 #define MV_BRIDGE_CHECKED(bridgeId) ".bridge." + std::string(bridgeId) + ".checked" // Indicates that we already checked if we had to be part of this bridge.
+#define MV_MOVING_TO_BRIDGE         ".bridge.moving_to_bridge"                      // 1 if we are moving towards a bridge.
+#define MV_BRIDGE_LOC_LAT           ".bridge.location.latitude"
+#define MV_BRIDGE_LOC_LON           ".bridge.location.longitude"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private variables.
@@ -98,6 +102,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     // Assumes that MV_USER_BRIDGE_REQUEST_ON triggers the bridge building logic.
     knowledge.define_function(MF_MAIN_LOGIC, 
         "("
+            // Only used when there is a new bridge request.
             MV_BRIDGE_REQUESTED " => "
             "("
                 // We turn off the bridge request, but only locally.
@@ -106,7 +111,18 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                // If we are available and there are bridges to check, check if we can help.
                 "(" MV_MOBILE("{" MV_MY_ID "}") " && (!" MV_BUSY("{" MV_MY_ID "}") ") && (" MV_TOTAL_BRIDGES " > 0)" ")"
                     " => " MF_FIND_POS_IN_BRIDGE "();"
-            ")"
+            ");"
+            // Only used when we are in the process of moving towards a bridge.
+            MV_MOVING_TO_BRIDGE " => "
+            "("
+                ".test=1;"
+                // If we reached our bridge location, note that and land.
+                MF_BRIDGE_LOCATION_REACHED "() => " 
+                    "("
+                        MV_MOVING_TO_BRIDGE "= 0;"
+                        "(" MV_MOVEMENT_REQUESTED "='" MO_LAND_CMD "');"
+                    ")"
+            ");"
         ")"
     );
 
@@ -138,6 +154,14 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                 MV_AVAILABLE_DRONES_LON "{" MV_AVAILABLE_DRONES_AMOUNT "} = " MV_DEVICE_LON("{.i}") ";"
                 "++" MV_AVAILABLE_DRONES_AMOUNT ";"
             ");"
+        ");"
+    );
+
+    // Returns 1 if we are closer than MV_ACCURACY to the current target of our search.
+    knowledge.define_function(MF_BRIDGE_LOCATION_REACHED, 
+        "("
+            "(" MF_TARGET_REACHED "(" MV_DEVICE_LAT("{.id}") "," MV_DEVICE_LON("{.id}") "," 
+                                      MV_BRIDGE_LOC_LAT  "," MV_BRIDGE_LOC_LON  ")" ")"
         ");"
     );
 }
@@ -271,6 +295,13 @@ Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::F
 			variables.set(MV_MOVEMENT_TARGET_LON, myNewPosition->y,
 				Madara::Knowledge_Engine::Eval_Settings(true));
 			variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
+
+            // Locally store our destination.
+            variables.set(MV_BRIDGE_LOC_LAT, myNewPosition->x);
+			variables.set(MV_BRIDGE_LOC_LON, myNewPosition->y);
+
+            // Locally note that we are moving towards a bridge.
+            variables.set(MV_MOVING_TO_BRIDGE, 1.0);
 		}
 	}
 

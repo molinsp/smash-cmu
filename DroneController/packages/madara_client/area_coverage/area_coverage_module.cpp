@@ -16,8 +16,6 @@
 #include "RandomAreaCoverage.h"
 #include "InsideOutAreaCoverage.h"
 
-#include "sensors/platform_sensors.h"
-
 #include <vector>
 #include <map>
 #include <math.h>
@@ -28,7 +26,6 @@ using namespace SMASH::Utilities;
 using std::string;
 
 #define REACHED_ACCURACY_DEGREES        0.0000100   // Margin (in degrees) to use when checking if we have reached a location.
-#define REACHED_ACCURACY_METERS         0.5         // Margin (in meters) to use when checking if we have reached a location.
 #define ALTITUDE_DIFFERENCE             0.5         // The amount of vertical space (in meters) to leave between drones.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,7 +37,6 @@ using std::string;
 #define MF_CALC_AND_MOVE_TO_ALT         "area_coverage_calcAndMoveToAlt"            // Initializes the cell that we will be searching.
 #define MF_NEXT_TARGET_REACHED          "area_coverage_checkNextTargetReached"      // Checks if the current target has been reached.
 #define MF_FINAL_TARGET_REACHED         "area_coverage_checkFinalTargetReached"     // Checks if the final target has been reached.
-#define MF_TARGET_REACHED               "area_coverage_checkTargetReached"          // Checks if the current target has been reached.
 #define MF_ALTITUDE_REACHED             "area_coverage_checkAltitudeReached"        // Checks if the assigned altitude has been reached.
 #define MF_SET_NEW_TARGET               "area_coverage_setNewTarget"                // Sets the next target.
 #define MF_UPDATE_AVAILABLE_DRONES      "area_coverage_updateAvailableDrones"       // Function that checks the amount and positions of drones ready for covering.
@@ -85,8 +81,6 @@ static void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowled
 static Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Function_Arguments &args,
     Madara::Knowledge_Engine::Variables &variables);
 static Madara::Knowledge_Record madaraSetNewTarget (Madara::Knowledge_Engine::Function_Arguments &args,
-    Madara::Knowledge_Engine::Variables &variables);
-static Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::Function_Arguments &args,
     Madara::Knowledge_Engine::Variables &variables);
 static Madara::Knowledge_Record madaraReachedFinalTarget(Madara::Knowledge_Engine::Function_Arguments &args,
     Madara::Knowledge_Engine::Variables &variables);
@@ -138,6 +132,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     knowledge.define_function(MF_MAIN_LOGIC, 
         // If there is any string value for the requested area coverage (other than the default of 0), setup area coverage.
         "(" MV_AREA_COVERAGE_REQUESTED("{.id}") " => "
+            "(" MV_MOBILE("{" MV_MY_ID "}") " && (!" MV_BUSY("{" MV_MY_ID "}") ")) => "
             "("
                 "(" 
                     // Only do the following if the cell we will be searching in has alerady been set up.
@@ -162,7 +157,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                 ");"
             ")"
         ")"
-        );
+    );
 
     // Function to update the amound and positions of drones available for covering a specific area.
     knowledge.define_function(MF_UPDATE_AVAILABLE_DRONES, 
@@ -183,19 +178,11 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
             ");"
         );
 
-    // Returns 1 if we are closer than MV_ACCURACY to the current target of our search.
+    // Returns 1 if we are closer than the accuracy to the current target of our search.
     knowledge.define_function(MF_NEXT_TARGET_REACHED, 
         "("
-            "(" MF_TARGET_REACHED "(" MV_DEVICE_LAT("{.id}") "," MV_NEXT_TARGET_LAT "," MV_DEVICE_LON("{.id}") "," MV_NEXT_TARGET_LON ")" ")"
-        //"("
-        //    "((" MV_DEVICE_LAT("{.id}") " - " MV_NEXT_TARGET_LAT ") < " MV_ACCURACY ") && "
-        //    "((" MV_NEXT_TARGET_LAT " - " MV_DEVICE_LAT("{.id}") ") < " MV_ACCURACY ") "
-        //")"
-        //" && "
-        //"("
-        //    "((" MV_DEVICE_LON("{.id}") " - " MV_NEXT_TARGET_LON ") < " MV_ACCURACY ") && "
-        //    "((" MV_NEXT_TARGET_LON " - " MV_DEVICE_LON("{.id}") ") < " MV_ACCURACY ") "
-        //")"
+            "(" MF_TARGET_REACHED "(" MV_DEVICE_LAT("{.id}") "," MV_DEVICE_LON("{.id}") "," 
+                                      MV_NEXT_TARGET_LAT  "," MV_NEXT_TARGET_LON  ")" ")"
         ");"
         );
 
@@ -204,9 +191,6 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 
     // Sets the new coverage after reaching final target
     knowledge.define_function(MF_SET_NEW_COVERAGE, madaraSetNewCoverage);
-
-    // Returns 1 if we are closer than MV_ACCURACY to certain target location. 
-    knowledge.define_function(MF_TARGET_REACHED, madaraTargetReached);
 
     // Checks if a certain altitude has been reached.
     knowledge.define_function(MF_ALTITUDE_REACHED, madaraAltitudeReached);
@@ -230,39 +214,6 @@ void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     m_expressions[ACE_FIND_AVAILABLE_DRONES_POSITIONS] = knowledge.compile(
         MF_UPDATE_AVAILABLE_DRONES "();"
         );
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/**
-* Checks if we are within a certain accuracy of a target location.
-* @return  Returns true (1) if we are, or false (0) if not.
-**/
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::Function_Arguments &args,
-    Madara::Knowledge_Engine::Variables &variables)
-{
-    // All the params come from Madara.
-    double currLat = args[0].to_double();
-    double targetLat = args[1].to_double();
-    double currLon = args[2].to_double();
-    double targetLon = args[3].to_double();
-
-    printf("Lat:      %.10f Long:   %.10f Alt: %.2f\n", currLat, currLon, variables.get(MV_DEVICE_ALT("{.id}")).to_double());
-    printf("T_Lat:    %.10f T_Long: %.10f\n", targetLat, targetLon);
-
-    double dist = get_distance_to_gps(targetLat, targetLon);
-    printf("Distance: %.2f\n", dist);
-
-    if(dist < REACHED_ACCURACY_METERS)
-    {
-        printf("HAS reached target\n");
-        return Madara::Knowledge_Record(1.0);
-    }
-    else
-    {
-        printf("HAS NOT reached target\n");
-        return Madara::Knowledge_Record(0.0);
-    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
