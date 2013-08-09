@@ -34,6 +34,7 @@ InsideOutAreaCoverage::~InsideOutAreaCoverage() {}
 Region* InsideOutAreaCoverage::initialize(const Region& grid, int deviceIdx, 
     int numDrones)
 {
+    printf("Initializing inside out area coverage algorithm.\n");
     // trick to get initial heading correct
     switch(m_heading)
     {

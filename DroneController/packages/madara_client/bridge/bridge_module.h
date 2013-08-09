@@ -6,37 +6,29 @@
  *********************************************************************/
 
 /*********************************************************************
- * bridge_module.h - Declares an module to handle the Madara logic
- *   of building a bridge and finding the positions in it for drones.
- *
- * ASSUMPTIONS:
- * - Device IDs start from 0 and go up from there.
- * - Bridge IDs start from 0 and go up from there.
+ * bridge_module.h - Declares the module for bridge building.
  *********************************************************************/
 
 #ifndef _BRIDGE_MODULE_H
 #define _BRIDGE_MODULE_H
 
-#include "madara/knowledge_engine/Knowledge_Base.h"
-#include <map>
-#include <string>
+#include "module.h"
 
 namespace SMASH
 {
-    namespace Bridge
-    {
-        /**
-         * Sets the knowledge base and initalizes expressions and functions. Must be called once for the module.
-         * @param knowledge	Knowledge base object, used to define functions and compile expressions.
-         **/
-	    void initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
-
-	    /**
-         * Method used to get a string with the main call to the bridge funtionality.
-         * @return  A string that can be evaluted to call the logic to check and do bridge building.
-         **/
-	    std::string get_core_function();
-    }
+	namespace Bridge
+	{
+		/**
+		  * Class that implements the IModule interface for bridge building.
+		  */
+		class BridgeModule: public IModule
+		{
+		public:
+			virtual void initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
+			virtual void cleanup(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
+			virtual std::string get_core_function();
+		};
+	}
 }
 
 #endif

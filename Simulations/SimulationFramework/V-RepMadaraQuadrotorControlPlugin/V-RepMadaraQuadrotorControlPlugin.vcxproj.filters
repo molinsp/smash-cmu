@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\utilities_module">
-      <UniqueIdentifier>{f87d85cb-342f-49e5-ac87-58be96d30e7c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\vrep_headers">
       <UniqueIdentifier>{4048cbad-a57c-4e04-abde-955565c8f882}</UniqueIdentifier>
     </Filter>
@@ -33,6 +30,9 @@
     </Filter>
     <Filter Include="Header Files\vrep_plugin_headers">
       <UniqueIdentifier>{80765be3-9cc4-41ca-ab64-cfcad32f3eed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\platform-vrep">
+      <UniqueIdentifier>{f87d85cb-342f-49e5-ac87-58be96d30e7c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -65,6 +65,9 @@
     </ClInclude>
     <ClInclude Include="..\V-RepCommonPluginUtils\LuaExtensionsUtils.h">
       <Filter>Header Files\vrep_plugin_headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\platforms\v_rep\v-rep_madara_variables.h">
+      <Filter>Header Files\platform-vrep</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

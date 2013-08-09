@@ -13,6 +13,12 @@ TARGET_SPEED = 0.0000003    -- This is rougly equivalent to 3 cm.
 -- This margin (in degrees) indicates how close to a person we use to declare that we found it.
 PERSON_FOUND_ERROR_MARGIN = 0.000008    -- This is roughly equivalent to 80 cm.
 
+-- Altitude to reach when taking off.
+TAKEOFF_ALTITUDE = 0.5
+
+-- Altitude to reach when landing.
+LAND_ALTITUDE = 0.0
+
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Method called when the simulation starts.
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -33,14 +39,10 @@ function doInitialSetup()
     g_myTargetLon = 0
     g_myTargetLat = 0
     g_myAssignedAlt = g_minAltitude    
+	g_flying = false
     
     -- Setup the plugin to communicate to the network.
 	simExtMadaraQuadrotorControlSetup(g_myDroneId)   
-    
-    --local droneHandle = simGetObjectHandle('Quadricopter')
-    --local degreePosition = getObjectPositionInDegrees(droneHandle, -1)    
-    --simAddStatusbarMessage('Pos in degrees: ' .. degreePosition[1] .. ',' .. degreePosition[2] .. ',' .. degreePosition[3])    
-    --setObjectPositionFromDegrees(droneHandle, degreePosition)    
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -146,28 +148,23 @@ function simulateMovementCommands()
     -- We check if there is a new command.
     command, result1, result2, result3 = simExtMadaraQuadrotorControlGetNewCmd(g_myDroneId)    
     if(not (command == nil)) then
-        --simAddStatusbarMessage('Command: '..command)    
+        simAddStatusbarMessage('Command: '..command)    
+		
+		-- Handle Go To Altitude commands.
         local isGoToAltCmd = simExtMadaraQuadrotorControlIsGoToAltCmd(command) 
         if(isGoToAltCmd) then
             myNewAlt = result1
         
+			-- If there is no target position yet, set it to our current position (since the move function needs a target).
             if(g_myTargetPositionSetup == false) then
-                
-                -- Get the current position of the target.
-                local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
-                local droneTargetPosition = getObjectPositionInDegrees(droneTargetHandle, -1) 
-
-                -- If no position has been set up, set the current lat and long for the target.                
-                g_myTargetLon = droneTargetPosition[1]
-                g_myTargetLat = droneTargetPosition[2]
-                simAddStatusbarMessage("Target lat and long: " .. g_myTargetLon .. "," .. g_myTargetLat)
+                setTargetPositionToCurrentPosition()
             end
             
             -- We only set the altitude, keeping the previously set long and lat.
-            g_myTargetPositionSetup = true
             g_myAssignedAlt = tonumber(myNewAlt)            
         end          
         
+		-- Handle Go To GPS commands.
         local isGoToCmd = simExtMadaraQuadrotorControlIsGoToCmd(command) 
         if(isGoToCmd) then
             myNewLon = result1
@@ -185,12 +182,63 @@ function simulateMovementCommands()
             cartesianPoint = getXYpos(targetPoint)
             simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') In Lua, cartesian target position: ' ..cartesianPoint['x'] .. ',' .. cartesianPoint['y'])            
         end
+		
+		-- Handle Take Off commands.
+        local isTakeOffCmd = simExtMadaraQuadrotorControlIsTakeoffCmd(command) 
+        if(isTakeOffCmd) then
+			-- If we are flying, we ignore the takeoff command.
+			if(g_flying) then
+				simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Ignoring take off command since we are already flying.')  
+			end
+		
+			simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Taking off!')  
+			-- If there is no target position yet, set it to our current position (since the move function needs a target.
+            if(g_myTargetPositionSetup == false) then
+                setTargetPositionToCurrentPosition()
+            end
+            
+			-- Indicate that we are now flying, and set the altitude to the takeoff default.
+			g_myAssignedAlt = TAKEOFF_ALTITUDE
+			g_flying = true
+		end	
+
+		-- Handle Land commands.
+        local isLandCmd = simExtMadaraQuadrotorControlIsLandCmd(command) 
+        if(isLandCmd) then
+			-- If we are flying, we ignore the takeoff command.
+			if(not g_flying) then
+				simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Ignoring land command since we are already landed.')  
+			end
+		
+			simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Landing!')  
+            
+			-- Indicate that we are now flying, and set the altitude to the land default.
+			g_myAssignedAlt = LAND_ALTITUDE
+			g_flying = false
+		end			
     end
 	
     -- Move if required.	
     if(g_myTargetPositionSetup) then
         moveTargetTowardsPosition(g_myTargetLon, g_myTargetLat, g_myAssignedAlt)
     end    
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Sets the target position (lat and long) to the current position of the drone. Needed if there
+-- is no target position yet, but the drone has to move up.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function setTargetPositionToCurrentPosition()
+	-- Get the current position of the target.
+	local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
+	local droneTargetPosition = getObjectPositionInDegrees(droneTargetHandle, -1) 
+
+	-- Set the current lat and long for the target.                
+	g_myTargetLon = droneTargetPosition[1]
+	g_myTargetLat = droneTargetPosition[2]
+	simAddStatusbarMessage("Target lat and long: " .. g_myTargetLon .. "," .. g_myTargetLat)
+	
+	g_myTargetPositionSetup = true
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////

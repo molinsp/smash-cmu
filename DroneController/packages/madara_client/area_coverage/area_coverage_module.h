@@ -6,43 +6,29 @@
  *********************************************************************/
 
 /*********************************************************************
- * area_coverage_module.h - Declares an module to handle the Madara logic
- *   of covering a certain area.
+ * area_coverage_module.h - Declares the module for area coverage.
  *********************************************************************/
 
 #ifndef _AREA_COVERAGE_MODULE_H
 #define _AREA_COVERAGE_MODULE_H
 
-#include "madara/knowledge_engine/Knowledge_Base.h"
-#include <string>
+#include "module.h"
 
 namespace SMASH
 {
-  namespace AreaCoverage
-  {
-    /**
-     * Sets the knowledge base and initalizes expressions and functions. Must be called once for the module.
-     * @param knowledge	Knowledge base object, used to define functions and compile expressions.
-     **/
-	  void initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
-
-    /**
-     * Cleans up the coverage module
-     * @param knowledge	Knowledge base object used in area coverage
-     **/
-    void cleanup(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
-
-	  /**
-     * Method used to get a string with the main call to the area coverage funtionality.
-     * @return  A string that can be evaluted to call the logic to check and do area coverage.
-     **/
-	  std::string get_core_function();
-
-	  /**
-     * Method used to setup a search test environment in Madara.
-     **/
-    void setupSearchTest(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
-  }
+	namespace AreaCoverage
+	{
+		/**
+		  * Class that implements the IModule interface for area coverage.
+		  */
+		class AreaCoverageModule: public IModule
+		{
+		public:
+			virtual void initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
+			virtual void cleanup(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
+			virtual std::string get_core_function();
+		};
+	}
 }
 
 #endif

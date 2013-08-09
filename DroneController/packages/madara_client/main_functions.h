@@ -13,10 +13,10 @@
 #define _MAIN_FUNCTIONS_H
 
 #include "madara/knowledge_engine/Knowledge_Base.h"
-#include <string>
 
-//Setup of pre-compiled expressions
-void main_compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge);
+// Initialize and cleanup the program.
+bool initializeDroneController(int droneId, Madara::Knowledge_Engine::Knowledge_Base& knowledge);
+void cleanupDroneController(Madara::Knowledge_Engine::Knowledge_Base& knowledge);
 
 // Returns the main logic expression.
 Madara::Knowledge_Engine::Compiled_Expression main_get_main_expression();

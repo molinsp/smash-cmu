@@ -12,12 +12,7 @@
 #include "ace/High_Res_Timer.h"
 #include "ace/OS_NS_Thread.h"
 
-#include "area_coverage/area_coverage_module.h"
-#include "bridge/bridge_module.h"
-#include "movement/movement_module.h"
-#include "sensors/sensors_module.h"
 #include "utilities/CommonMadaraVariables.h"
-#include "utilities/utilities_module.h"
 #include "platforms/platform.h"
 
 #include "main_functions.h"
@@ -42,13 +37,8 @@ const string DEFAULT_MULTICAST_ADDRESS ("239.255.0.1:4150");
 // Used for updating various transport settings
 Madara::Transport::Settings g_settings;
 
-Madara::Knowledge_Record::Integer g_id;
-
-// NOTE: Hack to pass the knowledge base to the V-Rep simulation platform.
-extern Madara::Knowledge_Engine::Knowledge_Base* m_sim_knowledge;
-
-// Flag to indicate if we want to run an internal test configuration.
-bool g_setupTest;
+// The id of the drone.
+int g_id;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Enntry point.
@@ -64,40 +54,24 @@ int main (int argc, char** argv)
     g_settings.type = Madara::Transport::MULTICAST;
 
     // Handle arguments, if any (include recieving an external ID).
-    g_setupTest = false;
     handle_arguments (argc, argv);
-    g_settings.id = (int) g_id;
+    g_settings.id = g_id;
     
     // Create the knowledge base.
     Madara::Knowledge_Engine::Knowledge_Base knowledge (g_host, g_settings);
-    knowledge.set (".id", (Madara::Knowledge_Record::Integer) g_id);
-
-    // NOTE: Hack to pass the knowledge base to the V-Rep simulation platform.
-    m_sim_knowledge = &knowledge;
     
     //knowledge.log_to_file(string("madaralog" + NUM_TO_STR(g_id) + ".txt").c_str(), false);
     //knowledge.evaluate("#log_level(10)");
 
-    // Startup the modules.
-    init_platform();
-    SMASH::AreaCoverage::initialize(knowledge);
-    SMASH::Bridge::initialize(knowledge);
-    SMASH::Sensors::initialize(knowledge);
-    SMASH::Movement::initialize(knowledge);
-    SMASH::Utilities::initialize(knowledge);
+	// Initialize the platform.
+	init_platform();
 
-	// Setup a simple test since we are not inside actual drones.
-    if(g_setupTest)
-    {
-    	//SMASH::Bridge::setupBridgeTest(knowledge);    
-        SMASH::AreaCoverage::setupSearchTest(knowledge);
-    }
-
-    // Indicate we start moving and we are not busy.
-    knowledge.set(MV_MOBILE("{" MV_MY_ID "}"), 1.0, Madara::Knowledge_Engine::Eval_Settings(true));
-	knowledge.set(MV_BUSY("{" MV_MY_ID "}"), 0.0, Madara::Knowledge_Engine::Eval_Settings(true));
-
-    main_compile_expressions(knowledge);
+	// Startup the drone.
+	bool success = initializeDroneController(g_id, knowledge);
+	if(!success)
+	{
+		return 1;
+	}
 
     // Visual settings to show console output.
 	Madara::Knowledge_Engine::Eval_Settings eval_settings;
@@ -107,9 +81,10 @@ int main (int argc, char** argv)
 		"Position:\t{" MV_DEVICE_LAT("{.id}") "},{" MV_DEVICE_LON("{.id}") "}\n"
 		"Mobile:\t\t{" MV_MOBILE("{.id}") "}\n"
 		"Bridge ID:\t{" MV_BRIDGE_ID("{.id}") "}\n"
+        "Search alg:\t{" MV_AREA_COVERAGE_REQUESTED("{.id}") "}\n"
 		"Target pos:\t{" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n"
         "Search end:\t{.area_coverage.cell.bottom_right.location.latitude},{.area_coverage.cell.bottom_right.location.longitude}\n\n"
-		"Command:\t{" MV_MOVEMENT_REQUESTED "},{" MV_MOVEMENT_TARGET_ALT "}\n"
+		"Command:\t{" MV_MOVEMENT_REQUESTED "}: {" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n"
 		;
 
     // Until the user presses ctrl+c in this terminal, check for input.
@@ -122,8 +97,9 @@ int main (int argc, char** argv)
 
     knowledge.print_knowledge ();
 
-    knowledge.close_transport();
-    knowledge.clear();
+	cleanup_platform();
+
+	cleanupDroneController(knowledge);
 
     return 0;
 }
@@ -176,10 +152,6 @@ void handle_arguments (int argc, char ** argv)
 
         ++i;
     }
-    else if (arg1 == "-t" || arg1 == "--test")
-    {
-        g_setupTest = true;
-    }
     else
     {
         MADARA_DEBUG (MADARA_LOG_EMERGENCY, (LM_DEBUG,
@@ -191,7 +163,6 @@ void handle_arguments (int argc, char ** argv)
             " [-d|--domain domain]     the knowledge domain to send and listen to\n" \
             " [-i|--id id]             the id of this agent (should be non-negative)\n" \
             " [-l|--level level]       the logger level (0+, higher is higher detail)\n" \
-            " [-t|--test]              setup a test configuration of drones\n" \
             "\n",
             argv[0]));
         exit (0);

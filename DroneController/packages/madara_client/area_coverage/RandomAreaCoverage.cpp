@@ -27,11 +27,11 @@ using std::endl;
 // Constructors
 RandomAreaCoverage::RandomAreaCoverage(int seed) : AreaCoverage()
 {
-  // seed the random number generator
-  if(seed == -1)
-    srand((unsigned)time(NULL));
-  else
-    srand(seed);
+    // seed the random number generator
+    if(seed == -1)
+        srand((unsigned)time(NULL));
+    else
+        srand(seed);
 }
 
 // Destructor
@@ -48,11 +48,12 @@ bool RandomAreaCoverage::isTargetingFinalWaypoint()
 Region* RandomAreaCoverage::initialize(const Region& grid, int deviceIdx,
   int numDrones)
 {
-  if(numDrones == 1)
-    m_cellToSearch = new Region(grid);
-  else
-    m_cellToSearch = calculateCellToSearch(deviceIdx, grid, numDrones);
-  return m_cellToSearch;
+    printf("Initializing random area coverage algorithm.\n");
+    if(numDrones == 1)
+        m_cellToSearch = new Region(grid);
+    else
+        m_cellToSearch = calculateCellToSearch(deviceIdx, grid, numDrones);
+    return m_cellToSearch;
 }
 
 // Calculates the next location to move to, assuming we have reached our

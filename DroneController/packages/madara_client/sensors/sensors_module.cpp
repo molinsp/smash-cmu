@@ -105,7 +105,7 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
 	);
 }
 
-void SMASH::Sensors::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
+void SMASH::Sensors::SensorsModule::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
     printf("SMASH::Sensors::initialize...\n");
 	init_sensor_functions();
@@ -114,7 +114,12 @@ void SMASH::Sensors::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowle
 	compile_sensor_function_expressions(knowledge);
     printf("leaving SMASH::Sensors::initialize...\n");
 }
-std::string SMASH::Sensors::main_logic()
+
+void SMASH::Sensors::SensorsModule::cleanup(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
+{
+}
+
+std::string SMASH::Sensors::SensorsModule::get_core_function()
 {
 	return "read_sensors()";
 }

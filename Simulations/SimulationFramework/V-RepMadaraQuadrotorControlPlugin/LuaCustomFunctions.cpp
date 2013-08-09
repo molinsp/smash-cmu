@@ -8,8 +8,8 @@
 #include "MadaraQuadrotorControl.h"
 #include "LuaFunctionRegistration.h"
 #include "LuaExtensionsUtils.h"
-#include "utilities/CommonMadaraVariables.h"
 #include "utilities/Position.h"
+#include "platforms/v_rep/v-rep_madara_variables.h"
 
 #include <string>
 using std::string;
@@ -218,6 +218,17 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 			outputStrings[1] = alt;
 			setupStringOutputBuffer(p, outputStrings);
 		}
+        else if((strcmp(MO_TAKEOFF_CMD, newCommand->m_command.c_str()) == 0)  || (strcmp(MO_LAND_CMD, newCommand->m_command.c_str()) == 0))
+		{
+			// All commands will have at least the command name, though they may have different parameters.
+			p->outputArgTypeAndSize[0] = sim_lua_arg_string; // cmd
+
+			// Put the values in the char output buffer.
+			int numOutputs = 1;
+			std::vector<std::string> outputStrings(numOutputs);
+			outputStrings[0] = newCommand->m_command;
+			setupStringOutputBuffer(p, outputStrings);
+		}
 
 		// copy x, y, z coords
 		//p->outputFloat = (simFloat*) simCreateBuffer(3 * sizeof(simFloat));
@@ -316,7 +327,7 @@ void registerMadaraQuadrotorControlIsGoToAltCmdLuaCallback()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// isOffCmd.
+// isLandCmd.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // The actual callback function.
@@ -335,7 +346,7 @@ void registerMadaraQuadrotorControlIsLandCmdLuaCallback()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// isOnCmd
+// isTakeoffCmd
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // The actual callback function.
