@@ -14,7 +14,7 @@ TARGET_SPEED = 0.0000003    -- This is rougly equivalent to 3 cm.
 PERSON_FOUND_ERROR_MARGIN = 0.000008    -- This is roughly equivalent to 80 cm.
 
 -- Altitude to reach when taking off.
-TAKEOFF_ALTITUDE = 0.5
+TAKEOFF_ALTITUDE = 1.5
 
 -- Altitude to reach when landing.
 LAND_ALTITUDE = 0.0
@@ -250,7 +250,7 @@ function moveTargetTowardsPosition(newPositionLon, newPositionLat, newAltitude)
     local droneTargetPosition = getObjectPositionInDegrees(droneTargetHandle, -1)
     
     local speed = TARGET_SPEED
-    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Curr target position' .. droneTargetPosition[1] .. ',' .. droneTargetPosition[2]..':'..speed)
+    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Curr target position' .. droneTargetPosition[1] .. ',' .. droneTargetPosition[2]..':'..newAltitude)
     
     local deltaLon = newPositionLon - droneTargetPosition[1]
     local deltaLat = newPositionLat - droneTargetPosition[2]

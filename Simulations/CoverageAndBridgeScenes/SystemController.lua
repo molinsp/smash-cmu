@@ -26,7 +26,31 @@ function doInitialSetup()
     
     -- Array used to ensure that we automatically request a bridge for a certain person only once. Only useful to simplify the simulation.
     g_peopleFound = {}
+end
 
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Check for button presses.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function checkForButtonPress()
+    local commandsUIHandle = simGetUIHandle('commandsUI')
+    buttonHandle, eventDetails = simGetUIEventButton(commandsUIHandle)
+    
+    -- If the button handle is valid and the second event detail is 1, it means a button was pressed.
+    if(not (buttonHandle == -1) and (eventDetails[2] == 1)) then
+        local buttonLabel = simGetUIButtonLabel(commandsUIHandle, buttonHandle)
+        simAddStatusbarMessage('Button pressed! ' .. buttonLabel)
+        
+        -- If this button is pressed, we send a search request.
+        if(buttonLabel == 'Start Search') then
+            sendSearchRequest()
+        end
+    end
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Sets up the search area and the drones to be in it through the network.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function sendSearchRequest()
 	-- Setup the search area through the network.
 	setupSearchArea()
     
@@ -76,6 +100,9 @@ end
 -- Method called in each step of the simulation.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function runMainLogic()
+    -- Check for user input.
+    checkForButtonPress()
+
     -- NOTE: This is done here just for convinience of simulation. In reality, it would be issued by a rescuer at any moment, not when someone is found.        
     checkForBridgeRequest()
     
