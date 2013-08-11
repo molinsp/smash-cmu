@@ -165,6 +165,11 @@ void move_to_altitude(double alt)
     drk_goto_altitude(alt);
 }
 
+void spin()
+{
+  drk_gyro_goto_relative_heading(179);
+}
+
 bool cleanup_platform()
 {
     drk_hover(0);

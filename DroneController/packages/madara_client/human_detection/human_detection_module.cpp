@@ -13,6 +13,7 @@
 #include <map>
 #include <string>
 #include "utilities/CommonMadaraVariables.h"
+#include "movement/platform_movement.h"
 #include "human_detection_module.h"
 #include "HumanDetection.h"
 #include "BasicStrategy.h"
@@ -60,8 +61,12 @@ static Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Fun
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SMASH::HumanDetection::HumanDetectionModule::initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 {
+  printf("SMASH::HumanDetection::initialize...\n");
+ 
   // Defines internal and external functions.
   defineFunctions(knowledge);
+
+  printf("leaving SMASH::HumanDetection::initialize...\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,7 +150,9 @@ Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Function_A
   int result_map[8][8];
   int result;
 
-  result = m_humanDetectionAlgorithm->detect_human(result_map, NULL);
+  printf("About to call human detection function\n");
+
+  result = m_humanDetectionAlgorithm->detect_human(result_map, spin);
 
   if (result > 0)
     variables.set(MV_HUMAN_DETECTED("{.id}"), 1.0);  
