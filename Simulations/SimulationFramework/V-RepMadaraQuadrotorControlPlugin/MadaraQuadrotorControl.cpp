@@ -23,6 +23,9 @@ using std::string;
 // Constructor, sets up a Madara knowledge base and basic values.
 MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
 {
+	// Initializes this to one, as for now we have only one drone using this controller.
+	numDrones = 1;
+
     // Control id is derived from the droneId. But it has to be different to it to ensure different ids inside this domain.
     int transportId = droneId + 100;
 
@@ -36,7 +39,7 @@ MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
     // Setup the actual transport.
 #ifdef __linux
     // In Linux we can use the default Mulitcast transport.
-    settings.type = Madara::Transport::MULTICAST;
+    transportSettings.type = Madara::Transport::MULTICAST;
 #elif defined(WIN32)
     // In Windows we need to delay the transport launch to use a custom transport.
     transportSettings.delay_launch = true;
@@ -47,7 +50,7 @@ MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
 
     // Setup a log.
     m_knowledge->log_to_file("quadrotormadaralog.txt", true);
-    m_knowledge->evaluate("#log_level(1)");
+    m_knowledge->evaluate("#log_level(10)");
 
 #ifdef _WIN32
     // In Windows we need a custom transport to avoid crashes due to incompatibilities between Win V-Rep and ACE.
@@ -78,15 +81,32 @@ MadaraQuadrotorControl::~MadaraQuadrotorControl()
 }
 
 // Cleanup, terminating all threads and open communications.
-void MadaraQuadrotorControl::terminate()
+bool MadaraQuadrotorControl::terminate()
 {
     if(m_knowledge != NULL)
     {
-        m_knowledge->close_transport();
-        m_knowledge->clear();
-        delete m_knowledge;
-        m_knowledge = NULL;
+		if(numDrones <= 0)
+		{
+			MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+			  DLINFO "MadaraQuadrotorControl::terminate:" \
+			  "Terminating Madara knowledge base.\n"));
+
+			m_knowledge->close_transport();
+			m_knowledge->clear();
+			delete m_knowledge;
+			m_knowledge = NULL;
+		
+			return true;
+		}
+		else
+		{
+			MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+			  DLINFO "MadaraQuadrotorControl::terminate:" \
+			  "Not terminating knowledge base, controller still in use by other %d drones.\n", numDrones));
+		}
     }
+
+	return false;
 }
 
 void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const double& lat,
@@ -94,13 +114,16 @@ void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const double
 {
     // update the location of this drone (this would be done by its sensors).
     string droneIdString = std::to_string(static_cast<long long>(id));
-    m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_LATITUDE, (lat),
-        Madara::Knowledge_Engine::Eval_Settings(true));
-    m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_LONGITUDE, (lon),
-        Madara::Knowledge_Engine::Eval_Settings(true));
-    m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_ALTITUDE, (z));
+	if(m_knowledge != NULL)
+	{
+		m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_LATITUDE, (lat),
+			Madara::Knowledge_Engine::Eval_Settings(true));
+		m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_LONGITUDE, (lon),
+			Madara::Knowledge_Engine::Eval_Settings(true));
+		m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_ALTITUDE, (z));
 
-    m_knowledge->print_knowledge(1);
+		m_knowledge->print_knowledge(1);
+	}
 }
 
 // Updates the status of the drones in Madara.
