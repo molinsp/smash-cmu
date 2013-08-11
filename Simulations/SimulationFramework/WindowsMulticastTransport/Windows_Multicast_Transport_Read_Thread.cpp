@@ -29,6 +29,8 @@ Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread
     //mutex_ (), is_not_ready_ (mutex_), 
     is_ready_ (false)
 {
+    mc_ipaddr_ = NULL;
+
   _beginthreadex(NULL, 0, threadfunc, (void*)this, 0, 0);
 
   MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
@@ -68,10 +70,16 @@ Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread
         DLINFO "Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread:" \
         " Bind failed\n"));
     }
+
+    // Store the multicast address to use for future reference, when leaving group.
+    int ipBufferSize = strlen(mc_ipaddr) + 1;
+    mc_ipaddr_ = new char[ipBufferSize];
+    memset(mc_ipaddr_, 0, ipBufferSize);
+    strncpy(mc_ipaddr_, mc_ipaddr, ipBufferSize);
      
     // Use setsockopt() to request that the kernel join a multicast group.
     ip_mreq mreq;
-    mreq.imr_multiaddr.s_addr = inet_addr(mc_ipaddr);
+    mreq.imr_multiaddr.s_addr = inet_addr(mc_ipaddr_);
     mreq.imr_interface.s_addr = htonl(INADDR_ANY);
     if (setsockopt(socket_, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)  &mreq, sizeof(mreq)) < 0) 
     {
@@ -89,16 +97,28 @@ Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread
 
 Windows_Multicast_Transport_Read_Thread::~Windows_Multicast_Transport_Read_Thread ()
 {
-    // Use setsockopt() to request that the kernel leaves a multicast group.
-    const char * host = inet_ntoa(socketAddress_.sin_addr);
-    ip_mreq mreq;
-    mreq.imr_multiaddr.s_addr = inet_addr(host);
-    mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-    if (setsockopt(socket_, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)  &mreq, sizeof(mreq)) < 0) 
+    if(mc_ipaddr_ != NULL)
     {
-        MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-          DLINFO "Windows_Multicast_Transport_Read_Thread::close:" \
-          " Error unsubscribing to multicast address\n"));
+        // Use setsockopt() to request that the kernel leaves a multicast group.
+        ip_mreq mreq;
+        mreq.imr_multiaddr.s_addr = inet_addr(mc_ipaddr_);
+        mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+        if (setsockopt(socket_, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)  &mreq, sizeof(mreq)) < 0) 
+        {
+		    int errorCode =  WSAGetLastError ();
+            MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+              DLINFO "Windows_Multicast_Transport_Read_Thread::close:" \
+              " Error unsubscribing to multicast address %s: error code: %d\n", mc_ipaddr_, errorCode));
+        }
+        else
+        {
+		    int errorCode =  WSAGetLastError ();
+            MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+              DLINFO "Windows_Multicast_Transport_Read_Thread::close:" \
+              " Successfully unsubscribed from multicast address %s \n", mc_ipaddr_));
+        }
+
+        delete mc_ipaddr_;
     }
 
     closesocket (socket_);
