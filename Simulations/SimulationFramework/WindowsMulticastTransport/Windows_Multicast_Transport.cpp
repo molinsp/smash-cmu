@@ -154,11 +154,9 @@ Windows_Multicast_Transport::setup (void)
     //        ));
     //}
 
-    // Prepare address for broadcast comm.
+    // Prepare address for multicast comm.
     memset(&socketAddress_, 0, sizeof(socketAddress_));
     socketAddress_.sin_family       = AF_INET;
-    //socketAddress_.sin_port         = htons(mc_port*10 + ((settings_.id+1)%2));
-    //socketAddress_.sin_addr.s_addr  = htonl(0xffffffff);
     socketAddress_.sin_port         = htons(mc_port);
     socketAddress_.sin_addr.s_addr  = inet_addr(mc_ipaddr);
 
