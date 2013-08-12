@@ -10,6 +10,9 @@
 MIN_CELL_ID = 3
 MAX_CELL_ID = 102
 
+MAP_HEIGHT_IN_CELLS = 10
+MAP_WIDTH_IN_CELLS = 10
+
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Method called when the simulation starts.
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -17,6 +20,17 @@ function doInitialSetup()
     -- Get handles and parameters.
 	g_minimpUIHandle = simGetUIHandle('minimapUI')
 	g_numberOfDrones = simGetScriptSimulationParameter(sim_handle_main_script,'numberOfDrones')
+    
+    -- The map info.
+    local x1 = simGetScriptSimulationParameter(sim_handle_main_script, 'x1')
+    local y1 = simGetScriptSimulationParameter(sim_handle_main_script, 'y1')
+    local x2 = simGetScriptSimulationParameter(sim_handle_main_script, 'x2')
+    local y2 = simGetScriptSimulationParameter(sim_handle_main_script, 'y2') 
+    g_mapWidthInMeters = x2 - x1
+    g_mapHeightInMeters = y2 - y1
+    
+    g_mapOriginX = x1
+    g_mapOriginY = y1
 
     -- Reset the name suffix to its default, just in case.
 	local namesuffix = -1
@@ -118,7 +132,26 @@ end
 -- Turns a cartesian position into a cell number.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function positionToCell(position)
-    return math.abs(math.floor(math.abs(math.floor(position[2]))*10 + (8-position[1])*1.25)) + MIN_CELL_ID
+    local column = math.floor((position[1]-g_mapOriginX)*MAP_WIDTH_IN_CELLS/g_mapWidthInMeters)
+    local line = math.floor((position[2] - g_mapOriginY)*MAP_HEIGHT_IN_CELLS/g_mapHeightInMeters)
+
+    if(column < 0) then
+        column = 0
+    end
+    if(column > MAP_WIDTH_IN_CELLS - 1) then
+        column = MAP_WIDTH_IN_CELLS - 1
+    end
+
+    if(line < 0) then
+        line = 0
+    end
+    if(line > MAP_HEIGHT_IN_CELLS - 1) then
+        line = MAP_HEIGHT_IN_CELLS - 1
+    end
+    
+    local cell = (line)*10 + column + MIN_CELL_ID
+    return cell
+    --return math.abs(math.floor(math.abs(math.floor(position[2]))*10 + (8-position[1])*1.25)) + MIN_CELL_ID
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
