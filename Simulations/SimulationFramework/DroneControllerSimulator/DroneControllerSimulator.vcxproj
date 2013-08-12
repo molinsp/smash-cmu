@@ -82,12 +82,12 @@
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\SnakeAreaCoverage.cpp" />
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.cpp" />
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\bridge\bridge_module.cpp" />
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\madara_client.cpp" />
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\main_functions.cpp" />
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\movement\movement_module.cpp" />
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\platforms\v_rep\v-rep_control_functions.cpp" />
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\sensors\sensors_module.cpp" />
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\utilities\utilities_module.cpp" />
-    <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\area_coverage\AreaCoverage.h" />
@@ -101,6 +101,7 @@
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\module.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\movement\movement_module.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\movement\platform_movement.h" />
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\platforms\platform.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\platforms\v_rep\v-rep_madara_variables.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\sensors\platform_sensors.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\sensors\sensors_module.h" />

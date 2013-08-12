@@ -41,7 +41,7 @@ static UtilitiesModule m_utilitiesModule;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void initializeModules(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
+static void initializeModules(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
 	// Create the modules.
 	m_areaCoverageModule = AreaCoverageModule();
@@ -61,7 +61,7 @@ void initializeModules(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void cleanupModules(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
+static void cleanupModules(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
     m_areaCoverageModule.cleanup(knowledge);
     m_bridgeModule.cleanup(knowledge);
@@ -73,7 +73,7 @@ void cleanupModules(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Sets up basic drone variables.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void initializeDrone(int droneId, Madara::Knowledge_Engine::Knowledge_Base& knowledge)
+static void initializeDrone(int droneId, Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
     knowledge.set (".id", (Madara::Knowledge_Record::Integer) droneId);
     knowledge.set(MV_MOBILE("{" MV_MY_ID "}"), 1.0);
@@ -106,7 +106,7 @@ Madara::Knowledge_Engine::Compiled_Expression main_get_main_expression()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Setup of pre-compiled expressions.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void main_compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
+static void main_compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 {
 	expressions[PROCESS_STATE_MOVEMENT_COMMANDS] = knowledge.compile
 	(
@@ -177,16 +177,16 @@ void main_compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowle
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Calls all the required initialization procedures.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool initializeDroneController(int droneId, Madara::Knowledge_Engine::Knowledge_Base& knowledge)
+bool initializeDroneController(int droneId, Madara::Knowledge_Engine::Knowledge_Base* knowledge)
 {
     // Startup the modules.
-	initializeModules(knowledge);
+	initializeModules(*knowledge);
 
 	// Setup and start the drone.
-	initializeDrone(droneId, knowledge);
+	initializeDrone(droneId, *knowledge);
 
 	// Compile all expressions.
-    main_compile_expressions(knowledge);
+    main_compile_expressions(*knowledge);
 
 	return true;
 }
@@ -194,12 +194,12 @@ bool initializeDroneController(int droneId, Madara::Knowledge_Engine::Knowledge_
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Calls all the required cleanup procedures.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void cleanupDroneController(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
+void cleanupDroneController(Madara::Knowledge_Engine::Knowledge_Base* knowledge)
 {
 	// Cleanup all modules.
-	cleanupModules(knowledge);
+	cleanupModules(*knowledge);
 
 	// Cleanup Madara.
-	knowledge.close_transport();
-    knowledge.clear();
+	knowledge->close_transport();
+    knowledge->clear();
 }

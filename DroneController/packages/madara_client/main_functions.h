@@ -15,8 +15,8 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 
 // Initialize and cleanup the program.
-bool initializeDroneController(int droneId, Madara::Knowledge_Engine::Knowledge_Base& knowledge);
-void cleanupDroneController(Madara::Knowledge_Engine::Knowledge_Base& knowledge);
+bool initializeDroneController(int droneId, Madara::Knowledge_Engine::Knowledge_Base* knowledge);
+void cleanupDroneController(Madara::Knowledge_Engine::Knowledge_Base* knowledge);
 
 // Returns the main logic expression.
 Madara::Knowledge_Engine::Compiled_Expression main_get_main_expression();

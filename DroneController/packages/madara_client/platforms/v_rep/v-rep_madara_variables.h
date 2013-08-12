@@ -16,7 +16,7 @@
 #include <string>
 
 // Multicast IP group.
-const std::string DEFAULT_MULTICAST_ADDRESS ("239.255.0.2:4250");
+const std::string SIMULATED_HW_MULTICAST_ADDRESS ("239.255.0.2:4250");
 
 // Domain
 const std::string VREP_DOMAIN ("v_rep");

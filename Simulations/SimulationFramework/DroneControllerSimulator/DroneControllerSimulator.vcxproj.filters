@@ -57,9 +57,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\area_coverage_module.cpp">
       <Filter>Source Files\area_coverage_module</Filter>
     </ClCompile>
@@ -95,6 +92,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\main_functions.cpp">
       <Filter>Source Files\main_module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\madara_client.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -147,6 +147,9 @@
       <Filter>Header Files\utilities_module</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\platforms\v_rep\v-rep_madara_variables.h">
+      <Filter>Header Files\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\platforms\platform.h">
       <Filter>Header Files\platform</Filter>
     </ClInclude>
   </ItemGroup>

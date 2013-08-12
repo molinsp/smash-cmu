@@ -36,36 +36,87 @@ enum VRepMadaraExpressionId
 // Variables.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// NOTE: We are using a hack here, assuming that an external Main module will set this id.
-extern int g_id;
-
-// Map of Madara expressions.
+// Map of Madara expressions used when simulating the hardware.
 static std::map<VRepMadaraExpressionId, Madara::Knowledge_Engine::Compiled_Expression> m_expressions;
 
-// The knowledge base.
+// The knowledge base used to simulate the hardware.
 static Madara::Knowledge_Engine::Knowledge_Base*m_sim_knowledge;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Internal functions.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base* knowledge);
+static void setupInternalHardwareKnowledgeBase(int id);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Overrides: init_platform().
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool init_platform()
+bool platform_init()
+{
+    // The actual initialization is postponed until the setup_knowledge_base function is called,
+    // since only then the id is received.
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Overrides: setup_knowledge_base().
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
+{
+    // Setup the internal, totally separate knowledge base to be used as a proxy for the hardware.
+    setupInternalHardwareKnowledgeBase(id);
+
+    // Define the transport.
+    Madara::Transport::Settings g_settings;
+    g_settings.hosts_.resize (1);
+    g_settings.hosts_[0] = "239.255.0.1:4150";
+    g_settings.type = Madara::Transport::MULTICAST;
+
+    // Set the transport id as the given id.
+    g_settings.id = id;
+    
+    // Create the knowledge base.
+    std::string g_host ("");
+    Madara::Knowledge_Engine::Knowledge_Base* knowledge = new Madara::Knowledge_Engine::Knowledge_Base(g_host, g_settings);
+    
+    //knowledge.log_to_file(string("madaralog" + NUM_TO_STR(g_id) + ".txt").c_str(), false);
+    //knowledge.evaluate("#log_level(10)");
+
+    return knowledge;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Overrides: cleanup_platform().
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool platform_cleanup()
+{
+    m_sim_knowledge->print_knowledge();
+
+	// Cleanup the internal Madara platform.
+	m_sim_knowledge->close_transport();
+    m_sim_knowledge->clear();
+    delete m_sim_knowledge;
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Sets up a knowledge base that will be used as a proxy to send comands to simulated hardware, and to receive
+// sensed data from simulated sensors.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void setupInternalHardwareKnowledgeBase(int id)
 {
     // Used for updating various transport settings
     Madara::Transport::Settings transportSettings;
 
     // Define the transport.
     transportSettings.hosts_.resize (1);
-    transportSettings.hosts_[0] = DEFAULT_MULTICAST_ADDRESS;
+    transportSettings.hosts_[0] = SIMULATED_HW_MULTICAST_ADDRESS;
     transportSettings.type = Madara::Transport::MULTICAST;
     transportSettings.domains = VREP_DOMAIN;
 
     // Sets the id. NOTE: we are assuming that g_id will be setup externally by the code.
-    transportSettings.id = g_id;
+    transportSettings.id = id;
     
     // Create the knowledge base.
     std::string host = "";
@@ -85,22 +136,6 @@ bool init_platform()
                 Madara::Knowledge_Engine::Eval_Settings(true, true));
     m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{.id}" MS_SIM_CMD_RCVD_ID, (Madara::Knowledge_Record::Integer) 0,
                 Madara::Knowledge_Engine::Eval_Settings(true, true));
-	return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Overrides: cleanup_platform().
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool cleanup_platform()
-{
-    m_sim_knowledge->print_knowledge();
-
-	// Cleanup Madara.
-	m_sim_knowledge->close_transport();
-    m_sim_knowledge->clear();
-    delete m_sim_knowledge;
-
-    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
