@@ -23,7 +23,7 @@ using std::string;
 // The implementation to be used is included in the compilation depending on a flag.
 #include "platforms/platform.h"
 
-#include "main_functions.h"
+#include "drone_controller.h"
 
 #include <sstream>
 using std::stringstream;
@@ -72,11 +72,12 @@ int main (int argc, char** argv)
     // Create the knowledge base.
     Madara::Knowledge_Engine::Knowledge_Base* knowledge = platform_setup_knowledge_base(id);
  
-	// Setup everything else.
-	initializeDroneController(id, knowledge);
+	// Setup the drone controller.
+    SMASH::DroneController controller;
+    controller.initialize(id, knowledge);
 
 	// Main loop.
-    Madara::Knowledge_Engine::Compiled_Expression mainExpression = main_get_main_expression();
+    Madara::Knowledge_Engine::Compiled_Expression mainExpression = controller.get_main_expression();
     Madara::Knowledge_Engine::Eval_Settings eval_settings;
     while (!g_terminated)
     {
@@ -88,7 +89,7 @@ int main (int argc, char** argv)
     printf("\nExiting...\n");
     knowledge->print_knowledge ();
 
-	cleanupDroneController(knowledge);
+    controller.cleanup(knowledge);
 
 	platform_cleanup();
 
