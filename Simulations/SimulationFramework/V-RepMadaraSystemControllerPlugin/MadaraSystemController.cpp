@@ -47,7 +47,7 @@ MadaraController::MadaraController(int id, double commRange, double minAltitude)
 
     // Setup a log.
     m_knowledge->log_to_file("systemcontrolmadaralog.txt", true);
-    m_knowledge->evaluate("#log_level(10)");
+    m_knowledge->evaluate("#log_level(1)");
 
 #ifdef _WIN32
     // In Windows we need a custom transport to avoid crashes due to incompatibilities between Win V-Rep and ACE.

@@ -21,7 +21,7 @@
 // Conversion from degrees to radians.
 #define DEG_TO_RAD(x) (x)*M_PI/180.0
 
-#define REACHED_ACCURACY_METERS         0.5         // Margin (in meters) to use when checking if we have reached a location.
+#define REACHED_ACCURACY_METERS         0.2         // Margin (in meters) to use when checking if we have reached a location.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
