@@ -5,6 +5,64 @@
 --# https://code.google.com/p/smash-cmu/wiki/License
 --######################################################################
 
+-- This margin (in degrees) indicates how close to a person we use to declare that we found it.
+PERSON_FOUND_ERROR_MARGIN = 0.000005    -- This is roughly equivalent to 50 cm.
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Load the people's locations, so we are able to check when we find one.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function loadPeoplePositions()
+	g_numPeople = simGetScriptSimulationParameter(sim_handle_main_script, 'numberOfPeople')
+	g_personCoordsX = {}
+    g_personCoordsY = {}
+    
+	local counter = 1
+	for i=1, g_numPeople, 1 do
+		if(i==1) then
+			personHandle = simGetObjectHandle('Bill#')
+		else
+			personHandle = simGetObjectHandle('Bill#' .. (i-2))
+		end
+
+        local billposition = getObjectPositionInDegrees(personHandle, -1)
+		g_personCoordsX[i] = billposition[1]
+		g_personCoordsY[i] = billposition[2]
+		--simAddStatusbarMessage('Person ' .. counter .. ' : ' .. g_personCoords[counter] .. ', ' .. counter+1 .. ' : '..g_personCoords[counter+1])
+	end    
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Check if we have found a person to stop on top of it.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function lookForPersonBelow()
+    -- Get my drone position.
+    local droneName, dronePos = getDroneInfoFromSuffix(g_mySuffix)
+
+    -- Check if we found a person, to stop.
+    for i=1, g_numPeople, 1 do
+        if( isPersonBelow(dronePos, g_personCoordsX[i], g_personCoordsY[i])) then
+            -- Notify our shared memory that a person was found, and that I was the one to find it.
+            local sourceSuffix, sourceName = simGetNameSuffix(nil)
+            simSetScriptSimulationParameter(sim_handle_main_script, 'personFound', 'true')
+            simSetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound', sourceSuffix)
+            simSetScriptSimulationParameter(sim_handle_main_script, 'personFoundId', i)
+            simAddStatusbarMessage('Drone with suffix ' .. sourceSuffix .. ' is seeing person ' .. i .. '!')
+        end
+    end
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Check if we have found a person to stop on top of it.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function isPersonBelow(dronePos, personCoordX, personCoordY)
+    local margin = PERSON_FOUND_ERROR_MARGIN
+    if( (dronePos[1] >= personCoordX - margin) and (dronePos[1] <= personCoordX + margin) ) then
+        if((dronePos[2] >= personCoordY - margin) and (dronePos[2] <= personCoordY + margin)) then
+            return true
+        end
+    end
+end
+
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Returns the position of the sink as a table with x,y,z
 --/////////////////////////////////////////////////////////////////////////////////////////////

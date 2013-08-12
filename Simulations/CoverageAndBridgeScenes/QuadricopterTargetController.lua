@@ -10,9 +10,6 @@ require("Utils")
 -- The speed defines how far the target moves, and therefore how fast the drone will follow.
 TARGET_SPEED = 0.0000003    -- This is rougly equivalent to 3 cm.
 
--- This margin (in degrees) indicates how close to a person we use to declare that we found it.
-PERSON_FOUND_ERROR_MARGIN = 0.000008    -- This is roughly equivalent to 80 cm.
-
 -- Altitude to reach when taking off.
 TAKEOFF_ALTITUDE = 1.5
 
@@ -54,29 +51,6 @@ function doCleanup()
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
--- Load the people's locations, so we are able to check when we find one.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function loadPeoplePositions()
-	g_numPeople = simGetScriptSimulationParameter(sim_handle_main_script, 'numberOfPeople')
-	g_personCoords = {}
-    
-	local counter = 1
-	for i=1, g_numPeople, 1 do
-		if(i==1) then
-			personHandle = simGetObjectHandle('Bill#')
-		else
-			personHandle = simGetObjectHandle('Bill#' .. (i-2))
-		end
-
-        local billposition = getObjectPositionInDegrees(personHandle, -1)
-		g_personCoords[counter] = billposition[1]
-		g_personCoords[counter+1] = billposition[2]
-		--simAddStatusbarMessage('Person ' .. counter .. ' : ' .. g_personCoords[counter] .. ', ' .. counter+1 .. ' : '..g_personCoords[counter+1])
-		counter = counter + 2
-	end    
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
 -- Method called in each step of the simulation.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function runMainLogic()   
@@ -107,31 +81,6 @@ function updateDronePosition()
         --simAddStatusbarMessage('Sending pos ' ..tostring(dronePosition[1])..','.. tostring(dronePosition[2]))
 		simExtMadaraQuadrotorControlUpdateStatus(g_myDroneId, tostring(dronePosition[1]), tostring(dronePosition[2]), tostring(dronePosition[3]))
 	end
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
--- Check if we have found a person to stop on top of it.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function lookForPersonBelow()
-    -- Get my drone position.
-    local droneName, dronePos = getDroneInfoFromSuffix(g_mySuffix)
-
-    -- Check if we found a person, to stop.
-    local margin = PERSON_FOUND_ERROR_MARGIN
-    local counter = 1
-    for i=1, g_numPeople, 1 do
-        if( (dronePos[1] >= g_personCoords[counter] - margin) and (dronePos[1] <= g_personCoords[counter] + margin) ) then
-            if((dronePos[2] >= g_personCoords[counter + 1] - margin) and (dronePos[2] <= g_personCoords[counter + 1] + margin)) then
-                -- Notify our shared memory that a person was found, and that I was the one to find it.
-                local sourceSuffix, sourceName = simGetNameSuffix(nil)
-                simSetScriptSimulationParameter(sim_handle_main_script, 'personFound', 'true')
-                simSetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound', sourceSuffix)
-                simSetScriptSimulationParameter(sim_handle_main_script, 'personFoundId', i)
-                simAddStatusbarMessage('Drone with suffix ' .. sourceSuffix .. ' is seeing person ' .. i .. '!')
-            end
-        end
-        counter = counter + 2
-    end
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
