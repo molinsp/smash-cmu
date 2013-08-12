@@ -136,11 +136,12 @@ function checkForBridgeRequest()
         -- We only need a bridge request if this person had not been found before.
         if(g_peopleFound[personFoundId] == nil) then
             sendNewBridgeRequest = true
+            local sourceSuffix = simGetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound')
+            simAddStatusbarMessage('Drone with suffix ' .. sourceSuffix .. ' found person ' .. personFoundId .. '!')
         end
         
-        -- Mark this person as found and clean the 'person found' flag.
+        -- Mark this person as found.
         g_peopleFound[personFoundId] = true
-        simSetScriptSimulationParameter(sim_handle_main_script, 'personFoundId', -1)
     end
 
     -- Send a bridge request if necessary.

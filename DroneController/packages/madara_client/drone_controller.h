@@ -32,6 +32,9 @@ namespace SMASH
 
         // Returns the main logic expression.
         Madara::Knowledge_Engine::Compiled_Expression get_main_expression();
+
+        // Gets a string with a summary of the state of the drone.
+        std::string getStatusSummaryExpression();
     private:
         // The modules.
         SMASH::AreaCoverage::AreaCoverageModule m_areaCoverageModule;

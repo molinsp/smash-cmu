@@ -79,10 +79,11 @@ int main (int argc, char** argv)
 	// Main loop.
     Madara::Knowledge_Engine::Compiled_Expression mainExpression = controller.get_main_expression();
     Madara::Knowledge_Engine::Eval_Settings eval_settings;
+    eval_settings.pre_print_statement = controller.getStatusSummaryExpression();
     while (!g_terminated)
     {
         knowledge->evaluate (mainExpression, eval_settings);
-        knowledge->print_knowledge();
+        //knowledge->print_knowledge();
         ACE_OS::sleep (1);
     }
 

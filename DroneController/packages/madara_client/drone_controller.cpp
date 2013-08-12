@@ -54,6 +54,26 @@ void SMASH::DroneController::cleanup(Madara::Knowledge_Engine::Knowledge_Base* k
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Returns an expression used to get summary of the status of the drone.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string SMASH::DroneController::getStatusSummaryExpression()
+{
+    std::string status = 
+        "Drone {" MV_MY_ID "}\n"
+		"Total:\t\t{" MV_TOTAL_DEVICES "}\n"
+		"Position:\t{" MV_DEVICE_LAT("{.id}") "},{" MV_DEVICE_LON("{.id}") "}\n"
+		"Mobile:\t\t{" MV_MOBILE("{.id}") "}\n"
+		"Bridge ID:\t{" MV_BRIDGE_ID("{.id}") "}\n"
+        "Search alg:\t{" MV_AREA_COVERAGE_REQUESTED("{.id}") "}\n"
+		"Target pos:\t{" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n"
+        "Search end:\t{.area_coverage.cell.bottom_right.location.latitude},{.area_coverage.cell.bottom_right.location.longitude}\n\n"
+		"Command:\t{" MV_MOVEMENT_REQUESTED "}: {" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n"
+		;
+
+    return status;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Returns the main logic expression.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Engine::Compiled_Expression SMASH::DroneController::get_main_expression()
