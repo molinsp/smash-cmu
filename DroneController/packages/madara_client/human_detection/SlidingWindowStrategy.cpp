@@ -17,7 +17,7 @@
 
 using namespace SMASH::HumanDetection;
 
-int SlidingWindowStrategy::detect_human(int result_map[8][8], void (*on_human_detected)())
+int SlidingWindowStrategy::detect_human(int result_map[8][8], double curr_height, void (*on_human_detected)())
 {
   printf("SlidingWindowStrategy::detect_human");
 
@@ -76,7 +76,7 @@ int SlidingWindowStrategy::detect_human(int result_map[8][8], void (*on_human_de
 
           
         // Check if temperature falls in expected human range.    
-        if (check_if_human (buffer[row][col]))
+        if (check_if_human (buffer[row][col], curr_height))
         {
           // Human temperature detected so mark that location as "1" in result_map.
           result_map[row][col] = 1;

@@ -115,7 +115,7 @@ void read_thermal(double buffer[8][8])
   // Set prev frame number to current frame.
   prev_frame_number = frame_number;
   
-  printf("Done copying to thermal buffer with frame# %i\n", frame_number);
+  //printf("Done copying to thermal buffer with frame# %i\n", frame_number);
   
   // Print copied buffer.
   /*for (row = 0; row < 8; row++)

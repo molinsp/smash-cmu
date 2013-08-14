@@ -38,12 +38,13 @@ namespace SMASH
          * @param result_map        Integer array that will be filled by this method
          *                          with "1" in locations where humans were detected 
          *                          and "0" in location where there were no humans.   
+         * @param curr_height       Current height/altitude of the drone.
          * @param on_human_detected Callback function which will be invoked once human
          *                          is detected.
          *
          * @return                  Number of pixels with human temperature. 
          **/
-        virtual int detect_human (int[8][8], void (*on_human_detected)()); 
+        virtual int detect_human (int result_map[8][8], double curr_height, void (*on_human_detected)()); 
     };  
   }
 }

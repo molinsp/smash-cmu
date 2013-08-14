@@ -17,7 +17,7 @@
 
 using namespace SMASH::HumanDetection;
 
-int BasicStrategy::detect_human (int result_map[8][8], void (*on_human_detected)())
+int BasicStrategy::detect_human (int result_map[8][8], double curr_height, void (*on_human_detected)())
 {
   printf("BasicStrategy::detect_human\n");  
 
@@ -54,7 +54,7 @@ int BasicStrategy::detect_human (int result_map[8][8], void (*on_human_detected)
 
 
         // Check if temperature falls in expected human temperature range.
-        if (HumanDetection::check_if_human (buffer[row][col]))
+        if (HumanDetection::check_if_human (buffer[row][col], curr_height))
         {
           // Human temperature detected so mark that location as "1" in result_map.
           result_map[row][col] = 1;
@@ -127,8 +127,7 @@ void BasicStrategy::calculate_ambient_temp (double& min, double& max)
     // the range is not greater than 10.
      min = min + (max - min - 10);
 
-  // Print the final ambient temperature.
-  printf("Final ambient min: %6.2f\n", min);
-  printf("Final ambient max: %6.2f\n", max);
+  printf("Final Ambient Min: %6.2f \n", min);
+  printf("Final Ambient Max: %6.2f \n", max);
   printf("\n");  
 }

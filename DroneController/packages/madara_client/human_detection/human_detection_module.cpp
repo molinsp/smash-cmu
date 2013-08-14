@@ -55,6 +55,8 @@ static HumanDetection* m_humanDetectionAlgorithm;
 static void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
 static Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Function_Arguments &args,
                                                    Madara::Knowledge_Engine::Variables &variables);
+static void on_human_detected();
+static void calculateAmbientEnvironmentTemperature ();
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Initializer, gets the refence to the knowledge base and compiles expressions.
@@ -116,9 +118,9 @@ HumanDetection* selectHumanDetectionAlgorithm (string algo)
 {
   HumanDetection* humanDetectionAlgorithm = NULL;
 
-  if (algo == "HUMAN_DETECTION_BASIC")
+  if (algo == HUMAN_DETECTION_BASIC)
     humanDetectionAlgorithm = new BasicStrategy(); 
-  else if (algo == "HUMAN_DETECTION_SLIDING_WINDOW")
+  else if (algo == HUMAN_DETECTION_SLIDING_WINDOW)
     humanDetectionAlgorithm = new SlidingWindowStrategy();
   else
   {
@@ -132,6 +134,18 @@ HumanDetection* selectHumanDetectionAlgorithm (string algo)
   return humanDetectionAlgorithm;
 }
 
+void on_human_detected()
+{
+  printf("***************HUMAN DETECTED***************** \n");
+}
+
+void calculateAmbientEnvironmentTemperature()
+{
+
+}
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * Method that invokes the functionality of detecting human.
@@ -142,18 +156,23 @@ Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Function_A
                                             Madara::Knowledge_Engine::Variables &variables)
 {
   string algo = variables.get(MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}")).to_string();
+  double height = variables.get(MV_DEVICE_ALT("{" MV_MY_ID  "}")).to_double();
 
   m_humanDetectionAlgorithm = selectHumanDetectionAlgorithm(algo);
   
   int result_map[8][8];
   int result;
 
-  result = m_humanDetectionAlgorithm->detect_human(result_map, spin);
+  //TODO calculate ambient temperature
+  calculateAmbientEnvironmentTemperature();
+
+  result = m_humanDetectionAlgorithm->detect_human(result_map, height, on_human_detected);
 
   if (result > 0)
   {
-    printf("RESULT: %i \n", result);
-    variables.set(MV_HUMAN_DETECTED("{" MV_MY_ID "}"), 1.0);  
+    printf("RESULT: %i \n", result);      
   }
+  else
+    printf("No Human Detected \n");
   return Madara::Knowledge_Record(1.0);
 }
