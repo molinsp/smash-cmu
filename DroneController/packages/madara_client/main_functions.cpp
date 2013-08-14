@@ -52,6 +52,7 @@ void initializeModules(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 	m_movementModule = MovementModule();
 	m_sensorsModule = SensorsModule();
 	m_utilitiesModule = UtilitiesModule();
+  m_humanDetectionModule = HumanDetectionModule();
 
 	// Initialize them.
     m_areaCoverageModule.initialize(knowledge);
@@ -59,6 +60,7 @@ void initializeModules(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
     m_movementModule.initialize(knowledge);
     m_sensorsModule.initialize(knowledge);
     m_utilitiesModule.initialize(knowledge);
+    m_humanDetectionModule.initialize(knowledge);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,6 +73,7 @@ void cleanupModules(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
     m_movementModule.cleanup(knowledge);
     m_sensorsModule.cleanup(knowledge);
     m_utilitiesModule.cleanup(knowledge);
+    m_humanDetectionModule.cleanup(knowledge);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -163,7 +166,7 @@ void main_compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowle
 	expressions[MAIN_LOGIC] = knowledge.compile
 	(
 		sensorsMainLogicCall + ";" +
-    bridgeMainLogicCall + ";"
+    humanDetectionMainLogicCall + ";"
 		"process_state ();"
 		"(.movement_command"
 		"||"

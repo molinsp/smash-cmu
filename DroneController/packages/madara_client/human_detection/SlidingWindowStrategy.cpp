@@ -19,6 +19,8 @@ using namespace SMASH::HumanDetection;
 
 int SlidingWindowStrategy::detect_human(int result_map[8][8], void (*on_human_detected)())
 {
+  printf("SlidingWindowStrategy::detect_human");
+
   // Declare local variables.
   int human_count, debug_verbose;
 

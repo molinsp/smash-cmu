@@ -87,7 +87,7 @@ int main (int argc, char** argv)
 	// Setup everything else.
 	initializeDroneController(settings.id, *knowledge);
 
-  knowledge->set(MV_HUMAN_DETECTION_REQUESTED("{.id}"), 1.0);
+  knowledge->set(MV_HUMAN_DETECTION_REQUESTED("{.id}"), "HUMAN_DETECTION_BASIC");
 
 	// Main loop.
     Madara::Knowledge_Engine::Compiled_Expression mainExpression = main_get_main_expression();
@@ -97,6 +97,7 @@ int main (int argc, char** argv)
         knowledge->evaluate (mainExpression, eval_settings);
         knowledge->print_knowledge();
         ACE_OS::sleep (1);
+        printf("\n");
     }
 
     printf("\nExiting...\n");

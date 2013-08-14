@@ -44,7 +44,7 @@ namespace SMASH
          * @param min Minimum ambient temperature observed.
          * @param max Maximum ambient temperature observed.
          **/
-        void calculate_ambient_temp (int& min, int& max);
+        void calculate_ambient_temp (double& min, double& max);
     };  
   }
 }

@@ -58,7 +58,6 @@
 
 // Human detection information
 #define MV_HUMAN_DETECTION_REQUESTED(deviceId)  "device." + std::string(deviceId) + ".human_detection_requested"  // Tells if this device was tasked with human detection.
-#define MV_DETECTING_HUMAN(deviceId)            "device." + std::string(deviceId) + ".detecting_human"            // Tells if the device is already detecting human.
 #define MV_HUMAN_DETECTED(deviceId)             "device." + std::string(deviceId) + ".human_detected"             // Tells if the device has detected a human.
 #define HUMAN_DETECTION_BASIC                   "basic"                                                           // Selects BasicHumanDetection strategy.
 #define HUMAN_DETECTION_SLIDING_WINDOW          "sliding_window"                                                  // Selects SlidingWindowHumanDetection strategy.    

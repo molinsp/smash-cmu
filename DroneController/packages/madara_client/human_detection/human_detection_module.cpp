@@ -96,10 +96,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
   knowledge.define_function(MF_MAIN_LOGIC, 
     "(" MV_HUMAN_DETECTION_REQUESTED("{.id}") " => "
         "("
-            // If human detection requested, then check if currently performing human detection. If not
-            // performing human detection currently, then perform human detection.
-            "(!" MV_DETECTING_HUMAN("{" MV_MY_ID "}") ")"
-                " => " MF_DETECT_HUMAN "();"
+            MF_DETECT_HUMAN "();"
         ")"
     ")"
   );
@@ -119,16 +116,17 @@ HumanDetection* selectHumanDetectionAlgorithm (string algo)
 {
   HumanDetection* humanDetectionAlgorithm = NULL;
 
-  if (algo == HUMAN_DETECTION_BASIC)
+  if (algo == "HUMAN_DETECTION_BASIC")
     humanDetectionAlgorithm = new BasicStrategy(); 
-  else if (algo == HUMAN_DETECTION_SLIDING_WINDOW)
+  else if (algo == "HUMAN_DETECTION_SLIDING_WINDOW")
     humanDetectionAlgorithm = new SlidingWindowStrategy();
   else
   {
     string err = "selectHumanDetectionAlgorithm(algo = \"";
     err += algo;
-    err += "\") failed to find match\n";
+    err += "\") failed to find match. Using BasicStrategy as default.\n";
     printf("%s", err.c_str());
+    humanDetectionAlgorithm = new BasicStrategy();
   }
   
   return humanDetectionAlgorithm;
@@ -143,19 +141,19 @@ HumanDetection* selectHumanDetectionAlgorithm (string algo)
 Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Function_Arguments &args,
                                             Madara::Knowledge_Engine::Variables &variables)
 {
-  string algo = variables.get(MV_HUMAN_DETECTION_REQUESTED("{.id}")).to_string();
+  string algo = variables.get(MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}")).to_string();
 
   m_humanDetectionAlgorithm = selectHumanDetectionAlgorithm(algo);
   
   int result_map[8][8];
   int result;
 
-  printf("About to call human detection function\n");
-
   result = m_humanDetectionAlgorithm->detect_human(result_map, spin);
 
   if (result > 0)
-    variables.set(MV_HUMAN_DETECTED("{.id}"), 1.0);  
-
+  {
+    printf("RESULT: %i \n", result);
+    variables.set(MV_HUMAN_DETECTED("{" MV_MY_ID "}"), 1.0);  
+  }
   return Madara::Knowledge_Record(1.0);
 }

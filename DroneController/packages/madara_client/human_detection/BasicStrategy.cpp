@@ -19,8 +19,11 @@ using namespace SMASH::HumanDetection;
 
 int BasicStrategy::detect_human (int result_map[8][8], void (*on_human_detected)())
 {
+  printf("BasicStrategy::detect_human\n");  
+
   // Declare local variables.
-  int ambient_temp_min, ambient_temp_max, human_count, debug_verbose;
+  double ambient_temp_min, ambient_temp_max;
+  int human_count = 0, debug_verbose = 0;
   double buffer[8][8];
 
   // Check environment variable for verbose debugging and set flag appropriately.
@@ -28,11 +31,11 @@ int BasicStrategy::detect_human (int result_map[8][8], void (*on_human_detected)
     if (strcmp (getenv("DEBUG_VERBOSE"), "1") == 0)
       debug_verbose = 1;
 
-  // Get thermal data.
-  read_thermal (buffer);
-
   // Calculate ambient temperature range. 
   calculate_ambient_temp (ambient_temp_min, ambient_temp_max);
+  
+  // Get thermal data.
+  read_thermal (buffer);
 
   // Detect anomaly.
   for (int row = 0; row < 8; row++)
@@ -85,9 +88,15 @@ int BasicStrategy::detect_human (int result_map[8][8], void (*on_human_detected)
   return human_count;
 }
 
-void BasicStrategy::calculate_ambient_temp (int& min, int& max)
+void BasicStrategy::calculate_ambient_temp (double& min, double& max)
 {
+  printf("BasicStrategy::calculate_ambient_temp\n");  
+
   double buffer[8][8];
+
+  // Set min to a large number.
+  min = 2000;
+
   for (int i = 0; i < MAX_SAMPLE_SIZE; i++)
   {
     // Call to read thermal buffer.
@@ -98,9 +107,9 @@ void BasicStrategy::calculate_ambient_temp (int& min, int& max)
     {
       for (int col = 0; col < 8; col++)
       {
-        if (buffer[row][col] < min || min == 0)
+        if (buffer[row][col] < min)
           min = buffer[row][col];
-
+        
         if (buffer[row][col] > max)
           max = buffer[row][col];
       }
@@ -121,5 +130,5 @@ void BasicStrategy::calculate_ambient_temp (int& min, int& max)
   // Print the final ambient temperature.
   printf("Final ambient min: %6.2f\n", min);
   printf("Final ambient max: %6.2f\n", max);
-  
+  printf("\n");  
 }

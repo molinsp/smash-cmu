@@ -93,26 +93,38 @@ void move_backward()
 
 void read_thermal(double buffer[8][8])
 {
-	printf("In read_thermal()\n");
+	int row, col;
+  printf("ardrone_controller::read_thermal()\n");
+  
+  // While loop to make sure we have new frame.
   while (frame_number <= prev_frame_number)
   {
     sem_wait(serial_buf->semaphore);
-    memcpy(&buffer, &((serial_buf->grideye_buf).temperature), sizeof(buffer));
+    //memcpy(&buffer, &((serial_buf->grideye_buf).temperature), sizeof(buffer));
     frame_number = serial_buf->grideye_buf.index;
     sem_post(serial_buf->semaphore);
   }
-  prev_frame_number = frame_number;
-  printf("Done copying to thermal buffer\n");
-    
-  int x, y;
-  for (y = 0; y < 8; y++)
+  
+  // Copy serial buffer temperature info.
+  for (row = 0; row < 8; row++)
   {
-		for (x = 0; x < 8; x++)
-		{
-			printf("in loop %d, %d\n", x, y);
-			printf("%02f ", buffer[x][y]);
-		}
+    for (col = 0; col < 8; col++)
+	    buffer[row][col] = serial_buf->grideye_buf.temperature[row][col];
 	}
+  
+  // Set prev frame number to current frame.
+  prev_frame_number = frame_number;
+  
+  printf("Done copying to thermal buffer with frame# %i\n", frame_number);
+  
+  // Print copied buffer.
+  /*for (row = 0; row < 8; row++)
+  {
+		for (col = 0; col < 8; col++)
+			printf("%6.2f\t", buffer[row][col]);
+    printf("\n");
+	}
+  printf("\n\n");*/
 }
 
 void read_gps(struct madara_gps * ret)
