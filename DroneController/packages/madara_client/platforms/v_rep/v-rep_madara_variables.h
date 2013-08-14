@@ -21,6 +21,9 @@ const std::string SIMULATED_HW_MULTICAST_ADDRESS ("239.255.0.2:4250");
 // Domain
 const std::string VREP_DOMAIN ("v_rep");
 
+// My id.
+#define MV_MY_ID ".id"
+
 // For simulation purposes.
 #define MS_SIM_PREFIX           "sim"                   // Prefix used to disseminate local device variables for simulator.
 #define MS_SIM_DEVICES_PREFIX   "sim.device."           // Prefix used to disseminate local device variables for simulator.
@@ -37,9 +40,12 @@ const std::string VREP_DOMAIN ("v_rep");
 #define MO_LAND_CMD             "land"                  // Command used to tell drone to land at current location
 #define MO_TAKEOFF_CMD          "takeoff"               // Command used to tell drone to takeoff
 
-// Sensor variables.
+// Sensor variables - location.
 #define MV_LATITUDE             ".location.latitude"    // Latitude.
 #define MV_LONGITUDE            ".location.longitude"   // Longitude.
 #define MV_ALTITUDE             ".location.altitude"    // Altitude.
+
+// Sensor variables - thermal.
+#define MV_THERMAL(i,j)         ".thermal.buffer." + std::string(i) + "." + std::string(j)   // 
 
 #endif

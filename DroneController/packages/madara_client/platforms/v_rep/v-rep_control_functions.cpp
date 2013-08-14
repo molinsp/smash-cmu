@@ -5,10 +5,6 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
-#pragma once
-
-#ifdef V_REP
-
 #include "platforms/platform.h"
 #include "movement/platform_movement.h"
 #include "sensors/platform_sensors.h"
@@ -16,10 +12,14 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 
 #include "v-rep_madara_variables.h"
+#include "utilities/Position.h"
 
 #include <string>
 #include <cmath>
 #include <map>
+
+#define THERMAL_BUFFER_HEIGHT 8
+#define THERMAL_BUFFER_WIDTH 8
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Macros, constants and enums.
@@ -132,9 +132,9 @@ static void setupInternalHardwareKnowledgeBase(int id)
     // NOTE: this is currently not being used for anything other than debugging. It could be used to fix a bug where
     // commands some times do not get sent for some reason to the Madara base in VRep, by checking if no "acks" have
     // beeen recieved from VRep.
-    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{.id}" MS_SIM_CMD_SENT_ID, (Madara::Knowledge_Record::Integer) 0,
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MS_SIM_CMD_SENT_ID, (Madara::Knowledge_Record::Integer) 0,
                 Madara::Knowledge_Engine::Eval_Settings(true, true));
-    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{.id}" MS_SIM_CMD_RCVD_ID, (Madara::Knowledge_Record::Integer) 0,
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MS_SIM_CMD_RCVD_ID, (Madara::Knowledge_Record::Integer) 0,
                 Madara::Knowledge_Engine::Eval_Settings(true, true));
 }
 
@@ -147,7 +147,7 @@ void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base* knowledge)
     m_expressions[VE_UPDATE_COMMAND_ID] = knowledge->compile(
         "("
 			// Send the command id after increasing it. We first increase it so the first id sent is 1.
-			"++" MS_SIM_DEVICES_PREFIX "{.id}" MS_SIM_CMD_SENT_ID";"
+			"++" MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MS_SIM_CMD_SENT_ID";"
         ")"
     );
 }
@@ -170,7 +170,7 @@ bool init_control_functions()
 void takeoff()
 {
     // Send the command.
-    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_REQUESTED, MO_TAKEOFF_CMD);
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_MOVEMENT_REQUESTED, MO_TAKEOFF_CMD);
 
     // Update the command id.
     m_sim_knowledge->evaluate(m_expressions[VE_UPDATE_COMMAND_ID]);
@@ -181,7 +181,7 @@ void takeoff()
 void land()
 {
     // Send the command.
-    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_REQUESTED, MO_LAND_CMD);
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_MOVEMENT_REQUESTED, MO_LAND_CMD);
 
     // Update the command id.
     m_sim_knowledge->evaluate(m_expressions[VE_UPDATE_COMMAND_ID]);
@@ -242,11 +242,11 @@ void move_to_location(double lat, double lon, double alt)
 {
     // Set the arguments for this command. Note that we are intentionally ignoring altitude, as the 
     // simulation is doing that as of now.
-    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_CMD_ARG("0"), lat);
-    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_CMD_ARG("1"), lon);
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_MOVEMENT_CMD_ARG("0"), lat);
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_MOVEMENT_CMD_ARG("1"), lon);
 
     // Send the command.
-    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_REQUESTED, MO_MOVE_TO_GPS_CMD);
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_MOVEMENT_REQUESTED, MO_MOVE_TO_GPS_CMD);
 
     // Update the command id.
     m_sim_knowledge->evaluate(m_expressions[VE_UPDATE_COMMAND_ID]);
@@ -259,10 +259,10 @@ void move_to_altitude(double alt)
 {
     // Set the arguments for this command. Note that we are intentionally ignoring altitude, as the 
     // simulation is doing that as of now.
-    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_CMD_ARG("0"), alt);
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_MOVEMENT_CMD_ARG("0"), alt);
 
     // Send the command.
-    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_REQUESTED, MO_MOVE_TO_ALTITUDE_CMD);
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_MOVEMENT_REQUESTED, MO_MOVE_TO_ALTITUDE_CMD);
 
     // Update the command id.
     m_sim_knowledge->evaluate(m_expressions[VE_UPDATE_COMMAND_ID]);
@@ -288,11 +288,24 @@ bool init_sensor_functions()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+// Loads information from the Madara thermal variables into the buffer given as a parameter.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void read_thermal(double buffer[8][8])
 {
+    // Loop over all Madara variables with the buffer.
+    for(int i=0; i < THERMAL_BUFFER_WIDTH; i++)
+    {
+        for(int j=0; j < THERMAL_BUFFER_WIDTH; j++)
+        {
+            // First we get the column and line numbers into string.
+            std::string textCol = NUM_TO_STR(i);
+            std::string textLine = NUM_TO_STR(j);
 
+            // Then we get the value for this cell from the knowledge base, and pass it on to the buffer.
+            double currThermalValue = (m_sim_knowledge->get(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_THERMAL(textCol, textLine))).to_double();
+            buffer[i][j] = currThermalValue;
+        }
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -301,9 +314,9 @@ void read_thermal(double buffer[8][8])
 void read_gps(struct madara_gps * ret)
 {
     // Get the latitude and longitude that the simulator set for this drone, in variables with the sim prefix.
-    double latitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_DEVICES_PREFIX "{.id}" MV_LATITUDE)).to_double();
-    double longitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_DEVICES_PREFIX "{.id}" MV_LONGITUDE)).to_double();
-	double altitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_DEVICES_PREFIX "{.id}" MV_ALTITUDE)).to_double();
+    double latitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_LATITUDE)).to_double();
+    double longitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_LONGITUDE)).to_double();
+	double altitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_ALTITUDE)).to_double();
 
     //std::cout << "Lat " << latitude << ", Long " << longitude << " from: " << std::string(MS_SIM_PREFIX MV_DEVICE_LAT("{"MV_MY_ID"}")) << std::endl;
     //m_sim_knowledge->print_knowledge();
@@ -320,7 +333,6 @@ void read_gps(struct madara_gps * ret)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 double read_ultrasound()
 {
-    return m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_DEVICES_PREFIX "{.id}" MV_ALTITUDE)).to_double();
+    double currHeight = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_ALTITUDE)).to_double();
+    return currHeight;
 }
-
-#endif
