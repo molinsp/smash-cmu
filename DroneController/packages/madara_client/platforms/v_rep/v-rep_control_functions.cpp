@@ -18,9 +18,6 @@
 #include <cmath>
 #include <map>
 
-#define THERMAL_BUFFER_HEIGHT 8
-#define THERMAL_BUFFER_WIDTH 8
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Macros, constants and enums.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -293,16 +290,16 @@ bool init_sensor_functions()
 void read_thermal(double buffer[8][8])
 {
     // Loop over all Madara variables with the buffer.
-    for(int i=0; i < THERMAL_BUFFER_WIDTH; i++)
+    for(int i=0; i < THERMAL_BUFFER_HEIGHT; i++)
     {
         for(int j=0; j < THERMAL_BUFFER_WIDTH; j++)
         {
             // First we get the column and line numbers into string.
-            std::string textCol = NUM_TO_STR(i);
-            std::string textLine = NUM_TO_STR(j);
+            std::string textLine = NUM_TO_STR(i);
+            std::string textCol = NUM_TO_STR(j);
 
             // Then we get the value for this cell from the knowledge base, and pass it on to the buffer.
-            double currThermalValue = (m_sim_knowledge->get(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_THERMAL(textCol, textLine))).to_double();
+            double currThermalValue = (m_sim_knowledge->get(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_THERMAL(textLine, textCol))).to_double();
             buffer[i][j] = currThermalValue;
         }
     }

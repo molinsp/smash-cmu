@@ -21,6 +21,10 @@ const std::string SIMULATED_HW_MULTICAST_ADDRESS ("239.255.0.2:4250");
 // Domain
 const std::string VREP_DOMAIN ("v_rep");
 
+// Buffer size used for thermal sensing.
+#define THERMAL_BUFFER_HEIGHT 8
+#define THERMAL_BUFFER_WIDTH 8
+
 // My id.
 #define MV_MY_ID ".id"
 

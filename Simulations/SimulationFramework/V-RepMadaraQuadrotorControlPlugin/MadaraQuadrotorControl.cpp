@@ -6,7 +6,6 @@
 *********************************************************************/
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include "MadaraQuadrotorControl.h"
-#include "platforms/v_rep/v-rep_madara_variables.h"
 #include "utilities/Position.h"
 
 #include <vector>
@@ -20,7 +19,9 @@ using std::string;
 #include "Windows_Multicast_Transport.h"
 #endif
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constructor, sets up a Madara knowledge base and basic values.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
 {
 	// Initializes this to one, as for now we have only one drone using this controller.
@@ -32,7 +33,7 @@ MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
     // Define the transport settings.
     Madara::Transport::Settings transportSettings;
     transportSettings.hosts_.resize(1);
-    transportSettings.hosts_[0] = DEFAULT_MULTICAST_ADDRESS;
+    transportSettings.hosts_[0] = SIMULATED_HW_MULTICAST_ADDRESS;
     transportSettings.id = transportId;
     transportSettings.domains = VREP_DOMAIN;
 
@@ -60,7 +61,9 @@ MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
 
 }
 
-// Initializes Madara variables for the drone.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Initializes Madara variables for communicating with the drone platform.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MadaraQuadrotorControl::initInternalData(int droneId)
 {
     // Initialize the internal command variable so that we start with no commands.
@@ -74,19 +77,32 @@ void MadaraQuadrotorControl::initInternalData(int droneId)
                 Madara::Knowledge_Engine::Eval_Settings(true, true));
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Destructor, simply cleans up.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 MadaraQuadrotorControl::~MadaraQuadrotorControl()
 {    
     terminate();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Cleanup, terminating all threads and open communications.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool MadaraQuadrotorControl::terminate()
 {
     if(m_knowledge != NULL)
     {
-		if(numDrones <= 0)
+        bool otherDronesStillUsingPlugin = numDrones > 0;
+		if(otherDronesStillUsingPlugin)
 		{
+            // If there are other simulated drones still using the plugin, we won't terminate and cleanup yet.
+			MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+			  DLINFO "MadaraQuadrotorControl::terminate:" \
+			  "Not terminating knowledge base, controller still in use by other %d drones.\n", numDrones));
+		}
+		else
+		{
+            // If there are no more drones using the plugin, we cleanup the knowledge base.
 			MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
 			  DLINFO "MadaraQuadrotorControl::terminate:" \
 			  "Terminating Madara knowledge base.\n"));
@@ -98,17 +114,15 @@ bool MadaraQuadrotorControl::terminate()
 		
 			return true;
 		}
-		else
-		{
-			MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-			  DLINFO "MadaraQuadrotorControl::terminate:" \
-			  "Not terminating knowledge base, controller still in use by other %d drones.\n", numDrones));
-		}
     }
 
+    // We didn't really do any cleanup if we got here.
 	return false;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const double& lat,
     const double& lon, const double& z) // need to update for altitude
 {
@@ -126,14 +140,18 @@ void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const double
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Updates the status of the drones in Madara.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MadaraQuadrotorControl::updateQuadrotorStatus(const Status& s)
 {
     // Need to update for altitude.
     updateQuadrotorPosition(s.m_id, s.m_loc.m_lat, s.m_loc.m_long, s.m_loc.m_alt);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Gets a target position where a drone should move to.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(int droneId)
 {
     string droneIdString = std::to_string(static_cast<long long>(droneId));
@@ -183,9 +201,39 @@ MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(int drone
     return command;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Set the command as 0 locally, to indicate that we already read it.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MadaraQuadrotorControl::clearCommand(std::string droneIdString)
 {
-    // Set the command as 0 locally, to indicate that we already read it.
     m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_REQUESTED, "0",
         Madara::Knowledge_Engine::Eval_Settings(true, true));
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MadaraQuadrotorControl::setNewThermalScan(int droneId, double thermalBuffer[THERMAL_BUFFER_HEIGHT][THERMAL_BUFFER_WIDTH])
+{
+    string droneIdString = std::to_string(static_cast<long long>(droneId));
+	if(m_knowledge != NULL)
+	{
+        // Loop over all Madara variables with the buffer.
+        for(int i=0; i < THERMAL_BUFFER_HEIGHT; i++)
+        {
+            for(int j=0; j < THERMAL_BUFFER_WIDTH; j++)
+            {
+                // Get the current value.
+                double currThermalValue = thermalBuffer[i][j];
+
+                // Turn the column and line numbers into string.
+                std::string textLine = NUM_TO_STR(i);
+                std::string textCol = NUM_TO_STR(j);
+
+                // Then we get the value for this cell from the knowledge base, and pass it on to the buffer.
+                m_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_THERMAL(textLine, textCol));
+            }
+        }
+	}
 }
