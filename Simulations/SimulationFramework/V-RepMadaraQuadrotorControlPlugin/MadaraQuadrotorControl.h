@@ -37,6 +37,11 @@ private:
     */
     void clearCommand(std::string droneIdString);
 
+	/**
+	 * Stores the amount of drones that are using this controller, for correct deinitialization.
+	 */
+	int numDrones;
+
 public:
     /**
     * stores id and current location on quadrotor
@@ -67,14 +72,25 @@ public:
     ~MadaraQuadrotorControl();
 
     /**
+    * Increments the number of drones using this controller, for destruction purposes.
+    */
+	void incrementNumDrones() { numDrones++; };
+
+    /**
+    * Decrements the number of drones using this controller, for destruction purposes.
+    */
+	void decrementNumDrones() { numDrones--; };
+
+    /**
     * Initialize the drone variables.
     */
     void initInternalData(int droneId);
 
     /**
-    * clean up the object
+    * Clean up the object. True if it cleaned it up, false if it was not possible due to other
+	* drones still referencing it.
     */
-    void terminate();
+    bool terminate();
 
     /**
     * update status in the knowledge base

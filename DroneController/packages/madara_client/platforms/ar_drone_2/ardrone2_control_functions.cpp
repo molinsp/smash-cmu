@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 
+#include "transport/DroneRK_Transport.h"
 #include "drk.h"
 
 #include "platforms/platform.h"
@@ -22,7 +23,7 @@ int prev_frame_number;
 
 double thermal_data[8][8];
 
-bool init_platform()
+bool platform_init()
 {
 	if (!drk_init_status)
 	{
@@ -30,6 +31,35 @@ bool init_platform()
 		drk_init_status = true;
 	}
 	return drk_init_status;
+}
+
+Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
+{
+    // should move this to init_platform
+    Madara::Transport::Settings settings;
+    settings.id = id;
+    settings.hosts_.resize (1);
+    settings.hosts_[0] = "192.168.1.255:15000";
+    settings.type = Madara::Transport::BROADCAST;
+    //settings.type = Madara::Transport::NO_TRANSPORT;
+    settings.queue_length = 1024; //Smaller queue len to preserve memory
+
+    // Name the host based on the drone id.
+    char host[30];
+    sprintf(host, "drone%d", id);
+
+    // Create the knowledge base.
+    Madara::Knowledge_Engine::Knowledge_Base* knowledge = new Madara::Knowledge_Engine::Knowledge_Base(host, settings);
+
+    //knowledge->attach_transport(new DroneRK_Transport(out.str(),
+    //knowledge->get_context(), settings, true, 500));
+}
+
+bool platform_cleanup()
+{
+    drk_hover(0);
+    drk_land();
+    drk_exit(EXIT_SUCCESS);
 }
 
 bool init_sensor_functions()
@@ -175,11 +205,6 @@ void move_to_altitude(double alt)
 {
 	printf("In platform move_to_altitude(%02f)\n", alt);
     drk_goto_altitude(alt);
-}
-
-void spin()
-{
-  drk_gyro_goto_relative_heading(179);
 }
 
 bool cleanup_platform()

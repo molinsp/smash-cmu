@@ -8,8 +8,8 @@
 #include "MadaraQuadrotorControl.h"
 #include "LuaFunctionRegistration.h"
 #include "LuaExtensionsUtils.h"
-#include "utilities/CommonMadaraVariables.h"
 #include "utilities/Position.h"
+#include "platforms/v_rep/v-rep_madara_variables.h"
 
 #include <string>
 using std::string;
@@ -50,6 +50,10 @@ void simExtMadaraQuadrotorControlSetup(SLuaCallBack* p)
 		    control = new MadaraQuadrotorControl(droneId);
             sstm << " + control initialized.";
         }
+		else
+		{
+			control->incrementNumDrones();
+		}
 
         sstm << std::endl;
 		simAddStatusbarMessage(sstm.str().c_str());
@@ -218,6 +222,17 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 			outputStrings[1] = alt;
 			setupStringOutputBuffer(p, outputStrings);
 		}
+        else if((strcmp(MO_TAKEOFF_CMD, newCommand->m_command.c_str()) == 0)  || (strcmp(MO_LAND_CMD, newCommand->m_command.c_str()) == 0))
+		{
+			// All commands will have at least the command name, though they may have different parameters.
+			p->outputArgTypeAndSize[0] = sim_lua_arg_string; // cmd
+
+			// Put the values in the char output buffer.
+			int numOutputs = 1;
+			std::vector<std::string> outputStrings(numOutputs);
+			outputStrings[0] = newCommand->m_command;
+			setupStringOutputBuffer(p, outputStrings);
+		}
 
 		// copy x, y, z coords
 		//p->outputFloat = (simFloat*) simCreateBuffer(3 * sizeof(simFloat));
@@ -316,7 +331,7 @@ void registerMadaraQuadrotorControlIsGoToAltCmdLuaCallback()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// isOffCmd.
+// isLandCmd.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // The actual callback function.
@@ -335,7 +350,7 @@ void registerMadaraQuadrotorControlIsLandCmdLuaCallback()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// isOnCmd
+// isTakeoffCmd
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // The actual callback function.
@@ -362,15 +377,22 @@ static int g_cleanupInArgs[] = {0};
 // The actual callback function.
 void simExtMadaraQuadrotorControlCleanup(SLuaCallBack* /*p*/)
 {
-	simLockInterface(1);
-
-	// Simply cleanup the madara control.
+	simLockInterface(1);	
 	simAddStatusbarMessage("simExtMadaraQuadrotorControlCleanup: cleaning up");
+
 	if(control != NULL)
 	{
-		control->terminate();
-		delete control;
-		control = NULL;
+		// Decrement the number of drones using the controller.
+		simAddStatusbarMessage("simExtMadaraQuadrotorControlCleanup: decrementing num drones");
+		control->decrementNumDrones();
+
+		// Try to terminate the controller. If unsuccesful, it is beacuse other drones are still referencing it.
+		if(control->terminate())
+		{
+			simAddStatusbarMessage("simExtMadaraQuadrotorControlCleanup: removing controller");
+			delete control;
+			control = NULL;
+		}
 	}
 
 	simLockInterface(0);

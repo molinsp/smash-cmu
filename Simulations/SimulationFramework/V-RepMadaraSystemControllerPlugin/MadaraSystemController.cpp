@@ -46,8 +46,8 @@ MadaraController::MadaraController(int id, double commRange, double minAltitude)
     m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base(m_host, m_transportSettings);
 
     // Setup a log.
-    //m_knowledge->log_to_file("madaralog.txt", true);
-    //m_knowledge->evaluate("#log_level(1)");
+    m_knowledge->log_to_file("systemcontrolmadaralog.txt", true);
+    m_knowledge->evaluate("#log_level(1)");
 
 #ifdef _WIN32
     // In Windows we need a custom transport to avoid crashes due to incompatibilities between Win V-Rep and ACE.
@@ -76,6 +76,10 @@ void  MadaraController::terminate()
 {
     if(m_knowledge != NULL)
     {
+        MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+          DLINFO "MadaraController::terminate:" \
+          "Terminating Madara knowledge base.\n"));
+
         m_knowledge->close_transport();
         m_knowledge->clear();
         delete m_knowledge;
@@ -152,13 +156,21 @@ void MadaraController::setupBridgeRequest(int bridgeId, Region startRegion, Regi
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Requests a drone to be part of area coverage.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraController::requestAreaCoverage(int droneId, int searchAreaId, string algorithm)
+void MadaraController::requestAreaCoverage(std::vector<int> droneIds, int searchAreaId, string algorithm)
 {
     // Set the given search area as the area for this drone to search; and tell it to start searching.
-    std::string droneIdString = NUM_TO_STR(droneId);
-    m_knowledge->set(MV_ASSIGNED_SEARCH_AREA(droneIdString), (Madara::Knowledge_Record::Integer) searchAreaId,
-      Madara::Knowledge_Engine::Eval_Settings(true)); 
-    m_knowledge->set(MV_AREA_COVERAGE_REQUESTED(droneIdString), algorithm);
+
+	// Set the values for each drone.
+	for(unsigned int i=0; i<droneIds.size(); i++)
+	{
+		std::string droneIdString = NUM_TO_STR(droneIds[i]);
+		m_knowledge->set(MV_ASSIGNED_SEARCH_AREA(droneIdString), (Madara::Knowledge_Record::Integer) searchAreaId,
+		  Madara::Knowledge_Engine::Eval_Settings(true)); 
+		m_knowledge->set(MV_AREA_COVERAGE_REQUESTED(droneIdString), algorithm,
+		  Madara::Knowledge_Engine::Eval_Settings(true));
+	}
+
+	m_knowledge->apply_modified();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

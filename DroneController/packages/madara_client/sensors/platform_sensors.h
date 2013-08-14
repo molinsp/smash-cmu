@@ -26,6 +26,4 @@ void read_thermal(double[8][8]);
 void read_gps(struct madara_gps *);
 double read_ultrasound();
 
-double get_distance_to_gps(double lat, double lon);
-
 #endif

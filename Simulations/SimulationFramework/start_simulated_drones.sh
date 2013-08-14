@@ -8,7 +8,7 @@ else
     for i in $(seq 1 1 $1)
     do
         id=`expr $i - 1`
-        xterm -hold -e DroneControllerSimulator/DroneControllerSimulator -i $id &
+        xterm -hold -e DroneControllerSimulator/DroneControllerSimulator $id &
         sleep $SLEEP
     done
 fi

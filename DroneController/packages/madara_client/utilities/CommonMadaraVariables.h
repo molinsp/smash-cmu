@@ -15,6 +15,12 @@
 #define _COMMON_MADARA_VARIABLES_H
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Functions
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define MF_TARGET_REACHED                       "utilities_targetReached"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Global variables.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -26,6 +32,9 @@
 #define MV_DEVICE_LOCATION(deviceId)            "device." + std::string(deviceId) + ".location" // The location of a device in the format "lat,long".
 #define MV_MOBILE(deviceId)                     "device." + std::string(deviceId) + ".mobile"   // Indicates if the device can fly (i.e., if it is a drone with enough battery left).
 #define MV_BUSY(deviceId)                       "device." + std::string(deviceId) + ".busy"     // Indicates if the device is not available for procedures (such as coverage or bridging)
+
+// Movement commands.
+#define MV_DEVICE_MOVE_REQUESTED(deviceId)      "device." + std::string(deviceId) + ".movement_command" // Command to tell that we want certain movement.
 
 // Region information.
 #define MV_REGION_TYPE(regionId)                "region." + std::string(regionId) + ".type"                     // The type of a particular region.
@@ -49,12 +58,6 @@
 #define MV_COMM_RANGE                           "bridge.max_communication_distance"                // The range of the high-banwidth radio, in meters.
 #define MV_BRIDGE_SOURCE_REGION_ID(bridgeId)    "bridge." + std::string(bridgeId) + ".endpoint.1"  // The region where one of the endpoints of the bridge is.
 #define MV_BRIDGE_SINK_REGION_ID(bridgeId)      "bridge." + std::string(bridgeId) + ".endpoint.2"  // The region where the other endpoint of the bridge is.
-
-// For simulation purposes.
-#define MS_SIM_PREFIX                           "sim"                   // Prefix used to disseminate local device variables for simulator.
-#define MS_SIM_DEVICES_PREFIX                   "sim.device."           // Prefix used to disseminate local device variables for simulator.
-#define MS_SIM_CMD_SENT_ID                      ".sent_commmand_id"     // Suffix used to indicate the id of the last command sent, to resend for lost ones.
-#define MS_SIM_CMD_RCVD_ID                      ".received_command_id"  // Suffix used to indicate the id of the command received, to resend for lost ones.
 
 // Human detection information
 #define MV_HUMAN_DETECTION_REQUESTED(deviceId)  "device." + std::string(deviceId) + ".human_detection_requested"  // Tells if this device was tasked with human detection.
@@ -80,7 +83,8 @@
 #define MV_REGION_BOTRIGHT_LON(regionId)    ".region." + std::string(regionId) + ".bottom_right.location.longitude" // Longitude of bottom right corner of a rectangular region.
 
 // Movement commands.
-#define MV_MOVEMENT_REQUESTED               ".movement_command" // Command to tell that we want certain movement.
+#define MV_MOVEMENT_REQUESTED               ".movement_command"                     // Internal command to tell that we want certain movement.
+#define MV_MOVEMENT_CMD_ARG(i)              ".movement_command."  + std::string(i) + ""  // The i argument for the command, starting at i=0.
 
 // Move to GPS.
 #define MO_MOVE_TO_GPS_CMD                  "move_to_gps"           // Command used to tell drone to move to that a location.

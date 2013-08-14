@@ -46,17 +46,17 @@
     <Filter Include="Source Files\platform">
       <UniqueIdentifier>{2753fab8-3b4a-49d3-9c53-0d81ced1b770}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\main_module">
+    <Filter Include="Header Files\platform">
+      <UniqueIdentifier>{b3f80664-4c7d-4e6a-8613-698b57742260}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\drone_controller">
       <UniqueIdentifier>{5fc789f8-13c9-4a96-a41c-e3883aae1e47}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\main_module">
+    <Filter Include="Header Files\drone_controller">
       <UniqueIdentifier>{b72ee46d-2769-453b-adf7-9d6c81e6eeef}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\area_coverage_module.cpp">
       <Filter>Source Files\area_coverage_module</Filter>
     </ClCompile>
@@ -90,8 +90,11 @@
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\InsideOutAreaCoverage.cpp">
       <Filter>Source Files\area_coverage_module</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\DroneController\packages\madara_client\main_functions.cpp">
-      <Filter>Source Files\main_module</Filter>
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\madara_client.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\drone_controller.cpp">
+      <Filter>Source Files\drone_controller</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -122,9 +125,6 @@
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\area_coverage\InsideOutAreaCoverage.h">
       <Filter>Header Files\area_coverage_module</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\DroneController\packages\madara_client\main_functions.h">
-      <Filter>Header Files\main_module</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\module.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -142,6 +142,15 @@
     </ClInclude>
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\utilities\utilities_module.h">
       <Filter>Header Files\utilities_module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\platforms\v_rep\v-rep_madara_variables.h">
+      <Filter>Header Files\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\platforms\platform.h">
+      <Filter>Header Files\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\drone_controller.h">
+      <Filter>Header Files\drone_controller</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

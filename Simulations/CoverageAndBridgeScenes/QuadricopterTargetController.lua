@@ -10,8 +10,14 @@ require("Utils")
 -- The speed defines how far the target moves, and therefore how fast the drone will follow.
 TARGET_SPEED = 0.0000003    -- This is rougly equivalent to 3 cm.
 
+-- Altitude to reach when taking off.
+TAKEOFF_ALTITUDE = 1.5
+
+-- Altitude to reach when landing.
+LAND_ALTITUDE = 1.0
+
 -- This margin (in degrees) indicates how close to a person we use to declare that we found it.
-PERSON_FOUND_ERROR_MARGIN = 0.000008    -- This is roughly equivalent to 80 cm.
+PERSON_FOUND_ERROR_MARGIN = 0.000005    -- This is roughly equivalent to 50 cm.
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Method called when the simulation starts.
@@ -33,14 +39,10 @@ function doInitialSetup()
     g_myTargetLon = 0
     g_myTargetLat = 0
     g_myAssignedAlt = g_minAltitude    
+	g_flying = false
     
     -- Setup the plugin to communicate to the network.
 	simExtMadaraQuadrotorControlSetup(g_myDroneId)   
-    
-    --local droneHandle = simGetObjectHandle('Quadricopter')
-    --local degreePosition = getObjectPositionInDegrees(droneHandle, -1)    
-    --simAddStatusbarMessage('Pos in degrees: ' .. degreePosition[1] .. ',' .. degreePosition[2] .. ',' .. degreePosition[3])    
-    --setObjectPositionFromDegrees(droneHandle, degreePosition)    
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,32 +50,7 @@ end
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function doCleanup()
     -- Stop the network plugin.
-    if(g_myDroneId == 0) then    
-        simExtMadaraQuadrotorControlCleanup()
-    end
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
--- Load the people's locations, so we are able to check when we find one.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function loadPeoplePositions()
-	g_numPeople = simGetScriptSimulationParameter(sim_handle_main_script, 'numberOfPeople')
-	g_personCoords = {}
-    
-	local counter = 1
-	for i=1, g_numPeople, 1 do
-		if(i==1) then
-			personHandle = simGetObjectHandle('Bill#')
-		else
-			personHandle = simGetObjectHandle('Bill#' .. (i-2))
-		end
-
-        local billposition = getObjectPositionInDegrees(personHandle, -1)
-		g_personCoords[counter] = billposition[1]
-		g_personCoords[counter+1] = billposition[2]
-		--simAddStatusbarMessage('Person ' .. counter .. ' : ' .. g_personCoords[counter] .. ', ' .. counter+1 .. ' : '..g_personCoords[counter+1])
-		counter = counter + 2
-	end    
+    simExtMadaraQuadrotorControlCleanup()
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -110,6 +87,29 @@ function updateDronePosition()
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
+-- Load the people's locations, so we are able to check when we find one.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function loadPeoplePositions()
+	g_numPeople = simGetScriptSimulationParameter(sim_handle_main_script, 'numberOfPeople')
+	g_personCoordsX = {}
+    g_personCoordsY = {}
+    
+	local counter = 1
+	for i=1, g_numPeople, 1 do
+		if(i==1) then
+			personHandle = simGetObjectHandle('Bill#')
+		else
+			personHandle = simGetObjectHandle('Bill#' .. (i-2))
+		end
+
+        local billposition = getObjectPositionInDegrees(personHandle, -1)
+		g_personCoordsX[i] = billposition[1]
+		g_personCoordsY[i] = billposition[2]
+		--simAddStatusbarMessage('Person ' .. counter .. ' : ' .. g_personCoords[counter] .. ', ' .. counter+1 .. ' : '..g_personCoords[counter+1])
+	end    
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
 -- Check if we have found a person to stop on top of it.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function lookForPersonBelow()
@@ -117,20 +117,26 @@ function lookForPersonBelow()
     local droneName, dronePos = getDroneInfoFromSuffix(g_mySuffix)
 
     -- Check if we found a person, to stop.
-    local margin = PERSON_FOUND_ERROR_MARGIN
-    local counter = 1
     for i=1, g_numPeople, 1 do
-        if( (dronePos[1] >= g_personCoords[counter] - margin) and (dronePos[1] <= g_personCoords[counter] + margin) ) then
-            if((dronePos[2] >= g_personCoords[counter + 1] - margin) and (dronePos[2] <= g_personCoords[counter + 1] + margin)) then
-                -- Notify our shared memory that a person was found, and that I was the one to find it.
-                local sourceSuffix, sourceName = simGetNameSuffix(nil)
-                simSetScriptSimulationParameter(sim_handle_main_script, 'personFound', 'true')
-                simSetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound', sourceSuffix)
-                simSetScriptSimulationParameter(sim_handle_main_script, 'personFoundId', i)
-                simAddStatusbarMessage('Drone with suffix ' .. sourceSuffix .. ' is seeing person ' .. i .. '!')
-            end
+        if( isPersonBelow(dronePos, g_personCoordsX[i], g_personCoordsY[i])) then
+            -- Notify our shared memory that a person was found, and that I was the one to find it.
+            local sourceSuffix, sourceName = simGetNameSuffix(nil)
+            simSetScriptSimulationParameter(sim_handle_main_script, 'personFoundId', i)
+            simSetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound', sourceSuffix)
+            --simAddStatusbarMessage('Drone with suffix ' .. sourceSuffix .. ' is seeing person ' .. i .. '!')
         end
-        counter = counter + 2
+    end
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Check if we have found a person to stop on top of it.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function isPersonBelow(dronePos, personCoordX, personCoordY)
+    local margin = PERSON_FOUND_ERROR_MARGIN
+    if( (dronePos[1] >= personCoordX - margin) and (dronePos[1] <= personCoordX + margin) ) then
+        if((dronePos[2] >= personCoordY - margin) and (dronePos[2] <= personCoordY + margin)) then
+            return true
+        end
     end
 end
 
@@ -146,28 +152,23 @@ function simulateMovementCommands()
     -- We check if there is a new command.
     command, result1, result2, result3 = simExtMadaraQuadrotorControlGetNewCmd(g_myDroneId)    
     if(not (command == nil)) then
-        --simAddStatusbarMessage('Command: '..command)    
+        simAddStatusbarMessage('Command: '..command)    
+		
+		-- Handle Go To Altitude commands.
         local isGoToAltCmd = simExtMadaraQuadrotorControlIsGoToAltCmd(command) 
         if(isGoToAltCmd) then
             myNewAlt = result1
         
+			-- If there is no target position yet, set it to our current position (since the move function needs a target).
             if(g_myTargetPositionSetup == false) then
-                
-                -- Get the current position of the target.
-                local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
-                local droneTargetPosition = getObjectPositionInDegrees(droneTargetHandle, -1) 
-
-                -- If no position has been set up, set the current lat and long for the target.                
-                g_myTargetLon = droneTargetPosition[1]
-                g_myTargetLat = droneTargetPosition[2]
-                simAddStatusbarMessage("Target lat and long: " .. g_myTargetLon .. "," .. g_myTargetLat)
+                setTargetPositionToCurrentPosition()
             end
             
             -- We only set the altitude, keeping the previously set long and lat.
-            g_myTargetPositionSetup = true
             g_myAssignedAlt = tonumber(myNewAlt)            
         end          
         
+		-- Handle Go To GPS commands.
         local isGoToCmd = simExtMadaraQuadrotorControlIsGoToCmd(command) 
         if(isGoToCmd) then
             myNewLon = result1
@@ -185,12 +186,63 @@ function simulateMovementCommands()
             cartesianPoint = getXYpos(targetPoint)
             simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') In Lua, cartesian target position: ' ..cartesianPoint['x'] .. ',' .. cartesianPoint['y'])            
         end
+		
+		-- Handle Take Off commands.
+        local isTakeOffCmd = simExtMadaraQuadrotorControlIsTakeoffCmd(command) 
+        if(isTakeOffCmd) then
+			-- If we are flying, we ignore the takeoff command.
+			if(g_flying) then
+				simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Ignoring take off command since we are already flying.')  
+			end
+		
+			simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Taking off!')  
+			-- If there is no target position yet, set it to our current position (since the move function needs a target.
+            if(g_myTargetPositionSetup == false) then
+                setTargetPositionToCurrentPosition()
+            end
+            
+			-- Indicate that we are now flying, and set the altitude to the takeoff default.
+			g_myAssignedAlt = TAKEOFF_ALTITUDE
+			g_flying = true
+		end	
+
+		-- Handle Land commands.
+        local isLandCmd = simExtMadaraQuadrotorControlIsLandCmd(command) 
+        if(isLandCmd) then
+			-- If we are flying, we ignore the takeoff command.
+			if(not g_flying) then
+				simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Ignoring land command since we are already landed.')  
+			end
+		
+			simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Landing!')  
+            
+			-- Indicate that we are now flying, and set the altitude to the land default.
+			g_myAssignedAlt = LAND_ALTITUDE
+			g_flying = false
+		end			
     end
 	
     -- Move if required.	
     if(g_myTargetPositionSetup) then
         moveTargetTowardsPosition(g_myTargetLon, g_myTargetLat, g_myAssignedAlt)
     end    
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Sets the target position (lat and long) to the current position of the drone. Needed if there
+-- is no target position yet, but the drone has to move up.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function setTargetPositionToCurrentPosition()
+	-- Get the current position of the target.
+	local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
+	local droneTargetPosition = getObjectPositionInDegrees(droneTargetHandle, -1) 
+
+	-- Set the current lat and long for the target.                
+	g_myTargetLon = droneTargetPosition[1]
+	g_myTargetLat = droneTargetPosition[2]
+	simAddStatusbarMessage("Target lat and long: " .. g_myTargetLon .. "," .. g_myTargetLat)
+	
+	g_myTargetPositionSetup = true
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -202,7 +254,7 @@ function moveTargetTowardsPosition(newPositionLon, newPositionLat, newAltitude)
     local droneTargetPosition = getObjectPositionInDegrees(droneTargetHandle, -1)
     
     local speed = TARGET_SPEED
-    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Curr target position' .. droneTargetPosition[1] .. ',' .. droneTargetPosition[2]..':'..speed)
+    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Curr target position' .. droneTargetPosition[1] .. ',' .. droneTargetPosition[2]..':'..newAltitude)
     
     local deltaLon = newPositionLon - droneTargetPosition[1]
     local deltaLat = newPositionLat - droneTargetPosition[2]

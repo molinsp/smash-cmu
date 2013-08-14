@@ -19,7 +19,7 @@ static Madara::Knowledge_Engine::Compiled_Expression expressions2 [TASK_COUNT];
 
 Madara::Knowledge_Record read_thermal_sensor (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-	printf("read_thermal();\n");
+	printf("Inside read_thermal();\n");
 	double buffer[8][8];
 	read_thermal(buffer);
 	int x, y;
@@ -84,24 +84,33 @@ void define_sensor_functions (Madara::Knowledge_Engine::Knowledge_Base & knowled
 }
 
 
-//Precompile any expressions used by sensor_functions
+// Precompile any expressions used by sensor_functions.
 void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 {	
 	expressions2[EVALUATE_SENSORS] = knowledge.compile
 	(
-		//"read_thermal();"
+		"read_thermal();"
+
+        // Note: since we are reading the ultrasound after the GPS, the height given by the ultrasound will overwrite the GPS one in certain
+        // circumnstances, depending on the implementation of the read_ultrasound function for the current platform.
 		"read_gps();"
         "read_ultrasound();"
 
-        // set MV_IS_AT_ALTITUDE
-        MV_IS_AT_ALTITUDE " = 0;"
+        // Set MV_IS_AT_ALTITUDE.
+        // NOTE: Should this be here or in ProcessState?
+        "("
+            MV_IS_AT_ALTITUDE " = 0;"
             "((" MV_DEVICE_ALT("{.id}") " - " MV_ASSIGNED_ALTITUDE("{.id}") " < 0.5 ) && "
             "(" MV_ASSIGNED_ALTITUDE("{.id}") " - " MV_DEVICE_ALT("{.id}") " < 0.5)) \
                  => " MV_IS_AT_ALTITUDE " = 1;"
+        ");"
 
-        // set MV_IS_LANDED
-        MV_IS_LANDED " = 1;"
-        MV_DEVICE_ALT("{.id}") " > 0.1 => " MV_IS_LANDED " = 0;"
+        // Set MV_IS_LANDED.
+        // NOTE: Should this be here or in ProcessState?
+        "("
+            MV_IS_LANDED " = 1;"
+            MV_DEVICE_ALT("{.id}") " > 0.1 => " MV_IS_LANDED " = 0;"
+        ");"
 	);
 }
 

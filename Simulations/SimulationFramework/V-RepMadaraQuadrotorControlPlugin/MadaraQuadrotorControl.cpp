@@ -6,54 +6,56 @@
 *********************************************************************/
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include "MadaraQuadrotorControl.h"
-#include "utilities/CommonMadaraVariables.h"
+#include "platforms/v_rep/v-rep_madara_variables.h"
+#include "utilities/Position.h"
 
 #include <vector>
-using std::vector;
 #include <string>
+
+using std::vector;
 using std::string;
-#include "utilities/Position.h"
 
 #ifdef _WIN32
 // Only include the custom transport in Windows, as it is not necessary in Linux.
 #include "Windows_Multicast_Transport.h"
 #endif
 
-// Multicast address.
-#define DEFAULT_MULTICAST_ADDRESS "239.255.0.1:4150"
-
 // Constructor, sets up a Madara knowledge base and basic values.
 MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
 {
-    // Control id is derived from the droneId. But it has to be different to ensure different ids inside Madara.
+	// Initializes this to one, as for now we have only one drone using this controller.
+	numDrones = 1;
+
+    // Control id is derived from the droneId. But it has to be different to it to ensure different ids inside this domain.
     int transportId = droneId + 100;
 
     // Define the transport settings.
-    Madara::Transport::Settings settings;
-    settings.hosts_.resize(1);
-    settings.hosts_[0] = DEFAULT_MULTICAST_ADDRESS;
-    settings.id = transportId;
+    Madara::Transport::Settings transportSettings;
+    transportSettings.hosts_.resize(1);
+    transportSettings.hosts_[0] = DEFAULT_MULTICAST_ADDRESS;
+    transportSettings.id = transportId;
+    transportSettings.domains = VREP_DOMAIN;
 
     // Setup the actual transport.
 #ifdef __linux
     // In Linux we can use the default Mulitcast transport.
-    settings.type = Madara::Transport::MULTICAST;
+    transportSettings.type = Madara::Transport::MULTICAST;
 #elif defined(WIN32)
     // In Windows we need to delay the transport launch to use a custom transport.
-    settings.delay_launch = true;
+    transportSettings.delay_launch = true;
 #endif
 
     // Create the knowledge base.
-    m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base("", settings);
+    m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base("", transportSettings);
 
     // Setup a log.
-    m_knowledge->log_to_file("madaralog.txt", true);
+    m_knowledge->log_to_file("quadrotormadaralog.txt", true);
     m_knowledge->evaluate("#log_level(1)");
 
 #ifdef _WIN32
     // In Windows we need a custom transport to avoid crashes due to incompatibilities between Win V-Rep and ACE.
     m_knowledge->attach_transport(new Windows_Multicast_Transport (m_knowledge->get_id (),
-        m_knowledge->get_context (), settings, true));
+    m_knowledge->get_context (), transportSettings, true));
 #endif
 
 }
@@ -79,15 +81,32 @@ MadaraQuadrotorControl::~MadaraQuadrotorControl()
 }
 
 // Cleanup, terminating all threads and open communications.
-void MadaraQuadrotorControl::terminate()
+bool MadaraQuadrotorControl::terminate()
 {
     if(m_knowledge != NULL)
     {
-        m_knowledge->close_transport();
-        m_knowledge->clear();
-        delete m_knowledge;
-        m_knowledge = NULL;
+		if(numDrones <= 0)
+		{
+			MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+			  DLINFO "MadaraQuadrotorControl::terminate:" \
+			  "Terminating Madara knowledge base.\n"));
+
+			m_knowledge->close_transport();
+			m_knowledge->clear();
+			delete m_knowledge;
+			m_knowledge = NULL;
+		
+			return true;
+		}
+		else
+		{
+			MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+			  DLINFO "MadaraQuadrotorControl::terminate:" \
+			  "Not terminating knowledge base, controller still in use by other %d drones.\n", numDrones));
+		}
     }
+
+	return false;
 }
 
 void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const double& lat,
@@ -95,13 +114,16 @@ void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const double
 {
     // update the location of this drone (this would be done by its sensors).
     string droneIdString = std::to_string(static_cast<long long>(id));
-    m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LAT(droneIdString), (lat),
-        Madara::Knowledge_Engine::Eval_Settings(true));
-    m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_LON(droneIdString), (lon),
-        Madara::Knowledge_Engine::Eval_Settings(true));
-    m_knowledge->set(MS_SIM_PREFIX MV_DEVICE_ALT(droneIdString), (z));
+	if(m_knowledge != NULL)
+	{
+		m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_LATITUDE, (lat),
+			Madara::Knowledge_Engine::Eval_Settings(true));
+		m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_LONGITUDE, (lon),
+			Madara::Knowledge_Engine::Eval_Settings(true));
+		m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_ALTITUDE, (z));
 
-    m_knowledge->print_knowledge(1);
+		m_knowledge->print_knowledge(1);
+	}
 }
 
 // Updates the status of the drones in Madara.
@@ -117,7 +139,7 @@ MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(int drone
     string droneIdString = std::to_string(static_cast<long long>(droneId));
 
     // Check if commands have started being received for the requested drone.
-    int recievedCommandId = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MS_SIM_CMD_SENT_ID).to_integer();
+    int recievedCommandId = (int) m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MS_SIM_CMD_SENT_ID).to_integer();
     if(recievedCommandId == 0)
         return NULL;
     
@@ -134,10 +156,8 @@ MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(int drone
     if(commandStr == MO_MOVE_TO_GPS_CMD)
     {
         // Move to certain location command; get the target location.
-        double targetPosLat = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
-            MV_MOVEMENT_TARGET_LAT).to_double();
-        double targetPosLon = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
-            MV_MOVEMENT_TARGET_LON).to_double();
+        double targetPosLat = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_CMD_ARG("0")).to_double();
+        double targetPosLon = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_CMD_ARG("1")).to_double();
 
         // We don't care about alt here.
         Location targetLocation = Location(targetPosLat, targetPosLon, 0);
@@ -145,8 +165,7 @@ MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(int drone
     }
     else if(commandStr == MO_MOVE_TO_ALTITUDE_CMD)
     {
-        double targetAltitude = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString +
-            MV_MOVEMENT_TARGET_ALT).to_double();
+        double targetAltitude = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_CMD_ARG("0")).to_double();
 
         // We don't care about lat and long here.
         Location targetLocation = Location(0, 0, targetAltitude);
@@ -157,7 +176,7 @@ MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(int drone
     clearCommand(droneIdString);
 
     // Indicate that this is the last command we have received.
-    int lastSentCmdId = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MS_SIM_CMD_SENT_ID).to_integer();
+    int lastSentCmdId = (int) m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MS_SIM_CMD_SENT_ID).to_integer();
     m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MS_SIM_CMD_RCVD_ID, (Madara::Knowledge_Record::Integer) lastSentCmdId,
         Madara::Knowledge_Engine::Eval_Settings(false, false));
 

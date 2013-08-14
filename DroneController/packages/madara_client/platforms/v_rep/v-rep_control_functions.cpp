@@ -5,122 +5,151 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
-#pragma once
-
-#ifdef V_REP
-
 #include "platforms/platform.h"
 #include "movement/platform_movement.h"
 #include "sensors/platform_sensors.h"
 
-#include "utilities/CommonMadaraVariables.h"
 #include "madara/knowledge_engine/Knowledge_Base.h"
+
+#include "v-rep_madara_variables.h"
+#include "utilities/Position.h"
+
 #include <string>
-
 #include <cmath>
+#include <map>
 
-#ifndef M_PI
-	#define M_PI 3.14159265358979323846
-#endif
+#define THERMAL_BUFFER_HEIGHT 8
+#define THERMAL_BUFFER_WIDTH 8
 
-#define DEG_TO_RAD(x) (x)*M_PI/180.0
-
-// NOTE: We are using a hack here, assuming that an external Main module will set this KB to the common KB used by the system.
-Madara::Knowledge_Engine::Knowledge_Base* m_sim_knowledge;
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Macros, constants and enums.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Define the ids for the internal expressions.
 enum VRepMadaraExpressionId 
 {
-    // Expression to send a movement command.
-	VE_SEND_MOVE_TO_GPS_COMMAND,
-
-    // Expression to send a move to altitude command.
-	VE_SEND_MOVE_TO_ALT_COMMAND,
+    // Updated the command id.
+    VE_UPDATE_COMMAND_ID, 
 };
 
-// Map of Madara expressions.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Variables.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Map of Madara expressions used when simulating the hardware.
 static std::map<VRepMadaraExpressionId, Madara::Knowledge_Engine::Compiled_Expression> m_expressions;
+
+// The knowledge base used to simulate the hardware.
+static Madara::Knowledge_Engine::Knowledge_Base*m_sim_knowledge;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Internal functions.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base* knowledge);
+static void setupInternalHardwareKnowledgeBase(int id);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// General Functions.
+// Overrides: init_platform().
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool init_platform()
+bool platform_init()
 {
-    //// By default we identify ourselves by the hostname set in our OS.
-    //std::string g_host ("");
+    // The actual initialization is postponed until the setup_knowledge_base function is called,
+    // since only then the id is received.
+    return true;
+}
 
-    //// By default, we use the multicast port 239.255.0.1.:4150
-    //const std::string DEFAULT_MULTICAST_ADDRESS ("239.255.0.1:4150");
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Overrides: setup_knowledge_base().
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
+{
+    // Setup the internal, totally separate knowledge base to be used as a proxy for the hardware.
+    setupInternalHardwareKnowledgeBase(id);
 
-    //// Used for updating various transport settings
-    //Madara::Transport::Settings g_settings;
+    // Define the transport.
+    Madara::Transport::Settings g_settings;
+    g_settings.hosts_.resize (1);
+    g_settings.hosts_[0] = "239.255.0.1:4150";
+    g_settings.type = Madara::Transport::MULTICAST;
 
-    //// Define the transport.
-    //g_settings.hosts_.resize (1);
-    //g_settings.hosts_[0] = DEFAULT_MULTICAST_ADDRESS;
-    //g_settings.type = Madara::Transport::MULTICAST;
-    //g_settings.id = 1000;
-    //
-    //// Create the knowledge base.
-    //m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base(g_host, g_settings);
+    // Set the transport id as the given id.
+    g_settings.id = id;
+    
+    // Create the knowledge base.
+    std::string g_host ("");
+    Madara::Knowledge_Engine::Knowledge_Base* knowledge = new Madara::Knowledge_Engine::Knowledge_Base(g_host, g_settings);
+    
+    //knowledge.log_to_file(string("madaralog" + NUM_TO_STR(g_id) + ".txt").c_str(), false);
+    //knowledge.evaluate("#log_level(10)");
 
+    return knowledge;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Overrides: cleanup_platform().
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool platform_cleanup()
+{
+    m_sim_knowledge->print_knowledge();
+
+	// Cleanup the internal Madara platform.
+	m_sim_knowledge->close_transport();
+    m_sim_knowledge->clear();
+    delete m_sim_knowledge;
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Sets up a knowledge base that will be used as a proxy to send comands to simulated hardware, and to receive
+// sensed data from simulated sensors.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void setupInternalHardwareKnowledgeBase(int id)
+{
+    // Used for updating various transport settings
+    Madara::Transport::Settings transportSettings;
+
+    // Define the transport.
+    transportSettings.hosts_.resize (1);
+    transportSettings.hosts_[0] = SIMULATED_HW_MULTICAST_ADDRESS;
+    transportSettings.type = Madara::Transport::MULTICAST;
+    transportSettings.domains = VREP_DOMAIN;
+
+    // Sets the id. NOTE: we are assuming that g_id will be setup externally by the code.
+    transportSettings.id = id;
+    
+    // Create the knowledge base.
+    std::string host = "";
+    m_sim_knowledge = new Madara::Knowledge_Engine::Knowledge_Base(host, transportSettings);
+
+    // Define Madara functions.
     compileExpressions(m_sim_knowledge);
+
+    // Set the ID inside Madara.
+    m_sim_knowledge->set (".id", (Madara::Knowledge_Record::Integer) transportSettings.id);
 
 	// Indicate that we have not sent or received replied to commands yet. The first id sent will be 1.
     // NOTE: this is currently not being used for anything other than debugging. It could be used to fix a bug where
     // commands some times do not get sent for some reason to the Madara base in VRep, by checking if no "acks" have
     // beeen recieved from VRep.
-    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{.id}" MS_SIM_CMD_SENT_ID, (Madara::Knowledge_Record::Integer) 0,
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MS_SIM_CMD_SENT_ID, (Madara::Knowledge_Record::Integer) 0,
                 Madara::Knowledge_Engine::Eval_Settings(true, true));
-    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{.id}" MS_SIM_CMD_RCVD_ID, (Madara::Knowledge_Record::Integer) 0,
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MS_SIM_CMD_RCVD_ID, (Madara::Knowledge_Record::Integer) 0,
                 Madara::Knowledge_Engine::Eval_Settings(true, true));
-
-	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Cleaning up if necessary.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool cleanup_platform()
-{
-    return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Compiles all expressions to be used by this class.
+// Registers functions with Madara.
+// ASSUMPTION: Drone IDs are continuous, starting from 0.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base* knowledge)
 {
-    m_expressions[VE_SEND_MOVE_TO_GPS_COMMAND] = knowledge->compile(
-        // Send move to latitude and longitude command to VRep.
+    m_expressions[VE_UPDATE_COMMAND_ID] = knowledge->compile(
         "("
-			// Send the actual command and its parameters.
-            MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_REQUESTED "=" MV_MOVEMENT_REQUESTED ";"
-            MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_TARGET_LAT "=" MV_MOVEMENT_TARGET_LAT ";"
-			MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_TARGET_LON "=" MV_MOVEMENT_TARGET_LON ";"
-
 			// Send the command id after increasing it. We first increase it so the first id sent is 1.
-			"++" MS_SIM_DEVICES_PREFIX "{.id}" MS_SIM_CMD_SENT_ID";"
+			"++" MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MS_SIM_CMD_SENT_ID";"
         ")"
     );
-
-    m_expressions[VE_SEND_MOVE_TO_ALT_COMMAND] = knowledge->compile(
-        // Send move to altitude command to VRep.
-        "("
-			// Send the actual command and its parameters.
-            MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_REQUESTED "=" MV_MOVEMENT_REQUESTED ";"
-            MS_SIM_DEVICES_PREFIX "{.id}" MV_MOVEMENT_TARGET_ALT "=" MV_MOVEMENT_TARGET_ALT ";"
-
-			// Send the command id after increasing it. We first increase it so the first id sent is 1.
-			"++" MS_SIM_DEVICES_PREFIX "{.id}" MS_SIM_CMD_SENT_ID";"
-        ")"
-    );
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -140,14 +169,22 @@ bool init_control_functions()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void takeoff()
 {
-	
+    // Send the command.
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_MOVEMENT_REQUESTED, MO_TAKEOFF_CMD);
+
+    // Update the command id.
+    m_sim_knowledge->evaluate(m_expressions[VE_UPDATE_COMMAND_ID]);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void land()
 {
+    // Send the command.
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_MOVEMENT_REQUESTED, MO_LAND_CMD);
 
+    // Update the command id.
+    m_sim_knowledge->evaluate(m_expressions[VE_UPDATE_COMMAND_ID]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -203,8 +240,16 @@ void move_backward()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void move_to_location(double lat, double lon, double alt)
 {
-    // We will assume that lat and lon have already been loaded in the local Madara variables.
-    m_sim_knowledge->evaluate(m_expressions[VE_SEND_MOVE_TO_GPS_COMMAND]);
+    // Set the arguments for this command. Note that we are intentionally ignoring altitude, as the 
+    // simulation is doing that as of now.
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_MOVEMENT_CMD_ARG("0"), lat);
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_MOVEMENT_CMD_ARG("1"), lon);
+
+    // Send the command.
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_MOVEMENT_REQUESTED, MO_MOVE_TO_GPS_CMD);
+
+    // Update the command id.
+    m_sim_knowledge->evaluate(m_expressions[VE_UPDATE_COMMAND_ID]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -212,10 +257,20 @@ void move_to_location(double lat, double lon, double alt)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void move_to_altitude(double alt)
 {
-    // We will assume that alt has already been loaded in the local Madara variables.
-    m_sim_knowledge->evaluate(m_expressions[VE_SEND_MOVE_TO_ALT_COMMAND]);
+    // Set the arguments for this command. Note that we are intentionally ignoring altitude, as the 
+    // simulation is doing that as of now.
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_MOVEMENT_CMD_ARG("0"), alt);
+
+    // Send the command.
+    m_sim_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_MOVEMENT_REQUESTED, MO_MOVE_TO_ALTITUDE_CMD);
+
+    // Update the command id.
+    m_sim_knowledge->evaluate(m_expressions[VE_UPDATE_COMMAND_ID]);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void stop_movement()
 {
 }
@@ -233,11 +288,24 @@ bool init_sensor_functions()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+// Loads information from the Madara thermal variables into the buffer given as a parameter.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void read_thermal(double buffer[8][8])
 {
+    // Loop over all Madara variables with the buffer.
+    for(int i=0; i < THERMAL_BUFFER_WIDTH; i++)
+    {
+        for(int j=0; j < THERMAL_BUFFER_WIDTH; j++)
+        {
+            // First we get the column and line numbers into string.
+            std::string textCol = NUM_TO_STR(i);
+            std::string textLine = NUM_TO_STR(j);
 
+            // Then we get the value for this cell from the knowledge base, and pass it on to the buffer.
+            double currThermalValue = (m_sim_knowledge->get(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_THERMAL(textCol, textLine))).to_double();
+            buffer[i][j] = currThermalValue;
+        }
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -246,9 +314,9 @@ void read_thermal(double buffer[8][8])
 void read_gps(struct madara_gps * ret)
 {
     // Get the latitude and longitude that the simulator set for this drone, in variables with the sim prefix.
-    double latitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_PREFIX MV_DEVICE_LAT("{"MV_MY_ID"}"))).to_double();
-    double longitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_PREFIX MV_DEVICE_LON("{"MV_MY_ID"}"))).to_double();
-	double altitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_PREFIX MV_DEVICE_ALT("{"MV_MY_ID"}"))).to_double();
+    double latitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_LATITUDE)).to_double();
+    double longitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_LONGITUDE)).to_double();
+	double altitude = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_ALTITUDE)).to_double();
 
     //std::cout << "Lat " << latitude << ", Long " << longitude << " from: " << std::string(MS_SIM_PREFIX MV_DEVICE_LAT("{"MV_MY_ID"}")) << std::endl;
     //m_sim_knowledge->print_knowledge();
@@ -265,40 +333,6 @@ void read_gps(struct madara_gps * ret)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 double read_ultrasound()
 {
-    return m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_PREFIX MV_DEVICE_ALT("{"MV_MY_ID"}"))).to_double();
+    double currHeight = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_ALTITUDE)).to_double();
+    return currHeight;
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Calculate the distance between two coordinate pairs.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static double gps_coordinates_distance (double lat1, double long1, double lat2, double long2)
-{
-    const double EARTH_RADIUS = 6371000;
-
-    // Get the difference between our two points then convert the difference into radians
-    double lat_diff = DEG_TO_RAD(lat2 - lat1);
-    double long_diff = DEG_TO_RAD(long2 - long1);
-
-    lat1 =  DEG_TO_RAD(lat1);
-    lat2 =  DEG_TO_RAD(lat2);
-
-    double a =  pow(sin(lat_diff/2),2)+
-                cos(lat1) * cos(lat2) *
-                pow ( sin(long_diff/2), 2 );
-
-    double c = 2 * atan2( sqrt(a), sqrt( 1 - a));
-    return EARTH_RADIUS * c;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Calculate the distance between a given GPS location and our current GPS location.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-double get_distance_to_gps(double lat, double lon)
-{
-    double curLat = m_sim_knowledge->get(MV_DEVICE_LAT("{.id}")).to_double();
-    double curLong = m_sim_knowledge->get(MV_DEVICE_LON("{.id}")).to_double();
-
-    return gps_coordinates_distance(curLat, curLong, lat, lon);
-}
-
-#endif
