@@ -51,6 +51,8 @@ Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
 
     //knowledge->attach_transport(new DroneRK_Transport(out.str(),
     //knowledge->get_context(), settings, true, 500));
+    
+    return knowledge;
 }
 
 bool platform_cleanup()
