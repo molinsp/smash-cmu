@@ -9,13 +9,12 @@
 
 #include <stdio.h>
 
+#include "transport/DroneRK_Transport.h"
 #include "drk.h"
 
 #include "platforms/platform.h"
 #include "movement/platform_movement.h"
 #include "sensors/platform_sensors.h"
-
-#include "transport/DroneRK_Transport.h"
 
 static bool drk_init_status = false;
 
