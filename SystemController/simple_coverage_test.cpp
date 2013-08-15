@@ -118,7 +118,7 @@ int main (int argc, char** argv)
         Madara::Knowledge_Engine::Eval_Settings(true));
     knowledge->set(MV_TOTAL_DEVICES, Madara::Knowledge_Record::Integer(numDrones),
         Madara::Knowledge_Engine::Eval_Settings(true));
-    knowledge->set(MV_MIN_ALTITUDE, Madara::Knowledge_Record::Integer(3),
+    knowledge->set(MV_MIN_ALTITUDE, Madara::Knowledge_Record::Integer(1.5),
         Madara::Knowledge_Engine::Eval_Settings(true));
     knowledge->set(MV_TOTAL_SEARCH_AREAS, Madara::Knowledge_Record::Integer(1));
 
