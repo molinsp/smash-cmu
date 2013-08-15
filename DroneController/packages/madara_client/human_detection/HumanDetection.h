@@ -13,8 +13,16 @@
 #ifndef _HUMAN_DETECTION_H_
 #define _HUMAN_DETECTION_H_
 
-#define MAX_SAMPLE_SIZE 5
-#define ERROR_LIMIT 2
+#define MAX_SAMPLE_SIZE 5   // Max number of samples used to determine ambient 
+                            // temperature for BasicStrategy as well as build 
+                            // model for SlidingWindowStrategy.
+
+#define AMBIENT_RANGE 5     // Used to calculate ambient temperature range when
+                            // user gives an extected environment temperature.
+
+#define ERROR_LIMIT 2       // Used to account for error when calculating ambient
+                            // temperature for BasicStrategy as well as building
+                            // model for SlidingWindowStrategy.   
 
 namespace SMASH 
 { 
@@ -26,6 +34,16 @@ namespace SMASH
     class HumanDetection
     {
       public:
+        /**
+         * Constructor.
+         **/
+        HumanDetection();
+
+        /**
+         * Destructor.
+         **/
+        virtual ~HumanDetection();
+
         /**
          * Detect human.
          *
@@ -39,7 +57,7 @@ namespace SMASH
          * @return                  Number of pixels with human temperature. 
          **/
         virtual int detect_human (int result_map[8][8], double curr_height,void (*on_human_detected)()) = 0;
-
+  
         /**
          * Check if a given temperature falls within expected human temperature range.
          *

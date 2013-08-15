@@ -16,10 +16,14 @@
 
 using namespace SMASH::HumanDetection;
 
+HumanDetection::HumanDetection()
+{}
+
+HumanDetection::~HumanDetection()
+{}
+
 bool HumanDetection::check_if_human (double temp, double curr_height)
 {
-  printf("Temp: %6.2f\n", temp);
-
   // Based on current height, compare given temperature to expected 
   // human temperature range.
   if (curr_height <= 0.5 && temp >= 82 && temp <= 92)

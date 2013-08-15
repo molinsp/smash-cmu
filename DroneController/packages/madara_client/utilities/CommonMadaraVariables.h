@@ -60,9 +60,11 @@
 #define MV_BRIDGE_SINK_REGION_ID(bridgeId)      "bridge." + std::string(bridgeId) + ".endpoint.2"  // The region where the other endpoint of the bridge is.
 
 // Human detection information
-#define MV_HUMAN_DETECTION_REQUESTED(deviceId)  "device." + std::string(deviceId) + ".human_detection_requested"  // Tells if this device was tasked with human detection.
-#define HUMAN_DETECTION_BASIC                   "basic"                                                           // Selects BasicHumanDetection strategy.
-#define HUMAN_DETECTION_SLIDING_WINDOW          "sliding_window"                                                  // Selects SlidingWindowHumanDetection strategy.    
+#define MV_HUMAN_DETECTION_REQUESTED(deviceId)  "device." + std::string(deviceId) + ".human_detection_requested"        // Tells if this device was tasked with human detection.
+#define HUMAN_DETECTION_BASIC                   "basic"                                                                 // Selects BasicHumanDetection strategy.
+#define HUMAN_DETECTION_SLIDING_WINDOW          "sliding_window"                                                        // Selects SlidingWindowHumanDetection strategy.    
+#define MV_ENVIRONMENT_TEMPERATURE              "environment.temperature"                                               // Expected environment temperature set by the user.
+#define MV_LOCATION_(LAT)_(LONG)_THERMALS       "location_" + std::string(LAT) + "_" + std::string(LONG) + "_thermals"  // Location where human was detected.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Local preprocessed variables, filled in by other modules in each drone.

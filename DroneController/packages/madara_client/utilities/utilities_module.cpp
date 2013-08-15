@@ -186,7 +186,7 @@ static void define_utilities_functions (Madara::Knowledge_Engine::Knowledge_Base
 	knowledge.define_function("inflate_coords", inflate_coords);
 	knowledge.define_function("inflate_coord_array_to_local", inflate_coord_array_to_local);
 	knowledge.define_function("copy_vector", copy_vector);
-    knowledge.define_function(MF_TARGET_REACHED, madaraTargetReached);
+  knowledge.define_function(MF_TARGET_REACHED, madaraTargetReached);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

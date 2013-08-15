@@ -19,7 +19,6 @@
 static bool drk_init_status = false;
 
 int frame_number;
-int prev_frame_number;
 
 double thermal_data[8][8];
 
@@ -53,6 +52,8 @@ Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
 
     //knowledge->attach_transport(new DroneRK_Transport(out.str(),
     //knowledge->get_context(), settings, true, 500));
+
+    return knowledge;
 }
 
 bool platform_cleanup()
@@ -125,25 +126,16 @@ void read_thermal(double buffer[8][8])
 {
 	int row, col;
   printf("ardrone_controller::read_thermal()\n");
-  
-  // While loop to make sure we have new frame.
-  while (frame_number <= prev_frame_number)
-  {
-    sem_wait(serial_buf->semaphore);
-    //memcpy(&buffer, &((serial_buf->grideye_buf).temperature), sizeof(buffer));
-    frame_number = serial_buf->grideye_buf.index;
-    sem_post(serial_buf->semaphore);
-  }
-  
+  sem_wait(serial_buf->semaphore);
+  //memcpy(&buffer, &((serial_buf->grideye_buf).temperature), sizeof(buffer));
   // Copy serial buffer temperature info.
   for (row = 0; row < 8; row++)
   {
     for (col = 0; col < 8; col++)
 	    buffer[row][col] = serial_buf->grideye_buf.temperature[row][col];
 	}
-  
-  // Set prev frame number to current frame.
-  prev_frame_number = frame_number;
+  frame_number = serial_buf->grideye_buf.index;
+  sem_post(serial_buf->semaphore);
   
   //printf("Done copying to thermal buffer with frame# %i\n", frame_number);
   

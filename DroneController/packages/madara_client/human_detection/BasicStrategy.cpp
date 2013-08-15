@@ -17,12 +17,20 @@
 
 using namespace SMASH::HumanDetection;
 
+BasicStrategy::BasicStrategy(double min, double max): ambient_min (min),
+                                                      ambient_max (max)
+{
+  printf("Min:%6.2f, Max:%6.2f \n", ambient_min, ambient_max);
+}
+
+BasicStrategy::~BasicStrategy()
+{}
+
 int BasicStrategy::detect_human (int result_map[8][8], double curr_height, void (*on_human_detected)())
 {
   printf("BasicStrategy::detect_human\n");  
 
   // Declare local variables.
-  double ambient_temp_min, ambient_temp_max;
   int human_count = 0, debug_verbose = 0;
   double buffer[8][8];
 
@@ -31,9 +39,6 @@ int BasicStrategy::detect_human (int result_map[8][8], double curr_height, void 
     if (strcmp (getenv("DEBUG_VERBOSE"), "1") == 0)
       debug_verbose = 1;
 
-  // Calculate ambient temperature range. 
-  calculate_ambient_temp (ambient_temp_min, ambient_temp_max);
-  
   // Get thermal data.
   read_thermal (buffer);
 
@@ -42,14 +47,14 @@ int BasicStrategy::detect_human (int result_map[8][8], double curr_height, void 
   {
     for (int col = 0; col < 8; col++)
     {
-      if (buffer[row][col] < ambient_temp_min || buffer[row][col] > ambient_temp_max)
+      if (buffer[row][col] < ambient_min || buffer[row][col] > ambient_max)
       {
         // Check environment variable for verbose debugging before printing.
         if (debug_verbose == 1)
           printf("Anomaly detected @ (%i, %i) Range: (%6.2f,%6.2f), Frame value:%6.2f \n", row,
                                                                                            col,
-                                                                                           ambient_temp_min,
-                                                                                           ambient_temp_max,
+                                                                                           ambient_min,
+                                                                                           ambient_max,
                                                                                            buffer[row][col]);
 
 
@@ -64,8 +69,8 @@ int BasicStrategy::detect_human (int result_map[8][8], double curr_height, void 
           printf("Human detected ");
           printf("@ (%i, %i) Range: (%6.2f,%6.2f), Frame value:%6.2f \n", row,
                                                                           col,
-                                                                          ambient_temp_min,
-                                                                          ambient_temp_max,
+                                                                          ambient_min,
+                                                                          ambient_max,
                                                                           buffer[row][col]);
 
           // Invoke callback function for post human detection action.
@@ -86,48 +91,4 @@ int BasicStrategy::detect_human (int result_map[8][8], double curr_height, void 
     }
   }
   return human_count;
-}
-
-void BasicStrategy::calculate_ambient_temp (double& min, double& max)
-{
-  printf("BasicStrategy::calculate_ambient_temp\n");  
-
-  double buffer[8][8];
-
-  // Set min to a large number.
-  min = 2000;
-
-  for (int i = 0; i < MAX_SAMPLE_SIZE; i++)
-  {
-    // Call to read thermal buffer.
-    read_thermal (buffer);
-
-    // Use the above obtained (valid) buffer and determine the ambient temperature range.
-    for (int row = 0; row < 8; row++)
-    {
-      for (int col = 0; col < 8; col++)
-      {
-        if (buffer[row][col] < min)
-          min = buffer[row][col];
-        
-        if (buffer[row][col] > max)
-          max = buffer[row][col];
-      }
-    }
-  }
-
-  // Apply error ranges to the above calculated ambient temperature range.
-  min = min - ERROR_LIMIT;
-  max = max + ERROR_LIMIT;
-
-  // Once the error ranges have been applied make sure the ambient temperature
-  // range is not greater than 10.
-  if ((max - min) > 10)
-    // If ambient temperature range is > 10 then increase the minimum such that
-    // the range is not greater than 10.
-     min = min + (max - min - 10);
-
-  printf("Final Ambient Min: %6.2f \n", min);
-  printf("Final Ambient Max: %6.2f \n", max);
-  printf("\n");  
 }

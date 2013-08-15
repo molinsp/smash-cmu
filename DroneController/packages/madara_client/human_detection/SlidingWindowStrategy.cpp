@@ -22,7 +22,7 @@ int SlidingWindowStrategy::detect_human(int result_map[8][8], double curr_height
   printf("SlidingWindowStrategy::detect_human");
 
   // Declare local variables.
-  int human_count, debug_verbose;
+  int human_count = 0, debug_verbose = 0;
 
   double buffer[8][8];
 
@@ -37,15 +37,15 @@ int SlidingWindowStrategy::detect_human(int result_map[8][8], double curr_height
   memset(&range_info, 0, sizeof(range_info));
 
   /* Construct the model using above initialized array.*/
-  for (int i = 0; i < MAX_SAMPLE_SIZE; i++)
+  for (int i = 0; i < MAX_SAMPLE_SIZE; ++i)
   {
     // Read thermal buffer.
     read_thermal (buffer);
       
     // Construct the model using above obtained frame.
-	  for (int row = 0; row < 8; row++) 
+	  for (int row = 0; row < 8; ++row) 
     {
-		  for (int col = 0; col < 8; col++)
+		  for (int col = 0; col < 8; ++col)
       {
         if (range_info[row][col].min == 0 || buffer[row][col] < range_info[row][col].min)
           range_info[row][col].min = buffer[row][col];
@@ -60,19 +60,19 @@ int SlidingWindowStrategy::detect_human(int result_map[8][8], double curr_height
 	read_thermal (buffer);
 
   // Detect anomaly.
-  for (int row = 0; row < 8; row++)
+  for (int row = 0; row < 8; ++row)
   {
-    for (int col = 0; col < 8; col++)
+    for (int col = 0; col < 8; ++col)
     {
       if (buffer[row][col] < range_info[row][col].min - ERROR_LIMIT || buffer[row][col] > range_info[row][col].max + ERROR_LIMIT)
       {
         // Check environment variable for verbose debugging before printing.
         if(debug_verbose == 1)
           printf("Anomaly detected @ (%i, %i) Model range: (%6.2f,%6.2f), Frame value:%6.2f \n", row, 
-                                                                                                   col, 
-                                                                                                   range_info[row][col].min, 
-                                                                                                   range_info[row][col].max, 
-                                                                                                   buffer[row][col]);
+                                                                                                 col, 
+                                                                                                 range_info[row][col].min, 
+                                                                                                 range_info[row][col].max, 
+                                                                                                 buffer[row][col]);
 
           
         // Check if temperature falls in expected human range.    
@@ -109,4 +109,3 @@ int SlidingWindowStrategy::detect_human(int result_map[8][8], double curr_height
   }
   return human_count;
 }
-

@@ -25,6 +25,19 @@ namespace SMASH
     {
       public:
         /**
+         * Constructor.
+         *
+         * @param min Minimum ambient temperature.
+         * @param max Maximum ambient temperature.
+         **/
+        BasicStrategy (double min, double max);
+
+        /**
+         * Destructor.
+         **/
+        ~BasicStrategy ();        
+
+        /**
          * Detect human.
          *
          * @param result_map        Integer array that will be filled by this method
@@ -36,16 +49,14 @@ namespace SMASH
          *
          * @return                  Number of pixels with human temperature. 
          **/
-        virtual int detect_human (int result_map[8][8], double curr_height, void (*on_human_detected)()); 
+        int detect_human (int result_map[8][8], double curr_height, void (*on_human_detected)()); 
 
       private:
-        /**
-         * Calculate ambient temperature range.
-         * 
-         * @param min Minimum ambient temperature observed.
-         * @param max Maximum ambient temperature observed.
-         **/
-        void calculate_ambient_temp (double& min, double& max);
+        // Minimum ambient temperature.
+        double ambient_min;
+
+        // Maximum ambient temperature.
+        double ambient_max;
     };  
   }
 }
