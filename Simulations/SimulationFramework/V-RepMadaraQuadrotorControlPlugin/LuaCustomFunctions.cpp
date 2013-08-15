@@ -50,6 +50,10 @@ void simExtMadaraQuadrotorControlSetup(SLuaCallBack* p)
 		    control = new MadaraQuadrotorControl(droneId);
             sstm << " + control initialized.";
         }
+		else
+		{
+			control->incrementNumDrones();
+		}
 
         sstm << std::endl;
 		simAddStatusbarMessage(sstm.str().c_str());
@@ -373,15 +377,22 @@ static int g_cleanupInArgs[] = {0};
 // The actual callback function.
 void simExtMadaraQuadrotorControlCleanup(SLuaCallBack* /*p*/)
 {
-	simLockInterface(1);
-
-	// Simply cleanup the madara control.
+	simLockInterface(1);	
 	simAddStatusbarMessage("simExtMadaraQuadrotorControlCleanup: cleaning up");
+
 	if(control != NULL)
 	{
-		control->terminate();
-		delete control;
-		control = NULL;
+		// Decrement the number of drones using the controller.
+		simAddStatusbarMessage("simExtMadaraQuadrotorControlCleanup: decrementing num drones");
+		control->decrementNumDrones();
+
+		// Try to terminate the controller. If unsuccesful, it is beacuse other drones are still referencing it.
+		if(control->terminate())
+		{
+			simAddStatusbarMessage("simExtMadaraQuadrotorControlCleanup: removing controller");
+			delete control;
+			control = NULL;
+		}
 	}
 
 	simLockInterface(0);

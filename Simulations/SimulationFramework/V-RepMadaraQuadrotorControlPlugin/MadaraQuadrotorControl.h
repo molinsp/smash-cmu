@@ -13,6 +13,7 @@
 #include <string>
 using std::string;
 
+#include "platforms/v_rep/v-rep_madara_variables.h"
 #include "Location.h"
 
 /**
@@ -36,6 +37,11 @@ private:
     * Clears the current command locally from Madara.
     */
     void clearCommand(std::string droneIdString);
+
+	/**
+	 * Stores the amount of drones that are using this controller, for correct deinitialization.
+	 */
+	int numDrones;
 
 public:
     /**
@@ -67,14 +73,25 @@ public:
     ~MadaraQuadrotorControl();
 
     /**
+    * Increments the number of drones using this controller, for destruction purposes.
+    */
+	void incrementNumDrones() { numDrones++; };
+
+    /**
+    * Decrements the number of drones using this controller, for destruction purposes.
+    */
+	void decrementNumDrones() { numDrones--; };
+
+    /**
     * Initialize the drone variables.
     */
     void initInternalData(int droneId);
 
     /**
-    * clean up the object
+    * Clean up the object. True if it cleaned it up, false if it was not possible due to other
+	* drones still referencing it.
     */
-    void terminate();
+    bool terminate();
 
     /**
     * update status in the knowledge base
@@ -85,6 +102,11 @@ public:
     * get new command from knowledge base
     */
     Command* getNewCommand(int droneId);
+
+    /**
+    * Set a new thermal scan to the knowledge base.
+    */
+    void setNewThermalScan(int droneId,double thermalBuffer[THERMAL_BUFFER_HEIGHT][THERMAL_BUFFER_WIDTH]);
 };
 
 #endif // _MADARA_QUADROTOR_CONTROL_H_

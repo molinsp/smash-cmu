@@ -4,18 +4,10 @@
  *
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
- 
-#include "madara/knowledge_engine/Knowledge_Base.h"
-#include "utilities/CommonMadaraVariables.h"
-
-#include "area_coverage/area_coverage_module.h"
-#include "bridge/bridge_module.h"
-#include "movement/movement_module.h"
-#include "sensors/sensors_module.h"
-#include "utilities/utilities_module.h"
 
 #include "utilities/CommonMadaraVariables.h"
-#include "platforms/platform.h"
+
+#include "drone_controller.h"
 
 #define NUM_TASKS 	3
 #define MAIN_LOGIC 	0
@@ -31,17 +23,68 @@ using namespace SMASH::Utilities;
 // Compiled expressions that we expect to be called frequently
 static Madara::Knowledge_Engine::Compiled_Expression expressions [NUM_TASKS];
 
-// The modules.
-static AreaCoverageModule m_areaCoverageModule;
-static BridgeModule m_bridgeModule;
-static MovementModule m_movementModule;
-static SensorsModule m_sensorsModule;
-static UtilitiesModule m_utilitiesModule;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Calls all the required initialization procedures.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool SMASH::DroneController::initialize(int droneId, Madara::Knowledge_Engine::Knowledge_Base* knowledge)
+{
+    // Startup the modules.
+	initializeModules(*knowledge);
+
+	// Setup and start the drone.
+	initializeDrone(droneId, *knowledge);
+
+	// Compile all expressions.
+    compileExpressions(*knowledge);
+
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Calls all the required cleanup procedures.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SMASH::DroneController::cleanup(Madara::Knowledge_Engine::Knowledge_Base* knowledge)
+{
+	// Cleanup all modules.
+	cleanupModules(*knowledge);
+
+	// Cleanup Madara.
+	knowledge->close_transport();
+    knowledge->clear();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Returns an expression used to get summary of the status of the drone.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string SMASH::DroneController::getStatusSummaryExpression()
+{
+    std::string status = 
+        "Drone {" MV_MY_ID "}\n"
+		"Total:\t\t{" MV_TOTAL_DEVICES "}\n"
+		"Position:\t{" MV_DEVICE_LAT("{.id}") "},{" MV_DEVICE_LON("{.id}") "}\n"
+		"Mobile:\t\t{" MV_MOBILE("{.id}") "}\n"
+		"Bridge ID:\t{" MV_BRIDGE_ID("{.id}") "}\n"
+        "Search alg:\t{" MV_AREA_COVERAGE_REQUESTED("{.id}") "}\n"
+		"Target pos:\t{" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n"
+        "Search end:\t{.area_coverage.cell.bottom_right.location.latitude},{.area_coverage.cell.bottom_right.location.longitude}\n\n"
+		"Command:\t{" MV_MOVEMENT_REQUESTED "}: {" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n"
+		;
+
+    return status;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Returns the main logic expression.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Madara::Knowledge_Engine::Compiled_Expression SMASH::DroneController::get_main_expression()
+{
+	return expressions[MAIN_LOGIC];
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void initializeModules(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
+void SMASH::DroneController::initializeModules(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
 	// Create the modules.
 	m_areaCoverageModule = AreaCoverageModule();
@@ -51,17 +94,17 @@ void initializeModules(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 	m_utilitiesModule = UtilitiesModule();
 
 	// Initialize them.
+    m_utilitiesModule.initialize(knowledge);
     m_areaCoverageModule.initialize(knowledge);
     m_bridgeModule.initialize(knowledge);
     m_movementModule.initialize(knowledge);
     m_sensorsModule.initialize(knowledge);
-    m_utilitiesModule.initialize(knowledge);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void cleanupModules(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
+void SMASH::DroneController::cleanupModules(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
     m_areaCoverageModule.cleanup(knowledge);
     m_bridgeModule.cleanup(knowledge);
@@ -73,16 +116,15 @@ void cleanupModules(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Sets up basic drone variables.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void initializeDrone(int droneId, Madara::Knowledge_Engine::Knowledge_Base& knowledge)
+void SMASH::DroneController::initializeDrone(int droneId, Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
     knowledge.set (".id", (Madara::Knowledge_Record::Integer) droneId);
     knowledge.set(MV_MOBILE("{" MV_MY_ID "}"), 1.0);
     knowledge.set(MV_BUSY("{" MV_MY_ID "}"), 0.0);
 
-    // TODO: move this into control loop
-    // Tell the drone to take off.
+    // Setup the initial command for the first loop of the drone logic as "take off".
+    // This is done through variables, similar to how a command would be sent by an external user.
     knowledge.set(MV_DEVICE_MOVE_REQUESTED("{" MV_MY_ID "}"), MO_TAKEOFF_CMD);
-    //knowledge.print_knowledge();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,17 +138,9 @@ static Madara::Knowledge_Record process_state_movement_commands (Madara::Knowled
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Returns the main logic expression.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Madara::Knowledge_Engine::Compiled_Expression main_get_main_expression()
-{
-	return expressions[MAIN_LOGIC];
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Setup of pre-compiled expressions.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void main_compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
+void SMASH::DroneController::compileExpressions (Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
 	expressions[PROCESS_STATE_MOVEMENT_COMMANDS] = knowledge.compile
 	(
@@ -137,10 +171,10 @@ void main_compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowle
 		knowledge.expand_statement
 		(
 			// TODO: remove this. Just for now, we are constantly setting the values for mobile and busy, to disseminate them.
-            //"("
-            //    MV_BUSY("{" MV_MY_ID "}") "=" MV_BUSY("{" MV_MY_ID "}") ";"
-            //    MV_MOBILE("{" MV_MY_ID "}") "=" MV_MOBILE("{" MV_MY_ID "}") ";"
-            //");"
+            "("
+                MV_BUSY("{" MV_MY_ID "}") "=" MV_BUSY("{" MV_MY_ID "}") ";"
+                MV_MOBILE("{" MV_MY_ID "}") "=" MV_MOBILE("{" MV_MY_ID "}") ";"
+            ");"
 
 			"device.{.id}.location=.location;"
 			".device.{.id}.location.altitude=.location.altitude;"
@@ -162,43 +196,14 @@ void main_compile_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowle
 	(
 		sensorsMainLogicCall + ";"
 		"process_state ();"
-		"(.movement_command"
-		"||"
-		//"(.needs_bridge =>" + SMASH::Bridge::Main_Function + ")"
-        "(" + bridgeMainLogicCall + " )"
-		"||"
-		"" + areaMainLogicCall + ");"
+		"("
+            ".movement_command"
+		    "||"
+            "(" + bridgeMainLogicCall + " )"
+	        "||"
+        	"(" + areaMainLogicCall + ")"
+        ");"
 		".movement_command => " + movementMainLogicCall + ";"
 	);
 
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Calls all the required initialization procedures.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool initializeDroneController(int droneId, Madara::Knowledge_Engine::Knowledge_Base& knowledge)
-{
-    // Startup the modules.
-	initializeModules(knowledge);
-
-	// Setup and start the drone.
-	initializeDrone(droneId, knowledge);
-
-	// Compile all expressions.
-    main_compile_expressions(knowledge);
-
-	return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Calls all the required cleanup procedures.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void cleanupDroneController(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
-{
-	// Cleanup all modules.
-	cleanupModules(knowledge);
-
-	// Cleanup Madara.
-	knowledge.close_transport();
-    knowledge.clear();
 }

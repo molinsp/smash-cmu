@@ -59,7 +59,7 @@ public:
 
     // Area coverage methods.
     void setNewSearchArea(int searchAreaId, SMASH::Utilities::Region areaBoundaries);
-    void requestAreaCoverage(int droneId, int searchAreaId, string algo = AREA_COVERAGE_SNAKE);
+    void requestAreaCoverage(std::vector<int> droneIds, int searchAreaId, string algorithm);
 };
 
 #endif

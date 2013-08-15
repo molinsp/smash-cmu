@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 
+#include "transport/DroneRK_Transport.h"
 #include "drk.h"
 
 #include "platforms/platform.h"
@@ -20,7 +21,7 @@ static bool drk_init_status = false;
 int frame_number;
 double thermal_data[8][8];
 
-bool init_platform()
+bool platform_init()
 {
 	if (!drk_init_status)
 	{
@@ -28,6 +29,37 @@ bool init_platform()
 		drk_init_status = true;
 	}
 	return drk_init_status;
+}
+
+Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
+{
+    // should move this to init_platform
+    Madara::Transport::Settings settings;
+    settings.id = id;
+    settings.hosts_.resize (1);
+    settings.hosts_[0] = "192.168.1.255:15000";
+    settings.type = Madara::Transport::BROADCAST;
+    //settings.type = Madara::Transport::NO_TRANSPORT;
+    settings.queue_length = 1024; //Smaller queue len to preserve memory
+
+    // Name the host based on the drone id.
+    char host[30];
+    sprintf(host, "drone%d", id);
+
+    // Create the knowledge base.
+    Madara::Knowledge_Engine::Knowledge_Base* knowledge = new Madara::Knowledge_Engine::Knowledge_Base(host, settings);
+
+    //knowledge->attach_transport(new DroneRK_Transport(out.str(),
+    //knowledge->get_context(), settings, true, 500));
+    
+    return knowledge;
+}
+
+bool platform_cleanup()
+{
+    drk_hover(0);
+    drk_land();
+    drk_exit(EXIT_SUCCESS);
 }
 
 bool init_sensor_functions()
@@ -92,20 +124,26 @@ void move_backward()
 void read_thermal(double buffer[8][8])
 {
 	printf("in read_thermal()\n");
-    sem_wait(serial_buf->semaphore);
-    memcpy(&buffer, &((serial_buf->grideye_buf).temperature), sizeof(buffer));
-    sem_post(serial_buf->semaphore);
-    printf("done copying\n");
+  int row, col;
+  sem_wait(serial_buf->semaphore);
+  //memcpy(&buffer, &((serial_buf->grideye_buf).temperature), sizeof(buffer));
+  for (row = 0; row < 8; row++)
+  {
+		for (col = 0; col < 8; col++)
+			buffer[row][col] = serial_buf->grideye_buf.temperature[row][col];
+	}
+  sem_post(serial_buf->semaphore);
+  printf("done copying\n");
     
-    int x, y;
-    for (y = 0; y < 8; y++)
-    {
+  /*int x, y;
+  for (y = 0; y < 8; y++)
+  {
 		for (x = 0; x < 8; x++)
 		{
 			printf("in loop %d, %d\n", x, y);
 			printf("%02f ", buffer[x][y]);
 		}
-	}
+	}*/
 }
 
 void read_gps(struct madara_gps * ret)
@@ -123,9 +161,12 @@ double read_ultrasound()
     return drk_ultrasound_altitude();
 }
 
-double get_distance_to_gps(double lat, double lon)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Gets the accuracy of the GPS for this platform, in meters.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+double get_gps_accuracy()
 {
-    return drk_gps_coordinates_mydistance(lat, lon);
+    return 7.0;
 }
 
 void stop_movement()
@@ -143,13 +184,6 @@ void move_to_altitude(double alt)
 {
 	printf("In platform move_to_altitude(%02f)\n", alt);
     drk_goto_altitude(alt);
-}
-
-bool cleanup_platform()
-{
-    drk_hover(0);
-    drk_land();
-    drk_exit(EXIT_SUCCESS);
 }
 
 #endif

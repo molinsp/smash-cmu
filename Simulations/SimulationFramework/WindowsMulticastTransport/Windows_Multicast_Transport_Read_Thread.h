@@ -85,10 +85,13 @@ private:
     Madara::Knowledge_Engine::Thread_Safe_Context & context_;
       
     /// atomic variable that signals termination
-    volatile bool     terminated_;
+    volatile bool							  terminated_;
       
     /// Indicates whether the read thread is ready to accept messages
-    bool                               is_ready_;
+    bool									  is_ready_;
+
+	/// The multicast IP address to be used to listen for messages.
+	char*								  mc_ipaddr_;
 
     /// underlying socket for sending
     sockaddr_in                               socketAddress_;
