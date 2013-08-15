@@ -12,7 +12,7 @@
 
 void ensureTakeoff(Madara::Knowledge_Engine::Variables& variables)
 {
-    variables.evaluate(MV_IS_LANDED " == 0 => takeoff();");
+    //variables.evaluate(MV_IS_LANDED " => takeoff();");
 }
 
 void attainAltitude(Madara::Knowledge_Engine::Variables& variables)
