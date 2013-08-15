@@ -124,20 +124,26 @@ void move_backward()
 void read_thermal(double buffer[8][8])
 {
 	printf("in read_thermal()\n");
-    sem_wait(serial_buf->semaphore);
-    memcpy(&buffer, &((serial_buf->grideye_buf).temperature), sizeof(buffer));
-    sem_post(serial_buf->semaphore);
-    printf("done copying\n");
+  int row, col;
+  sem_wait(serial_buf->semaphore);
+  //memcpy(&buffer, &((serial_buf->grideye_buf).temperature), sizeof(buffer));
+  for (row = 0; row < 8; row++)
+  {
+		for (col = 0; col < 8; col++)
+			buffer[row][col] = serial_buf->grideye_buf.temperature[row][col];
+	}
+  sem_post(serial_buf->semaphore);
+  printf("done copying\n");
     
-    int x, y;
-    for (y = 0; y < 8; y++)
-    {
+  /*int x, y;
+  for (y = 0; y < 8; y++)
+  {
 		for (x = 0; x < 8; x++)
 		{
 			printf("in loop %d, %d\n", x, y);
 			printf("%02f ", buffer[x][y]);
 		}
-	}
+	}*/
 }
 
 void read_gps(struct madara_gps * ret)
