@@ -28,12 +28,12 @@ function doInitialSetup()
     nwInDegrees['latitude'] = g_nwLat
     nwInDegrees['longitude'] = g_nwLong
     
-    simAddStatusbarMessage("Search area: " ..
-        tostring(seInDegrees['longitude']) .. ',' .. tostring(seInDegrees['latitude']) .. '; ' ..
-        tostring(nwInDegrees['longitude']) .. ',' .. tostring(nwInDegrees['latitude']))
+    simAddStatusbarMessage("Search area: SE " ..
+        tostring(seInDegrees['latitude']) .. ',' .. tostring(seInDegrees['longitude']) .. "; NW " ..
+        tostring(nwInDegrees['latitude']) .. ',' .. tostring(nwInDegrees['longitude']))
     simExtMadaraSystemControllerSetupSearchArea(g_searchAreaId,
-        tostring(seInDegrees['longitude']), tostring(seInDegrees['latitude']),
-        tostring(nwInDegrees['longitude']), tostring(nwInDegrees['latitude']))
+        tostring(nwInDegrees['longitude']), tostring(nwInDegrees['latitude']),
+        tostring(seInDegrees['longitude']), tostring(seInDegrees['latitude']))
 
     -- Array used to ensure that we automatically request a bridge for a certain person only once
     -- Only useful to simplify the simulation.
