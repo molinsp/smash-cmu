@@ -13,16 +13,6 @@
 
 #define STRING_ENDS_WITH(str, end) (str.length() >= end.length() ? (0 == str.compare (str.length() - end.length(), end.length(), end)) : false)
 
-// For Windows compatibility.
-#ifndef M_PI
-	#define M_PI 3.14159265358979323846
-#endif
-
-// Conversion from degrees to radians.
-#define DEG_TO_RAD(x) (x)*M_PI/180.0
-
-#define REACHED_ACCURACY_METERS         0.2         // Margin (in meters) to use when checking if we have reached a location.
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -124,61 +114,6 @@ Madara::Knowledge_Record copy_vector (Madara::Knowledge_Engine::Function_Argumen
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Calculate the distance between two coordinate pairs.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static double gps_coordinates_distance (double lat1, double long1, double lat2, double long2)
-{
-    const double EARTH_RADIUS = 6371000;
-
-    // Get the difference between our two points then convert the difference into radians
-    double lat_diff = DEG_TO_RAD(lat2 - lat1);
-    double long_diff = DEG_TO_RAD(long2 - long1);
-
-    lat1 =  DEG_TO_RAD(lat1);
-    lat2 =  DEG_TO_RAD(lat2);
-
-    double a =  pow(sin(lat_diff/2),2)+
-                cos(lat1) * cos(lat2) *
-                pow ( sin(long_diff/2), 2 );
-
-    double c = 2 * atan2( sqrt(a), sqrt( 1 - a));
-    return EARTH_RADIUS * c;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/**
-* Checks if we are within a certain accuracy of a target location.
-* @return  Returns true (1) if we are, or false (0) if not.
-**/
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Madara::Knowledge_Record madaraTargetReached (Madara::Knowledge_Engine::Function_Arguments &args,
-    Madara::Knowledge_Engine::Variables &variables)
-{
-    // All the params come from Madara.
-    double currLat = args[0].to_double();
-    double currLon = args[1].to_double();
-    double targetLat = args[2].to_double();
-    double targetLon = args[3].to_double();
-
-    printf("Lat:      %.10f Long:   %.10f\n", currLat, currLon);
-    printf("T_Lat:    %.10f T_Long: %.10f\n", targetLat, targetLon);
-
-    double dist = gps_coordinates_distance(currLat, currLon, targetLat, targetLon);
-    printf("Distance: %.2f\n", dist);
-
-    if(dist < REACHED_ACCURACY_METERS)
-    {
-        printf("HAS reached target\n");
-        return Madara::Knowledge_Record(1.0);
-    }
-    else
-    {
-        printf("HAS NOT reached target\n");
-        return Madara::Knowledge_Record(0.0);
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static void define_utilities_functions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
@@ -186,7 +121,6 @@ static void define_utilities_functions (Madara::Knowledge_Engine::Knowledge_Base
 	knowledge.define_function("inflate_coords", inflate_coords);
 	knowledge.define_function("inflate_coord_array_to_local", inflate_coord_array_to_local);
 	knowledge.define_function("copy_vector", copy_vector);
-    knowledge.define_function(MF_TARGET_REACHED, madaraTargetReached);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

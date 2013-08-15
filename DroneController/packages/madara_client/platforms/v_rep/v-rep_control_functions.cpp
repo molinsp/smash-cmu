@@ -333,3 +333,11 @@ double read_ultrasound()
     double currHeight = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_ALTITUDE)).to_double();
     return currHeight;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Gets the accuracy of the GPS for this platform, in meters.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+double get_gps_accuracy()
+{
+    return 0.2;
+}

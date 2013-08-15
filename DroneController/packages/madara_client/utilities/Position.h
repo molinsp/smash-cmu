@@ -39,19 +39,19 @@ namespace SMASH
             /**
 	         * Blank default constructor.
              **/
-	        Position() : longitude(x), latitude(y) {}
+	        Position() : latitude(x), longitude(y) {}
 
 	        /** Constructor from data.
              * @param   newX    The value for the X coordinate.
              * @param   newY    The value for the Y coordinate.
              **/
-	        Position(double newX, double newY) : longitude(x), latitude(y)
+	        Position(double newX, double newY) : latitude(x), longitude(y)
 	        {
 		        x = newX;
 		        y = newY;
 	        }
 
-            Position(const Position& copy) : longitude(x), latitude(y)
+            Position(const Position& copy) : latitude(x), longitude(y)
             {
                 x = copy.x;
                 y = copy.y;

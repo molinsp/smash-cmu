@@ -25,7 +25,7 @@ using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
 using std::string;
 
-#define REACHED_ACCURACY_DEGREES        0.0000100   // Margin (in degrees) to use when checking if we have reached a location.
+#define SEARCH_LINE_OFFSET_DEGREES      0.0000100   // Margin (in degrees) to use when moving to another column or line of search. Should be similar to the view range of a drone.
 #define ALTITUDE_DIFFERENCE             0.5         // The amount of vertical space (in meters) to leave between drones.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +43,6 @@ using std::string;
 #define MF_SET_NEW_COVERAGE             "area_coverage_setNewCoverage"              // Sets the new coverage to use when a coverage reaches its final target
 
 // Internal variables.
-#define MV_ACCURACY                     "0.0000020"                                             // Delta (in degrees) to use when checking if we have reached a location.
 #define MV_CELL_INITIALIZED             ".area_coverage.cell.initialized"                       // Flag to check if we have initialized our cell in the search area.
 #define MV_NEXT_TARGET_LAT              ".area_coverage.target.location.latitude"               // The latitude of the next target location in our search pattern.
 #define MV_NEXT_TARGET_LON              ".area_coverage.target.location.longitude"              // The longitude of the next target location in our search pattern.
@@ -145,7 +144,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                             "("
                                 // Check if we are just initializing, or if we reached the next target, but not the end of the area, to set the next waypoint.
                                 "((" MV_NEXT_TARGET_LAT " == 0) && (" MV_NEXT_TARGET_LON " == 0)) || "
-                                "(" MF_NEXT_TARGET_REACHED "() && !(" MF_FINAL_TARGET_REACHED "() && !" MF_SET_NEW_COVERAGE "() ))"
+                                "(" MV_REACHED_GPS_TARGET " && !(" MF_FINAL_TARGET_REACHED "() && !" MF_SET_NEW_COVERAGE "() ))"
                                     " => " MF_SET_NEW_TARGET  "()" 
                             ")"
                         ")"
@@ -179,12 +178,12 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
         );
 
     // Returns 1 if we are closer than the accuracy to the current target of our search.
-    knowledge.define_function(MF_NEXT_TARGET_REACHED, 
-        "("
-            "(" MF_TARGET_REACHED "(" MV_DEVICE_LAT("{.id}") "," MV_DEVICE_LON("{.id}") "," 
-                                      MV_NEXT_TARGET_LAT  "," MV_NEXT_TARGET_LON  ")" ")"
-        ");"
-        );
+    //knowledge.define_function(MF_NEXT_TARGET_REACHED, 
+    //    "("
+    //        "(" MF_TARGET_REACHED "(" MV_DEVICE_LAT("{.id}") "," MV_DEVICE_LON("{.id}") "," 
+    //                                  MV_NEXT_TARGET_LAT  "," MV_NEXT_TARGET_LON  ")" ")"
+    //    ");"
+    //    );
 
     // Checks if the final target of the area coverage strategy has been reached.
     knowledge.define_function(MF_FINAL_TARGET_REACHED, madaraReachedFinalTarget);
@@ -255,11 +254,11 @@ AreaCoverage* selectAreaCoverageAlgorithm(string algo)
     }
     else if(algo == AREA_COVERAGE_SNAKE)
     {
-        coverageAlgorithm = new SnakeAreaCoverage(Region::NORTH_WEST, REACHED_ACCURACY_DEGREES);
+        coverageAlgorithm = new SnakeAreaCoverage(Region::NORTH_WEST, SEARCH_LINE_OFFSET_DEGREES);
     }
     else if(algo == AREA_COVERAGE_INSIDEOUT)
     {
-        coverageAlgorithm = new InsideOutAreaCoverage((float)REACHED_ACCURACY_DEGREES);
+        coverageAlgorithm = new InsideOutAreaCoverage((float)SEARCH_LINE_OFFSET_DEGREES);
     }
     else
     {

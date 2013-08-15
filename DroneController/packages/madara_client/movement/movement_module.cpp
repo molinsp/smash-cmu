@@ -4,7 +4,6 @@
  *
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
- 
 
 #include "movement/movement_module.h"
 #include "platform_movement.h"
@@ -89,15 +88,19 @@ Madara::Knowledge_Record control_functions_move_backward (Madara::Knowledge_Engi
 
 Madara::Knowledge_Record madara_move_to_gps (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-	double lat = variables.get(".movement_command.0").to_double();
-	double lon = variables.get(".movement_command.1").to_double();
-    double alt = variables.get(MV_ASSIGNED_ALTITUDE("{.id}")).to_double();
+	double lat = variables.get(MV_MOVEMENT_TARGET_LAT).to_double();
+	double lon = variables.get(MV_MOVEMENT_TARGET_LON).to_double();
+    double alt = variables.get(MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}")).to_double();
 
     attainAltitude(variables);
 	
 	printf("Moving to %08f, %08f, %02f\n", lat, lon, alt);
 	
 	move_to_location(lat, lon, alt);
+
+    // Store the current target internally for control.
+    variables.set(MV_LAST_TARGET_LAT, lat);
+    variables.set(MV_LAST_TARGET_LON, lon);
 		
 	return Madara::Knowledge_Record::Integer(1);;
 }
@@ -117,11 +120,13 @@ Madara::Knowledge_Record madara_move_to_altitude (Madara::Knowledge_Engine::Func
 
 Madara::Knowledge_Record process_movement_commands (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
+    // Store the current command in another variable for control, since the movement command one will be cleared in each loop.
+    variables.evaluate(MV_LAST_MOVEMENT_REQUESTED "=.movement_command");
+
 	std::string expansion = variables.expand_statement("{.movement_command}();");
 	printf("Expanded Movement Command: %s\n", expansion.c_str());
 	return variables.evaluate(expansion, Madara::Knowledge_Engine::Eval_Settings(false, true));
 }
-
 
 //Define the functions provided by the control_functions module
 void define_control_functions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
@@ -138,7 +143,6 @@ void define_control_functions (Madara::Knowledge_Engine::Knowledge_Base & knowle
 	knowledge.define_function ("move_to_altitude", madara_move_to_altitude);
 	knowledge.define_function ("process_movement_commands", process_movement_commands);
 }
-
 
 void SMASH::Movement::MovementModule::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
