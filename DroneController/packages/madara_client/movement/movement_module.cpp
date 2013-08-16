@@ -11,13 +11,13 @@
 
 void ensureTakeoff(Madara::Knowledge_Engine::Variables& variables)
 {
-    variables.evaluate(MV_IS_LANDED " == 0 => takeoff();");
+    //variables.evaluate(MV_IS_LANDED " == 0 => takeoff();");
 }
 
 void attainAltitude(Madara::Knowledge_Engine::Variables& variables)
 {
-    ensureTakeoff(variables);
-    variables.evaluate(MV_IS_AT_ALTITUDE " == 0 => (.movement_command.0 = " MV_ASSIGNED_ALTITUDE("{.id}") "; move_to_altitude();)");
+    //ensureTakeoff(variables);
+    //variables.evaluate(MV_IS_AT_ALTITUDE " == 0 => (.movement_command.0 = " MV_ASSIGNED_ALTITUDE("{.id}") "; move_to_altitude();)");
 }
 
 //Madara function to interface with takeoff()

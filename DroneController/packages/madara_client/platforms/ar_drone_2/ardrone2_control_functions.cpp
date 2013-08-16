@@ -176,7 +176,7 @@ void stop_movement()
 
 void move_to_location(double lat, double lon, double alt)
 {
-	printf("entering platform::move_to_location(%08f, %08f)...\n", lat, lon);
+    printf("entering platform::move_to_location(%08f, %08f, %f)...\n", lat, lon, alt);
     drk_goto_gps(lat, lon, alt, 0.1, 2);
 }
 

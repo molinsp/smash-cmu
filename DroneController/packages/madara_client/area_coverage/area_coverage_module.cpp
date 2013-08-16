@@ -50,8 +50,8 @@ using std::string;
 #define MV_AVAILABLE_DRONES_MY_IDX      ".area_coverage.devices.available.my_idx"               // The index of the device in the list of available ones.
 #define MV_MY_CELL_TOP_LEFT_LAT       ".area_coverage.cell.top_left.location.latitude"        // The x of the top left corner of the cell I am searching.
 #define MV_MY_CELL_TOP_LEFT_LON       ".area_coverage.cell.top_left.location.longitude"       // The y of the top left corner of the cell I am searching.
-#define MV_MY_CELL_BOTTOM_RIGHT_LAT       ".area_coverage.cell.bottom_right.location.latitude"    // The x of the bottom right corner of the cell I am searching.
-#define MV_MY_CELL_BOTTOM_RIGHT_LON       ".area_coverage.cell.bottom_right.location.longitude"   // The y of the bottom right corner of the cell I am searching.
+#define MV_MY_CELL_BOT_RIGHT_LAT       ".area_coverage.cell.bottom_right.location.latitude"    // The x of the bottom right corner of the cell I am searching.
+#define MV_MY_CELL_BOT_RIGHT_LON       ".area_coverage.cell.bottom_right.location.longitude"   // The y of the bottom right corner of the cell I am searching.
 #define MV_ALTITUDE_HAS_BEEN_REACHED    ".area_coverage.altitude_reached"                       // Flag to check if the assigned altitude has been reached.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,7 +144,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                             "("
                                 // Check if we are just initializing, or if we reached the next target, but not the end of the area, to set the next waypoint.
                                 "((" MV_NEXT_TARGET_LAT " == 0) && (" MV_NEXT_TARGET_LON " == 0)) || "
-                                "(" MF_NEXT_TARGET_REACHED "() && !(" MF_FINAL_TARGET_REACHED "()))" //&& !" MF_SET_NEW_COVERAGE "() ))"
+                                "(" MV_REACHED_GPS_TARGET " && !(" MF_FINAL_TARGET_REACHED "()))"
                                     " => " MF_SET_NEW_TARGET  "()" 
                             ")"
                         ")"
@@ -311,8 +311,8 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
             // Store this cell in Madara.
             variables.set(MV_MY_CELL_TOP_LEFT_LAT, (myCell->northWest.latitude));
             variables.set(MV_MY_CELL_TOP_LEFT_LON, (myCell->northWest.longitude));
-            variables.set(MV_MY_CELL_BOTTOM_RIGHT_LAT, (myCell->southEast.latitude));
-            variables.set(MV_MY_CELL_BOTTOM_RIGHT_LON, (myCell->southEast.longitude));
+            variables.set(MV_MY_CELL_BOT_RIGHT_LAT, (myCell->southEast.latitude));
+            variables.set(MV_MY_CELL_BOT_RIGHT_LON, (myCell->southEast.longitude));
     
             return Madara::Knowledge_Record(1.0);
         }
@@ -386,7 +386,11 @@ Madara::Knowledge_Record madaraReachedFinalTarget(
 {
     // change to new coverage algorithm
     if(m_coverageAlgorithm->isTargetingFinalWaypoint())
+    {
+        printf("IS targeting final waypoint.\n");
         return Madara::Knowledge_Record(1.0);
+    }
+    printf("IS NOT targeting final waypoint.\n");
     return Madara::Knowledge_Record(0.0);
 }
 
@@ -412,8 +416,8 @@ Madara::Knowledge_Record madaraSetNewCoverage(Madara::Knowledge_Engine::Function
             // Store this cell in Madara.
             variables.set(MV_MY_CELL_TOP_LEFT_LAT, (myCell->northWest.latitude));
             variables.set(MV_MY_CELL_TOP_LEFT_LON, (myCell->northWest.longitude));
-            variables.set(MV_MY_CELL_BOTTOM_RIGHT_LAT, (myCell->southEast.latitude));
-            variables.set(MV_MY_CELL_BOTTOM_RIGHT_LON, (myCell->southEast.longitude));
+            variables.set(MV_MY_CELL_BOT_RIGHT_LAT, (myCell->southEast.latitude));
+            variables.set(MV_MY_CELL_BOT_RIGHT_LON, (myCell->southEast.longitude));
     
             return Madara::Knowledge_Record(1.0);
         }
