@@ -87,29 +87,6 @@ function updateDronePosition()
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
--- Load the people's locations, so we are able to check when we find one.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function loadPeoplePositions()
-	g_numPeople = simGetScriptSimulationParameter(sim_handle_main_script, 'numberOfPeople')
-	g_personCoordsX = {}
-    g_personCoordsY = {}
-    
-	local counter = 1
-	for i=1, g_numPeople, 1 do
-		if(i==1) then
-			personHandle = simGetObjectHandle('Bill#')
-		else
-			personHandle = simGetObjectHandle('Bill#' .. (i-2))
-		end
-
-        local billposition = getObjectPositionInDegrees(personHandle, -1)
-		g_personCoordsX[i] = billposition[1]
-		g_personCoordsY[i] = billposition[2]
-		--simAddStatusbarMessage('Person ' .. counter .. ' : ' .. g_personCoords[counter] .. ', ' .. counter+1 .. ' : '..g_personCoords[counter+1])
-	end    
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
 -- Check if we have found a person to stop on top of it.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function lookForPersonBelow()
