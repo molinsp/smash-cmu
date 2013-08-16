@@ -115,9 +115,8 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
             // Only used when we are in the process of moving towards a bridge.
             MV_MOVING_TO_BRIDGE " => "
             "("
-                ".test=1;"
-                // If we reached our bridge location, note that and land.
-                MF_BRIDGE_LOCATION_REACHED "() => " 
+                // If we reached our bridge location, record that and land.
+                MV_REACHED_GPS_TARGET " => " 
                     "("
                         MV_MOVING_TO_BRIDGE "= 0;"
                         "(" MV_MOVEMENT_REQUESTED "='" MO_LAND_CMD "');"
@@ -157,13 +156,13 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
         ");"
     );
 
-    // Returns 1 if we are closer than MV_ACCURACY to the current target of our search.
-    knowledge.define_function(MF_BRIDGE_LOCATION_REACHED, 
-        "("
-            "(" MF_TARGET_REACHED "(" MV_DEVICE_LAT("{.id}") "," MV_DEVICE_LON("{.id}") "," 
-                                      MV_BRIDGE_LOC_LAT  "," MV_BRIDGE_LOC_LON  ")" ")"
-        ");"
-    );
+    // Returns 1 if we are closer than a certain accuracy to the current target of our search.
+    //knowledge.define_function(MF_BRIDGE_LOCATION_REACHED, 
+    //    "("
+    //        "(" MF_TARGET_REACHED "(" MV_DEVICE_LAT("{.id}") "," MV_DEVICE_LON("{.id}") "," 
+    //                                  MV_BRIDGE_LOC_LAT  "," MV_BRIDGE_LOC_LON  ")" ")"
+    //    ");"
+    //);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////

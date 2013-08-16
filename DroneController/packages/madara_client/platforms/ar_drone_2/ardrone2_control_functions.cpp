@@ -52,7 +52,6 @@ Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
 
     //knowledge->attach_transport(new DroneRK_Transport(out.str(),
     //knowledge->get_context(), settings, true, 500));
-
     return knowledge;
 }
 
@@ -124,29 +123,27 @@ void move_backward()
 
 void read_thermal(double buffer[8][8])
 {
-	int row, col;
-  printf("ardrone_controller::read_thermal()\n");
+	printf("in read_thermal()\n");
+  int row, col;
   sem_wait(serial_buf->semaphore);
   //memcpy(&buffer, &((serial_buf->grideye_buf).temperature), sizeof(buffer));
-  // Copy serial buffer temperature info.
   for (row = 0; row < 8; row++)
   {
-    for (col = 0; col < 8; col++)
-	    buffer[row][col] = serial_buf->grideye_buf.temperature[row][col];
-	}
-  frame_number = serial_buf->grideye_buf.index;
-  sem_post(serial_buf->semaphore);
-  
-  //printf("Done copying to thermal buffer with frame# %i\n", frame_number);
-  
-  // Print copied buffer.
-  /*for (row = 0; row < 8; row++)
-  {
 		for (col = 0; col < 8; col++)
-			printf("%6.2f\t", buffer[row][col]);
-    printf("\n");
+			buffer[row][col] = serial_buf->grideye_buf.temperature[row][col];
 	}
-  printf("\n\n");*/
+  sem_post(serial_buf->semaphore);
+  printf("done copying\n");
+    
+  /*int x, y;
+  for (y = 0; y < 8; y++)
+  {
+		for (x = 0; x < 8; x++)
+		{
+			printf("in loop %d, %d\n", x, y);
+			printf("%02f ", buffer[x][y]);
+		}
+	}*/
 }
 
 void read_gps(struct madara_gps * ret)
@@ -164,9 +161,12 @@ double read_ultrasound()
     return drk_ultrasound_altitude();
 }
 
-double get_distance_to_gps(double lat, double lon)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Gets the accuracy of the GPS for this platform, in meters.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+double get_gps_accuracy()
 {
-    return drk_gps_coordinates_mydistance(lat, lon);
+    return 7.0;
 }
 
 /**
