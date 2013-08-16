@@ -83,7 +83,7 @@ int main (int argc, char** argv)
     while (!g_terminated)
     {
         knowledge->evaluate (mainExpression, eval_settings);
-        //knowledge->print_knowledge();
+        knowledge->print_knowledge();
         ACE_OS::sleep (1);
     }
 

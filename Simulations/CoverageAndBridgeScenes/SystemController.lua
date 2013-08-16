@@ -26,6 +26,9 @@ function doInitialSetup()
     
     -- Array used to ensure that we automatically request a bridge for a certain person only once. Only useful to simplify the simulation.
     g_peopleFound = {}
+	
+	-- To be used for bridge requests.
+	loadPeoplePositions()
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,12 +41,18 @@ function checkForButtonPress()
     -- If the button handle is valid and the second event detail is 1, it means a button was pressed.
     if(not (buttonHandle == -1) and (eventDetails[2] == 0)) then
         local buttonLabel = simGetUIButtonLabel(commandsUIHandle, buttonHandle)
-        simAddStatusbarMessage('Button pressed and released! ' .. buttonLabel)
+        --simAddStatusbarMessage('Button pressed and released! ' .. buttonLabel)
         
-        -- If this button is pressed, we send a search request.
+        -- Start a search request if that button was pressed.
         if(buttonLabel == 'Start Search') then
             sendSearchRequest()
         end
+		
+        -- Start a bridge request if that button was pressed.
+        if(buttonLabel == 'Form Bridge') then
+            sendBridgeRequestForLastPersonFound()
+        end
+		
     end
 end
 
@@ -118,7 +127,7 @@ function runMainLogic()
     -- Check for user input.
     checkForButtonPress()
 
-    -- NOTE: This is done here just for convinience of simulation. In reality, it would be issued by a rescuer at any moment, not when someone is found.        
+    -- NOTE: This is done here just for convenience of simulation. In reality, it would be issued by a rescuer at any moment, not when someone is found.        
     checkForBridgeRequest()
     
     -- Update the drone status to the network.        
@@ -129,8 +138,6 @@ end
 -- Checks if a bridge request is required, and sends it if it is the case.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function checkForBridgeRequest()
-
-    local sendNewBridgeRequest = false
 	
 	-- Only do check if there is a person if the auto bridge request is on.
 	local autoBridgeRequest = simGetScriptSimulationParameter(sim_handle_main_script, 'autoBridgeRequest')
@@ -140,7 +147,7 @@ function checkForBridgeRequest()
 		if(personFoundId ~= -1) then
 			-- We only need a bridge request if this person had not been found before.
 			if(g_peopleFound[personFoundId] == nil) then
-				sendNewBridgeRequest = true
+				sendBridgeRequestForLastPersonFound()
 				local sourceSuffix = simGetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound')
 				simAddStatusbarMessage('Drone with suffix ' .. sourceSuffix .. ' found person ' .. personFoundId .. '!')
 			end
@@ -149,21 +156,51 @@ function checkForBridgeRequest()
 			g_peopleFound[personFoundId] = true
 		end
 	end
+end
 
-    -- Send a bridge request if necessary.
-    if(sendNewBridgeRequest) then
-        -- Get sink and source info.
-        local sinkName, sinkPosition = getSinkInfo()
-        local sourceName, sourcePosition = getSourceInfo()
-        
-        -- Do the external bridge request.        
-        simExtMadaraSystemControllerBridgeRequest(g_bridgeRequestId, 
-                                                  tostring(sourcePosition[1]), tostring(sourcePosition[2]), tostring(sourcePosition[1]), tostring(sourcePosition[2]), 
-                                                  tostring(sinkPosition[1]), tostring(sinkPosition[2]), tostring(sinkPosition[1]), tostring(sinkPosition[2]))
-                                                           
-        -- Update the next bridge request id.
-        g_bridgeRequestId = g_bridgeRequestId + 1
-    end
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Sends a bridge request to the network.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function sendBridgeRequestForLastPersonFound()
+	-- Only do this if at least one person has been found.
+    local personFoundId = simGetScriptSimulationParameter(sim_handle_main_script, 'personFoundId')
+	if(personFoundId ~= -1) then
+		-- Get sink and source info.
+		local sinkPosition = getSinkPosition()
+		local sourcePosition = getPersonPosition(personFoundId)
+		
+		-- Do the external bridge request.
+		simAddStatusbarMessage('Sending bridge request for last person found.')
+		simExtMadaraSystemControllerBridgeRequest(g_bridgeRequestId, 
+												  tostring(sourcePosition[1]), tostring(sourcePosition[2]), tostring(sourcePosition[1]), tostring(sourcePosition[2]), 
+												  tostring(sinkPosition[1]), tostring(sinkPosition[2]), tostring(sinkPosition[1]), tostring(sinkPosition[2]))
+														   
+		-- Update the next bridge request id.
+		g_bridgeRequestId = g_bridgeRequestId + 1
+	else
+		simAddStatusbarMessage('No person found yet!')
+	end
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Returns the position of the sink as a table with x,y,z
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function getSinkPosition()
+    -- Get position of sink.
+    local sinkName = 'laptop'
+    laptopHandle = simGetObjectHandle(sinkName .. '#')
+    local sinkPosition = getObjectPositionInDegrees(laptopHandle, -1)
+    --simAddStatusbarMessage('Sink at '  .. sinkPosition[1] .. ', ' .. sinkPosition[2])
+    
+    return sinkPosition
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Returns the position of the source person found as a table with x,y,z.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function getPersonPosition(personFoundId)
+	local personPosition = {g_personCoordsX[personFoundId], g_personCoordsY[personFoundId], 0}
+	return personPosition
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////

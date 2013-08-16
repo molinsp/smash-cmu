@@ -118,7 +118,7 @@ int main (int argc, char** argv)
         Madara::Knowledge_Engine::Eval_Settings(true));
     knowledge->set(MV_TOTAL_DEVICES, Madara::Knowledge_Record::Integer(numDrones),
         Madara::Knowledge_Engine::Eval_Settings(true));
-    knowledge->set(MV_MIN_ALTITUDE, Madara::Knowledge_Record::Integer(3),
+    knowledge->set(MV_MIN_ALTITUDE, 2.0,
         Madara::Knowledge_Engine::Eval_Settings(true));
     knowledge->set(MV_TOTAL_SEARCH_AREAS, Madara::Knowledge_Record::Integer(1));
 
@@ -127,16 +127,21 @@ int main (int argc, char** argv)
     {
         knowledge->set(MV_MOBILE(NUM_TO_STR(i)), 1.0,
             Madara::Knowledge_Engine::Eval_Settings(true));
-        knowledge->set(MV_BUSY(NUM_TO_STR(i)), 0.0);
+        knowledge->set(MV_BUSY(NUM_TO_STR(i)), 0.0,
+            Madara::Knowledge_Engine::Eval_Settings(true));
     }
+
+    knowledge->apply_modified();
 
     printf("\nAssigning search area...\n");
     for(int i = 0; i < numDrones; ++i)
     {
         string droneIdString = NUM_TO_STR(i);
         knowledge->set(MV_ASSIGNED_SEARCH_AREA(droneIdString), Madara::Knowledge_Record::Integer(0), Madara::Knowledge_Engine::Eval_Settings(true));
-        knowledge->set(MV_AREA_COVERAGE_REQUESTED(droneIdString), "snake");
+        knowledge->set(MV_AREA_COVERAGE_REQUESTED(droneIdString), "random", Madara::Knowledge_Engine::Eval_Settings(true));
     }
+
+    knowledge->apply_modified();
 
 
     printf("\nExiting...\n");

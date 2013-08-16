@@ -6,24 +6,27 @@
 --######################################################################
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
--- Returns the position of the sink as a table with x,y,z
+-- Load the people's locations, so we are able to check when we find one.
 --/////////////////////////////////////////////////////////////////////////////////////////////
-function getSinkInfo()
-    -- Get position of sink.
-    local sinkName = 'laptop'
-    laptopHandle = simGetObjectHandle(sinkName .. '#')
-    local sinkPosition = getObjectPositionInDegrees(laptopHandle, -1)
-    --simAddStatusbarMessage('Sink at '  .. sinkPosition[1] .. ', ' .. sinkPosition[2])
+function loadPeoplePositions()
+	-- Load all of these in global variables.
+	g_numPeople = simGetScriptSimulationParameter(sim_handle_main_script, 'numberOfPeople')
+	g_personCoordsX = {}
+    g_personCoordsY = {}
     
-    return sinkName, sinkPosition
-end
+	local counter = 1
+	for i=1, g_numPeople, 1 do
+		if(i==1) then
+			personHandle = simGetObjectHandle('Bill#')
+		else
+			personHandle = simGetObjectHandle('Bill#' .. (i-2))
+		end
 
---/////////////////////////////////////////////////////////////////////////////////////////////
--- Returns the position of the source drone as a table with x,y,z, as well as the drone's name.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function getSourceInfo()
-    local sourceSuffix = simGetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound')
-    return getDroneInfoFromSuffix(sourceSuffix)
+        local billposition = getObjectPositionInDegrees(personHandle, -1)
+		g_personCoordsX[i] = billposition[1]
+		g_personCoordsY[i] = billposition[2]
+		--simAddStatusbarMessage('Person ' .. counter .. ' : ' .. g_personCoords[counter] .. ', ' .. counter+1 .. ' : '..g_personCoords[counter+1])
+	end    
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
