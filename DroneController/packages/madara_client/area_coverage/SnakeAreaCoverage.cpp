@@ -53,43 +53,44 @@ Position SnakeAreaCoverage::getNextTargetLocation()
     if(!m_started)
     {
         m_started = true;
-        m_targetLocation = m_cellToSearch->topLeftCorner;
+        m_targetLocation = m_cellToSearch->northWest;
+        m_movingNorthSouth = false; // start by moving north-south
     }
     else
     {
-        // Check if we were moving on the Y axis or not.
-        if(m_movingOnYAxis)
+        // Check if we were moving North-South or not.
+        if(m_movingNorthSouth)
         {
-            // If we were moving on the Y axis, that means that we just finished searching in the current search column.
-            // We set our next target to the right, to the start of the next column.
+            // If we were moving North-South, that means that we just finished searching in the
+            //  current search column.
+            // We set our next target to the east, to the start of the next column.
             // After we reach this target, we will be ready to move down or up the search column.
-            m_targetLocation.x -= m_searchColumnWidth;
-            m_movingOnYAxis = false;
+            m_targetLocation.longitude -= m_searchColumnWidth;
+            m_movingNorthSouth = false;
         }
         else
         {
-            // If we are in here, we just moved to the beginning of a search column (either on the top or the bottom).
+            // If we are in here, we just moved to the beginning of a search column
 
-            // Check if we are at the end of a column on the top or the bottom of the area.
-            bool bottomReached = (m_targetLocation.y == m_cellToSearch->bottomRightCorner.y);
-            if(bottomReached)
+            // Check if we are at the end of a column in the north or south of the area.
+            if(m_targetLocation.latitude == m_cellToSearch->southEast.latitude)
             {
-                // Since we are on the bottom, set our next target to the top.
-                m_targetLocation.y = m_cellToSearch->topLeftCorner.y;
+                // Since we are on the bottom, set our next target to the north
+                m_targetLocation.latitude = m_cellToSearch->northWest.latitude;
             }
             else
             {
-                // Since we are on the top, set our next target to the bottom.
-                m_targetLocation.y = m_cellToSearch->bottomRightCorner.y;
+                // Since we are on the top, set our next target to the south
+                m_targetLocation.latitude = m_cellToSearch->southEast.latitude;
             }
 
-            // Indicate that now we are going to be moving on the Y axis.
-            m_movingOnYAxis = true;
+            // Indicate that now we are going to be moving North-South
+            m_movingNorthSouth = true;
         }
     }
 
     // We updated it internally, but we also return our next target it so it can be used by the movement controller.
-    printf("Target location: %.10f, %.10f\n", m_targetLocation.x, m_targetLocation.y);
+    printf("Target location: Lat = %.10f, Long = %.10f\n", m_targetLocation.latitude, m_targetLocation.longitude);
     return m_targetLocation;
 }
 
@@ -97,10 +98,9 @@ Position SnakeAreaCoverage::getNextTargetLocation()
 // @return  true if final target has been reached, false otherwise
 bool SnakeAreaCoverage::isTargetingFinalWaypoint()
 {
-  return (fabs(m_targetLocation.x - m_cellToSearch->bottomRightCorner.x) <
+  return (fabs(m_targetLocation.longitude - m_cellToSearch->southEast.longitude) <
                     (m_searchColumnWidth / 2)) &&
-         (fabs(m_targetLocation.y - m_cellToSearch->bottomRightCorner.y) <
-                    (m_searchColumnWidth / 2));
+         ((m_targetLocation.latitude == m_cellToSearch->southEast.latitude));
 }
 
 

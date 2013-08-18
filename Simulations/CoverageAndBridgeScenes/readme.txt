@@ -15,33 +15,46 @@ a data stream (such as video) can be sent from a drone that found something of i
 (source) to a person that wants to see it (sink).
 
 Right now, the scene works in the following way: 
- * The laptop, which acts as the System Controller, tells all drone to start
-   covering the search area (visually shown as the sandy square on the ground).
+ * The simulation has to be started before anything else is done.
+ * Once it is started, external drones configured to use V-Rep as thei hardware platform
+   have to be started. This assumes that there will be external executables for each of the 
+   simulated drones, which will communicate with the scene through an isolated knowledge base.
+ * If the communicate is set up correctly, the drones will automatically take off and hover
+   over the ground.
+ * If the Start Search button is pressed on the System Controller, a command is sent to all 
+   drones to start covering the search area (visually shown as the sandy square).
  * Each drone will assign itself a cell or quadrant in the search area to cover.
- * Each drone will go to the beggining of that cell, and start zig-zagging to cover
-   all that cell.
- * When a drone finds a person (flies over it), it will notify the laptop (System Controller).
- * Immediately, the System Controller will send a bridge request to all drones.
-   In reality this would be triggerd by the laptop user, not automatically.
- * Each drone will execute the same algoritghm to calculate if it has to move to 
-   create a bridge between the person and the laptop (sink). If it is supposed
-   to be part of the bridge, it will move to the location it calculated and stop there.
+ * Each drone will go to the beginning of that cell, and start covering it with a pattern 
+   dependent on the search algoritm parameter (see below).
+ * When a drone finds a person (flies over it), it will show up in the mini map as a red square.
+ * If auto-bridge mode is enabled, a bridge request will be sent automatically. Otherwise, 
+   when the Form Bridge button is pressed, a bridge request will be sent for the last person found.
+ * In both previous cases, when a bridge request is sent, the System Controller will send 
+   a bridge request to all drones.
+ * Each drone will execute the same algorithm to calculate if it has to move to 
+   create a bridge between the person and the laptop (sink). If it calculates it should
+   be part of the bridge, it will move to the location it calculated and stop there, lowering its altitude.
  * All drones which do not become part of a bridge will continue covering their areas 
-   untill they reach the end of the cell, and then they will stop.
+   until they reach the end of the cell, and then they will go back to covering their search areas again.
    
-In its current implementation, the scene will only act as the System Controller and as the eyes and actuators 
-of the drones, with no algorithms executed inside the scene. The scene will continously 
-disseminate the position of the simulated drones through Madara, and send area coverage 
-and bridge requests when required automatically (as well as handling the results to order the drones 
-to move to a certain location). Note that it requires the v_repExtMadaraSystemController.dll 
-and v_repExtMadaraQuadrotorControlPlugin.dll (which have to be in the main folder of V-Rep before 
-V-Rep is started to be loaded) to access the Madara client. This assumes that there will be external 
-executables for each of the simulated drones, which will communicate with the scene through Madara.
+In its current implementation, the scene has no algorithms executed inside the scene. It has to distinct
+functions:
+ * Hardware platform: the scene simulates a hardware platform for each of the drones, including their sensors and
+   actuators (moving them). This is shown visually with the moving drones and in the minimap.
+   This communication is done by multicast through an isolated Madara knowledge base to drones configured
+   to use this same simulation platform.  Note that this requires the v_repExtMadaraQuadrotorControlPlugin.dll 
+   plugin.
+ * System controller: the UI with the buttons simulates the System Controller, sending the requests when
+   necessary. This is done through a common Madara knowledge base using multicast, very similar to the 
+   knowledge base the drones would use to communicate among each other and a System Controller in reality.
+   Note that this requires the v_repExtMadaraSystemController.dll plugin.
+ 
+The plugins have to be inside the main folder of V-Rep before V-Rep is started to be loaded.
 The source code for the plugins is in smash-cmu\Simulations\SimulationFramework.
 
 - Bridge Building Algorithm   
    
-    The current simulation attemps to create a line-bridge (which may not be the
+    The current simulation attempts to create a line-bridge (which may not be the
     optimal way of creating a bridge) that minimizes the distances that the drones
     have to move, in order to reduce the amount of battery they spend to do this.
     One of its assumptions is that there are going to be enough drones 
@@ -61,14 +74,20 @@ The source code for the plugins is in smash-cmu\Simulations\SimulationFramework.
      - numberOfPeople: the number of people in the simulation
      - (x1,y1) to (x2,y2): bounding box of area being covered.
 
-    The following are parameters that can be used to play with the simulation: 
-     - radioRange: the range (radius) of the Wi-Fi radio on the drones,
-       required to calculate how many drones are needed for the bridge.  
+    The following are parameters that can be used to play with the simulation:
+	 - minimumAltitude: height the drones have to reach before they start an area
+	   coverage pattern. In reality, drones will choose different heights to avoid
+	   crashing onto each other, but this will be the absolute minimum one.
 	 - coverageAlgorithm: can be "random", "snake" or "inside_out", and determines
 	   which algorithm will be used for the area coverage.
+     - radioRange: the range (radius) of the Wi-Fi radio on the drones,
+       required to calculate how many drones are needed for the bridge. 
+     - autoBridgeRequest: used to automatically send a bridge request to the drones when
+	   a person is found (basically equivalent to pressing the Form Bridge button
+	   right after a person is found).
        
     Moving the locations of the laptop and the people on the scene can also be useful
-    to check different behaviors.   
+    to check different behaviours.   
 
 - NOTES
 

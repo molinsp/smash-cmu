@@ -140,6 +140,23 @@ int DroneRK_Transport_Read_Thread::svc(void)
         int bytes_read = socket_.recv((void *)buffer, 
           settings_.queue_length, remote, 0, &wait_time);
 
+        // DEBUG OUTPUT MESSAGE CONTENTS
+//        if(bytes_read > 0)
+//        {
+//            printf("\nreceived message:\n");
+//            for(unsigned int i = 0; i < bytes_read/ 4; ++i)
+//            {
+//                printf("%04X: ", i);
+//                for(unsigned int j = 0; j < 4; ++j)
+//                    printf("%02X ", buffer[i * 4 + j]);
+//                printf("    ");
+//                for(unsigned int j = 0; j < 4; ++j)
+//                    printf("%c", buffer[i * 4 + j]);
+//                printf("\n");
+//            }
+//        }
+
+
         MADARA_DEBUG(MADARA_LOG_MAJOR_EVENT,(LM_DEBUG, 
           DLINFO "DroneRK_Transport_Read_Thread::svc:" \
           " received a message header of %d bytes from %s:%d\n",

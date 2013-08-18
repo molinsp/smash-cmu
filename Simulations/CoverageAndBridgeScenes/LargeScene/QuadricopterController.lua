@@ -25,6 +25,9 @@ function doInitialSetup()
 
     -- determine index and create more if necessary
     local index = simGetNameSuffix(nil) + 1
+    if(index ~= 0) then
+        index = index - 1
+    end
     local handle = simGetObjectHandle('Quadricopter')
 	-- Get my name
 	g_mySuffix = simGetNameSuffix(nil)
@@ -116,8 +119,8 @@ end
 function updateDronePosition()
 	local droneName, dronePosition = getDroneInfoFromId(g_myDroneId)
 	if(dronePosition ~= nil) then
-        --simAddStatusbarMessage('Sending pos ' ..tostring(dronePosition[1])..','.. tostring(dronePosition[2]))
-		simExtMadaraQuadrotorControlUpdateStatus(g_myDroneId, tostring(dronePosition[1]), tostring(dronePosition[2]), tostring(dronePosition[3]))
+		simExtMadaraQuadrotorControlUpdateStatus(g_myDroneId,
+            tostring(dronePosition[2]), tostring(dronePosition[1]), tostring(dronePosition[3]))
 	end
 end
 
@@ -154,15 +157,17 @@ function simulateMovementCommands()
     local command = ''
     
     -- We check if there is a new command.
-    command, result1, result2, result3 = simExtMadaraQuadrotorControlGetNewCmd(g_myDroneId)    
+    command, result1, result2, result3 = simExtMadaraQuadrotorControlGetNewCmd(g_myDroneId)
     if(not (command == nil)) then
         --simAddStatusbarMessage('Command: '..command)    
+
+		-- Handle Go To Altitude commands.
         local isGoToAltCmd = simExtMadaraQuadrotorControlIsGoToAltCmd(command) 
         if(isGoToAltCmd) then
             myNewAlt = result1
         
+			-- If there is no target position yet, set it to our current position (since the move function needs a target).
             if(g_myTargetPositionSetup == false) then
-                
                 -- Get the current position of the target.
                 local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
                 local droneTargetPosition = getObjectPositionInDegrees(droneTargetHandle, -1) 
@@ -170,7 +175,7 @@ function simulateMovementCommands()
                 -- If no position has been set up, set the current lat and long for the target.                
                 g_myTargetLon = droneTargetPosition[1]
                 g_myTargetLat = droneTargetPosition[2]
-                simAddStatusbarMessage("Target lat and long: " .. g_myTargetLon .. "," .. g_myTargetLat)
+                simAddStatusbarMessage("Target lat and long: " .. g_myTargetLat .. "," .. g_myTargetLon)
             end
             
             -- We only set the altitude, keeping the previously set long and lat.
@@ -178,14 +183,15 @@ function simulateMovementCommands()
             g_myAssignedAlt = tonumber(myNewAlt)            
         end          
         
+		-- Handle Go To GPS commands.
         local isGoToCmd = simExtMadaraQuadrotorControlIsGoToCmd(command) 
         if(isGoToCmd) then
-            myNewLon = result1
-            myNewLat = result2
+            myNewLat = result1
+            myNewLon = result2
             
             -- If we have to move to a new location, move our target there so the drone will follow it. Altitude is ignored.
             g_myTargetPositionSetup = true
-            simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') In Lua, target position found: ' .. myNewLon .. ',' .. myNewLat)            
+            simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') In Lua, target position found: ' .. myNewLat .. ',' .. myNewLon)
             g_myTargetLon = tonumber(myNewLon)
             g_myTargetLat = tonumber(myNewLat)
             
@@ -193,7 +199,7 @@ function simulateMovementCommands()
             targetPoint['longitude'] = g_myTargetLon            
             targetPoint['latitude'] = g_myTargetLat
             cartesianPoint = getXYpos(targetPoint)
-            simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') In Lua, cartesian target position: ' ..cartesianPoint['x'] .. ',' .. cartesianPoint['y'])            
+            simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') In Lua, cartesian target position: ' ..cartesianPoint['x'] .. ',' .. cartesianPoint['y'])
         end
     end
 	
@@ -210,6 +216,8 @@ function moveTargetTowardsPosition(newPositionLon, newPositionLat, newAltitude)
     -- Get the current position of the target.
     local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
     local droneTargetPosition = getObjectPositionInDegrees(droneTargetHandle, -1)
+
+    simAddStatusbarMessage('moving towards '..newPositionLat..', '..newPositionLon)
     
     local speed = TARGET_SPEED
     --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Curr target position' .. droneTargetPosition[1] .. ',' .. droneTargetPosition[2]..':'..speed)

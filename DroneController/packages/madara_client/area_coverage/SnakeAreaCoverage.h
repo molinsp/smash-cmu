@@ -79,9 +79,9 @@ namespace SMASH { namespace AreaCoverage {
 		// It will roughly have the same width as the device.
 		const double m_searchColumnWidth;
 
-		// Flag to check whether we are moving on the X or Y axis (to know whether we
+		// Flag to check whether we are moving north south (to know whether we
 		// have to turn or not).
-		bool m_movingOnYAxis;
+		bool m_movingNorthSouth;
 	}; // class SnakeAreaCoverage
 
 }} // namespace SMASH::AreaCoverage

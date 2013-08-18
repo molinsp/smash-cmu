@@ -69,6 +69,10 @@ Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
         return NULL;
     }
 
+    string out = "Given grid: NW = " + grid.northWest.toString() + " SE = ";
+    out += grid.southEast.toString();
+    printf("%s\n", out.c_str());
+
     // Get the two divisors of the number of drones that are more similar to one
     // another, to be used as the size of the grid in number of drones. This will
     // allow us to generate a rectangular-shaped grid which is as square-like as
@@ -83,9 +87,9 @@ Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
     // will end up covering a rectangular cell of this size.
     double cellSizeX = (grid.bottomRightCorner.x - grid.topLeftCorner.x) /
         amountOfLines;
-    double cellSizeY = (grid.bottomRightCorner.y - grid.topLeftCorner.y) /
+    double cellSizeY = (grid.topLeftCorner.y - grid.bottomRightCorner.y) /
         amountOfColumns;
-    printf("Cell size: %.10f, %.10f \n", cellSizeX, cellSizeY);
+    printf("Cell size deltaLat: %.10f deltaLong: %.10f \n", cellSizeY, cellSizeX);
 
     // Calculate my line and column to find my cell, based on my idx.
     int deviceLine = deviceIdx % amountOfLines;
@@ -96,14 +100,14 @@ Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
     // cells's size.
     Position deviceCellTopLeftCorner;
     deviceCellTopLeftCorner.x = grid.topLeftCorner.x + (deviceLine*cellSizeX);
-    deviceCellTopLeftCorner.y = grid.topLeftCorner.y + (deviceColumn*cellSizeY);
-    printf("Starting point: %.10f, %.10f \n", deviceCellTopLeftCorner.x, deviceCellTopLeftCorner.y);
+    deviceCellTopLeftCorner.y = grid.topLeftCorner.y - (deviceColumn*cellSizeY);
+    printf("TopLeft lat: %.10f long:%.10f \n", deviceCellTopLeftCorner.y, deviceCellTopLeftCorner.x);
 
     // Calculate the ending position based on the starting one and the cell's size
     SMASH::Utilities::Position deviceCellBottomRightCorner;
     deviceCellBottomRightCorner.x = deviceCellTopLeftCorner.x + cellSizeX;
-    deviceCellBottomRightCorner.y = deviceCellTopLeftCorner.y + cellSizeY;
-    printf("End point: %.10f, %.10f \n", deviceCellBottomRightCorner.x, deviceCellBottomRightCorner.y);
+    deviceCellBottomRightCorner.y = deviceCellTopLeftCorner.y - cellSizeY;
+    printf("BottomRight lat: %.10f long: %.10f \n", deviceCellBottomRightCorner.y, deviceCellBottomRightCorner.x);
 
     // Reset the search; indicate that we have not started searching or moving on
     // any axis yet.
@@ -111,6 +115,7 @@ Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
 
     // Return the cell region (also storing it locally for further reference).
     Region* deviceCell = new Region(deviceCellTopLeftCorner, deviceCellBottomRightCorner);
+    
     m_cellToSearch = deviceCell;
     return deviceCell;
 }

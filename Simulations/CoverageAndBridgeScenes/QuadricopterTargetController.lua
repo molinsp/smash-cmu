@@ -82,31 +82,8 @@ function updateDronePosition()
 	local droneName, dronePosition = getDroneInfoFromId(g_myDroneId)
 	if(dronePosition ~= nil) then
         --simAddStatusbarMessage('Sending pos ' ..tostring(dronePosition[1])..','.. tostring(dronePosition[2]))
-		simExtMadaraQuadrotorControlUpdateStatus(g_myDroneId, tostring(dronePosition[1]), tostring(dronePosition[2]), tostring(dronePosition[3]))
+		simExtMadaraQuadrotorControlUpdateStatus(g_myDroneId, tostring(dronePosition[2]), tostring(dronePosition[1]), tostring(dronePosition[3]))
 	end
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
--- Load the people's locations, so we are able to check when we find one.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function loadPeoplePositions()
-	g_numPeople = simGetScriptSimulationParameter(sim_handle_main_script, 'numberOfPeople')
-	g_personCoordsX = {}
-    g_personCoordsY = {}
-    
-	local counter = 1
-	for i=1, g_numPeople, 1 do
-		if(i==1) then
-			personHandle = simGetObjectHandle('Bill#')
-		else
-			personHandle = simGetObjectHandle('Bill#' .. (i-2))
-		end
-
-        local billposition = getObjectPositionInDegrees(personHandle, -1)
-		g_personCoordsX[i] = billposition[1]
-		g_personCoordsY[i] = billposition[2]
-		--simAddStatusbarMessage('Person ' .. counter .. ' : ' .. g_personCoords[counter] .. ', ' .. counter+1 .. ' : '..g_personCoords[counter+1])
-	end    
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -171,8 +148,8 @@ function simulateMovementCommands()
 		-- Handle Go To GPS commands.
         local isGoToCmd = simExtMadaraQuadrotorControlIsGoToCmd(command) 
         if(isGoToCmd) then
-            myNewLon = result1
-            myNewLat = result2
+            myNewLon = result2
+            myNewLat = result1
             
             -- If we have to move to a new location, move our target there so the drone will follow it. Altitude is ignored.
             g_myTargetPositionSetup = true
