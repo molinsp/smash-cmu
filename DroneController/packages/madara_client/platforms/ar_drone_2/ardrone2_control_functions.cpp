@@ -166,7 +166,7 @@ double read_ultrasound()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 double get_gps_accuracy()
 {
-    return 7.0;
+    return 5.0;
 }
 
 /**
@@ -188,7 +188,8 @@ void stop_movement()
 void move_to_location(double lat, double lon, double alt)
 {
 	printf("entering platform::move_to_location(%08f, %08f)...\n", lat, lon);
-    moving = drk_gps_goto_coordinate(lat, lon, alt, 0.1, 2, true);
+    //moving = drk_gps_goto_coordinate(lat, lon, alt, 0.1, 2, true);
+    drk_goto_gps(lat, lon, alt, 0.1, 3);
     // lat, long alt, max speed, tolerance, threaded
     drk_hover(0);
 }
