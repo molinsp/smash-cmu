@@ -169,29 +169,15 @@ double get_gps_accuracy()
     return 5.0;
 }
 
-/**
- * Global to be able to stop movement
- */
-pthread_t moving;
-
 void stop_movement()
 {
-    // from drk library
-    stop = 1;
-    if(moving != 0)
-        pthread_join(moving, NULL);
-    moving = 0;
-    stop = 0;
-    drk_hover(0);
+    drk_stop_movement();
 }
 
 void move_to_location(double lat, double lon, double alt)
 {
-	printf("entering platform::move_to_location(%08f, %08f)...\n", lat, lon);
-    //moving = drk_gps_goto_coordinate(lat, lon, alt, 0.1, 2, true);
-    drk_goto_gps(lat, lon, alt, 0.1, 3);
-    // lat, long alt, max speed, tolerance, threaded
-    drk_hover(0);
+    printf("entering platform::move_to_location(%08f, %08f, %f)...\n", lat, lon, alt);
+    drk_goto_gps(lat, lon, alt, 0.1, 2);
 }
 
 void move_to_altitude(double alt)

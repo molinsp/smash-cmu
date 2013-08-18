@@ -82,7 +82,7 @@ function updateDronePosition()
 	local droneName, dronePosition = getDroneInfoFromId(g_myDroneId)
 	if(dronePosition ~= nil) then
         --simAddStatusbarMessage('Sending pos ' ..tostring(dronePosition[1])..','.. tostring(dronePosition[2]))
-		simExtMadaraQuadrotorControlUpdateStatus(g_myDroneId, tostring(dronePosition[1]), tostring(dronePosition[2]), tostring(dronePosition[3]))
+		simExtMadaraQuadrotorControlUpdateStatus(g_myDroneId, tostring(dronePosition[2]), tostring(dronePosition[1]), tostring(dronePosition[3]))
 	end
 end
 
@@ -148,8 +148,8 @@ function simulateMovementCommands()
 		-- Handle Go To GPS commands.
         local isGoToCmd = simExtMadaraQuadrotorControlIsGoToCmd(command) 
         if(isGoToCmd) then
-            myNewLon = result1
-            myNewLat = result2
+            myNewLon = result2
+            myNewLat = result1
             
             -- If we have to move to a new location, move our target there so the drone will follow it. Altitude is ignored.
             g_myTargetPositionSetup = true

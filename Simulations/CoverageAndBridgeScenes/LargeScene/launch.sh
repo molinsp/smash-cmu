@@ -10,14 +10,19 @@ then
     echo "Launches vrep using the LOCATIONS_SET"
     exit -1
 fi
-if [ ! -e "parameters/$1/BillLocations.lua" ]
+if [ ! -e "$1/IndependentParams.lua" ]
 then
-    echo "parameters/$1/BillLocations.lua does not exist"
+    echo "$1/IndependentParams.lua does not exist"
     exit -1
 fi
-if [ ! -e "parameters/$1/QuadricopterLocations.lua" ]
+if [ ! -e "$1/BillLocations.lua" ]
 then
-    echo "parameters/$1/QuadricopterLocations.lua does not exist"
+    echo "$1/BillLocations.lua does not exist"
+    exit -1
+fi
+if [ ! -e "$1/QuadricopterLocations.lua" ]
+then
+    echo "$1/QuadricopterLocations.lua does not exist"
     exit -1
 fi
 
@@ -28,13 +33,13 @@ rm -f vrep_output.log
 cd $V_REP_HOME
 rm -f BillController.lua BillLocations.lua FloorController.lua LaptopController.lua Params.lua IndependentParams.lua QuadricopterController.lua QuadricopterLocations.lua Utils.lua
 ln -s $SCENE_DIR/BillController.lua
-ln -s $SCENE_DIR/parameters/$1/BillLocations.lua
+ln -s $SCENE_DIR/$1/BillLocations.lua
 ln -s $SCENE_DIR/FloorController.lua
 ln -s $SCENE_DIR/LaptopController.lua
 ln -s $SCENE_DIR/Params.lua
-ln -s $SCENE_DIR/parameters/$1/IndependentParams.lua
+ln -s $SCENE_DIR/$1/IndependentParams.lua
 ln -s $SCENE_DIR/QuadricopterController.lua
-ln -s $SCENE_DIR/parameters/$1/QuadricopterLocations.lua
+ln -s $SCENE_DIR/$1/QuadricopterLocations.lua
 ln -s $SCENE_DIR/Utils.lua
 
 # launch vrep
