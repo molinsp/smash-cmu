@@ -167,7 +167,7 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
 {	
 	expressions2[EVALUATE_SENSORS] = knowledge.compile
 	(
-		//"read_thermal();"
+		"read_thermal();"
 
         // Note: since we are reading the ultrasound after the GPS, the height given by the ultrasound will overwrite the GPS one in certain
         // circumnstances, depending on the implementation of the read_ultrasound function for the current platform.

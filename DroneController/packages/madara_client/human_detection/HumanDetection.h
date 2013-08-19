@@ -47,16 +47,21 @@ namespace SMASH
         /**
          * Detect human.
          *
+         * @param thermal_buffer    Thermal buffer which will be analyzed for human
+         *                          presence.
+         * @param curr_height       Current height/altitude of the drone.
          * @param result_map        Integer array that will be filled by this method
          *                          with "1" in locations where humans were detected 
          *                          and "0" in location where there were no humans.
-         * @param curr_height       Current height/altitude of the drone.   
          * @param on_human_detected Callback function which will be invoked once human
          *                          is detected.
          *
          * @return                  Number of pixels with human temperature. 
          **/
-        virtual int detect_human (int result_map[8][8], double curr_height,void (*on_human_detected)()) = 0;
+        virtual int detect_human (double thermal_buffer[8][8], 
+                                  double curr_height, 
+                                  int result_map[8][8], 
+                                  void (*on_human_detected)()) = 0;
   
         /**
          * Check if a given temperature falls within expected human temperature range.

@@ -20,34 +20,32 @@ using namespace SMASH::HumanDetection;
 BasicStrategy::BasicStrategy(double min, double max): ambient_min (min),
                                                       ambient_max (max)
 {
-  printf("Min:%6.2f, Max:%6.2f \n", ambient_min, ambient_max);
 }
 
 BasicStrategy::~BasicStrategy()
 {}
 
-int BasicStrategy::detect_human (int result_map[8][8], double curr_height, void (*on_human_detected)())
+int BasicStrategy::detect_human (double thermal_buffer[8][8],
+                                 double curr_height,
+                                 int result_map[8][8], 
+                                 void (*on_human_detected)())
 {
   printf("BasicStrategy::detect_human\n");  
 
   // Declare local variables.
   int human_count = 0, debug_verbose = 0;
-  double buffer[8][8];
 
   // Check environment variable for verbose debugging and set flag appropriately.
   if (getenv("DEBUG_VERBOSE") != 0)
     if (strcmp (getenv("DEBUG_VERBOSE"), "1") == 0)
       debug_verbose = 1;
 
-  // Get thermal data.
-  read_thermal (buffer);
-
   // Detect anomaly.
   for (int row = 0; row < 8; row++)
   {
     for (int col = 0; col < 8; col++)
     {
-      if (buffer[row][col] < ambient_min || buffer[row][col] > ambient_max)
+      if (thermal_buffer[row][col] < ambient_min || thermal_buffer[row][col] > ambient_max)
       {
         // Check environment variable for verbose debugging before printing.
         if (debug_verbose == 1)
@@ -55,11 +53,11 @@ int BasicStrategy::detect_human (int result_map[8][8], double curr_height, void 
                                                                                            col,
                                                                                            ambient_min,
                                                                                            ambient_max,
-                                                                                           buffer[row][col]);
+                                                                                           thermal_buffer[row][col]);
 
 
         // Check if temperature falls in expected human temperature range.
-        if (HumanDetection::check_if_human (buffer[row][col], curr_height))
+        if (HumanDetection::check_if_human (thermal_buffer[row][col], curr_height))
         {
           // Human temperature detected so mark that location as "1" in result_map.
           result_map[row][col] = 1;
@@ -71,7 +69,7 @@ int BasicStrategy::detect_human (int result_map[8][8], double curr_height, void 
                                                                           col,
                                                                           ambient_min,
                                                                           ambient_max,
-                                                                          buffer[row][col]);
+                                                                          thermal_buffer[row][col]);
 
           // Invoke callback function for post human detection action.
           on_human_detected();
@@ -82,7 +80,7 @@ int BasicStrategy::detect_human (int result_map[8][8], double curr_height, void 
           result_map[row][col] = 0;
 
           if (debug_verbose == 1)
-            printf("Non-Human object detected with temperature:%6.2f \n", buffer[row][col]);
+            printf("Non-Human object detected with temperature:%6.2f \n", thermal_buffer[row][col]);
         }
       }
       else

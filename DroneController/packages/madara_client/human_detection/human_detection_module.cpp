@@ -57,6 +57,12 @@ static HumanDetection* m_humanDetectionAlgorithm;
 static double ambient_min;
 static double ambient_max;
 
+// 2D array to store temperature.
+static double thermal_buffer[8][8];
+
+// Variable to store previously selected algorithm.
+static string prev_algo;
+
 // Flag to check if ambient temp has been set once.
 bool is_ambient_temp_set = false;
 
@@ -68,6 +74,8 @@ static Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Fun
                                                    Madara::Knowledge_Engine::Variables &variables);
 static Madara::Knowledge_Record madaraCalculateAmbientTemp (Madara::Knowledge_Engine::Function_Arguments &args,
                                                             Madara::Knowledge_Engine::Variables &variables);
+static Madara::Knowledge_Record madaraGetThermalInfo (Madara::Knowledge_Engine::Function_Arguments &args,
+                                                          Madara::Knowledge_Engine::Variables &variables);
 static void on_human_detected();
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -88,6 +96,8 @@ void SMASH::HumanDetection::HumanDetectionModule::initialize(Madara::Knowledge_E
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SMASH::HumanDetection::HumanDetectionModule::cleanup(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 {
+  // Delete the human detection algorithm.
+  delete m_humanDetectionAlgorithm;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -108,24 +118,18 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
   // Only does the actual bridge calculations if the command to do so is on.
   // Assumes that MV_HUMAN_DETECTION_REQUESTED triggers the human detection logic.
   knowledge.define_function(MF_MAIN_LOGIC,  
-     //       "("
-     //           MF_DETECT_HUMAN "();"
-     //       ")"
-     "("
-        MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}") " == " HUMAN_DETECTION_BASIC " => " 
-        "("
-            MV_AMBIENT_TEMP_CALCULATED "== 0 => "
-            "("
-                MF_CALCULATE_AMBIENT_TEMP "();"
-                MV_AMBIENT_TEMP_CALCULATED " = 1;"
-            ");"
-            MF_DETECT_HUMAN "();"
-        ")"
-     ");"
-
-     "("
-        MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}") "==" HUMAN_DETECTION_SLIDING_WINDOW " => " MF_DETECT_HUMAN "();"
-     ");"
+    "(" 
+      "(" MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}") " == '" HUMAN_DETECTION_BASIC "' => " 
+          "(" MV_AMBIENT_TEMP_CALCULATED "== 0 => "
+              "("
+                  MF_CALCULATE_AMBIENT_TEMP "();"
+                  MV_AMBIENT_TEMP_CALCULATED " = 1;"
+              ");"
+          ")"
+      ");"
+      
+      MF_DETECT_HUMAN "();"
+    ")"
   );
   
   // Function that actually performs ambient temperature calculation for this drone.
@@ -151,7 +155,9 @@ HumanDetection* selectHumanDetectionAlgorithm (string algo)
     humanDetectionAlgorithm = new BasicStrategy(ambient_min, ambient_max); 
   }
   else if (algo == HUMAN_DETECTION_SLIDING_WINDOW)
+  {  
     humanDetectionAlgorithm = new SlidingWindowStrategy();
+  }
   else
   {
     string err = "selectHumanDetectionAlgorithm(algo = \"";
@@ -169,9 +175,19 @@ HumanDetection* selectHumanDetectionAlgorithm (string algo)
  *
  **/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void on_human_detected()
+Madara::Knowledge_Record madaraGetThermalInfo (Madara::Knowledge_Engine::Function_Arguments &args,
+                                               Madara::Knowledge_Engine::Variables &variables)
 {
-  printf("***************HUMAN DETECTED***************** \n");
+  for (int row = 0; row < 8; ++row)
+  {  
+    for (int col = 0; col < 8; ++col)
+    {
+      std::stringstream strBuffer;
+      strBuffer << ".sensors.thermal." << row << "." << col;
+      thermal_buffer[row][col] = variables.get(strBuffer.str()).to_double();
+    }
+  }
+  return Madara::Knowledge_Record(1.0);  
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -193,18 +209,18 @@ Madara::Knowledge_Record madaraCalculateAmbientTemp (Madara::Knowledge_Engine::F
     for (int i = 0; i < MAX_SAMPLE_SIZE; ++i)
     {
       // Call to read thermal buffer.
-      read_thermal (buffer);
+      madaraGetThermalInfo(args, variables);
 
       // Use the above obtained (valid) buffer and determine the ambient temperature range.
       for (int row = 0; row < 8; ++row)
       {
         for (int col = 0; col < 8; ++col)
         {
-          if (buffer[row][col] < ambient_min)
-            ambient_min = buffer[row][col];
+          if (thermal_buffer[row][col] < ambient_min)
+            ambient_min = thermal_buffer[row][col];
         
-          if (buffer[row][col] > ambient_max)
-            ambient_max = buffer[row][col];
+          if (thermal_buffer[row][col] > ambient_max)
+            ambient_max = thermal_buffer[row][col];
         }
       }
     }
@@ -242,16 +258,29 @@ Madara::Knowledge_Record madaraCalculateAmbientTemp (Madara::Knowledge_Engine::F
 Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Function_Arguments &args,
                                             Madara::Knowledge_Engine::Variables &variables)
 {
-  string algo = variables.get(MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}")).to_string();
-  double height = variables.get(MV_DEVICE_ALT("{" MV_MY_ID  "}")).to_double();
-  
+  string algo;
+  double height;
   int result_map[8][8];
   int result;
 
-  m_humanDetectionAlgorithm = selectHumanDetectionAlgorithm(algo);
+  algo = variables.get(MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}")).to_string();
+  height = variables.get(MV_DEVICE_ALT("{" MV_MY_ID  "}")).to_double();
  
-  result = m_humanDetectionAlgorithm->detect_human(result_map, height, on_human_detected);
+  if (prev_algo.empty() || algo != prev_algo)
+  {
+    if (m_humanDetectionAlgorithm != NULL)
+      delete (m_humanDetectionAlgorithm); 
+    
+    m_humanDetectionAlgorithm = selectHumanDetectionAlgorithm(algo);
+    prev_algo = algo;
+  } 
 
+  if (m_humanDetectionAlgorithm != NULL)
+  {
+    madaraGetThermalInfo(args, variables);
+    result = m_humanDetectionAlgorithm->detect_human(thermal_buffer, height, result_map, on_human_detected);
+  }
+  
   if (result > 0)
   {
     printf("RESULT: %i \n", result);      
@@ -260,4 +289,14 @@ Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Function_A
     printf("No Human Detected \n");
   
   return Madara::Knowledge_Record(1.0);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ *
+ **/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void on_human_detected()
+{
+  printf("***************HUMAN DETECTED***************** \n");
 }

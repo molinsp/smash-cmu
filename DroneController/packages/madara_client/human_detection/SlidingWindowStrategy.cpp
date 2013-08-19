@@ -17,10 +17,20 @@
 
 using namespace SMASH::HumanDetection;
 
-int SlidingWindowStrategy::detect_human(int result_map[8][8], double curr_height, void (*on_human_detected)())
+SlidingWindowStrategy::SlidingWindowStrategy()
+{}
+
+SlidingWindowStrategy::~SlidingWindowStrategy()
+{}
+
+int SlidingWindowStrategy::detect_human(double thermal_buffer[8][8],
+                                        double curr_height,
+                                        int result_map[8][8], 
+                                        void (*on_human_detected)())
 {
   printf("SlidingWindowStrategy::detect_human");
 
+  /*  
   // Declare local variables.
   int human_count = 0, debug_verbose = 0;
 
@@ -36,7 +46,6 @@ int SlidingWindowStrategy::detect_human(int result_map[8][8], double curr_height
   // Initialize content of 2D model array to 0.
   memset(&range_info, 0, sizeof(range_info));
 
-  /* Construct the model using above initialized array.*/
   for (int i = 0; i < MAX_SAMPLE_SIZE; ++i)
   {
     // Read thermal buffer.
@@ -107,5 +116,6 @@ int SlidingWindowStrategy::detect_human(int result_map[8][8], double curr_height
         result_map[row][col] = 0;
     }
   }
-  return human_count;
+  return human_count;*/
+  return 0;
 }

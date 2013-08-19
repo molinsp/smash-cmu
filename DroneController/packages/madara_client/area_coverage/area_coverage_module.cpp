@@ -141,6 +141,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                         "(" MV_ALTITUDE_HAS_BEEN_REACHED " || " MF_ALTITUDE_REACHED "(" MV_DEVICE_ALT("{.id}") "," MV_ASSIGNED_ALTITUDE("{.id}")  "))" 
                         " => "
                             "(" MV_ALTITUDE_HAS_BEEN_REACHED " = 1 ) && "
+                            "(" MV_ASSIGNED_ALTITUDE_REACHED("{.id}") " = 1 ) && "
                             "("
                                 // Check if we are just initializing, or if we reached the next target, but not the end of the area, to set the next waypoint.
                                 "((" MV_NEXT_TARGET_LAT " == 0) && (" MV_NEXT_TARGET_LON " == 0)) || "

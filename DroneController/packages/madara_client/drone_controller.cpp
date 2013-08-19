@@ -204,6 +204,8 @@ void SMASH::DroneController::compileExpressions (Madara::Knowledge_Engine::Knowl
 	expressions[MAIN_LOGIC] = knowledge.compile
 	(
 		sensorsMainLogicCall + ";" +
+    //"("MV_ASSIGNED_ALTITUDE_REACHED("{" MV_MY_ID  "}") " => " + humanDetectionMainLogicCall + ");"
+    //"("MV_ASSIGNED_ALTITUDE_REACHED("{" MV_MY_ID  "}") " == 0 => #print('HEIGHT NOT REACHED YET!!\n')" + ");" +
     humanDetectionMainLogicCall + ";"
 		"process_state ();"
 		"("

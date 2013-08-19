@@ -71,12 +71,13 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Information about specific devices.
-#define MV_MY_ID                            ".id"                                                   // The id of this device.
-#define MV_MY_LOCATION                      ".location"                                             // My location ("x,y").
-#define MV_DEVICE_LAT(i)                    ".device." + std::string(i) + ".location.latitude"      // The latitude of a device with id i.
-#define MV_DEVICE_LON(i)                    ".device." + std::string(i) + ".location.longitude"     // The longtude of a device with id i.
-#define MV_DEVICE_ALT(i)                    ".device." + std::string(i) + ".location.altitude"      // The longtude of a device with id i.
-#define MV_ASSIGNED_ALTITUDE(deviceId)      ".device." + std::string(deviceId) + ".assigned_alt"    // Indicates the default atitude assigned to this device.
+#define MV_MY_ID                                ".id"                                                           // The id of this device.
+#define MV_MY_LOCATION                          ".location"                                                     // My location ("x,y").
+#define MV_DEVICE_LAT(i)                        ".device." + std::string(i) + ".location.latitude"              // The latitude of a device with id i.
+#define MV_DEVICE_LON(i)                        ".device." + std::string(i) + ".location.longitude"             // The longtude of a device with id i.
+#define MV_DEVICE_ALT(i)                        ".device." + std::string(i) + ".location.altitude"              // The longtude of a device with id i.
+#define MV_ASSIGNED_ALTITUDE(deviceId)          ".device." + std::string(deviceId) + ".assigned_alt"            // Indicates the default atitude assigned to this device.
+#define MV_ASSIGNED_ALTITUDE_REACHED(deviceId)  ".device." + std::string(deviceId) + ".assigned_alt_reached"    // Flag that indicates that the drone as reached assigned altitude.  
 
 // Information about region bounding box.
 #define MV_REGION_TOPLEFT_LAT(regionId)     ".region." + std::string(regionId) + ".top_left.location.latitude"      // Latitude of top left corner of a rectangular region.
