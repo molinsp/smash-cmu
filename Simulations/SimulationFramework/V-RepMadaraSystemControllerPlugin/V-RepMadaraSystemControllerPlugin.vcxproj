@@ -92,6 +92,7 @@
     <ClCompile Include="MadaraSystemController.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\platforms\v_rep\v-rep_main_madara_transport_settings.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\utilities\CommonMadaraVariables.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\utilities\Position.h" />
     <ClInclude Include="..\V-RepCommonPluginUtils\LuaExtensionsUtils.h" />

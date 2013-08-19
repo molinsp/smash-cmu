@@ -12,6 +12,7 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 
 #include "v-rep_madara_variables.h"
+#include "v-rep_main_madara_transport_settings.h"
 #include "utilities/Position.h"
 
 #include <string>
@@ -66,7 +67,7 @@ Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
     // Define the transport.
     Madara::Transport::Settings g_settings;
     g_settings.hosts_.resize (1);
-    g_settings.hosts_[0] = "239.255.0.1:4150";
+    g_settings.hosts_[0] = MAIN_MULTICAST_ADDRESS;
     g_settings.type = Madara::Transport::MULTICAST;
 
     // Set the transport id as the given id.
@@ -339,5 +340,5 @@ double read_ultrasound()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 double get_gps_accuracy()
 {
-    return 0.2;
+    return 0.3;
 }

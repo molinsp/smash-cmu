@@ -43,6 +43,11 @@ function checkForButtonPress()
         local buttonLabel = simGetUIButtonLabel(commandsUIHandle, buttonHandle)
         --simAddStatusbarMessage('Button pressed and released! ' .. buttonLabel)
         
+        -- Send network-wide parameters (radio range, num drones, min height).
+        if(buttonLabel == 'Setup Network') then
+			simExtMadaraSystemControllerUpdateStatus(g_numDrones)
+        end		
+		
         -- Start a search request if that button was pressed.
         if(buttonLabel == 'Start Search') then
             sendSearchRequest()
@@ -129,9 +134,6 @@ function runMainLogic()
 
     -- NOTE: This is done here just for convenience of simulation. In reality, it would be issued by a rescuer at any moment, not when someone is found.        
     checkForBridgeRequest()
-    
-    -- Update the drone status to the network.        
-    simExtMadaraSystemControllerUpdateStatus(g_numDrones)
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////

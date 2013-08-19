@@ -34,6 +34,9 @@
     <Filter Include="Source Files\vrep_plugin">
       <UniqueIdentifier>{15d0b50e-8fe8-4740-b472-fc154606fe31}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\platform">
+      <UniqueIdentifier>{b577a577-69d5-43ac-ba8b-92c7a159a8e2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LuaCustomFunctions.cpp">
@@ -91,6 +94,9 @@
     </ClInclude>
     <ClInclude Include="..\V-RepCommonPluginUtils\LuaExtensionsUtils.h">
       <Filter>Header Files\vrep_plugin_headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\platforms\v_rep\v-rep_main_madara_transport_settings.h">
+      <Filter>Header Files\platform</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

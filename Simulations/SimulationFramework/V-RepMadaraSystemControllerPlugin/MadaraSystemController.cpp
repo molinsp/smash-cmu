@@ -7,15 +7,13 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include "MadaraSystemController.h"
 #include "utilities/CommonMadaraVariables.h"
+#include "platforms/v_rep/v-rep_main_madara_transport_settings.h"
 #include <vector>
 
 #ifdef _WIN32
   // Only include the custom transport in Windows, as it is not necessary in Linux.
   #include "Windows_Multicast_Transport.h"
 #endif
-
-// Multicast address.
-#define DEFAULT_MULTICAST_ADDRESS "239.255.0.1:4150"
 
 using namespace SMASH::Utilities;
 
@@ -30,7 +28,7 @@ MadaraController::MadaraController(int id, double commRange, double minAltitude)
     // Define the transport settings.
     m_host = "";
     m_transportSettings.hosts_.resize (1);
-    m_transportSettings.hosts_[0] = DEFAULT_MULTICAST_ADDRESS;
+    m_transportSettings.hosts_[0] = MAIN_MULTICAST_ADDRESS;
     m_transportSettings.id = id;
 
     // Setup the actual transport.
