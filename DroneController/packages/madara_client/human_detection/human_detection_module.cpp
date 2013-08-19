@@ -13,8 +13,6 @@
 #include <map>
 #include <string>
 #include "utilities/CommonMadaraVariables.h"
-#include "movement/platform_movement.h"
-#include "sensors/platform_sensors.h"
 #include "human_detection_module.h"
 #include "HumanDetection.h"
 #include "BasicStrategy.h"

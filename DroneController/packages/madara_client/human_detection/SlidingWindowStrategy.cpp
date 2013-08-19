@@ -10,7 +10,6 @@
  ******************************************************************************/
 
 #include "SlidingWindowStrategy.h"
-#include "sensors/platform_sensors.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
