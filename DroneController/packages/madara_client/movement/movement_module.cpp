@@ -107,7 +107,8 @@ Madara::Knowledge_Record madara_move_to_gps (Madara::Knowledge_Engine::Function_
 
 Madara::Knowledge_Record madara_move_to_altitude (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {		
-	double alt = variables.get(".movement_command.0").to_double();
+	//double alt = variables.get(".movement_command.0").to_double();
+  double alt = variables.get(MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}")).to_double();
 
     ensureTakeoff(variables);
 	

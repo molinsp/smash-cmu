@@ -23,6 +23,8 @@ void move_backward();
 void move_to_location(double, double, double);
 void move_to_altitude(double);
 
+void spin();
+
 void stop_movement();
 
 #endif

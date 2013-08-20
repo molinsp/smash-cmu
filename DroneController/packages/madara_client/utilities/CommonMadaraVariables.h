@@ -59,17 +59,25 @@
 #define MV_BRIDGE_SOURCE_REGION_ID(bridgeId)    "bridge." + std::string(bridgeId) + ".endpoint.1"  // The region where one of the endpoints of the bridge is.
 #define MV_BRIDGE_SINK_REGION_ID(bridgeId)      "bridge." + std::string(bridgeId) + ".endpoint.2"  // The region where the other endpoint of the bridge is.
 
+// Human detection information
+#define MV_HUMAN_DETECTION_REQUESTED(deviceId)  "device." + std::string(deviceId) + ".human_detection_requested"        // Tells if this device was tasked with human detection.
+#define HUMAN_DETECTION_BASIC                   "basic"                                                                 // Selects BasicHumanDetection strategy.
+#define HUMAN_DETECTION_SLIDING_WINDOW          "sliding_window"                                                        // Selects SlidingWindowHumanDetection strategy.    
+#define MV_ENVIRONMENT_TEMPERATURE              "environment.temperature"                                               // Expected environment temperature set by the user.
+#define MV_LOCATION_(LAT)_(LONG)_THERMALS       "location_" + std::string(LAT) + "_" + std::string(LONG) + "_thermals"  // Location where human was detected.
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Local preprocessed variables, filled in by other modules in each drone.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Information about specific devices.
-#define MV_MY_ID                            ".id"                                                   // The id of this device.
-#define MV_MY_LOCATION                      ".location"                                             // My location ("x,y").
-#define MV_DEVICE_LAT(i)                    ".device." + std::string(i) + ".location.latitude"      // The latitude of a device with id i.
-#define MV_DEVICE_LON(i)                    ".device." + std::string(i) + ".location.longitude"     // The longtude of a device with id i.
-#define MV_DEVICE_ALT(i)                    ".device." + std::string(i) + ".location.altitude"      // The longtude of a device with id i.
-#define MV_ASSIGNED_ALTITUDE(deviceId)      ".device." + std::string(deviceId) + ".assigned_alt"    // Indicates the default atitude assigned to this device.
+#define MV_MY_ID                                ".id"                                                           // The id of this device.
+#define MV_MY_LOCATION                          ".location"                                                     // My location ("x,y").
+#define MV_DEVICE_LAT(i)                        ".device." + std::string(i) + ".location.latitude"              // The latitude of a device with id i.
+#define MV_DEVICE_LON(i)                        ".device." + std::string(i) + ".location.longitude"             // The longtude of a device with id i.
+#define MV_DEVICE_ALT(i)                        ".device." + std::string(i) + ".location.altitude"              // The longtude of a device with id i.
+#define MV_ASSIGNED_ALTITUDE(deviceId)          ".device." + std::string(deviceId) + ".assigned_alt"            // Indicates the default atitude assigned to this device.
+#define MV_ASSIGNED_ALTITUDE_REACHED(deviceId)  ".device." + std::string(deviceId) + ".assigned_alt_reached"    // Flag that indicates that the drone as reached assigned altitude.  
 
 // Information about region bounding box.
 #define MV_REGION_TOPLEFT_LAT(regionId)     ".region." + std::string(regionId) + ".top_left.location.latitude"      // Latitude of top left corner of a rectangular region.

@@ -19,6 +19,7 @@
 static bool drk_init_status = false;
 
 int frame_number;
+
 double thermal_data[8][8];
 
 bool platform_init()
@@ -51,7 +52,6 @@ Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
 
     //knowledge->attach_transport(new DroneRK_Transport(out.str(),
     //knowledge->get_context(), settings, true, 500));
-    
     return knowledge;
 }
 
@@ -184,6 +184,13 @@ void move_to_altitude(double alt)
 {
 	printf("In platform move_to_altitude(%02f)\n", alt);
     drk_goto_altitude(alt);
+}
+
+bool cleanup_platform()
+{
+    drk_hover(0);
+    drk_land();
+    drk_exit(EXIT_SUCCESS);
 }
 
 #endif

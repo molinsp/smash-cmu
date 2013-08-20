@@ -19,6 +19,7 @@ using namespace SMASH::Bridge;
 using namespace SMASH::Movement;
 using namespace SMASH::Sensors;
 using namespace SMASH::Utilities;
+using namespace SMASH::HumanDetection;
 
 // Compiled expressions that we expect to be called frequently
 static Madara::Knowledge_Engine::Compiled_Expression expressions [NUM_TASKS];
@@ -92,6 +93,7 @@ void SMASH::DroneController::initializeModules(Madara::Knowledge_Engine::Knowled
 	m_movementModule = MovementModule();
 	m_sensorsModule = SensorsModule();
 	m_utilitiesModule = UtilitiesModule();
+  m_humanDetectionModule = HumanDetectionModule();
 
 	// Initialize them.
     m_utilitiesModule.initialize(knowledge);
@@ -99,6 +101,7 @@ void SMASH::DroneController::initializeModules(Madara::Knowledge_Engine::Knowled
     m_bridgeModule.initialize(knowledge);
     m_movementModule.initialize(knowledge);
     m_sensorsModule.initialize(knowledge);
+    m_humanDetectionModule.initialize(knowledge);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,6 +114,7 @@ void SMASH::DroneController::cleanupModules(Madara::Knowledge_Engine::Knowledge_
     m_movementModule.cleanup(knowledge);
     m_sensorsModule.cleanup(knowledge);
     m_utilitiesModule.cleanup(knowledge);
+    m_humanDetectionModule.cleanup(knowledge);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,6 +129,10 @@ void SMASH::DroneController::initializeDrone(int droneId, Madara::Knowledge_Engi
     // Setup the initial command for the first loop of the drone logic as "take off".
     // This is done through variables, similar to how a command would be sent by an external user.
     knowledge.set(MV_DEVICE_MOVE_REQUESTED("{" MV_MY_ID "}"), MO_TAKEOFF_CMD);
+
+    // Set madara variable to control human detection. This means the drone will always
+    // try to detect human.
+    knowledge.set(MV_HUMAN_DETECTION_REQUESTED("{.id}"), HUMAN_DETECTION_BASIC);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -191,10 +199,14 @@ void SMASH::DroneController::compileExpressions (Madara::Knowledge_Engine::Knowl
     std::string bridgeMainLogicCall = m_bridgeModule.get_core_function();	
 	std::string movementMainLogicCall = m_movementModule.get_core_function();
     std::string sensorsMainLogicCall = m_sensorsModule.get_core_function();	
+  std::string humanDetectionMainLogicCall = m_humanDetectionModule.get_core_function();  
 
 	expressions[MAIN_LOGIC] = knowledge.compile
 	(
-		sensorsMainLogicCall + ";"
+		sensorsMainLogicCall + ";" +
+    //"("MV_ASSIGNED_ALTITUDE_REACHED("{" MV_MY_ID  "}") " => " + humanDetectionMainLogicCall + ");"
+    //"("MV_ASSIGNED_ALTITUDE_REACHED("{" MV_MY_ID  "}") " == 0 => #print('HEIGHT NOT REACHED YET!!\n')" + ");" +
+    humanDetectionMainLogicCall + ";"
 		"process_state ();"
 		"("
             ".movement_command"

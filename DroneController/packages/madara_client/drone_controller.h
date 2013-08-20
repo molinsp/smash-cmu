@@ -16,6 +16,7 @@
 
 #include "area_coverage/area_coverage_module.h"
 #include "bridge/bridge_module.h"
+#include "human_detection/human_detection_module.h"
 #include "movement/movement_module.h"
 #include "sensors/sensors_module.h"
 #include "utilities/utilities_module.h"
@@ -39,6 +40,7 @@ namespace SMASH
         // The modules.
         SMASH::AreaCoverage::AreaCoverageModule m_areaCoverageModule;
         SMASH::Bridge::BridgeModule m_bridgeModule;
+        SMASH::HumanDetection::HumanDetectionModule m_humanDetectionModule;
         SMASH::Movement::MovementModule m_movementModule;
         SMASH::Sensors::SensorsModule m_sensorsModule;
         SMASH::Utilities::UtilitiesModule m_utilitiesModule;
