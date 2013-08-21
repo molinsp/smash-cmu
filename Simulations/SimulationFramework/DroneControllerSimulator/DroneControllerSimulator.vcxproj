@@ -83,6 +83,10 @@
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.cpp" />
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\bridge\bridge_module.cpp" />
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\drone_controller.cpp" />
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\human_detection\BasicStrategy.cpp" />
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\human_detection\HumanDetection.cpp" />
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\human_detection\human_detection_module.cpp" />
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\human_detection\SlidingWindowStrategy.cpp" />
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\madara_client.cpp" />
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\movement\movement_module.cpp" />
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\platforms\v_rep\v-rep_control_functions.cpp" />
@@ -98,6 +102,10 @@
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\bridge\BridgeAlgorithm.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\bridge\bridge_module.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\drone_controller.h" />
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\human_detection\BasicStrategy.h" />
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\human_detection\HumanDetection.h" />
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\human_detection\human_detection_module.h" />
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\human_detection\SlidingWindowStrategy.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\module.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\movement\movement_module.h" />
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\movement\platform_movement.h" />

@@ -199,15 +199,13 @@ void SMASH::DroneController::compileExpressions (Madara::Knowledge_Engine::Knowl
     std::string bridgeMainLogicCall = m_bridgeModule.get_core_function();	
 	std::string movementMainLogicCall = m_movementModule.get_core_function();
     std::string sensorsMainLogicCall = m_sensorsModule.get_core_function();	
-  std::string humanDetectionMainLogicCall = m_humanDetectionModule.get_core_function();  
+    std::string humanDetectionMainLogicCall = m_humanDetectionModule.get_core_function();  
 
 	expressions[MAIN_LOGIC] = knowledge.compile
 	(
 		sensorsMainLogicCall + ";" +
-    //"("MV_ASSIGNED_ALTITUDE_REACHED("{" MV_MY_ID  "}") " => " + humanDetectionMainLogicCall + ");"
-    //"("MV_ASSIGNED_ALTITUDE_REACHED("{" MV_MY_ID  "}") " == 0 => #print('HEIGHT NOT REACHED YET!!\n')" + ");" +
-    humanDetectionMainLogicCall + ";"
 		"process_state ();"
+        "" + humanDetectionMainLogicCall + ";"
 		"("
             ".movement_command"
 		    "||"

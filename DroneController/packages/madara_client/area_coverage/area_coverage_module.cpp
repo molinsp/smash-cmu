@@ -48,11 +48,10 @@ using std::string;
 #define MV_NEXT_TARGET_LON              ".area_coverage.target.location.longitude"              // The longitude of the next target location in our search pattern.
 #define MV_AVAILABLE_DRONES_AMOUNT      ".area_coverage.devices.available.total"                // The amount of available drones.
 #define MV_AVAILABLE_DRONES_MY_IDX      ".area_coverage.devices.available.my_idx"               // The index of the device in the list of available ones.
-#define MV_MY_CELL_TOP_LEFT_LAT       ".area_coverage.cell.top_left.location.latitude"        // The x of the top left corner of the cell I am searching.
-#define MV_MY_CELL_TOP_LEFT_LON       ".area_coverage.cell.top_left.location.longitude"       // The y of the top left corner of the cell I am searching.
-#define MV_MY_CELL_BOT_RIGHT_LAT       ".area_coverage.cell.bottom_right.location.latitude"    // The x of the bottom right corner of the cell I am searching.
-#define MV_MY_CELL_BOT_RIGHT_LON       ".area_coverage.cell.bottom_right.location.longitude"   // The y of the bottom right corner of the cell I am searching.
-#define MV_ALTITUDE_HAS_BEEN_REACHED    ".area_coverage.altitude_reached"                       // Flag to check if the assigned altitude has been reached.
+#define MV_MY_CELL_TOP_LEFT_LAT         ".area_coverage.cell.top_left.location.latitude"        // The latitude of the top left corner of the cell I am searching.
+#define MV_MY_CELL_TOP_LEFT_LON         ".area_coverage.cell.top_left.location.longitude"       // The longitude of the top left corner of the cell I am searching.
+#define MV_MY_CELL_BOT_RIGHT_LAT        ".area_coverage.cell.bottom_right.location.latitude"    // The latitude of the bottom right corner of the cell I am searching.
+#define MV_MY_CELL_BOT_RIGHT_LON        ".area_coverage.cell.bottom_right.location.longitude"   // The longitude of the bottom right corner of the cell I am searching.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private variables.
@@ -137,11 +136,9 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                     // Only do the following if the cell we will be searching in has alerady been set up.
                     "("MV_CELL_INITIALIZED ")"
                     " => (" 
-                        // Check if we have reached our assigned height. If not, wait.
-                        "(" MV_ALTITUDE_HAS_BEEN_REACHED " || " MF_ALTITUDE_REACHED "(" MV_DEVICE_ALT("{.id}") "," MV_ASSIGNED_ALTITUDE("{.id}")  "))" 
+                        // Check if we have reached our assigned height. If not, do nothing during this call.
+                        "(" MV_IS_AT_ASSIGNED_ALTITUDE ")" 
                         " => "
-                            "(" MV_ALTITUDE_HAS_BEEN_REACHED " = 1 ) && "
-                            "(" MV_ASSIGNED_ALTITUDE_REACHED("{.id}") " = 1 ) && "
                             "("
                                 // Check if we are just initializing, or if we reached the next target, but not the end of the area, to set the next waypoint.
                                 "((" MV_NEXT_TARGET_LAT " == 0) && (" MV_NEXT_TARGET_LON " == 0)) || "
@@ -178,22 +175,11 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
             ");"
         );
 
-    // Returns 1 if we are closer than the accuracy to the current target of our search.
-    //knowledge.define_function(MF_NEXT_TARGET_REACHED, 
-    //    "("
-    //        "(" MF_TARGET_REACHED "(" MV_DEVICE_LAT("{.id}") "," MV_DEVICE_LON("{.id}") "," 
-    //                                  MV_NEXT_TARGET_LAT  "," MV_NEXT_TARGET_LON  ")" ")"
-    //    ");"
-    //    );
-
     // Checks if the final target of the area coverage strategy has been reached.
     knowledge.define_function(MF_FINAL_TARGET_REACHED, madaraReachedFinalTarget);
 
     // Sets the new coverage after reaching final target
     knowledge.define_function(MF_SET_NEW_COVERAGE, madaraSetNewCoverage);
-
-    // Checks if a certain altitude has been reached.
-    knowledge.define_function(MF_ALTITUDE_REACHED, madaraAltitudeReached);
 
     // Function that can be included in main loop of another method to introduce area coverage.
     knowledge.define_function(MF_INIT_SEARCH_CELL, madaraInitSearchCell);
@@ -218,34 +204,11 @@ void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
-* Checks if we are within a certain accuracy of a target's altitude.
-* @return  Returns true (1) if we are, or false (0) if not.
-**/
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Madara::Knowledge_Record madaraAltitudeReached (Madara::Knowledge_Engine::Function_Arguments &args,
-    Madara::Knowledge_Engine::Variables &variables)
-{
-    // All the params come from Madara.
-    double currAlt = args[0].to_double();
-    double targetAlt = args[1].to_double();
-
-    if(fabs(currAlt - targetAlt) < ALTITUDE_DIFFERENCE)
-    {
-        printf("HAS reached target altitude.\n");
-        return Madara::Knowledge_Record(1.0);
-    }
-    else
-    {
-        printf("HAS NOT reached target altitude yet.\n");
-        return Madara::Knowledge_Record(0.0);
-    }
-}
-
-/**
  * Selects an area coverage algorithm given the string from the madara variable
  *
  * @param algo  string determining which algorithm to select
  */
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 AreaCoverage* selectAreaCoverageAlgorithm(string algo)
 {
     AreaCoverage* coverageAlgorithm = NULL;

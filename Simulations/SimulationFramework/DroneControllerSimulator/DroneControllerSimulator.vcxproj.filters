@@ -55,6 +55,12 @@
     <Filter Include="Header Files\drone_controller">
       <UniqueIdentifier>{b72ee46d-2769-453b-adf7-9d6c81e6eeef}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\human_detection">
+      <UniqueIdentifier>{364aad3b-d4cf-4d14-9b0d-141c34371da2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\human_detection">
+      <UniqueIdentifier>{6d00eceb-8931-42dd-96cb-fd1cc2f1a61e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\area_coverage\area_coverage_module.cpp">
@@ -95,6 +101,18 @@
     </ClCompile>
     <ClCompile Include="..\..\..\DroneController\packages\madara_client\drone_controller.cpp">
       <Filter>Source Files\drone_controller</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\human_detection\BasicStrategy.cpp">
+      <Filter>Source Files\human_detection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\human_detection\human_detection_module.cpp">
+      <Filter>Source Files\human_detection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\human_detection\HumanDetection.cpp">
+      <Filter>Source Files\human_detection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\DroneController\packages\madara_client\human_detection\SlidingWindowStrategy.cpp">
+      <Filter>Source Files\human_detection</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -154,6 +172,18 @@
     </ClInclude>
     <ClInclude Include="..\..\..\DroneController\packages\madara_client\platforms\v_rep\v-rep_main_madara_transport_settings.h">
       <Filter>Header Files\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\human_detection\BasicStrategy.h">
+      <Filter>Header Files\human_detection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\human_detection\human_detection_module.h">
+      <Filter>Header Files\human_detection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\human_detection\HumanDetection.h">
+      <Filter>Header Files\human_detection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DroneController\packages\madara_client\human_detection\SlidingWindowStrategy.h">
+      <Filter>Header Files\human_detection</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

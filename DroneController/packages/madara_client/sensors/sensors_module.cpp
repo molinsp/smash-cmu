@@ -16,9 +16,12 @@
 
 #define HEIGHT_ACCURACY     "0.5"     // How many meters to use to determine that a certain height has been reached.
 #define LAND_ACCURACY       "0.1"     // How many meters to use to determine that a drone has landed.
-#define ULTRASOUND_LIMIT    5.5      // Where to stop using ultrasound readings.
+#define ULTRASOUND_LIMIT    5.5       // Where to stop using ultrasound readings.
 
-//#define REACHED_ACCURACY_METERS 0.2
+// Internal Madara variables.
+#define MV_LOCAL_LOCATION            ".location"            // The location (lat,lon) in a local variable.
+#define MV_LOCAL_ALTITUDE            ".location.altitude"   // The altitude, in a local variable.
+#define MV_GPS_LOCKS                 ".location.gps.locks"  // The amount of GPS locks when the location was taken.
 
 // For Windows compatibility.
 #ifndef M_PI
@@ -30,6 +33,9 @@
 
 static Madara::Knowledge_Engine::Compiled_Expression expressions2 [TASK_COUNT];
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record read_thermal_sensor (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
 	printf("Inside read_thermal();\n");
@@ -40,47 +46,65 @@ Madara::Knowledge_Record read_thermal_sensor (Madara::Knowledge_Engine::Function
 	{
 		for (y = 0; y < 8; y++)
 		{
-			std::stringstream strBuffer;
-			strBuffer << ".sensors.thermal." << x << "." << y;
-			variables.set(strBuffer.str(), Madara::Knowledge_Record(buffer[x][y]));
+            std::string rowString = std::to_string(static_cast<long long>(x));
+            std::string colString = std::to_string(static_cast<long long>(y));
+			variables.set(MV_THERMAL_BUFFER(rowString,colString), Madara::Knowledge_Record(buffer[x][y]));
 		}
 	}
 	return Madara::Knowledge_Record::Integer(1);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record read_gps_sensor (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
+    // Get GPS from platform.
 	struct madara_gps gps;
 	read_gps(&gps);
+
+    // Store the latitude and longitude in our local location variable.
 	std::stringstream buffer;
 	buffer << std::setprecision(10) << gps.latitude << "," << gps.longitude;
-	variables.set(".location", buffer.str());
-    double estAlt = variables.get(".location.altitude").to_double();
+	variables.set(MV_LOCAL_LOCATION, buffer.str());
+
+    // Store the altitude obtained by the GPS, but only if we currently were, and the GPS is reporting, an altitude 
+    // higher than the ultrasound limit. Otherwise, we will ignore this altitude in favor of the ultrasound one.
+    double estAlt = variables.get(MV_LOCAL_ALTITUDE).to_double();
     if(gps.altitude > ULTRASOUND_LIMIT || estAlt > ULTRASOUND_LIMIT)
     {
-	    variables.set(".location.altitude", gps.altitude);
+	    variables.set(MV_LOCAL_ALTITUDE, gps.altitude);
         variables.set(MV_DEVICE_ALT("{.id}"), gps.altitude);
     }
-	variables.set(".location.gps.locks", Madara::Knowledge_Record::Integer(gps.num_sats));
+
+    // Set the amount of GPS locks available for these values.
+	variables.set(MV_GPS_LOCKS, Madara::Knowledge_Record::Integer(gps.num_sats));
 	
 	return Madara::Knowledge_Record::Integer(1);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record read_ultrasound (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
+    // Get the current ultrasound reading from the platform.
     double ultraAlt = read_ultrasound();
-    double estAlt = variables.get(".location.altitude").to_double();
 
-    // Use ultrasound if below 6 meters
+    // Use ultrasound to override any other altitude if we were currently, and the ultrasound reported, a height below a certain limit.
+    double estAlt = variables.get(MV_LOCAL_ALTITUDE).to_double();
     if(ultraAlt < ULTRASOUND_LIMIT || estAlt < ULTRASOUND_LIMIT)
     {
         variables.set(MV_DEVICE_ALT("{.id}"), ultraAlt);
-        variables.set(".location.altitude", ultraAlt);
+        variables.set(MV_LOCAL_ALTITUDE, ultraAlt);
     }
 
     return Madara::Knowledge_Record::Integer(1);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record read_sensors (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
 	return variables.evaluate(expressions2[EVALUATE_SENSORS], Madara::Knowledge_Engine::Eval_Settings(false, true));
@@ -152,7 +176,9 @@ Madara::Knowledge_Record gpsTargetReached (Madara::Knowledge_Engine::Function_Ar
     }
 }
 
-//Define the functions provided by the sensor_functions module
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Define the functions provided by the sensor_functions module.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void define_sensor_functions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 {
 	knowledge.define_function ("read_thermal", read_thermal_sensor);
@@ -162,25 +188,30 @@ void define_sensor_functions (Madara::Knowledge_Engine::Knowledge_Base & knowled
     knowledge.define_function ("sensors_gpsTargetReached", gpsTargetReached);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Precompile any expressions used by sensor_functions.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 {	
 	expressions2[EVALUATE_SENSORS] = knowledge.compile
 	(
 		"read_thermal();"
 
-        // Note: since we are reading the ultrasound after the GPS, the height given by the ultrasound will overwrite the GPS one in certain
-        // circumnstances, depending on the implementation of the read_ultrasound function for the current platform.
+        // Note: since we are reading the ultrasound after the GPS, the height given by the ultrasound may overwrite the GPS 
+        // depending on our current height and the max height defined to be the ultrasound limit.
 		"read_gps();"
         "read_ultrasound();"
 
         // Check if we have reached our assigned altitude.
         // NOTE: Should this be here or somewhere else?
         "("
-            MV_IS_AT_ALTITUDE " = 0;"
-            "((" MV_DEVICE_ALT("{" MV_MY_ID "}") " - " MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}") " < " HEIGHT_ACCURACY " ) && "
-            "(" MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}") " - " MV_DEVICE_ALT("{" MV_MY_ID "}") " < " HEIGHT_ACCURACY ")) \
-                 => " MV_IS_AT_ALTITUDE " = 1;"
+            MV_IS_AT_ASSIGNED_ALTITUDE " = 0;"
+            "("
+                "(" MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}") " != 0) &&"
+                "(" MV_DEVICE_ALT("{" MV_MY_ID "}") " - " MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}") " < " HEIGHT_ACCURACY " ) && "
+                "(" MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}") " - " MV_DEVICE_ALT("{" MV_MY_ID "}") " < " HEIGHT_ACCURACY ")"
+            ") => "
+                "(" MV_IS_AT_ASSIGNED_ALTITUDE " = 1);"
         ");"
 
         // Check if we have landed.
@@ -199,6 +230,9 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
 	);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SMASH::Sensors::SensorsModule::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
     printf("SMASH::Sensors::initialize...\n");
@@ -209,12 +243,17 @@ void SMASH::Sensors::SensorsModule::initialize(Madara::Knowledge_Engine::Knowled
     printf("leaving SMASH::Sensors::initialize...\n");
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SMASH::Sensors::SensorsModule::cleanup(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::string SMASH::Sensors::SensorsModule::get_core_function()
 {
 	return "read_sensors()";
 }
-
