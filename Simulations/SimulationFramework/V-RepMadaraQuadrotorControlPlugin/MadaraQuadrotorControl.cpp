@@ -210,29 +210,29 @@ void MadaraQuadrotorControl::clearCommand(std::string droneIdString)
         Madara::Knowledge_Engine::Eval_Settings(true, true));
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraQuadrotorControl::setNewThermalScan(int droneId, double thermalBuffer[THERMAL_BUFFER_HEIGHT][THERMAL_BUFFER_WIDTH])
+void MadaraQuadrotorControl::setNewThermalScan(int droneId, double** thermalBuffer, int thermalHeight, int thermalWidth)
 {
     string droneIdString = std::to_string(static_cast<long long>(droneId));
 	if(m_knowledge != NULL)
 	{
         // Loop over all Madara variables with the buffer.
-        for(int i=0; i < THERMAL_BUFFER_HEIGHT; i++)
+        for(int i=0; i < thermalHeight; i++)
         {
-            for(int j=0; j < THERMAL_BUFFER_WIDTH; j++)
+            for(int j=0; j < thermalWidth; j++)
             {
                 // Get the current value.
                 double currThermalValue = thermalBuffer[i][j];
 
                 // Turn the column and line numbers into string.
-                std::string textLine = NUM_TO_STR(i);
+                std::string droneIdString = NUM_TO_STR(droneId);
+                std::string textRow = NUM_TO_STR(i);
                 std::string textCol = NUM_TO_STR(j);
 
                 // Then we get the value for this cell from the knowledge base, and pass it on to the buffer.
-                m_knowledge->set(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_THERMAL(textLine, textCol));
+                m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_THERMAL(textRow, textCol), currThermalValue);
             }
         }
 	}

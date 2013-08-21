@@ -10,6 +10,7 @@
 #include <iomanip>		// std::setprecision
 
 #include "utilities/CommonMadaraVariables.h"
+#include "utilities/Position.h"
 
 #define TASK_COUNT		    1
 #define EVALUATE_SENSORS	0
@@ -46,9 +47,9 @@ Madara::Knowledge_Record read_thermal_sensor (Madara::Knowledge_Engine::Function
 	{
 		for (y = 0; y < 8; y++)
 		{
-            std::string rowString = std::to_string(static_cast<long long>(x));
-            std::string colString = std::to_string(static_cast<long long>(y));
-			variables.set(MV_THERMAL_BUFFER(rowString,colString), Madara::Knowledge_Record(buffer[x][y]));
+            std::string rowString = NUM_TO_STR(x);
+            std::string colString = NUM_TO_STR(y);
+			variables.set(MV_THERMAL_BUFFER(rowString,colString), buffer[x][y]);
 		}
 	}
 	return Madara::Knowledge_Record::Integer(1);

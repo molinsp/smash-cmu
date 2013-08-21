@@ -19,6 +19,14 @@ LAND_ALTITUDE = 1.0
 -- This margin (in degrees) indicates how close to a person we use to declare that we found it.
 PERSON_FOUND_ERROR_MARGIN = 0.000005    -- This is roughly equivalent to 50 cm.
 
+-- This is the size of the thermal buffer we are simulating.
+THERMAL_BUFFER_HEIGHT = 8
+THERMAL_BUFFER_WIDTH = 8
+
+-- Used when generating random ambient temperatures.
+AMBIENT_MIN_TEMP = 10
+AMBIENT_MAX_TEMP = 60
+
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Method called when the simulation starts.
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,6 +48,10 @@ function doInitialSetup()
     g_myTargetLat = 0
     g_myAssignedAlt = g_minAltitude    
 	g_flying = false
+	
+	-- Setup a random seed for thermals.
+	math.randomseed( os.time() )
+	math.random()
     
     -- Setup the plugin to communicate to the network.
 	simExtMadaraQuadrotorControlSetup(g_myDroneId)   
@@ -94,15 +106,44 @@ function lookForPersonBelow()
     local droneName, dronePos = getDroneInfoFromSuffix(g_mySuffix)
 
     -- Check if we found a person, to stop.
+	local humanFound = false
     for i=1, g_numPeople, 1 do
-        if( isPersonBelow(dronePos, g_personCoordsX[i], g_personCoordsY[i])) then
+		humanFound = isPersonBelow(dronePos, g_personCoordsX[i], g_personCoordsY[i])
+        if(humanFound) then
             -- Notify our shared memory that a person was found, and that I was the one to find it.
             local sourceSuffix, sourceName = simGetNameSuffix(nil)
             simSetScriptSimulationParameter(sim_handle_main_script, 'personFoundId', i)
             simSetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound', sourceSuffix)
-            --simAddStatusbarMessage('Drone with suffix ' .. sourceSuffix .. ' is seeing person ' .. i .. '!')
+            simAddStatusbarMessage('Drone with id ' .. g_myDroneId .. ' is seeing person ' .. i .. '!')
+			break
         end
     end
+	
+	-- Simulate the thermal buffer, filling it with random low values.
+	local bufferString = ''
+	for row=1, THERMAL_BUFFER_HEIGHT, 1 do
+		for col=1, THERMAL_BUFFER_WIDTH, 1 do
+			-- Add a comma to every but the first value.
+			if(not (row == 1 and col == 1)) then
+				bufferString = bufferString .. ','
+			end
+			
+			-- Calcualte a random ambient value for this cell.
+			local thermalCellValue = tostring(math.random(AMBIENT_MIN_TEMP, AMBIENT_MAX_TEMP))
+			
+			-- If there are humans, we will add them only to one specific location in the buffer.
+			if(humanFound and row == 1 and col == 1) then
+				thermalCellValue = getHumanValue(dronePos[3])			
+				simAddStatusbarMessage('Drone with id ' .. g_myDroneId .. ' at height ' .. dronePos[3] .. ' found a thermal and will set it to' .. thermalCellValue)
+			end
+			
+			-- Add this value to the buffer string.
+			bufferString = bufferString .. thermalCellValue
+		end
+	end		
+
+	-- Set the thermal buffer.
+	simExtMadaraQuadrotorControlUpdateThermals(g_myDroneId, THERMAL_BUFFER_HEIGHT, THERMAL_BUFFER_WIDTH, bufferString)
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -115,6 +156,21 @@ function isPersonBelow(dronePos, personCoordX, personCoordY)
             return true
         end
     end
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
+-- Returns a valid human value depending on the height.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function getHumanValue(height)
+	if(height <= 0.5) then
+		return 85
+	elseif(height <= 1.0) then
+		return 80
+	elseif(height <= 2.0) then
+		return 75
+	else
+		return 70
+	end
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////

@@ -13,6 +13,7 @@
 #include <map>
 #include <string>
 #include "utilities/CommonMadaraVariables.h"
+#include "utilities/Position.h"
 #include "human_detection_module.h"
 #include "HumanDetection.h"
 #include "BasicStrategy.h"
@@ -116,13 +117,13 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     knowledge.define_function(MF_MAIN_LOGIC,  
         "(" 
             // First check if human detection is enabled at all.
-            "(" MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}") " != 0) => "
+            "(" MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}") " ) => "
             "("
                 // The basic detection algorithm needs specific setup.
                 "(" MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}") " == '" HUMAN_DETECTION_BASIC "' ) => " 
                 "("
                     // We have to calculate the ambient temperature once we have reached our assigned height, but only once.
-                    "(" MV_IS_AT_ASSIGNED_ALTITUDE " && " MV_AMBIENT_TEMP_CALCULATED " == 0 ) => "
+                    "(" MV_IS_AT_ASSIGNED_ALTITUDE " && (" MV_AMBIENT_TEMP_CALCULATED " == 0) ) => "
                     "("
                         // Calculate the ambient temperature and mark that as done to prevent recalculating it.
                         MF_CALCULATE_AMBIENT_TEMP "();"
@@ -188,8 +189,8 @@ void loadThermalInfo (Madara::Knowledge_Engine::Variables &variables)
     {  
         for (int col = 0; col < 8; ++col)
         {
-            std::string rowString = std::to_string(static_cast<long long>(row));
-            std::string colString = std::to_string(static_cast<long long>(col));
+            std::string rowString = NUM_TO_STR(row);
+            std::string colString = NUM_TO_STR(col);
             m_thermal_buffer[row][col] = variables.get(MV_THERMAL_BUFFER(rowString,colString)).to_double();
         }
     }

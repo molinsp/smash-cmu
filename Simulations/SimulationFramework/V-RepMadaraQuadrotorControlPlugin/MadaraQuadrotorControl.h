@@ -106,7 +106,7 @@ public:
     /**
     * Set a new thermal scan to the knowledge base.
     */
-    void setNewThermalScan(int droneId,double thermalBuffer[THERMAL_BUFFER_HEIGHT][THERMAL_BUFFER_WIDTH]);
+    void setNewThermalScan(int droneId, double** thermalBuffer, int thermalHeight, int thermalWidth);
 };
 
 #endif // _MADARA_QUADROTOR_CONTROL_H_

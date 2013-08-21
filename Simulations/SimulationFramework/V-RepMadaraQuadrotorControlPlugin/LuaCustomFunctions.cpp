@@ -23,6 +23,21 @@ using std::stringstream;
 // The controller used to manage the Madara stuff.
 static MadaraQuadrotorControl* control = NULL;
 
+static std::vector<std::string> &stringSplit(const std::string &s, char delim, std::vector<std::string> &elems) {
+    std::stringstream ss(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        elems.push_back(item);
+    }
+    return elems;
+}
+
+static std::vector<std::string> stringSplit(const std::string &s, char delim) {
+    std::vector<std::string> elems;
+    stringSplit(s, delim, elems);
+    return elems;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Callback of the Lua simExtMadaraQuadrotorControlSetup command.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,7 +83,7 @@ void simExtMadaraQuadrotorControlSetup(SLuaCallBack* p)
 // Registers the Lua simExtMadaraQuadrotorControlSetup command.
 void registerMadaraQuadrotorControlSetupLuaCallback()
 {
-	// Register the simExtGetPositionInBridge function.
+	// Register the function.
 	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlSetup",
 		"simExtMadaraQuadrotorControlSetup(int droneId)",
 		g_setupInArgs, simExtMadaraQuadrotorControlSetup);
@@ -123,7 +138,7 @@ void simExtMadaraQuadrotorControlUpdateStatus(SLuaCallBack* p)
 // Registers the Lua simExtMadaraQuadrotorControlUpdateStatus command.
 void registerMadaraQuadrotorControlUpdateStatusLuaCallback()
 {
-	// Register the simExtGetPositionInBridge function.
+	// Register the function.
 	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlUpdateStatus",
 		"simExtMadaraQuadrotorControlUpdateStatus"
 		"(int droneId, "
@@ -250,7 +265,7 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 // Registers the Lua simExtMadaraQuadrotorControlGetNewCommand command.
 void registerMadaraQuadrotorControlGetNewCmdLuaCallback()
 {
-	// Register the simExtGetPositionInBridge function.
+	// Register the function.
 	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlGetNewCmd",
 		"cmd, lat, long, alt = "
 		"simExtMadaraQuadrotorControlGetNewCmd(int droneId)",
@@ -305,7 +320,7 @@ void simExtMadaraQuadrotorControlIsGoToCmd(SLuaCallBack* p)
 // Register test of isGoToCmd.
 void registerMadaraQuadrotorControlIsGoToCmdLuaCallback()
 {
-	// Register the simExtGetPositionInBridge function.
+	// Register the function.
 	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlIsGoToCmd",
 		"isGoTo = simExtMadaraQuadrotorControlIsGoToCmd(string cmd)",
 		g_isCmdInArgs, simExtMadaraQuadrotorControlIsGoToCmd);
@@ -324,7 +339,7 @@ void simExtMadaraQuadrotorControlIsGoToAltCmd(SLuaCallBack* p)
 // Register test of isGoToAltCmd.
 void registerMadaraQuadrotorControlIsGoToAltCmdLuaCallback()
 {
-	// Register the simExtGetPositionInBridge function.
+	// Register the function.
 	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlIsGoToAltCmd",
 		"isGoTo = simExtMadaraQuadrotorControlIsGoToAltCmd(string cmd)",
 		g_isCmdInArgs, simExtMadaraQuadrotorControlIsGoToAltCmd);
@@ -343,7 +358,7 @@ void simExtMadaraQuadrotorControlIsLandCmd(SLuaCallBack* p)
 // Register test of isOffCmd.
 void registerMadaraQuadrotorControlIsLandCmdLuaCallback()
 {
-	// Register the simExtGetPositionInBridge function.
+	// Register the function.
 	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlIsLandCmd",
 		"isLand = simExtMadaraQuadrotorControlIsLandCmd(string cmd)",
 		g_isCmdInArgs, simExtMadaraQuadrotorControlIsLandCmd);
@@ -362,7 +377,7 @@ void simExtMadaraQuadrotorControlIsTakeoffCmd(SLuaCallBack* p)
 // Register test of isOnCmd
 void registerMadaraQuadrotorControlIsTakeoffCmdLuaCallback()
 {
-	// Register the simExtGetPositionInBridge function.
+	// Register the function.
 	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlIsTakeoffCmd",
 		"isTakeoff = simExtMadaraQuadrotorControlIsTakeoffCmd(string cmd)",
 		g_isCmdInArgs, simExtMadaraQuadrotorControlIsTakeoffCmd);
@@ -401,10 +416,99 @@ void simExtMadaraQuadrotorControlCleanup(SLuaCallBack* /*p*/)
 // Registers the Lua simExtMadaraQuadrotorControlCleanup command.
 void registerMadaraQuadrotorControlCleanupLuaCallback()
 {
-	// Register the simExtGetPositionInBridge function.
+	// Register the function.
 	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlCleanup",
 		"simExtMadaraQuadrotorControlCleanup()",
 		g_cleanupInArgs, simExtMadaraQuadrotorControlCleanup);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Callback of the Lua simExtMadaraQuadrotorControlUpdateThermals command.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Define the LUA function input parameters.
+static int g_updateThermalsInArgs[] = {4, 
+	sim_lua_arg_int,      // The id of the drone.
+	sim_lua_arg_int,      // The number of rows.
+	sim_lua_arg_int,      // The number of columns.
+	sim_lua_arg_string};  // The thermal matrix.
+
+
+// The actual callback function.
+void simExtMadaraQuadrotorControlUpdateThermals(SLuaCallBack* p)
+{
+	simLockInterface(1);
+
+	// Check we have to correct amount of parameters.
+	bool paramsOk = checkInputArguments(p, g_updateThermalsInArgs, "simExtMadaraQuadrotorControlUpdateStatus");
+	if(paramsOk)
+	{
+        // Get the drone id and the matriz size.
+        int droneId = p->inputInt[0];
+        int numRows = p->inputInt[1];
+        int numColumns = p->inputInt[2];
+
+        // For debugging.
+		std::stringstream strBuffer;
+        strBuffer << "Values received inside simExtMadaraQuadrotorControlUpdateThermals function: droneId: " << droneId << ", rows: " << numRows << ", cols: " << numColumns << ", values: ";
+
+        // Setup the thermal buffer for the number of rows we have.
+        double** thermalBuffer;
+        thermalBuffer = new double*[numRows];
+
+		// Parse the thermal values.
+        std::string thermalValues(p->inputChar);
+		std::vector<std::string> thermalValueList = stringSplit(thermalValues, ',');
+		
+        // Get the thermals from the string.
+        for(int row=0; row<numRows; row++)
+        {
+            // Create the current row.
+            thermalBuffer[row] = new double[numColumns];
+            strBuffer << "(";
+
+            // Loop over this row.
+            for(int col=0; col<numColumns; col++)
+            {
+                // Get the current value from the parsed list.
+                std::string currValue = thermalValueList[row*numColumns + col];
+
+                // Add it to a buffer for debugging purposes.
+                strBuffer << currValue << ",";
+
+                // Store the current value as a double in the buffer.
+                thermalBuffer[row][col] = atof(currValue.c_str());
+            }
+
+            strBuffer << "),";
+        }
+
+		// For debugging, print out what we received.
+		//simAddStatusbarMessage(strBuffer.str().c_str());
+
+        // Update the thermal data through the network.
+		control->setNewThermalScan(droneId, thermalBuffer, numRows, numColumns);
+
+        // Delete the thermal buffer; first each row, then the buffer.
+        for(int row=0; row<numRows; row++)
+        {
+            delete thermalBuffer[row];
+        }
+        delete thermalBuffer;
+	}
+
+	simLockInterface(0);
+}
+
+// Registers the Lua simExtMadaraQuadrotorControlUpdateThermals command.
+void registerMadaraQuadrotorControlUpdateThermalsLuaCallback()
+{
+	// Register the function.
+	simRegisterCustomLuaFunction("simExtMadaraQuadrotorControlUpdateThermals",
+		"simExtMadaraQuadrotorControlUpdateThermals"
+		"(int droneId, "
+        "table thermals)",
+		g_updateThermalsInArgs,
+		simExtMadaraQuadrotorControlUpdateThermals);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -416,6 +520,7 @@ void registerAllLuaExtensions()
 	registerMadaraQuadrotorControlCleanupLuaCallback();
   
 	registerMadaraQuadrotorControlUpdateStatusLuaCallback();
+    registerMadaraQuadrotorControlUpdateThermalsLuaCallback();
 	registerMadaraQuadrotorControlGetNewCmdLuaCallback();
 
 	registerMadaraQuadrotorControlIsGoToCmdLuaCallback();
