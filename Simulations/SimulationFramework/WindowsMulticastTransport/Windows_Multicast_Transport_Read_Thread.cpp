@@ -17,9 +17,15 @@
 #include <fstream>
 #include <algorithm>
 
+// Included to get all interfaces through ACE.
+#include "ace/SOCK_Dgram_Mcast.h"
+
 #define SSTR( x ) dynamic_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << x ) ).str()
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 void joinMulticastGroup(const SOCKET socket, const char* multicastIpAddr, u_long interfaceAddr)
 {
     // Use setsockopt() to request that the kernel join a multicast group.
@@ -40,6 +46,9 @@ void joinMulticastGroup(const SOCKET socket, const char* multicastIpAddr, u_long
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 void leaveMulticastGroup(const SOCKET socket, const char* multicastIpAddr, u_long interfaceAddr)
 {
     // Use setsockopt() to request that the kernel leaves a multicast group.
@@ -62,6 +71,51 @@ void leaveMulticastGroup(const SOCKET socket, const char* multicastIpAddr, u_lon
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+void joinMulticastOnAllInterfaces(const SOCKET socket, const char* multicastIpAddr)
+{
+    // Load all available interfaces through an ACE function.
+    ACE_INET_Addr *interfaceAddresses = 0;
+    size_t interfacesCount;
+    ACE::get_ip_interfaces (interfacesCount, interfaceAddresses);
+
+    // Loop through all results and join all interfaces.
+    while (interfacesCount > 0)
+    {
+        --interfacesCount;
+        if (interfaceAddresses[interfacesCount].get_type () != AF_INET /*|| interfaceAddresses[interfacesCount].is_loopback ()*/)
+            continue;
+
+        joinMulticastGroup(socket, multicastIpAddr, inet_addr(interfaceAddresses[interfacesCount].get_host_addr ()));
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+void leaveMulticastOnAllInterfaces(const SOCKET socket, const char* multicastIpAddr)
+{
+    // Load all available interfaces through an ACE function.
+    ACE_INET_Addr *interfaceAddresses = 0;
+    size_t interfacesCount;
+    ACE::get_ip_interfaces (interfacesCount, interfaceAddresses);
+
+    // Loop through all results and join all interfaces.
+    while (interfacesCount > 0)
+    {
+        --interfacesCount;
+        if (interfaceAddresses[interfacesCount].get_type () != AF_INET /*|| interfaceAddresses[interfacesCount].is_loopback ()*/)
+            continue;
+
+        leaveMulticastGroup(socket, multicastIpAddr, inet_addr(interfaceAddresses[interfacesCount].get_host_addr ()));
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread (
   const Madara::Transport::Settings & settings, const std::string & id,
   Madara::Knowledge_Engine::Thread_Safe_Context & context, const char* mc_ipaddr, int mc_port)
@@ -119,17 +173,22 @@ Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread
     strncpy(mc_ipaddr_, mc_ipaddr, ipBufferSize);
      
     // Join the multicast address. Join the default interface, and the loopback, explicitly.
-    joinMulticastGroup(socket_, mc_ipaddr_, htonl(INADDR_ANY));
-    joinMulticastGroup(socket_, mc_ipaddr_, inet_addr("127.0.0.1"));
+    joinMulticastOnAllInterfaces(socket_, mc_ipaddr_);
+    //joinMulticastGroup(socket_, mc_ipaddr_, htonl(INADDR_ANY));
+    //joinMulticastGroup(socket_, mc_ipaddr_, inet_addr("127.0.0.1"));
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 Windows_Multicast_Transport_Read_Thread::~Windows_Multicast_Transport_Read_Thread ()
 {
     if(mc_ipaddr_ != NULL)
     {
         // Leave the group, for both interfaces we selected.
-        leaveMulticastGroup(socket_, mc_ipaddr_, htonl(INADDR_ANY));
-        leaveMulticastGroup(socket_, mc_ipaddr_, inet_addr("127.0.0.1"));
+        leaveMulticastOnAllInterfaces(socket_, mc_ipaddr_);
+        //leaveMulticastGroup(socket_, mc_ipaddr_, htonl(INADDR_ANY));
+        //leaveMulticastGroup(socket_, mc_ipaddr_, inet_addr("127.0.0.1"));
 
         delete mc_ipaddr_;
     }
@@ -137,6 +196,9 @@ Windows_Multicast_Transport_Read_Thread::~Windows_Multicast_Transport_Read_Threa
     closesocket (socket_);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 int
 Windows_Multicast_Transport_Read_Thread::close (void)
 {
@@ -147,12 +209,18 @@ Windows_Multicast_Transport_Read_Thread::close (void)
   return 0;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 int
 Windows_Multicast_Transport_Read_Thread::svc (void)
 {
     return 0;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 unsigned __stdcall threadfunc(void * param)
 {
     Windows_Multicast_Transport_Read_Thread* trt = (Windows_Multicast_Transport_Read_Thread*)param;
