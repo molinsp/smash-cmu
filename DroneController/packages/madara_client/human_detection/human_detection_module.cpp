@@ -307,5 +307,8 @@ Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Function_A
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void on_human_detected()
 {
-    printf("***************HUMAN DETECTED***************** \n");
+    printf("**********************************************\n");
+    printf("*              HUMAN DETECTED                *\n");
+    printf("**********************************************\n");
+    sleep(1);
 }

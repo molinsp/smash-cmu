@@ -62,14 +62,16 @@ int BasicStrategy::detect_human (double thermal_buffer[8][8],
           result_map[row][col] = 1;
 
           human_count++;
-          printf("Human Count: %i\n", human_count);
-          printf("Human detected ");
-          printf("@ (%i, %i) Range: (%6.2f,%6.2f), Frame value:%6.2f \n", row,
-                                                                          col,
-                                                                          ambient_min,
-                                                                          ambient_max,
-                                                                          thermal_buffer[row][col]);
-
+          if (debug_verbose == 1)
+          {
+            printf("Human Count: %i\n", human_count);
+            printf("At height %6.2f ", curr_height);
+            printf("Human detected @ (%i, %i) Range: (%6.2f,%6.2f), Frame value:%6.2f \n", row,
+                                                                                           col,
+                                                                                           ambient_min,
+                                                                                           ambient_max,
+                                                                                           thermal_buffer[row][col]);
+          }
           // Invoke callback function for post human detection action.
           on_human_detected();
         }
