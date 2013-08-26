@@ -136,6 +136,9 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                         MF_DETECT_HUMAN "();"
                     ");"
                 ");"
+
+                // If sliding window algorithm, then no need specific setup. Just call the detect function.
+                "(" MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}") " == '" HUMAN_DETECTION_SLIDING_WINDOW "' ) => " MF_DETECT_HUMAN "();"
             ");"
         ");"
     );
@@ -180,7 +183,8 @@ HumanDetection* selectHumanDetectionAlgorithm (string algo)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
-*
+* Method that loads thermal information from a set of madara variables into thermal_buffer which will be used
+* by the detection algorithms.
 **/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void loadThermalInfo (Madara::Knowledge_Engine::Variables &variables)
@@ -198,7 +202,9 @@ void loadThermalInfo (Madara::Knowledge_Engine::Variables &variables)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
+* Metho that calculates ambient temperature range for basic strategy.
 *
+* @return Returns true (1) always. 
 **/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record madaraCalculateAmbientTemp (Madara::Knowledge_Engine::Function_Arguments &args,
@@ -256,6 +262,7 @@ Madara::Knowledge_Record madaraCalculateAmbientTemp (Madara::Knowledge_Engine::F
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
 * Method that invokes the functionality of detecting human.
+* 
 * @return  Returns true (1) always.
 **/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
