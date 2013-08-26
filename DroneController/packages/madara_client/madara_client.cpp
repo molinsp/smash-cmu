@@ -71,6 +71,7 @@ int main (int argc, char** argv)
 
     // Create the knowledge base.
     Madara::Knowledge_Engine::Knowledge_Base* knowledge = platform_setup_knowledge_base(id);
+    Madara::Knowledge_Record::set_precision(10);
  
 	// Setup the drone controller.
     SMASH::DroneController controller;

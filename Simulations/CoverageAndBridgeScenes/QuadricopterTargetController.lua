@@ -114,7 +114,7 @@ function lookForPersonBelow()
             local sourceSuffix, sourceName = simGetNameSuffix(nil)
             simSetScriptSimulationParameter(sim_handle_main_script, 'personFoundId', i)
             simSetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound', sourceSuffix)
-            simAddStatusbarMessage('Drone with id ' .. g_myDroneId .. ' is seeing person ' .. i .. '!')
+            --simAddStatusbarMessage('Drone with id ' .. g_myDroneId .. ' is seeing person ' .. i .. '!')
 			break
         end
     end
@@ -134,7 +134,7 @@ function lookForPersonBelow()
 			-- If there are humans, we will add them only to one specific location in the buffer.
 			if(humanFound and row == 1 and col == 1) then
 				thermalCellValue = getHumanValue(dronePos[3])			
-				simAddStatusbarMessage('Drone with id ' .. g_myDroneId .. ' at height ' .. dronePos[3] .. ' found a thermal and will set it to' .. thermalCellValue)
+				--simAddStatusbarMessage('Drone with id ' .. g_myDroneId .. ' at height ' .. dronePos[3] .. ' found a thermal and will set it to' .. thermalCellValue)
 			end
 			
 			-- Add this value to the buffer string.

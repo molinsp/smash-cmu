@@ -122,17 +122,17 @@ void SMASH::DroneController::cleanupModules(Madara::Knowledge_Engine::Knowledge_
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SMASH::DroneController::initializeDrone(int droneId, Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
-    knowledge.set (".id", (Madara::Knowledge_Record::Integer) droneId);
-    knowledge.set(MV_MOBILE("{" MV_MY_ID "}"), 1.0);
-    knowledge.set(MV_BUSY("{" MV_MY_ID "}"), 0.0);
+    knowledge.set(MV_MY_ID, (Madara::Knowledge_Record::Integer) droneId);
+    knowledge.set(knowledge.expand_statement(MV_MOBILE("{" MV_MY_ID "}")), 1.0);
+    knowledge.set(knowledge.expand_statement(MV_BUSY("{" MV_MY_ID "}")), 0.0);
 
     // Setup the initial command for the first loop of the drone logic as "take off".
     // This is done through variables, similar to how a command would be sent by an external user.
-    knowledge.set(MV_DEVICE_MOVE_REQUESTED("{" MV_MY_ID "}"), MO_TAKEOFF_CMD);
+    knowledge.set(MV_DEVICE_MOVE_REQUESTED(knowledge.expand_statement("{" MV_MY_ID "}")), MO_TAKEOFF_CMD);
 
     // Set madara variable to control human detection. This means the drone will always
     // try to detect human.
-    knowledge.set(MV_HUMAN_DETECTION_REQUESTED("{.id}"), HUMAN_DETECTION_BASIC);
+    knowledge.set(MV_HUMAN_DETECTION_REQUESTED(knowledge.expand_statement("{" MV_MY_ID "}")), HUMAN_DETECTION_BASIC);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -283,9 +283,9 @@ Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::F
 		if(iHaveToGoToBridge)
 		{
 			// Update the drone status now that we are going to build a bridge.
-			variables.set(MV_BUSY("{" MV_MY_ID "}"), 1.0,
+			variables.set(variables.expand_statement(MV_BUSY("{" MV_MY_ID "}")), 1.0,
 				Madara::Knowledge_Engine::Eval_Settings(true));
-			variables.set(MV_BRIDGE_ID("{" MV_MY_ID "}"), (Madara::Knowledge_Record::Integer) bridgeId,
+			variables.set(variables.expand_statement(MV_BRIDGE_ID("{" MV_MY_ID "}")), (Madara::Knowledge_Record::Integer) bridgeId,
 				Madara::Knowledge_Engine::Eval_Settings(true));
 
             // Set all the command parameters.

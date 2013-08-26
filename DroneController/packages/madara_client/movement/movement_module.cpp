@@ -17,7 +17,7 @@ void ensureTakeoff(Madara::Knowledge_Engine::Variables& variables)
 void attainAltitude(Madara::Knowledge_Engine::Variables& variables)
 {
     ensureTakeoff(variables);
-    //variables.evaluate(MV_IS_AT_ASSIGNED_ALTITUDE " == 0 => (.movement_command.0 = " MV_ASSIGNED_ALTITUDE("{.id}") "; move_to_altitude();)");
+    //variables.evaluate(variables.expand_statement(MV_IS_AT_ASSIGNED_ALTITUDE " == 0 => (.movement_command.0 = " MV_ASSIGNED_ALTITUDE("{.id}") "; move_to_altitude();)"));
 }
 
 //Madara function to interface with takeoff()
@@ -90,7 +90,7 @@ Madara::Knowledge_Record madara_move_to_gps (Madara::Knowledge_Engine::Function_
 {
 	double lat = variables.get(MV_MOVEMENT_TARGET_LAT).to_double();
 	double lon = variables.get(MV_MOVEMENT_TARGET_LON).to_double();
-    double alt = variables.get(MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}")).to_double();
+    double alt = variables.get(variables.expand_statement(MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}"))).to_double();
 
     attainAltitude(variables);
 	

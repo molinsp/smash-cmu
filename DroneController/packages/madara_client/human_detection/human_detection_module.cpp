@@ -263,8 +263,8 @@ Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Function_A
     Madara::Knowledge_Engine::Variables &variables)
 {
     // Get the current algorithm to use, and the current altitude.
-    string algo = variables.get(MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}")).to_string();
-    double height = variables.get(MV_DEVICE_ALT("{" MV_MY_ID  "}")).to_double();
+    string algo = variables.get(variables.expand_statement(MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}"))).to_string();
+    double height = variables.get(variables.expand_statement(MV_DEVICE_ALT("{" MV_MY_ID  "}"))).to_double();
 
     if (prev_algo.empty() || algo != prev_algo)
     {
@@ -290,8 +290,8 @@ Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Function_A
         printf("RESULT: %i \n", result);
 
         // Set the Madara variables to indicate we found thermals, and how many, at our current location.
-        std::string lat = variables.get(MV_DEVICE_LAT("{" MV_MY_ID "}")).to_string();
-        std::string lon = variables.get(MV_DEVICE_LON("{" MV_MY_ID "}")).to_string();
+        std::string lat = variables.get(variables.expand_statement(MV_DEVICE_LAT("{" MV_MY_ID "}"))).to_string();
+        std::string lon = variables.get(variables.expand_statement(MV_DEVICE_LON("{" MV_MY_ID "}"))).to_string();
         variables.set(MV_THERMALS_AT_LOCATION(lat, lon), (Madara::Knowledge_Record::Integer) result);
     }
     else

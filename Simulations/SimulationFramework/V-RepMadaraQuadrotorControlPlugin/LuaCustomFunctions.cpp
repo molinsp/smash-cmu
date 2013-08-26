@@ -452,8 +452,8 @@ void simExtMadaraQuadrotorControlUpdateThermals(SLuaCallBack* p)
         strBuffer << "Values received inside simExtMadaraQuadrotorControlUpdateThermals function: droneId: " << droneId << ", rows: " << numRows << ", cols: " << numColumns << ", values: ";
 
         // Setup the thermal buffer for the number of rows we have.
-        double** thermalBuffer;
-        thermalBuffer = new double*[numRows];
+        std::vector<std::vector <double> > thermalBuffer;
+        thermalBuffer.resize(numRows);
 
 		// Parse the thermal values.
         std::string thermalValues(p->inputChar);
@@ -462,15 +462,13 @@ void simExtMadaraQuadrotorControlUpdateThermals(SLuaCallBack* p)
         // Get the thermals from the string.
         for(int row=0; row<numRows; row++)
         {
-            // Create the current row.
-            thermalBuffer[row] = new double[numColumns];
-            strBuffer << "(";
-
             // Loop over this row.
+            strBuffer << "(";
+            thermalBuffer[row].resize(numColumns);
             for(int col=0; col<numColumns; col++)
             {
                 // Get the current value from the parsed list.
-                std::string currValue = thermalValueList[row*numColumns + col];
+                std::string currValue = std::string(thermalValueList[row*numColumns + col]);
 
                 // Add it to a buffer for debugging purposes.
                 strBuffer << currValue << ",";
@@ -482,18 +480,13 @@ void simExtMadaraQuadrotorControlUpdateThermals(SLuaCallBack* p)
             strBuffer << "),";
         }
 
+        thermalValueList.clear();
+
 		// For debugging, print out what we received.
 		//simAddStatusbarMessage(strBuffer.str().c_str());
 
         // Update the thermal data through the network.
 		control->setNewThermalScan(droneId, thermalBuffer, numRows, numColumns);
-
-        // Delete the thermal buffer; first each row, then the buffer.
-        for(int row=0; row<numRows; row++)
-        {
-            delete thermalBuffer[row];
-        }
-        delete thermalBuffer;
 	}
 
 	simLockInterface(0);

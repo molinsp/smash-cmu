@@ -129,7 +129,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     // Function that can be included in main loop of another method to introduce area coverage.
     knowledge.define_function(MF_MAIN_LOGIC, 
         // If there is any string value for the requested area coverage (other than the default of 0), setup area coverage.
-        "(" MV_AREA_COVERAGE_REQUESTED("{.id}") " => "
+        "(" MV_AREA_COVERAGE_REQUESTED("{" MV_MY_ID "}") " => "
             "(" MV_MOBILE("{" MV_MY_ID "}") " && (!" MV_BUSY("{" MV_MY_ID "}") ")) => "
             "("
                 "(" 
@@ -165,7 +165,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
         ".i[0->" MV_TOTAL_DEVICES ")"
         "("
             // A drone is available if it is mobile and it is not busy, and it is assigned to the same area as I am.
-            "(" MV_MOBILE("{.i}") " && (!" MV_BUSY("{.i}") ") && (" MV_ASSIGNED_SEARCH_AREA("{.i}") " == " MV_ASSIGNED_SEARCH_AREA("{.id}") "))"
+            "(" MV_MOBILE("{.i}") " && (!" MV_BUSY("{.i}") ") && (" MV_ASSIGNED_SEARCH_AREA("{.i}") " == " MV_ASSIGNED_SEARCH_AREA("{" MV_MY_ID "}") "))"
             " => "
             "("
                 // If so, increase the amount of available drones, and and store my idx in the list if I find it.
@@ -254,7 +254,7 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
     int myIndexInList = (int) variables.get(MV_AVAILABLE_DRONES_MY_IDX).to_integer();
 
     // Obtain the region details where we will be searching.
-    std::string myAssignedSearchArea = variables.get(MV_ASSIGNED_SEARCH_AREA("{.id}")).to_string();
+    std::string myAssignedSearchArea = variables.get(variables.expand_statement(MV_ASSIGNED_SEARCH_AREA("{" MV_MY_ID "}"))).to_string();
     std::string myAssignedSearchRegion = variables.get(MV_SEARCH_AREA_REGION(myAssignedSearchArea)).to_string();
     double nwLat = variables.get(MV_REGION_TOPLEFT_LAT(myAssignedSearchRegion)).to_double();
     double nwLon = variables.get(MV_REGION_TOPLEFT_LON(myAssignedSearchRegion)).to_double();
@@ -263,7 +263,7 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
     Region searchArea = Region(Position(nwLon, nwLat), Position(seLon, seLat));
 
     // Calculate the actual cell I will be covering.
-    string algo = variables.get(MV_AREA_COVERAGE_REQUESTED("{.id}")).to_string();
+    string algo = variables.get(variables.expand_statement(MV_AREA_COVERAGE_REQUESTED("{" MV_MY_ID "}"))).to_string();
     m_coverageAlgorithm = selectAreaCoverageAlgorithm(algo);
     if(m_coverageAlgorithm != NULL)
     {
@@ -301,7 +301,7 @@ Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowledge_Eng
     double minAltitude = (double) variables.get(MV_MIN_ALTITUDE).to_double();
     int myIndexInList = (int) variables.get(MV_AVAILABLE_DRONES_MY_IDX).to_integer();
     double myDefaultAltitude = minAltitude + ALTITUDE_DIFFERENCE * (double) myIndexInList;
-    variables.set(MV_ASSIGNED_ALTITUDE("{.id}"), myDefaultAltitude);
+    variables.set(variables.expand_statement(MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}")), myDefaultAltitude);
 
     // Send the command to go to this altitude.
     variables.set(MV_MOVEMENT_TARGET_ALT, myDefaultAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
@@ -366,7 +366,7 @@ Madara::Knowledge_Record madaraSetNewCoverage(Madara::Knowledge_Engine::Function
     Madara::Knowledge_Engine::Variables &variables)
 {
     printf("Setting new coverage");
-    string next = variables.get(MV_NEXT_AREA_COVERAGE_REQUEST("{.id}")).to_string();
+    string next = variables.get(variables.expand_statement(MV_NEXT_AREA_COVERAGE_REQUEST("{" MV_MY_ID "}"))).to_string();
     AreaCoverage* temp = m_coverageAlgorithm;
     Region searchArea(*(m_coverageAlgorithm->getSearchRegion()));
     m_coverageAlgorithm = AreaCoverage::continueCoverage(m_coverageAlgorithm, next);

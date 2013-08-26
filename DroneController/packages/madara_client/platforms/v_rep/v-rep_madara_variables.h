@@ -50,6 +50,7 @@ const std::string VREP_DOMAIN ("v_rep");
 #define MV_ALTITUDE             ".location.altitude"    // Altitude.
 
 // Sensor variables - thermal.
-#define MV_THERMAL(i,j)         ".thermal.buffer." + std::string(i) + "." + std::string(j)   // 
+#define MV_THERMAL(i,j)         ".thermal.buffer." + std::string(i) + "." + std::string(j)  + ""    // A thermal value.
+#define MV_THERMAL_ROW(i)       ".thermal.buffer." + std::string(i) + ""                            // A row of thermal values.
 
 #endif

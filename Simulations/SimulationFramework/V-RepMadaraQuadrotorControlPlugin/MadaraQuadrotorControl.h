@@ -11,6 +11,7 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include <vector>
 #include <string>
+#include <map>
 using std::string;
 
 #include "platforms/v_rep/v-rep_madara_variables.h"
@@ -42,6 +43,9 @@ private:
 	 * Stores the amount of drones that are using this controller, for correct deinitialization.
 	 */
 	int numDrones;
+
+    // Stores references to the thermal variables for quick access.
+    std::map<std::string, Madara::Knowledge_Engine::Variable_Reference> variables;
 
 public:
     /**
@@ -106,7 +110,7 @@ public:
     /**
     * Set a new thermal scan to the knowledge base.
     */
-    void setNewThermalScan(int droneId, double** thermalBuffer, int thermalHeight, int thermalWidth);
+    void setNewThermalScan(int droneId, const std::vector<std::vector <double> >& thermalBuffer, int thermalHeight, int thermalWidth);
 };
 
 #endif // _MADARA_QUADROTOR_CONTROL_H_

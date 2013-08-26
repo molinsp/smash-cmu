@@ -42,6 +42,7 @@ MadaraController::MadaraController(int id, double commRange, double minAltitude)
 
     // Create the knowledge base.
     m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base(m_host, m_transportSettings);
+    Madara::Knowledge_Record::set_precision(10);
 
     // Setup a log.
     m_knowledge->log_to_file("systemcontrolmadaralog.txt", true);

@@ -75,7 +75,7 @@ Madara::Knowledge_Record read_gps_sensor (Madara::Knowledge_Engine::Function_Arg
     if(gps.altitude > ULTRASOUND_LIMIT || estAlt > ULTRASOUND_LIMIT)
     {
 	    variables.set(MV_LOCAL_ALTITUDE, gps.altitude);
-        variables.set(MV_DEVICE_ALT("{.id}"), gps.altitude);
+        variables.set(variables.expand_statement(MV_DEVICE_ALT("{.id}")), gps.altitude);
     }
 
     // Set the amount of GPS locks available for these values.
@@ -96,7 +96,7 @@ Madara::Knowledge_Record read_ultrasound (Madara::Knowledge_Engine::Function_Arg
     double estAlt = variables.get(MV_LOCAL_ALTITUDE).to_double();
     if(ultraAlt < ULTRASOUND_LIMIT || estAlt < ULTRASOUND_LIMIT)
     {
-        variables.set(MV_DEVICE_ALT("{.id}"), ultraAlt);
+        variables.set(variables.expand_statement(MV_DEVICE_ALT("{.id}")), ultraAlt);
         variables.set(MV_LOCAL_ALTITUDE, ultraAlt);
     }
 
@@ -151,8 +151,8 @@ Madara::Knowledge_Record gpsTargetReached (Madara::Knowledge_Engine::Function_Ar
     }
 
     // Get all current values.
-    double currLat = variables.get(MV_DEVICE_LAT("{" MV_MY_ID "}")).to_double();
-	double currLon = variables.get(MV_DEVICE_LON("{" MV_MY_ID "}")).to_double();
+    double currLat = variables.get(variables.expand_statement(MV_DEVICE_LAT("{" MV_MY_ID "}"))).to_double();
+	double currLon = variables.get(variables.expand_statement(MV_DEVICE_LON("{" MV_MY_ID "}"))).to_double();
 	double targetLat = variables.get(MV_LAST_TARGET_LAT).to_double();
 	double targetLon = variables.get(MV_LAST_TARGET_LON).to_double();
 
