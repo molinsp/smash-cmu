@@ -59,7 +59,12 @@ namespace SMASH
         int detect_human (double thermal_buffer[8][8],
                           double curr_height,
                           int result_map[8][8], 
-                          void (*on_human_detected)()); 
+                          void (*on_human_detected)());
+
+      private:
+        int frames_sampled;
+
+        range_str range_info[8][8]; 
     };  
   }
 }
