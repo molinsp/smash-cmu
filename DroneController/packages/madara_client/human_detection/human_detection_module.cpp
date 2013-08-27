@@ -317,5 +317,5 @@ void on_human_detected()
     printf("**********************************************\n");
     printf("*              HUMAN DETECTED                *\n");
     printf("**********************************************\n");
-    sleep(1);
+    //sleep(1);
 }

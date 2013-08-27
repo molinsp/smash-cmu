@@ -52,7 +52,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\V-RepCommonPluginUtils;..\WindowsMulticastTransport;..\V-RepImports;$(MADARA_ROOT)/include;..\..\..\DroneController\packages\madara_client</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions> _CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;WIN32;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -61,7 +61,8 @@
     </Link>
     <PostBuildEvent>
       <Command>copy /Y $(TargetPath) "$(VRepPath)"
-copy /Y "$(SolutionDir)$(Configuration)\*.dll" "$(VRepPath)"</Command>
+copy /Y "$(SolutionDir)$(Configuration)\ACEd.dll" "$(VRepPath)"
+copy /Y "$(SolutionDir)$(Configuration)\MADARAd.dll" "$(VRepPath)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -70,17 +71,20 @@ copy /Y "$(SolutionDir)$(Configuration)\*.dll" "$(VRepPath)"</Command>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\V-RepImports;$(MADARA_ROOT)/include;..\..\..\DroneController\packages\madara_client\bridge;</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\V-RepCommonPluginUtils;..\WindowsMulticastTransport;..\V-RepImports;$(MADARA_ROOT)/include;..\..\..\DroneController\packages\madara_client</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;WIN32;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>MADARAd.lib;ACEd.lib;shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>MADARA.lib;ACE.lib;shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(MADARA_ROOT)\lib;</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y $(TargetPath) "$(VRepPath)"</Command>
+      <Command>copy /Y $(TargetPath) "$(VRepPath)"
+copy /Y "$(SolutionDir)$(Configuration)\ACE.dll" "$(VRepPath)"
+copy /Y "$(SolutionDir)$(Configuration)\MADARA.dll" "$(VRepPath)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
