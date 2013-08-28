@@ -1,0 +1,42 @@
+
+project (V-RepMadaraQuadroterControlPlugin) : using_ace, using_madara, using_vrep, using_madara_client, custom_multicast {
+
+  sharedname = v_repExtMadaraQuadrotorControlPlugin
+  libout = lib
+  
+  
+  specific(prop:microsoft) {
+    postbuild += ren  "lib\v_repExtMadaraQuadrotorControlPlugind.dll" "v_repExtMadaraQuadrotorControlPlugin.dll"
+    postbuild += copy "lib\v_repExtMadaraQuadrotorControlPlugin.dll" "$(VREP_HOME)"
+  }
+  
+  verbatim (gnuace, local) {
+    postbuild = cp lib/v_repExtMadaraQuadrotorControlPlugin* "$(VREP_HOME)"
+  }
+
+  Build_Files {
+    GAMS_Simulator.mwc
+    V-RepMadaraQuadrotorControlPlugin.mpc
+    using_madara_client.mpb
+    using_vrep.mpb
+    custom_multicast.mpb
+  }
+  
+  Source_Files {
+    V-RepImports
+    V-RepCommonPluginUtils
+    WindowsMulticastTransport
+    V-RepMadaraQuadrotorControlPlugin
+  }
+
+  Header_Files {
+    V-RepImports
+    V-RepCommonPluginUtils
+    WindowsMulticastTransport
+    V-RepMadaraQuadrotorControlPlugin
+    ../../DroneController/packages/madara_client
+    ../../DroneController/packages/madara_client/utilities
+    ../../DroneController/packages/madara_client/platforms/v_rep
+  }
+}
+

@@ -1,0 +1,8 @@
+
+workspace {
+  cmdline += -feature_file default.features
+
+  DroneControllerSimulator.mpc
+  V-RepMadaraQuadrotorControlPlugin.mpc
+  V-RepMadaraSystemControllerPlugin.mpc
+}

@@ -1,4 +1,4 @@
-cd Debug
+cd bin
 start cmd /K DroneControllerSimulator.exe 0
 start cmd /K DroneControllerSimulator.exe 1
 start cmd /K DroneControllerSimulator.exe 2

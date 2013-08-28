@@ -8,6 +8,10 @@
 This folder contains the code to simulate drones using the actual code
 they will have and and plugins to simulate parts of it in V-Rep. The projects are:
 
+Please set environment variable VREP_HOME to the root directory of your VREP installation (where
+the vrep executable that starts the simulator is housed). This directory will be where all build
+processes copy plugins to.
+
  - DroneControllerSimulator
  
      This program acts as a simulated drone, containing all current code and logic for the drones

@@ -1,0 +1,7 @@
+project {
+  includes +=     V-RepImports
+  includes +=     V-RepCommonPluginUtils
+  includes +=     WindowsMulticastTransport
+
+  lit_libs += shlwapi
+}

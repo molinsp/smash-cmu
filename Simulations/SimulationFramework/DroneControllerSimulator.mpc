@@ -1,0 +1,42 @@
+
+project (DroneControllerSimulator) : using_ace, using_madara, using_madara_client {
+  exeout = bin
+  exename = DroneControllerSimulator
+  
+  Build_Files {
+    GAMS_Simulator.mwc
+    DroneControllerSimulator.mpc
+    using_madara_client.mpb
+  }
+
+  Inline_Files {
+  }
+
+  Template_Files {
+  }
+
+  Source_Files {
+    ../../DroneController/packages/madara_client
+    ../../DroneController/packages/madara_client/area_coverage
+    ../../DroneController/packages/madara_client/bridge
+    ../../DroneController/packages/madara_client/human_detection
+    ../../DroneController/packages/madara_client/movement
+    ../../DroneController/packages/madara_client/platforms
+    ../../DroneController/packages/madara_client/platforms/v_rep
+    ../../DroneController/packages/madara_client/sensors
+    ../../DroneController/packages/madara_client/utilities
+  }
+
+  Header_Files {
+    ../../DroneController/packages/madara_client
+    ../../DroneController/packages/madara_client/area_coverage
+    ../../DroneController/packages/madara_client/bridge
+    ../../DroneController/packages/madara_client/human_detection
+    ../../DroneController/packages/madara_client/movement
+    ../../DroneController/packages/madara_client/platforms
+    ../../DroneController/packages/madara_client/platforms/v_rep
+    ../../DroneController/packages/madara_client/sensors
+    ../../DroneController/packages/madara_client/utilities
+  }
+}
+

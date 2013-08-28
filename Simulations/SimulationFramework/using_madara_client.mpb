@@ -1,0 +1,3 @@
+project {
+  includes += ../../DroneController/packages/madara_client
+}
