@@ -38,12 +38,12 @@ MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
     transportSettings.domains = VREP_DOMAIN;
 
     // Setup the actual transport.
-#ifdef __linux
-    // In Linux we can use the default Mulitcast transport.
-    transportSettings.type = Madara::Transport::MULTICAST;
-#elif defined(WIN32)
-    // In Windows we need to delay the transport launch to use a custom transport.
+#ifdef WIN_VREP
+    // In Windows with V-Rep we need to delay the transport launch to use a custom transport.
     transportSettings.delay_launch = true;
+#else
+    // In Linux, or Windows outside of V-Rep, we can use the default Mulitcast transport.
+    transportSettings.type = Madara::Transport::MULTICAST;
 #endif
 
     // Create the knowledge base.
@@ -54,10 +54,10 @@ MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
     m_knowledge->log_to_file("quadrotormadaralog.txt", true);
     m_knowledge->evaluate("#log_level(1)");
 
-#ifdef _WIN32
-    // In Windows we need a custom transport to avoid crashes due to incompatibilities between Win V-Rep and ACE.
+#ifdef WIN_VREP
+    // In Windows with V-Rep we need a custom transport to avoid crashes due to incompatibilities between Win V-Rep and ACE.
     m_knowledge->attach_transport(new Windows_Multicast_Transport (m_knowledge->get_id (),
-    m_knowledge->get_context (), transportSettings, true));
+                                  m_knowledge->get_context (), transportSettings, true));
 #endif
 
 }
