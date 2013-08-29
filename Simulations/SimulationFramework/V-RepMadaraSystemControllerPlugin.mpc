@@ -5,6 +5,7 @@ project (V-RepMadaraSystemControllerPlugin) : using_ace, using_madara, using_vre
   libout = lib
   
   specific(prop:microsoft) {
+    postbuild += del  "lib\v_repExtMadaraSystemControllerPlugin.dll"
     postbuild += ren  "lib\v_repExtMadaraSystemControllerPlugind.dll" "v_repExtMadaraSystemControllerPlugin.dll"
     postbuild += copy "lib\v_repExtMadaraSystemControllerPlugin.dll" "$(VREP_HOME)"
   }

@@ -6,6 +6,7 @@ project (V-RepMadaraQuadroterControlPlugin) : using_ace, using_madara, using_vre
   
   
   specific(prop:microsoft) {
+    postbuild += del  "lib\v_repExtMadaraQuadrotorControlPlugin.dll"
     postbuild += ren  "lib\v_repExtMadaraQuadrotorControlPlugind.dll" "v_repExtMadaraQuadrotorControlPlugin.dll"
     postbuild += copy "lib\v_repExtMadaraQuadrotorControlPlugin.dll" "$(VREP_HOME)"
   }
