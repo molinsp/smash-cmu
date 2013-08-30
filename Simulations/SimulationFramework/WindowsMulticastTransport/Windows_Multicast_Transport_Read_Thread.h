@@ -11,6 +11,7 @@
 /**
  * @file Windows_Multicast_Transport_Read_Thread.h
  * @author Sebastian Echeverria
+ * @author James Edmondson
  *
  * This file contains the Windows_Multicast_Transport_Read_Thread class, which provides a
  * multicast transport for reading knowledge updates in KaRL
@@ -20,6 +21,7 @@
 #include <string>
 
 #include "madara/knowledge_engine/Thread_Safe_Context.h"
+#include "madara/transport/Message_Header.h"
 #include "madara/transport/Transport.h"
 #include "ace/Barrier.h"
 
@@ -42,8 +44,12 @@ public:
   Windows_Multicast_Transport_Read_Thread (
     const Madara::Transport::Settings & settings,
     const std::string & id,
-    Madara::Knowledge_Engine::Thread_Safe_Context & context
-    , const char* mc_ipaddr, int mc_port);
+    Madara::Knowledge_Engine::Thread_Safe_Context & context, 
+    SOCKET & write_socket,
+    const char* mc_ipaddr,
+    int mc_port,
+    Madara::Knowledge_Engine::Bandwidth_Monitor & send_monitor,
+    Madara::Knowledge_Engine::Bandwidth_Monitor & receive_monitor);
       
   /**
   * Destructor
@@ -65,6 +71,19 @@ public:
   **/
   int svc (void);
       
+  /**
+    * Sends a rebroadcast packet.
+    * @param  print_prefix     prefix to include before every log message,
+    *                          e.g., "My_Transport::svc"
+    * @param   header   header for the rebroadcasted packet
+    * @param   records  records to rebroadcast (already filtered for
+    *                   rebroadcast)
+    **/
+  void rebroadcast (
+    const char * print_prefix,
+    Madara::Transport::Message_Header * header,
+    const Madara::Knowledge_Map & records);
+
   /**
   * Wait for the transport to be ready
   **/
@@ -95,12 +114,29 @@ private:
 
     /// underlying socket for sending
     sockaddr_in                               socketAddress_;
+    
+    /// underlying socket for sending
+    SOCKET                &                   write_socket_;
 
     /// underlying socket for sending
-    SOCKET                                    socket_;
+    SOCKET                                    read_socket_;
 
     /// buffer for receiving
     Madara::Utility::Scoped_Array <char>      buffer_;
+
+    /// pointer to qos_settings (if applicable)
+    const Madara::Transport::QoS_Transport_Settings * 
+      qos_settings_;
+      
+    /// monitor for sending bandwidth usage
+    Madara::Knowledge_Engine::Bandwidth_Monitor   &   send_monitor_;
+      
+    /// monitor for receiving bandwidth usage
+    Madara::Knowledge_Engine::Bandwidth_Monitor   &   receive_monitor_;
+
+    /// data received rules, defined in Transport settings
+    Madara::Knowledge_Engine::Compiled_Expression  on_data_received_;
+
 };
 
 #endif // _CUSTOM_TRANSPORT_READ_THREAD_H_

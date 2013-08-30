@@ -79,29 +79,17 @@ public:
 
 private:
       
-  /// host:port identifier of this process
-  const std::string                         id_;
-
   /// thread for reading knowledge updates
   Windows_Multicast_Transport_Read_Thread * thread_;
       
   /// indicates whether the transport is correctly configured
   bool                                      valid_setup_;
 
-  /// holds splitters for knowledge multiassignment expression for speed
-  std::vector <std::string>                 splitters_;
-
   /// underlying socket for sending
   sockaddr_in                               socketAddress_;
 
   /// underlying socket for sending
   SOCKET                                    socket_;
-
-  /// data received rules, defined in Transport settings
-  //Madara::Expression_Tree::Expression_Tree  on_data_received_;
-
-  /// buffer for sending
-  Madara::Utility::Scoped_Array <char>      buffer_;
 };
 
 #endif // _CUSTOM_TRANSPORT_H_
