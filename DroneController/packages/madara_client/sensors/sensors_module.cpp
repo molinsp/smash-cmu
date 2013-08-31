@@ -152,9 +152,9 @@ Madara::Knowledge_Record gpsTargetReached (Madara::Knowledge_Engine::Function_Ar
 
     // Get all current values.
     double currLat = variables.get(variables.expand_statement(MV_DEVICE_LAT("{" MV_MY_ID "}"))).to_double();
-	double currLon = variables.get(variables.expand_statement(MV_DEVICE_LON("{" MV_MY_ID "}"))).to_double();
-	double targetLat = variables.get(MV_LAST_TARGET_LAT).to_double();
-	double targetLon = variables.get(MV_LAST_TARGET_LON).to_double();
+	  double currLon = variables.get(variables.expand_statement(MV_DEVICE_LON("{" MV_MY_ID "}"))).to_double();
+	  double targetLat = variables.get(MV_LAST_TARGET_LAT).to_double();
+	  double targetLon = variables.get(MV_LAST_TARGET_LON).to_double();
 
     printf("Lat:      %.10f Long:   %.10f\n", currLat, currLon);
     printf("T_Lat:    %.10f T_Long: %.10f\n", targetLat, targetLon);
@@ -182,10 +182,10 @@ Madara::Knowledge_Record gpsTargetReached (Madara::Knowledge_Engine::Function_Ar
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void define_sensor_functions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 {
-	knowledge.define_function ("read_thermal", read_thermal_sensor);
-	knowledge.define_function ("read_gps", read_gps_sensor);
+	  knowledge.define_function ("read_thermal", read_thermal_sensor);
+	  knowledge.define_function ("read_gps", read_gps_sensor);
     knowledge.define_function ("read_ultrasound", read_ultrasound);
-	knowledge.define_function ("read_sensors", read_sensors);
+	  knowledge.define_function ("read_sensors", read_sensors);
     knowledge.define_function ("sensors_gpsTargetReached", gpsTargetReached);
 }
 
@@ -196,7 +196,7 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
 {	
 	expressions2[EVALUATE_SENSORS] = knowledge.compile
 	(
-		"read_thermal();"
+		//"read_thermal();"
 
         // Note: since we are reading the ultrasound after the GPS, the height given by the ultrasound may overwrite the GPS 
         // depending on our current height and the max height defined to be the ultrasound limit.

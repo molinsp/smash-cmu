@@ -52,6 +52,8 @@ using std::string;
 #define MV_MY_CELL_TOP_LEFT_LON         ".area_coverage.cell.top_left.location.longitude"       // The longitude of the top left corner of the cell I am searching.
 #define MV_MY_CELL_BOT_RIGHT_LAT        ".area_coverage.cell.bottom_right.location.latitude"    // The latitude of the bottom right corner of the cell I am searching.
 #define MV_MY_CELL_BOT_RIGHT_LON        ".area_coverage.cell.bottom_right.location.longitude"   // The longitude of the bottom right corner of the cell I am searching.
+#define MV_TOTAL_TARGETS_REACHED        ".area_coverage.target.total.reached"                   // Total number of targets reached.
+#define MV_STATE                        ".area_coverate.state"                                  // The state of area coverage method.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private variables.
@@ -134,16 +136,56 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
             "("
                 "(" 
                     // Only do the following if the cell we will be searching in has alerady been set up.
-                    "("MV_CELL_INITIALIZED ")"
+                    "("MV_CELL_INITIALIZED")"
                     " => (" 
                         // Check if we have reached our assigned height. If not, do nothing during this call.
-                        "(" MV_IS_AT_ASSIGNED_ALTITUDE ")" 
+                        "(" MV_IS_AT_ASSIGNED_ALTITUDE "|| 1)" 
                         " => "
                             "("
-                                // Check if we are just initializing, or if we reached the next target, but not the end of the area, to set the next waypoint.
-                                "((" MV_NEXT_TARGET_LAT " == 0) && (" MV_NEXT_TARGET_LON " == 0)) || "
-                                "(" MV_REACHED_GPS_TARGET " && !(" MF_FINAL_TARGET_REACHED "()))"
-                                    " => " MF_SET_NEW_TARGET  "()" 
+                                // Check if I have reached target.
+                                "(" MV_TARGET_REACHED("{" MV_MY_ID "}") " = " MV_REACHED_GPS_TARGET ");"
+                                
+                                // Check if all drones have reached.
+                                ".i[0->" MV_TOTAL_DEVICES ")"
+                                "(" MV_TOTAL_TARGETS_REACHED " += " MV_TARGET_REACHED("{.i}")");"
+
+                                // Transition from INITIAL to MOVING state.
+                                "((" MV_STATE " == 0) && (" MV_NEXT_TARGET_LAT " == 0) && (" MV_NEXT_TARGET_LON " == 0))" 
+                                    " => " 
+                                        "(" 
+                                            "(" MV_STATE " = 1);" 
+                                            "(" MF_SET_NEW_TARGET "());"
+                                        ")"
+
+                                // Transition from MOVING to WAITING state.
+                                "((" MV_STATE " == 1) && (" MV_TARGET_REACHED("{" MV_MY_ID "}") " == 1))" 
+                                    " => " 
+                                        "(" 
+                                            "(" MV_STATE " = 2);" 
+                                        ")"
+  
+                                // Transition from WAITING to MOVING state.
+                                "((" MV_STATE " == 2) && (" MV_TARGET_REACHED("{" MV_MY_ID "}") " == 0))" 
+                                    " => " 
+                                        "(" 
+                                            "(" MV_STATE " = 1);" 
+                                        ")"
+                                
+                                           
+                                // Transition from WAITING to SET_NEW_TARGET state.
+                                "((" MV_STATE " == 2) && (" MV_TOTAL_TARGETS_REACHED " == " MV_TOTAL_DEVICES "))" 
+                                    " => " 
+                                        "("
+                                            "(" MF_SET_NEW_TARGET "());" 
+                                            "(" MV_STATE " = 1);" 
+                                        ")"
+
+                                // Transition from WAITING to END state.
+                                "((" MV_STATE " == 2) && (" MF_FINAL_TARGET_REACHED "()))"
+                                    " => "
+                                        "("
+                                            "(" MV_STATE " = 3);"
+                                        ")"
                             ")"
                         ")"
                 ");"

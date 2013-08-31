@@ -75,7 +75,7 @@ bool init_control_functions()
 void takeoff()
 {
 	printf("In AR_DRDONE_2 execute_takeoff()\n");
-    drk_ar_flat_trim();
+  drk_ar_flat_trim();
 	drk_takeoff();
 }
 void land()
@@ -183,7 +183,7 @@ void move_to_location(double lat, double lon, double alt)
 void move_to_altitude(double alt)
 {
 	printf("In platform move_to_altitude(%02f)\n", alt);
-    drk_goto_altitude(alt);
+  drk_goto_altitude(alt);
 }
 
 bool cleanup_platform()
