@@ -53,7 +53,8 @@ using std::string;
 #define MV_MY_CELL_BOT_RIGHT_LAT        ".area_coverage.cell.bottom_right.location.latitude"    // The latitude of the bottom right corner of the cell I am searching.
 #define MV_MY_CELL_BOT_RIGHT_LON        ".area_coverage.cell.bottom_right.location.longitude"   // The longitude of the bottom right corner of the cell I am searching.
 #define MV_TOTAL_TARGETS_REACHED        ".area_coverage.target.total.reached"                   // Total number of targets reached.
-#define MV_STATE                        ".area_coverate.state"                                  // The state of area coverage method.
+#define MV_STATE                        ".area_coverage.state"                                  // The state of area coverage method.
+#define MV_ITR_COUNT                    ".area_coverage.itr.count"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private variables.
@@ -142,50 +143,70 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                         "(" MV_IS_AT_ASSIGNED_ALTITUDE "|| 1)" 
                         " => "
                             "("
+                                "(" MV_ITR_COUNT " += 1);"
+                                 
                                 // Check if I have reached target.
-                                "(" MV_TARGET_REACHED("{" MV_MY_ID "}") " = " MV_REACHED_GPS_TARGET ");"
+                                "(" MV_REACHED_GPS_TARGET ")"
+                                    " => "
+                                        MV_TARGET_REACHED("{" MV_MY_ID "}") " = 1;"
+                                
+                                // Check if I have reached target.
+                                "(!" MV_REACHED_GPS_TARGET ")"
+                                    " => "
+                                        MV_TARGET_REACHED("{" MV_MY_ID "}") " = 0;"
                                 
                                 // Check if all drones have reached.
+                                "(" MV_TOTAL_TARGETS_REACHED " = 0);" 
                                 ".i[0->" MV_TOTAL_DEVICES ")"
                                 "(" MV_TOTAL_TARGETS_REACHED " += " MV_TARGET_REACHED("{.i}")");"
 
                                 // Transition from INITIAL to MOVING state.
                                 "((" MV_STATE " == 0) && (" MV_NEXT_TARGET_LAT " == 0) && (" MV_NEXT_TARGET_LON " == 0))" 
                                     " => " 
-                                        "(" 
-                                            "(" MV_STATE " = 1);" 
-                                            "(" MF_SET_NEW_TARGET "());"
+                                        "("
+                                            "#print('***In STATE 0. Transitioning to STATE 1\n');" 
+                                            MV_STATE " = 1;" 
+                                            MF_SET_NEW_TARGET "();"
                                         ")"
-
+                                "||"
+  
                                 // Transition from MOVING to WAITING state.
                                 "((" MV_STATE " == 1) && (" MV_TARGET_REACHED("{" MV_MY_ID "}") " == 1))" 
                                     " => " 
                                         "(" 
-                                            "(" MV_STATE " = 2);" 
+                                            "#print('***In STATE 1. Transitioning to STATE 2\n');" 
+                                            MV_STATE " = 2;" 
                                         ")"
-  
+                                "||"
+
                                 // Transition from WAITING to MOVING state.
-                                "((" MV_STATE " == 2) && (" MV_TARGET_REACHED("{" MV_MY_ID "}") " == 0))" 
-                                    " => " 
-                                        "(" 
-                                            "(" MV_STATE " = 1);" 
-                                        ")"
-                                
-                                           
-                                // Transition from WAITING to SET_NEW_TARGET state.
-                                "((" MV_STATE " == 2) && (" MV_TOTAL_TARGETS_REACHED " == " MV_TOTAL_DEVICES "))" 
-                                    " => " 
+                                "(" MV_STATE " == 2)"
+                                    " => "
                                         "("
-                                            "(" MF_SET_NEW_TARGET "());" 
-                                            "(" MV_STATE " = 1);" 
+                                            "(" MV_TARGET_REACHED("{" MV_MY_ID "}") " == 0)"
+                                                " => "
+                                                    "("
+                                                        "#print('***In STATE 2. Transitioning to STATE 1 without new target\n');" 
+                                                        MV_STATE " = 1;" 
+                                                    ")"
+                                    
+                                            "||"
+                                            
+                                            "(" MV_TOTAL_TARGETS_REACHED " == " MV_TOTAL_DEVICES ")"
+                                                " => "
+                                                    "("
+                                                        "#print('***In STATE 2. Transitioning to STATE 1 with new target\n');" 
+                                                        MF_SET_NEW_TARGET "();" 
+                                                        MV_STATE " = 1;" 
+                                                    ")"
                                         ")"
 
                                 // Transition from WAITING to END state.
-                                "((" MV_STATE " == 2) && (" MF_FINAL_TARGET_REACHED "()))"
+                                /*"((" MV_STATE " == 2) && (" MF_FINAL_TARGET_REACHED "()))"
                                     " => "
                                         "("
                                             "(" MV_STATE " = 3);"
-                                        ")"
+                                        ")"*/
                             ")"
                         ")"
                 ");"
