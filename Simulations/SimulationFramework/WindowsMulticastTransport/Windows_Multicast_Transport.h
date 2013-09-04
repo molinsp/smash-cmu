@@ -90,6 +90,9 @@ private:
 
   /// underlying socket for sending
   SOCKET                                    socket_;
+
+  /// flag to indicate if the transport is open
+  bool                                      open_;
 };
 
 #endif // _CUSTOM_TRANSPORT_H_

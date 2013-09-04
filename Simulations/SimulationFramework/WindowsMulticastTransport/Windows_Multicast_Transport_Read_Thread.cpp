@@ -40,13 +40,13 @@ void joinMulticastGroup(const SOCKET socket,
     {
       MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
         DLINFO "Windows_Multicast_Transport_Read_Thread::joinMulticastGroup:" \
-        " Joining multicast failed for address %s\n", multicastIpAddr));
+        " Joining multicast failed for address %s.\n", multicastIpAddr));
     }
     else
     {
       MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
         DLINFO "Windows_Multicast_Transport_Read_Thread::joinMulticastGroup:" \
-        " Joining multicast succeeded for address:.\n", multicastIpAddr));
+        " Joining multicast succeeded for address:%s.\n", multicastIpAddr));
     }
 }
 
@@ -65,7 +65,7 @@ void leaveMulticastGroup(const SOCKET socket,
     {
 		int errorCode =  WSAGetLastError ();
         MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-            DLINFO "Windows_Multicast_Transport_Read_Thread::close:" \
+            DLINFO "Windows_Multicast_Transport_Read_Thread::leaveMulticastGroup:" \
             " Error unsubscribing to multicast address %s: error code: %d\n",
             multicastIpAddr, errorCode));
     }
@@ -73,7 +73,7 @@ void leaveMulticastGroup(const SOCKET socket,
     {
 		int errorCode =  WSAGetLastError ();
         MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-            DLINFO "Windows_Multicast_Transport_Read_Thread::close:" \
+            DLINFO "Windows_Multicast_Transport_Read_Thread::leaveMulticastGroup:" \
             " Successfully unsubscribed from multicast address %s \n",
             multicastIpAddr));
     }
@@ -97,6 +97,10 @@ void joinMulticastOnAllInterfaces(
         if (interfaceAddresses[interfacesCount].get_type () != AF_INET)
             continue;
 
+        MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+            DLINFO "Windows_Multicast_Transport_Read_Thread::joinMulticastOnAllInterfaces:" \
+            " Attempting to join multicast interface %s\n",
+            interfaceAddresses[interfacesCount].get_host_addr ()));
         joinMulticastGroup(socket, multicastIpAddr,
           inet_addr(interfaceAddresses[interfacesCount].get_host_addr ()));
     }
@@ -120,6 +124,10 @@ void leaveMulticastOnAllInterfaces(
         if (interfaceAddresses[interfacesCount].get_type () != AF_INET)
             continue;
 
+        MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+            DLINFO "Windows_Multicast_Transport_Read_Thread::leaveMulticastOnAllInterfaces:" \
+            " Attempting to leave multicast on interface %s\n",
+            interfaceAddresses[interfacesCount].get_host_addr ()));
         leaveMulticastGroup(socket, multicastIpAddr,
           inet_addr(interfaceAddresses[interfacesCount].get_host_addr ()));
     }
@@ -440,6 +448,7 @@ unsigned __stdcall threadfunc(void * param)
         header->ttl = std::min (
           trt->qos_settings_->get_participant_ttl (), header->ttl);
 
+        outputFile << "Performing rebroadcast." <<std::endl; outputFile.flush();
         trt->rebroadcast (print_prefix, header, rebroadcast_records);
       }
 

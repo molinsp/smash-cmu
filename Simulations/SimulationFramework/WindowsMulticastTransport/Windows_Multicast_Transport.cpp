@@ -18,7 +18,7 @@ Windows_Multicast_Transport::Windows_Multicast_Transport (const std::string & id
         Madara::Knowledge_Engine::Thread_Safe_Context & context, 
         Madara::Transport::Settings & config, bool launch_transport)
 : Base (id, config, context),
-  thread_ (0), valid_setup_ (false)//,
+  thread_ (0), valid_setup_ (false),  open_ (false)//,
   //socket_ (ACE_sap_any_cast (ACE_INET_Addr &), PF_INET, 0, 1)
 {
   if (launch_transport)
@@ -27,12 +27,19 @@ Windows_Multicast_Transport::Windows_Multicast_Transport (const std::string & id
 
 Windows_Multicast_Transport::~Windows_Multicast_Transport ()
 {
-  close ();
+  MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+       DLINFO "Windows_Multicast_Transport::~Windows_Multicast_Transport:" \
+       " Destroying transport\n"));
+  if(this->open_ )
+    close ();
 }
 
 void
 Windows_Multicast_Transport::close (void)
 {
+  MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+       DLINFO "Windows_Multicast_Transport::close:" \
+       " Closing transport\n"));
   this->invalidate_transport ();
 
   if (thread_)
@@ -46,12 +53,13 @@ Windows_Multicast_Transport::close (void)
       closesocket(socket_);
 
   MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-       DLINFO "Windows_Multicast_Transport::setup:" \
+       DLINFO "Windows_Multicast_Transport::close:" \
        " Calling WSACleanup\n"));
 
   WSACleanup(); //Clean up Winsock
 
   this->shutting_down_ = false;
+  this->open_ = false;
 }
 
 int
@@ -98,7 +106,7 @@ Windows_Multicast_Transport::setup (void)
           DLINFO "Windows_Multicast_Transport::setup:" \
           " Successfully initialized WSA\n"));
     }
-    
+
   // call base setup method to initialize certain common variables
   Base::setup ();
 
@@ -148,6 +156,10 @@ Windows_Multicast_Transport::setup (void)
                     mc_ipaddr, mc_port, this->send_monitor_,
                     this->receive_monitor_);
   }
+
+  // Indicate that the transport has been opened.
+  open_ = true;
+
   return this->validate_transport ();
 }
 

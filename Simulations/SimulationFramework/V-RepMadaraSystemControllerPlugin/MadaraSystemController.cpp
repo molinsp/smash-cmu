@@ -82,7 +82,7 @@ void  MadaraController::terminate()
           DLINFO "MadaraController::terminate:" \
           "Terminating Madara knowledge base.\n"));
 
-        m_knowledge->close_transport();
+        //m_knowledge->close_transport();
         m_knowledge->clear();
         delete m_knowledge;
         m_knowledge = NULL;
