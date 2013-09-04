@@ -143,6 +143,22 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
         " => "
             "("
                 "("
+                    // If we haven't defined our cell yet, do it. 
+                    "(!" MV_CELL_INITIALIZED ")"
+                    " => "
+                        "("                            
+                            "(" MF_INIT_SEARCH_CELL "() ) " 
+                            " => "
+                                "("
+                                    // Indicate that we have initialized the cell, and request to move to our assigned height.
+                                    "(" MV_CELL_INITIALIZED " = 1);"
+                                    "(" MV_FIRST_TARGET_SELECTED " = 0);"
+                                    "(" MF_ASSIGN_ALT_AND_REQUEST_MOVE "() );"
+                                ");"
+                        ");"
+                ")"
+                "||"    // This or ensures that this works as an if-else for cell initialization.
+                "("
                     // Only do the following if the cell we will be searching in has alerady been set up, and we have reached at least once our assigned height.
                     "(" MV_CELL_INITIALIZED " && (" MV_INITIAL_HEIGHT_REACHED " || " MV_IS_AT_ASSIGNED_ALTITUDE ") )" 
                     " => " 
@@ -150,6 +166,19 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                             // We only need to wait for the assigned altitude to be reached the first time; we don't care here if it changes its altitude later.
                             "(" MV_INITIAL_HEIGHT_REACHED " = 1);"
 
+                            // Check if we are initializing the search; if so, get a new target.
+                            "("
+                                "(" MV_FIRST_TARGET_SELECTED " == 0)"
+                                " => "
+                                    "("
+                                        // Get a new target, the first one.
+                                        "(" MV_FIRST_TARGET_SELECTED " = 1);"
+                                        "(" MV_LAST_REACHED_TARGET " = 0);"
+                                        "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
+                                        "(" MF_SET_NEW_TARGET "());" 
+                                    ")"
+                            ")"
+                            "||"    // This or ensures that this works as an if-else for target selection.
                             // Check if we have reached our next target.
                             "("
                                 "(" MV_FIRST_TARGET_SELECTED " && " MV_REACHED_GPS_TARGET ")"
@@ -165,37 +194,8 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                                             "(" MF_SET_NEW_TARGET  "());" 
                                     ");"
                             ");"
-
-                            // Check if we are initializing the search; if so, get a new target.
-                            "("
-                                "(" MV_FIRST_TARGET_SELECTED " == 0)"
-                                " => "
-                                    "("
-                                        // Get a new target, the first one.
-                                        "(" MV_FIRST_TARGET_SELECTED " = 1);"
-                                        "(" MV_LAST_REACHED_TARGET " = 0);"
-                                        "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
-                                        "(" MF_SET_NEW_TARGET "());" 
-                                    ")"
-                            ");"
                         ");"
                 ");"
-                "("
-                    // If we haven't defined our cell yet, do it.
-                    "(!" MV_CELL_INITIALIZED ")"
-                    " => "
-                        "("                            
-                            "(" MF_INIT_SEARCH_CELL "() ) " 
-                            " => "
-                                "("
-                                    // Indicate that we have initialized the cell, and request to move to our assigned height.
-                                    "(" MV_CELL_INITIALIZED " = 1);"
-                                    "(" MV_FIRST_TARGET_SELECTED " = 0);"
-                                    "(" MF_ASSIGN_ALT_AND_REQUEST_MOVE "() );"
-                                ");"
-                        ");"
-                ")"
-
             ");"
     );
 
@@ -334,6 +334,7 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
     m_coverageAlgorithm = selectAreaCoverageAlgorithm(algo);
     if(m_coverageAlgorithm != NULL)
     {
+        // Calculate the cell I will be working on.
         Region* myCell = m_coverageAlgorithm->initialize(searchArea, myIndexInList,
                                                          availableDrones);
 

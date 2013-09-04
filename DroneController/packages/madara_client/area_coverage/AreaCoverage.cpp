@@ -62,13 +62,13 @@ AreaCoverage* AreaCoverage::continueCoverage(AreaCoverage* coverage, const strin
 Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
     int numDrones)
 {
-    // If there is only 1 drone, we should not be called. If there are 0, there was a problem.
+    // If there is only one drone, return the whole search area, no need to do calculations.
     if(numDrones <= 1)
     {
-        printf("Error! It is not possible to calculate the region to search if the number of drones is 0 or 1.\n");
-        return NULL;
+        return new Region(grid);
     }
 
+    // Just for debugging purposes, print the grid we are searching in.
     string out = "Given grid: NW = " + grid.northWest.toString() + " SE = ";
     out += grid.southEast.toString();
     printf("%s\n", out.c_str());
