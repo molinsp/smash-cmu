@@ -68,6 +68,8 @@ std::string SMASH::DroneController::getStatusSummaryExpression()
         "Search alg:\t{" MV_AREA_COVERAGE_REQUESTED("{.id}") "}\n"
 		"Target pos:\t{" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n"
         "Search end:\t{.area_coverage.cell.bottom_right.location.latitude},{.area_coverage.cell.bottom_right.location.longitude}\n\n"
+        "Last targ:\t{" MV_CURRENT_COVERAGE_TARGET("{.id}") "}\n"
+        "Waiting :\t{" ".area_coverage.my_area.waiting" "}\n"
 		"Command:\t{" MV_MOVEMENT_REQUESTED "}: {" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n"
 		;
 
