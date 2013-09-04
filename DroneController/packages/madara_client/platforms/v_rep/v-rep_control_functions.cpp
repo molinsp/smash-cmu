@@ -73,13 +73,14 @@ Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
     // Set the transport id as the given id.
     g_settings.id = id;
     
+    // Setup a log for Madara.
+    Madara::Knowledge_Engine::Knowledge_Base::log_level(10);
+    Madara::Knowledge_Engine::Knowledge_Base::log_to_file(std::string("dronemadaralog" + NUM_TO_STR(id) + ".txt").c_str(), true);
+    
     // Create the knowledge base.
     std::string g_host ("");
     Madara::Knowledge_Engine::Knowledge_Base* knowledge = new Madara::Knowledge_Engine::Knowledge_Base(g_host, g_settings);
     Madara::Knowledge_Record::set_precision(10);
-    
-    //knowledge.log_to_file(string("madaralog" + NUM_TO_STR(g_id) + ".txt").c_str(), false);
-    //knowledge.evaluate("#log_level(10)");
 
     return knowledge;
 }

@@ -4,15 +4,15 @@ project (V-RepMadaraQuadroterControlPlugin) : using_ace, using_madara, using_vre
   sharedname = v_repExtMadaraQuadrotorControlPlugin
   libout = lib
   
-  
   specific(prop:microsoft) {
-    postbuild += del  "lib\v_repExtMadaraQuadrotorControlPlugin.dll"
-    postbuild += ren  "lib\v_repExtMadaraQuadrotorControlPlugind.dll" "v_repExtMadaraQuadrotorControlPlugin.dll"
-    postbuild += copy "lib\v_repExtMadaraQuadrotorControlPlugin.dll" "$(VREP_HOME)"
+    Debug::postbuild += <%rm%> "lib<%slash%><%sharedname%>.dll" <%cmdsep%> \
+						<%mv%> "lib<%slash%><%sharedname%>d.dll" "lib<%slash%><%sharedname%>.dll" <%cmdsep%> \
+						<%cp%> "lib<%slash%><%sharedname%>.dll" "$(VREP_HOME)"
+	Release::postbuild += <%cp%> "lib<%slash%><%sharedname%>.dll" "$(VREP_HOME)"
   }
-  
+
   verbatim (gnuace, local) {
-    postbuild = cp lib/v_repExtMadaraQuadrotorControlPlugin* "$(VREP_HOME)"
+    postbuild = cp lib/<%sharedname%>* "$(VREP_HOME)"
   }
 
   Build_Files {
