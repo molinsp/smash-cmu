@@ -69,6 +69,7 @@ Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
     g_settings.hosts_.resize (1);
     g_settings.hosts_[0] = MAIN_MULTICAST_ADDRESS;
     g_settings.type = Madara::Transport::MULTICAST;
+    g_settings.queue_length = SIMULATION_TRANSPORT_QUEUE_LENGTH;
 
     // Set the transport id as the given id.
     g_settings.id = id;

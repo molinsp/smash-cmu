@@ -151,7 +151,12 @@ Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread
 
   // setup the receive buffer
   if (settings_.queue_length > 0)
+  {
+    MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+        DLINFO "Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread:" \
+        " Setting buffer with size %d from queue length\n", settings_.queue_length));
     buffer_ = new char [settings_.queue_length];
+  }
 
   MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
     DLINFO "Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread:" \
@@ -298,9 +303,9 @@ unsigned __stdcall threadfunc(void * param)
 {
   Windows_Multicast_Transport_Read_Thread* trt = (Windows_Multicast_Transport_Read_Thread*)param;
 
-  //std::ofstream outputFile;
-  //outputFile.open(std::string("customtransportread" + SSTR(trt->settings_.id) + ".txt").c_str());
-  //outputFile << "Starting thread" << std::endl;
+  std::ofstream outputFile;
+  outputFile.open(std::string("customtransportread" + SSTR(trt->settings_.id) + "log.txt").c_str());
+  outputFile << "Starting thread" << std::endl;
 
   MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
     DLINFO "Windows_Multicast_Transport_Read_Thread::svc:" \
@@ -331,7 +336,7 @@ unsigned __stdcall threadfunc(void * param)
       " entering a recv on the socket.\n",
       print_prefix));
     
-    //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" " entering message iteration "<<std::endl; outputFile.flush();
+    outputFile << "Windows_Multicast_Transport_Read_Thread::svc:" " entering message iteration "<<std::endl; outputFile.flush();
 
     // Wait until timeout or data received.
     fd_set fds;
@@ -341,16 +346,31 @@ unsigned __stdcall threadfunc(void * param)
     timeout.tv_sec = 2;
     timeout.tv_usec = 0;
 
-    int success = select(trt->read_socket_, &fds, NULL, NULL, &timeout) ;
-    if (success == 0)
+    int newDataAvailable = select(trt->read_socket_, &fds, NULL, NULL, &timeout) ;
+    if (newDataAvailable == 0)
     { 
-      //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:"
-      //              " timeout waiting for messages "<<std::endl; outputFile.flush();
+        outputFile << "Windows_Multicast_Transport_Read_Thread::svc:"
+                    " timeout waiting for messages "<<std::endl; outputFile.flush();
+
+        // Skip the rest of the loop; since there was a timeout, we won't have any real data.
+        continue;
     }
-    else if(success == SOCKET_ERROR)
+    else if(newDataAvailable == SOCKET_ERROR)
     {
-      //outputFile << "Windows_Multicast_Transport_Read_Thread::svc:"
-      //  " error ocurred waiting for messages "<<std::endl; outputFile.flush();
+        outputFile << "Windows_Multicast_Transport_Read_Thread::svc:"
+            " error ocurred waiting for messages "<<std::endl; outputFile.flush();
+        
+        int error = WSAGetLastError();
+        wchar_t *s = NULL;
+        FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 
+                        NULL, error,
+                        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                        s, 0, NULL);
+        outputFile << "Error: " << error << ", details: " <<s <<std::endl; outputFile.flush();
+        LocalFree(s);
+
+        // Skip the rest of the loop; since there was an error, we won't have a real message.
+        continue;
     }
 
     // read the message
@@ -358,24 +378,40 @@ unsigned __stdcall threadfunc(void * param)
     int from_len = sizeof(from_addr);
     memset(&from_addr, 0, from_len);
     int bytes_read = 0;
-    if(success > 0)
+    if(newDataAvailable > 0)
     {        
+      outputFile << "Windows_Multicast_Transport_Read_Thread::svc:"
+                        " reading new data from socket into buffer of size " << buffer_remaining <<std::endl; outputFile.flush();
       memset(buffer, 0, sizeof(buffer));
-      bytes_read = recvfrom(trt->read_socket_, buffer, sizeof(buffer),
+      bytes_read = recvfrom(trt->read_socket_, buffer, buffer_remaining,
         0, (sockaddr *) &from_addr, &from_len);
+
+      // Check for errors reading the socket.
+      if(bytes_read == SOCKET_ERROR)
+      {
+        outputFile << "Windows_Multicast_Transport_Read_Thread::svc:"
+            " error ocurred reading data "<<std::endl; outputFile.flush();
+        
+        int error = WSAGetLastError();
+        wchar_t *s = NULL;
+        FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 
+                        NULL, error,
+                        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                        s, 0, NULL);
+        outputFile << "Error: " << error << ", details: " <<s <<std::endl; outputFile.flush();
+        LocalFree(s);
+
+        // Skip the rest of the loop; since there was an error, we won't have a real message.
+        continue;
+      }
     }
 
+    // Get the remote host into a string.
+    char remote_host_ip[INET_ADDRSTRLEN+1];
+    memset(remote_host_ip, 0, sizeof(remote_host_ip));
+    inet_ntop(AF_INET, &(from_addr.sin_addr.s_addr), remote_host_ip, INET_ADDRSTRLEN );
     std::stringstream remote_host;
-    remote_host << from_addr.sin_addr.S_un.S_un_b.s_b1;
-    remote_host << ".";
-    remote_host << from_addr.sin_addr.S_un.S_un_b.s_b2;
-    remote_host << ".";
-    remote_host << from_addr.sin_addr.S_un.S_un_b.s_b3;
-    remote_host << ".";
-    remote_host << from_addr.sin_addr.S_un.S_un_b.s_b4;
-    remote_host << ":";
-    remote_host << from_addr.sin_port;
-
+    remote_host << remote_host_ip << ":" << from_addr.sin_port;
     
     MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
       DLINFO "%s:" \
@@ -383,6 +419,8 @@ unsigned __stdcall threadfunc(void * param)
       print_prefix,
       bytes_read,
       remote_host.str ().c_str ()));
+
+    outputFile << print_prefix << " received a message header of " << bytes_read << " bytes from " <<  remote_host.str ().c_str () <<std::endl; outputFile.flush();
     
     if (bytes_read > 0)
     {

@@ -10,7 +10,7 @@
 #include "platforms/v_rep/v-rep_main_madara_transport_settings.h"
 #include <vector>
 
-#ifdef _WIN32
+#ifdef WIN_VREP
   // Only include the custom transport in Windows, as it is not necessary in Linux.
   #include "Windows_Multicast_Transport.h"
 #endif
@@ -32,22 +32,20 @@ MadaraController::MadaraController(int id, double commRange, double minAltitude)
     m_transportSettings.id = id;
 
     // Setup the actual transport.
-#ifdef WIN_VREP
-    // In Windows with V-Rep we need to delay the transport launch to use a custom transport.
-#else
+#ifndef WIN_VREP
     // In Linux, or Windows outside of V-Rep, we can use the default Mulitcast transport.
     m_transportSettings.type = Madara::Transport::MULTICAST;
 #endif
     
+    // Delay launching the transport so that we can activate it when we want to, and setup logging.
     m_transportSettings.delay_launch = true;
     Madara::Knowledge_Engine::Knowledge_Base::log_level (10);
     Madara::Knowledge_Engine::Knowledge_Base::log_to_file(
-      "quadrotormadaralog.txt", true);
+      "systemcmadaralog.txt", true);
 
     // Create the knowledge base.
     m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base(m_host, m_transportSettings);
     Madara::Knowledge_Record::set_precision(10);
-
     m_knowledge->print ("Past the Knowledge_Base creation.\n");
 
 #ifdef WIN_VREP
@@ -55,6 +53,7 @@ MadaraController::MadaraController(int id, double commRange, double minAltitude)
     m_knowledge->attach_transport(new Windows_Multicast_Transport (m_knowledge->get_id (),
                                   m_knowledge->get_context (), m_transportSettings, true));
 #else
+    // Everywhere else we just activate the default Multicast transport.
     m_knowledge->activate_transport ();
 #endif
    

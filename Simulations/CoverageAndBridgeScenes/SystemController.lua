@@ -32,6 +32,17 @@ function doInitialSetup()
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
+-- Method called in each step of the simulation.
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function runMainLogic()
+    -- Check for user input.
+    checkForButtonPress()
+
+    -- NOTE: This is done here just for convenience of simulation. In reality, it would be issued by a rescuer at any moment, not when someone is found.        
+    checkForBridgeRequest()
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
 -- Check for button presses.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function checkForButtonPress()
@@ -123,17 +134,6 @@ function addDronesToSearchArea(numDrones, areaId)
     
     -- Ask Madara to send the search request.
     simExtMadaraSystemControllerAreaCoverageRequest(droneIdsString, areaId, coverageAlgorithm)        
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
--- Method called in each step of the simulation.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function runMainLogic()
-    -- Check for user input.
-    checkForButtonPress()
-
-    -- NOTE: This is done here just for convenience of simulation. In reality, it would be issued by a rescuer at any moment, not when someone is found.        
-    checkForBridgeRequest()
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////

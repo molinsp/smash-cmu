@@ -21,6 +21,9 @@ const std::string SIMULATED_HW_MULTICAST_ADDRESS ("239.255.0.2:4250");
 // Domain
 const std::string VREP_DOMAIN ("v_rep");
 
+// Queue length
+const int SIMULATION_TRANSPORT_QUEUE_LENGTH = 512000;
+
 // For the thermal buffer.
 #define THERMAL_BUFFER_HEIGHT 8
 #define THERMAL_BUFFER_WIDTH 8

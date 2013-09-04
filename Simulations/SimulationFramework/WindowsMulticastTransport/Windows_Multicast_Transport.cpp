@@ -45,6 +45,10 @@ Windows_Multicast_Transport::close (void)
   if(socket_)
       closesocket(socket_);
 
+  MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+       DLINFO "Windows_Multicast_Transport::setup:" \
+       " Calling WSACleanup\n"));
+
   WSACleanup(); //Clean up Winsock
 
   this->shutting_down_ = false;
@@ -86,7 +90,13 @@ Windows_Multicast_Transport::setup (void)
     {
         MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
           DLINFO "Windows_Multicast_Transport::setup:" \
-          " Error starting Windows Sockets\n"));
+          " Error starting Windows Sockets: %d\n", error));
+    }
+    else
+    {
+        MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
+          DLINFO "Windows_Multicast_Transport::setup:" \
+          " Successfully initialized WSA\n"));
     }
     
   // call base setup method to initialize certain common variables
