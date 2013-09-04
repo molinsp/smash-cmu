@@ -74,8 +74,8 @@ Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
     g_settings.id = id;
     
     // Setup a log for Madara.
-    Madara::Knowledge_Engine::Knowledge_Base::log_level(10);
-    Madara::Knowledge_Engine::Knowledge_Base::log_to_file(std::string("dronemadaralog" + NUM_TO_STR(id) + ".txt").c_str(), true);
+    //Madara::Knowledge_Engine::Knowledge_Base::log_level(10);
+    //Madara::Knowledge_Engine::Knowledge_Base::log_to_file(std::string("dronemadaralog" + NUM_TO_STR(id) + ".txt").c_str(), false);
     
     // Create the knowledge base.
     std::string g_host ("");
