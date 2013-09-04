@@ -1,5 +1,5 @@
 JOBS=6
-export REPO_ROOT = $(HOME)/dev/smash-cmu
+export REPO_ROOT = $(HOME)/smash-cmu
 
 all:
 	@for d in `ls -d */`; do make -C $$d -j $(JOBS); done
