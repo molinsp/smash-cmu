@@ -34,24 +34,31 @@ using std::string;
 // Functions.
 #define MF_MAIN_LOGIC                   "area_coverage_doAreaCoverage"              // Function that checks if there is area coverage to be done, and does it.
 #define MF_INIT_SEARCH_CELL             "area_coverage_initSearchCell"              // Initializes the cell that we will be searching.
-#define MF_CALC_AND_MOVE_TO_ALT         "area_coverage_calcAndMoveToAlt"            // Initializes the cell that we will be searching.
+#define MF_ASSIGN_ALT_AND_REQUEST_MOVE  "area_coverage_calcAndMoveToAlt"            // Assigns an altitude and requests movement to that altitude.
 #define MF_NEXT_TARGET_REACHED          "area_coverage_checkNextTargetReached"      // Checks if the current target has been reached.
 #define MF_FINAL_TARGET_REACHED         "area_coverage_checkFinalTargetReached"     // Checks if the final target has been reached.
 #define MF_ALTITUDE_REACHED             "area_coverage_checkAltitudeReached"        // Checks if the assigned altitude has been reached.
 #define MF_SET_NEW_TARGET               "area_coverage_setNewTarget"                // Sets the next target.
 #define MF_UPDATE_AVAILABLE_DRONES      "area_coverage_updateAvailableDrones"       // Function that checks the amount and positions of drones ready for covering.
 #define MF_SET_NEW_COVERAGE             "area_coverage_setNewCoverage"              // Sets the new coverage to use when a coverage reaches its final target
+#define MF_ALL_DRONES_READY             "area_coverage_checkAllDronesReady"         // Function that checks if all drones in my area are ready for the next target/waypoint.
 
 // Internal variables.
 #define MV_CELL_INITIALIZED             ".area_coverage.cell.initialized"                       // Flag to check if we have initialized our cell in the search area.
 #define MV_NEXT_TARGET_LAT              ".area_coverage.target.location.latitude"               // The latitude of the next target location in our search pattern.
 #define MV_NEXT_TARGET_LON              ".area_coverage.target.location.longitude"              // The longitude of the next target location in our search pattern.
-#define MV_AVAILABLE_DRONES_AMOUNT      ".area_coverage.devices.available.total"                // The amount of available drones.
-#define MV_AVAILABLE_DRONES_MY_IDX      ".area_coverage.devices.available.my_idx"               // The index of the device in the list of available ones.
+#define MV_AVAILABLE_DRONES_IN_MY_AREA  ".area_coverage.my_area.devices.available"              // The amount of available drones in my search area.
+#define MV_MY_POS_IN_MY_AREA            ".area_coverage.my_area.my_position"                    // The position of the device in the list of available drones in my area.
 #define MV_MY_CELL_TOP_LEFT_LAT         ".area_coverage.cell.top_left.location.latitude"        // The latitude of the top left corner of the cell I am searching.
 #define MV_MY_CELL_TOP_LEFT_LON         ".area_coverage.cell.top_left.location.longitude"       // The longitude of the top left corner of the cell I am searching.
 #define MV_MY_CELL_BOT_RIGHT_LAT        ".area_coverage.cell.bottom_right.location.latitude"    // The latitude of the bottom right corner of the cell I am searching.
 #define MV_MY_CELL_BOT_RIGHT_LON        ".area_coverage.cell.bottom_right.location.longitude"   // The longitude of the bottom right corner of the cell I am searching.
+
+#define MV_INITIAL_HEIGHT_REACHED       ".area_coverage.initial_height_reached"                 // Variable to check if the initial height has been reached at least once.
+#define MV_FIRST_TARGET_SELECTED        ".area_coverage.first_target_selected"                  // Variable to check if the first target has been selected.
+
+#define MV_READY_DRONES_AMOUNT          ".area_coverage.my_area.devices.waiting"                // The amount of drones in my area in   state.
+#define MV_LAST_REACHED_TARGET           ".area_coverage.my_area.current_target"                 // The number of the current target, just goes up as new targets are chosen.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private variables.
@@ -98,6 +105,9 @@ void SMASH::AreaCoverage::AreaCoverageModule::initialize(Madara::Knowledge_Engin
     // Defines internal and external functions.
     defineFunctions(knowledge);
 
+    // Initialize variables.
+    knowledge.set(MV_INITIAL_HEIGHT_REACHED, 0.0);
+
     // Registers all default expressions, to have them compiled for faster access.
     compileExpressions(knowledge);
     printf("leaving SMASH::AreaCoverage::initialize...\n");
@@ -128,38 +138,71 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 {
     // Function that can be included in main loop of another method to introduce area coverage.
     knowledge.define_function(MF_MAIN_LOGIC, 
-        // If there is any string value for the requested area coverage (other than the default of 0), setup area coverage.
-        "(" MV_AREA_COVERAGE_REQUESTED("{" MV_MY_ID "}") " => "
-            "(" MV_MOBILE("{" MV_MY_ID "}") " && (!" MV_BUSY("{" MV_MY_ID "}") ")) => "
+        // If there is any string value for the requested area coverage, and we are mobile and not busy, do area coverage.
+        "(" MV_AREA_COVERAGE_REQUESTED("{" MV_MY_ID "}") " && " MV_MOBILE("{" MV_MY_ID "}") " && (!" MV_BUSY("{" MV_MY_ID "}") ")" ")" 
+        " => "
             "("
-                "(" 
-                    // Only do the following if the cell we will be searching in has alerady been set up.
-                    "("MV_CELL_INITIALIZED ")"
-                    " => (" 
-                        // Check if we have reached our assigned height. If not, do nothing during this call.
-                        "(" MV_IS_AT_ASSIGNED_ALTITUDE ")" 
-                        " => "
+                "("
+                    // Only do the following if the cell we will be searching in has alerady been set up, and we have reached at least once our assigned height.
+                    "(" MV_CELL_INITIALIZED " && (" MV_INITIAL_HEIGHT_REACHED " || " MV_IS_AT_ASSIGNED_ALTITUDE ") )" 
+                    " => " 
+                        "("
+                            // We only need to wait for the assigned altitude to be reached the first time; we don't care here if it changes its altitude later.
+                            "(" MV_INITIAL_HEIGHT_REACHED " = 1);"
+
+                            // Check if we have reached our next target.
                             "("
-                                // Check if we are just initializing, or if we reached the next target, but not the end of the area, to set the next waypoint.
-                                "((" MV_NEXT_TARGET_LAT " == 0) && (" MV_NEXT_TARGET_LON " == 0)) || "
-                                "(" MV_REACHED_GPS_TARGET " && !(" MF_FINAL_TARGET_REACHED "()))"
-                                    " => " MF_SET_NEW_TARGET  "()" 
-                            ")"
-                        ")"
+                                "(" MV_FIRST_TARGET_SELECTED " && " MV_REACHED_GPS_TARGET ")"
+                                " => "
+                                    "("
+                                        // Update the last target that has been reached.
+                                        "(++" MV_LAST_REACHED_TARGET ");"
+                                        "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
+
+                                        // Only look for a new target if we have not reached the last target, and all other drones have reached their current target.
+                                        "( !(" MF_FINAL_TARGET_REACHED "()) && (" MF_ALL_DRONES_READY "()) )"
+                                        " => "
+                                            "(" MF_SET_NEW_TARGET  "());" 
+                                    ");"
+                            ");"
+
+                            // Check if we are initializing the search; if so, get a new target.
+                            "("
+                                "(" MV_FIRST_TARGET_SELECTED " == 0)"
+                                " => "
+                                    "("
+                                        // Get a new target, the first one.
+                                        "(" MV_FIRST_TARGET_SELECTED " = 1);"
+                                        "(" MV_LAST_REACHED_TARGET " = 0);"
+                                        "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
+                                        "(" MF_SET_NEW_TARGET "());" 
+                                    ")"
+                            ");"
+                        ");"
                 ");"
                 "("
-                    // If we haven't found our cell yet, do it and calculate and move to our altitude.
+                    // If we haven't defined our cell yet, do it.
                     "(!" MV_CELL_INITIALIZED ")"
-                        " => ( (" MF_INIT_SEARCH_CELL "() && " MF_CALC_AND_MOVE_TO_ALT "() ) => (" MV_CELL_INITIALIZED " = 1))"
-                ");"
-            ")"
-        ")"
+                    " => "
+                        "("                            
+                            "(" MF_INIT_SEARCH_CELL "() ) " 
+                            " => "
+                                "("
+                                    // Indicate that we have initialized the cell, and request to move to our assigned height.
+                                    "(" MV_CELL_INITIALIZED " = 1);"
+                                    "(" MV_FIRST_TARGET_SELECTED " = 0);"
+                                    "(" MF_ASSIGN_ALT_AND_REQUEST_MOVE "() );"
+                                ");"
+                        ");"
+                ")"
+
+            ");"
     );
 
-    // Function to update the amound and positions of drones available for covering a specific area.
+    // Function to update the amount and positions of drones available for covering a specific area.
     knowledge.define_function(MF_UPDATE_AVAILABLE_DRONES, 
         // Set available drones to 0 and disregard its return (choose right).
-        MV_AVAILABLE_DRONES_AMOUNT " = 0 ;>"
+        MV_AVAILABLE_DRONES_IN_MY_AREA " = 0 ;>"
 
         // Loop over all the drones to find the available ones.
         ".i[0->" MV_TOTAL_DEVICES ")"
@@ -167,13 +210,37 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
             // A drone is available if it is mobile and it is not busy, and it is assigned to the same area as I am.
             "(" MV_MOBILE("{.i}") " && (!" MV_BUSY("{.i}") ") && (" MV_ASSIGNED_SEARCH_AREA("{.i}") " == " MV_ASSIGNED_SEARCH_AREA("{" MV_MY_ID "}") "))"
             " => "
-            "("
-                // If so, increase the amount of available drones, and and store my idx in the list if I find it.
-                "((.i == .id) => (" MV_AVAILABLE_DRONES_MY_IDX " = .i));"
-                    "++" MV_AVAILABLE_DRONES_AMOUNT ";"
+                "("
+                    // If so, increase the amount of available drones, and and store what is my position among the available drones.
+                    "((.i == .id) => (" MV_MY_POS_IN_MY_AREA " = .i));"
+                    "++" MV_AVAILABLE_DRONES_IN_MY_AREA ";"
                 ");"
-            ");"
-        );
+        ");"
+    );
+
+    // Function to check if all drones covering a specific area are waiting for the next target.
+    knowledge.define_function(MF_ALL_DRONES_READY, 
+        // Set waiting drones to 0 and disregard its return (choose right).
+        MV_READY_DRONES_AMOUNT " = 0 ;>"
+
+        // Loop over all the drones to find the how many have reached the .
+        ".i[0->" MV_TOTAL_DEVICES ")"
+        "("
+            // A drone is available if it is mobile and it is not busy, and it is assigned to the same area as I am.
+            "(" MV_MOBILE("{.i}") " && (!" MV_BUSY("{.i}") ") && (" MV_ASSIGNED_SEARCH_AREA("{.i}") " == " MV_ASSIGNED_SEARCH_AREA("{" MV_MY_ID "}") "))"
+            " => "
+                "("
+                    // If this drone is available, check if it has reached the same target I was moving towards (or if it already started moving towards the next).
+                    "(" MV_CURRENT_COVERAGE_TARGET("{.i}") " >= " MV_LAST_REACHED_TARGET ")"
+                    " => "
+                        // If it has reached the target, update the counter.
+                        "(++" MV_READY_DRONES_AMOUNT ";)"
+                ");"
+        ");"
+
+        // Return 1 if all expected drones have reached the target, 0 otherwise.
+        "(" MV_READY_DRONES_AMOUNT " == " MV_AVAILABLE_DRONES_IN_MY_AREA ");"
+    );
 
     // Checks if the final target of the area coverage strategy has been reached.
     knowledge.define_function(MF_FINAL_TARGET_REACHED, madaraReachedFinalTarget);
@@ -185,7 +252,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     knowledge.define_function(MF_INIT_SEARCH_CELL, madaraInitSearchCell);
 
     // Function that can be included in main loop of another method to introduce area coverage.
-    knowledge.define_function(MF_CALC_AND_MOVE_TO_ALT, madaraCalculateAndMoveToAltitude);
+    knowledge.define_function(MF_ASSIGN_ALT_AND_REQUEST_MOVE, madaraCalculateAndMoveToAltitude);
 
     // Function that can be included in main loop of another method to introduce area coverage.
     knowledge.define_function(MF_SET_NEW_TARGET, madaraSetNewTarget);
@@ -199,7 +266,7 @@ void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     // Expression to update the list of available drones, simply calls the predefined function.
     m_expressions[ACE_FIND_AVAILABLE_DRONES_POSITIONS] = knowledge.compile(
         MF_UPDATE_AVAILABLE_DRONES "();"
-        );
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -250,8 +317,8 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
         Madara::Knowledge_Engine::Knowledge_Update_Settings(true, false));
 
     // Obtain drone information
-    int availableDrones = (int) variables.get(MV_AVAILABLE_DRONES_AMOUNT).to_integer();
-    int myIndexInList = (int) variables.get(MV_AVAILABLE_DRONES_MY_IDX).to_integer();
+    int availableDrones = (int) variables.get(MV_AVAILABLE_DRONES_IN_MY_AREA).to_integer();
+    int myIndexInList = (int) variables.get(MV_MY_POS_IN_MY_AREA).to_integer();
 
     // Obtain the region details where we will be searching.
     std::string myAssignedSearchArea = variables.get(variables.expand_statement(MV_ASSIGNED_SEARCH_AREA("{" MV_MY_ID "}"))).to_string();
@@ -299,7 +366,7 @@ Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowledge_Eng
     // Calculate and store my assigned or default altitude based on my index on the list.
     // (If the search area has not been initialized, all drones will end up at the same, default height).
     double minAltitude = (double) variables.get(MV_MIN_ALTITUDE).to_double();
-    int myIndexInList = (int) variables.get(MV_AVAILABLE_DRONES_MY_IDX).to_integer();
+    int myIndexInList = (int) variables.get(MV_MY_POS_IN_MY_AREA).to_integer();
     double myDefaultAltitude = minAltitude + ALTITUDE_DIFFERENCE * (double) myIndexInList;
     variables.set(variables.expand_statement(MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}")), myDefaultAltitude);
 

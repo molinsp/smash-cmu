@@ -252,15 +252,15 @@ void MadaraQuadrotorControl::setNewThermalScan(int droneId, const std::vector<st
 
                 std::stringstream madaraCellName;
                 madaraCellName << MS_SIM_DEVICES_PREFIX << droneId << ".thermal.buffer." << row << "."  << col;
-                m_knowledge->set(variables[madaraCellName.str()], thermalBuffer[row][col],
-                                    Madara::Knowledge_Engine::Eval_Settings(true));
+                //m_knowledge->set(variables[madaraCellName.str()], thermalBuffer[row][col],
+                //                    Madara::Knowledge_Engine::Eval_Settings(true));
             }
 
             // Set this row as an array.
             std::stringstream madaraArrayName;
             madaraArrayName << MS_SIM_DEVICES_PREFIX << droneId << ".thermal.buffer." << row;
-            //m_knowledge->set(madaraArrayName.str(), thermalRowVector,
-            //              Madara::Knowledge_Engine::Eval_Settings(true));
+            m_knowledge->set(madaraArrayName.str(), thermalRowVector,
+                          Madara::Knowledge_Engine::Eval_Settings(true));
             thermalRowVector.clear();
         }
 

@@ -24,7 +24,6 @@ HumanDetection::~HumanDetection()
 
 bool HumanDetection::check_if_human (double temp, double curr_height)
 {
-  FILE * file;
   double exp_temp_min = 0;
   double exp_temp_max = 0;
 
