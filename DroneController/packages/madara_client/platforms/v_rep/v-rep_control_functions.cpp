@@ -14,6 +14,7 @@
 #include "v-rep_madara_variables.h"
 #include "v-rep_main_madara_transport_settings.h"
 #include "utilities/Position.h"
+#include "utilities/string_utils.h"
 
 #include <string>
 #include <cmath>
@@ -118,6 +119,10 @@ static void setupInternalHardwareKnowledgeBase(int id)
 
     // Sets the id. NOTE: we are assuming that g_id will be setup externally by the code.
     transportSettings.id = id;
+
+    // Setup a log for Madara.
+    //Madara::Knowledge_Engine::Knowledge_Base::log_level(10);
+    //Madara::Knowledge_Engine::Knowledge_Base::log_to_file(std::string("simhwmadaralog" + NUM_TO_STR(id) + ".txt").c_str(), false);
     
     // Create the knowledge base.
     std::string host = "";
@@ -295,18 +300,34 @@ bool init_sensor_functions()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void read_thermal(double buffer[8][8])
 {
-    // Loop over all Madara variables with the buffer.
-    for(int row=0; row < THERMAL_BUFFER_HEIGHT; row++)
-    {
-        for(int col=0; col < THERMAL_BUFFER_WIDTH; col++)
-        {
-            // First we get the column and line numbers into string.
-            std::string textRow = NUM_TO_STR(row);
-            std::string textCol = NUM_TO_STR(col);
+    int numRows = 8;
+    int numColumns = 8;
 
-            // Then we get the value for this cell from the knowledge base, and pass it on to the buffer.
-            double currThermalValue = (m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_THERMAL(textRow, textCol)))).to_double();
-            buffer[row][col] = currThermalValue;
+    // Initialize the buffer with zeros.
+    memset(buffer, 0, numRows*numColumns);
+
+    // Get the thermal string from the knowledge base.
+    std::stringstream thermalBufferName;
+    thermalBufferName << MS_SIM_DEVICES_PREFIX << "{" MV_MY_ID "}" << MV_THERMAL_BUFFER;
+    std::string thermalValues = m_sim_knowledge->get(m_sim_knowledge->expand_statement(thermalBufferName.str())).to_string();
+
+	// Parse the thermal values.
+	std::vector<std::string> thermalValueList = stringSplit(thermalValues, ',');
+		
+    // Get the thermals from the string, if any.
+    if(thermalValueList.size() >= (unsigned) numRows*numColumns)
+    {
+        for(int row=0; row<numRows; row++)
+        {
+            // Loop over this row.
+            for(int col=0; col<numColumns; col++)
+            {
+                // Get the current value from the parsed list.
+                std::string currValue = std::string(thermalValueList[row*numColumns + col]);
+
+                // Store the current value as a double in the buffer.
+                buffer[row][col] = atof(currValue.c_str());
+            }
         }
     }
 }

@@ -53,7 +53,6 @@ const int SIMULATION_TRANSPORT_QUEUE_LENGTH = 512000;
 #define MV_ALTITUDE             ".location.altitude"    // Altitude.
 
 // Sensor variables - thermal.
-#define MV_THERMAL(i,j)         ".thermal.buffer." + std::string(i) + "." + std::string(j)  + ""    // A thermal value.
-#define MV_THERMAL_ROW(i)       ".thermal.buffer." + std::string(i) + ""                            // A row of thermal values.
+#define MV_THERMAL_BUFFER       ".thermal.buffer"                                                   // A comma-separated stirng of thermal values.
 
 #endif

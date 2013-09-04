@@ -23,21 +23,6 @@ using std::stringstream;
 // The controller used to manage the Madara stuff.
 static MadaraQuadrotorControl* control = NULL;
 
-static std::vector<std::string> &stringSplit(const std::string &s, char delim, std::vector<std::string> &elems) {
-    std::stringstream ss(s);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-        elems.push_back(item);
-    }
-    return elems;
-}
-
-static std::vector<std::string> stringSplit(const std::string &s, char delim) {
-    std::vector<std::string> elems;
-    stringSplit(s, delim, elems);
-    return elems;
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Callback of the Lua simExtMadaraQuadrotorControlSetup command.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -442,51 +427,20 @@ void simExtMadaraQuadrotorControlUpdateThermals(SLuaCallBack* p)
 	bool paramsOk = checkInputArguments(p, g_updateThermalsInArgs, "simExtMadaraQuadrotorControlUpdateStatus");
 	if(paramsOk)
 	{
-        // Get the drone id and the matriz size.
+        // Get the drone id and the matrix size.
         int droneId = p->inputInt[0];
         int numRows = p->inputInt[1];
         int numColumns = p->inputInt[2];
+
+        // Get the thermal string.
+        std::string thermalValues(p->inputChar);
 
         // For debugging.
 		std::stringstream strBuffer;
         strBuffer << "Values received inside simExtMadaraQuadrotorControlUpdateThermals function: droneId: " << droneId << ", rows: " << numRows << ", cols: " << numColumns << ", values: ";
 
-        // Setup the thermal buffer for the number of rows we have.
-        std::vector<std::vector <double> > thermalBuffer;
-        thermalBuffer.resize(numRows);
-
-		// Parse the thermal values.
-        std::string thermalValues(p->inputChar);
-		std::vector<std::string> thermalValueList = stringSplit(thermalValues, ',');
-		
-        // Get the thermals from the string.
-        for(int row=0; row<numRows; row++)
-        {
-            // Loop over this row.
-            strBuffer << "(";
-            thermalBuffer[row].resize(numColumns);
-            for(int col=0; col<numColumns; col++)
-            {
-                // Get the current value from the parsed list.
-                std::string currValue = std::string(thermalValueList[row*numColumns + col]);
-
-                // Add it to a buffer for debugging purposes.
-                strBuffer << currValue << ",";
-
-                // Store the current value as a double in the buffer.
-                thermalBuffer[row][col] = atof(currValue.c_str());
-            }
-
-            strBuffer << "),";
-        }
-
-        thermalValueList.clear();
-
-		// For debugging, print out what we received.
-		//simAddStatusbarMessage(strBuffer.str().c_str());
-
         // Update the thermal data through the network.
-		control->setNewThermalScan(droneId, thermalBuffer, numRows, numColumns);
+		control->setNewThermalScan(droneId, thermalValues, numRows, numColumns);
 	}
 
 	simLockInterface(0);

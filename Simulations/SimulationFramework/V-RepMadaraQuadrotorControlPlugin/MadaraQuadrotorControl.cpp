@@ -75,17 +75,6 @@ void MadaraQuadrotorControl::initInternalData(int droneId)
     string droneIdString = std::to_string(static_cast<long long>(droneId));
     clearCommand(droneIdString);
 
-    // Initialize the Madara thermal refs.
-    for(int row=0; row < THERMAL_BUFFER_HEIGHT; row++)
-    {
-        for(int col=0; col < THERMAL_BUFFER_WIDTH; col++)
-        {
-            std::stringstream madaraCellName;
-            madaraCellName << MS_SIM_DEVICES_PREFIX << droneId << ".thermal.buffer." << row << "."  << col;
-            variables[madaraCellName.str()] = m_knowledge->get_ref(madaraCellName.str());
-        }
-    }
-
     // Indicate that we have not received or replied to commands yet.
     m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MS_SIM_CMD_SENT_ID, (Madara::Knowledge_Record::Integer) 0,
                 Madara::Knowledge_Engine::Eval_Settings(true, true));
@@ -229,40 +218,12 @@ void MadaraQuadrotorControl::clearCommand(std::string droneIdString)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraQuadrotorControl::setNewThermalScan(int droneId, const std::vector<std::vector <double> >& thermalBuffer, int thermalRows, int thermalColumns)
+void MadaraQuadrotorControl::setNewThermalScan(int droneId, std::string thermalBuffer, int thermalRows, int thermalColumns)
 {
-    std::string droneIdString = NUM_TO_STR(droneId);
     if(m_knowledge != NULL)
     {
-        // Loop over all Madara variables with the buffer.
-        for(int row=0; row < thermalRows; row++)
-        {
-            // Clear space for the new row.
-            std::vector <double> thermalRowVector;
-            thermalRowVector.resize(thermalColumns);
-
-            // Fill all its columns.
-            for(int col=0; col < thermalColumns; col++)
-            {
-                // Get the current value.
-                double currValue = thermalBuffer[row][col];
-                thermalRowVector[col] = currValue;
-
-                std::stringstream madaraCellName;
-                madaraCellName << MS_SIM_DEVICES_PREFIX << droneId << ".thermal.buffer." << row << "."  << col;
-                m_knowledge->set(variables[madaraCellName.str()], thermalBuffer[row][col],
-                                    Madara::Knowledge_Engine::Eval_Settings(true));
-            }
-
-            // Set this row as an array.
-            std::stringstream madaraArrayName;
-            madaraArrayName << MS_SIM_DEVICES_PREFIX << droneId << ".thermal.buffer." << row;
-            //m_knowledge->set(madaraArrayName.str(), thermalRowVector,
-            //              Madara::Knowledge_Engine::Eval_Settings(true));
-            thermalRowVector.clear();
-        }
-
-        // Once all thermals are loaded, send them.
-        m_knowledge->apply_modified();
+        std::stringstream thermalBufferName;
+        thermalBufferName << MS_SIM_DEVICES_PREFIX << droneId << MV_THERMAL_BUFFER;
+        m_knowledge->set(thermalBufferName.str(), thermalBuffer);
     }
 }

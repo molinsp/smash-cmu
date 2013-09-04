@@ -110,7 +110,7 @@ public:
     /**
     * Set a new thermal scan to the knowledge base.
     */
-    void setNewThermalScan(int droneId, const std::vector<std::vector <double> >& thermalBuffer, int thermalHeight, int thermalWidth);
+    void setNewThermalScan(int droneId, std::string thermalBuffer, int thermalHeight, int thermalWidth);
 };
 
 #endif // _MADARA_QUADROTOR_CONTROL_H_

@@ -59,9 +59,9 @@ bool HumanDetection::check_if_human (double temp, double curr_height)
     return true;
   }
   
-  printf("Non-Human detected. Height:%6.2f | Temp:%6.2f | Exp Range: [%6.2f, %6.2f]\n", curr_height, 
-                                                                                        temp,
-                                                                                        exp_temp_min,
-                                                                                        exp_temp_max);
+  //printf("Non-Human detected. Height:%6.2f | Temp:%6.2f | Exp Range: [%6.2f, %6.2f]\n", curr_height, 
+  //                                                                                      temp,
+  //                                                                                      exp_temp_min,
+  //                                                                                      exp_temp_max);
   return false;
 }

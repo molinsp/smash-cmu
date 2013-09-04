@@ -434,26 +434,34 @@ unsigned __stdcall threadfunc(void * param)
     {
       Madara::Transport::Message_Header * header = 0;
 
-      Madara::Transport::process_received_update (
+      int updatesPerformed = Madara::Transport::process_received_update (
         buffer, bytes_read, trt->id_, trt->context_,
         *(trt->qos_settings_), trt->send_monitor_, trt->receive_monitor_,
         rebroadcast_records,
         trt->on_data_received_, "Windows_Multicast_Transport_Read_Thread::svc",
         remote_host.str ().c_str (), header);
-      
-      if (header->ttl > 0 && rebroadcast_records.size () > 0 &&
-          trt->qos_settings_ && trt->qos_settings_->get_participant_ttl () > 0)
+
+      if(updatesPerformed < 0)
       {
-        --header->ttl;
-        header->ttl = std::min (
-          trt->qos_settings_->get_participant_ttl (), header->ttl);
-
-        outputFile << "Performing rebroadcast." <<std::endl; outputFile.flush();
-        trt->rebroadcast (print_prefix, header, rebroadcast_records);
+        outputFile << " Warning: Invalid message received, reason code: " << updatesPerformed <<std::endl; outputFile.flush();
       }
+      
+      if(header)
+      {
+          if (header->ttl > 0 && rebroadcast_records.size () > 0 &&
+              trt->qos_settings_ && trt->qos_settings_->get_participant_ttl () > 0)
+          {
+            --header->ttl;
+            header->ttl = std::min (
+              trt->qos_settings_->get_participant_ttl (), header->ttl);
 
-      // delete header
-      delete header;
+            outputFile << "Performing rebroadcast." <<std::endl; outputFile.flush();
+            trt->rebroadcast (print_prefix, header, rebroadcast_records);
+          }
+
+          // delete header
+          delete header;
+      }
     }
   }
 
