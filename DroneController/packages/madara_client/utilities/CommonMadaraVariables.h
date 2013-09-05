@@ -15,13 +15,15 @@
 #define _COMMON_MADARA_VARIABLES_H
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Functions
+// Functions (prefix: MF_)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define MF_TARGET_REACHED                       "utilities_targetReached"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Global variables.
+// MV_ prefix: Madara variable.
+// MO_ prefix: Madara option (value).
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Network information.
@@ -43,27 +45,29 @@
 
 // Area coverage information.
 #define MV_AREA_COVERAGE_REQUESTED(deviceId)    "device." + std::string(deviceId) + ".area_coverage_requested"      // Tells if this device was tasked with area coverage.
-#define AREA_COVERAGE_RANDOM                    "random"                                                            // selects RandomAreaCoverage
-#define AREA_COVERAGE_SNAKE                     "snake"                                                             // selects SnakeAreaCoverage
-#define AREA_COVERAGE_INSIDEOUT                 "inside_out"                                                        // selects InsideOutAreaCoverage
+#define MO_AREA_COVERAGE_RANDOM                 "random"                                                            // selects RandomAreaCoverage
+#define MO_AREA_COVERAGE_SNAKE                  "snake"                                                             // selects SnakeAreaCoverage
+#define MO_AREA_COVERAGE_INSIDEOUT              "inside_out"                                                        // selects InsideOutAreaCoverage
 #define MV_NEXT_AREA_COVERAGE_REQUEST(deviceId) "device." + std::string(deviceId) + ".next_area_coverage_requested" // next area coverage to be used
 #define MV_ASSIGNED_SEARCH_AREA(deviceId)       "device." + std::string(deviceId) + ".search_area_id"               // The id of the area that I have been assigned to search.
 #define MV_TOTAL_SEARCH_AREAS                   "search_areas"                                                      // The total number of search areas requested so far.
 #define MV_SEARCH_AREA_REGION(areaId)           "search_area." + std::string(areaId) + ""                           // Returns the region associated to a certain search area.
 #define MV_CURRENT_COVERAGE_TARGET(deviceId)    "device." + std::string(deviceId) + ".area_coverage.current_target" // A number (valid from 1) indicating the current target we are after (increments for each new target).
+#define MV_AREA_COVERAGE_LINE_WIDTH             "area_coverage.line_width"                                          // The width of a line of search in a search algorihtm that uses lines, IN DEGREES.
+#define MV_AREA_COVERAGE_HEIGHT_DIFF            "area_coverage.height_diff"                                         // The vertical space to leave between drones in a search area, in meters.
 
 // Bridge information.
 #define MV_BRIDGE_REQUESTED                     "bridge.bridge_requested"                          // Tells if a bridge was requested.
 #define MV_BRIDGE_ID(deviceId)                  "device." + std::string(deviceId) + ".bridge_id"   // If bridging, indicates the id of the associated bridge.
 #define MV_TOTAL_BRIDGES                        "bridges"                                          // The total number of bridges requested so far.
-#define MV_COMM_RANGE                           "bridge.max_communication_distance"                // The range of the high-banwidth radio, in meters.
+#define MV_COMM_RANGE                           "bridge.max_communication_distance"                // The range of the high-banwidth radio, in degrees.
 #define MV_BRIDGE_SOURCE_REGION_ID(bridgeId)    "bridge." + std::string(bridgeId) + ".endpoint.1"  // The region where one of the endpoints of the bridge is.
 #define MV_BRIDGE_SINK_REGION_ID(bridgeId)      "bridge." + std::string(bridgeId) + ".endpoint.2"  // The region where the other endpoint of the bridge is.
 
 // Human detection information.
 #define MV_HUMAN_DETECTION_REQUESTED(deviceId)  "device." + std::string(deviceId) + ".human_detection_requested"        // Tells if this device was tasked with human detection.
-#define HUMAN_DETECTION_BASIC                   "basic"                                                                 // Selects BasicHumanDetection strategy.
-#define HUMAN_DETECTION_SLIDING_WINDOW          "sliding_window"                                                        // Selects SlidingWindowHumanDetection strategy.    
+#define MO_HUMAN_DETECTION_BASIC                "basic"                                                                 // Selects BasicHumanDetection strategy.
+#define MO_HUMAN_DETECTION_SLIDING_WINDOW       "sliding_window"                                                        // Selects SlidingWindowHumanDetection strategy.    
 #define MV_THERMALS_AT_LOCATION(lat,lon)        "location_" + std::string(lat) + "_" + std::string(lon) + "_thermals"  // Location where human was detected.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -120,7 +120,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
             "(" MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}") " ) => "
             "("
                 // The basic detection algorithm needs specific setup.
-                "(" MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}") " == '" HUMAN_DETECTION_BASIC "' ) => " 
+                "(" MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}") " == '" MO_HUMAN_DETECTION_BASIC "' ) => " 
                 "("
                     // We have to calculate the ambient temperature once we have reached our assigned height, but only once.
                     "(" MV_IS_AT_ASSIGNED_ALTITUDE " && (" MV_AMBIENT_TEMP_CALCULATED " == 0) ) => "
@@ -138,7 +138,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                 ");"
 
                 // If sliding window algorithm, then no need specific setup. Just call the detect function.
-                "(" MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}") " == '" HUMAN_DETECTION_SLIDING_WINDOW "' ) => " MF_DETECT_HUMAN "();"
+                "(" MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}") " == '" MO_HUMAN_DETECTION_SLIDING_WINDOW "' ) => " MF_DETECT_HUMAN "();"
             ");"
         ");"
     );
@@ -161,11 +161,11 @@ HumanDetection* selectHumanDetectionAlgorithm (string algo)
 {
     HumanDetection* humanDetectionAlgorithm = NULL;
 
-    if (algo == HUMAN_DETECTION_BASIC)
+    if (algo == MO_HUMAN_DETECTION_BASIC)
     {
         humanDetectionAlgorithm = new BasicStrategy(ambient_min, ambient_max); 
     }
-    else if (algo == HUMAN_DETECTION_SLIDING_WINDOW)
+    else if (algo ==MO_HUMAN_DETECTION_SLIDING_WINDOW)
     {  
         humanDetectionAlgorithm = new SlidingWindowStrategy();
     }

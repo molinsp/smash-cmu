@@ -25,8 +25,8 @@ using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
 using std::string;
 
-#define SEARCH_LINE_OFFSET_DEGREES      0.0000100   // Margin (in degrees) to use when moving to another column or line of search. Should be similar to the view range of a drone.
-#define ALTITUDE_DIFFERENCE             0.5         // The amount of vertical space (in meters) to leave between drones.
+#define DEFAULT_SEARCH_LINE_OFFSET_DEGREES      0.0000100   // Margin (in degrees) to use when moving to another column or line of search. Should be similar to the view range of a drone.
+#define DEFAULT_ALTITUDE_DIFFERENCE             0.5         // The amount of vertical space (in meters) to leave between drones.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Madara Variable Definitions
@@ -108,6 +108,8 @@ void SMASH::AreaCoverage::AreaCoverageModule::initialize(Madara::Knowledge_Engin
 
     // Initialize variables.
     knowledge.set(MV_INITIAL_HEIGHT_REACHED, 0.0);
+    knowledge.set(MV_AREA_COVERAGE_LINE_WIDTH, DEFAULT_SEARCH_LINE_OFFSET_DEGREES);
+    knowledge.set(MV_AREA_COVERAGE_HEIGHT_DIFF, DEFAULT_ALTITUDE_DIFFERENCE);
 
     // Registers all default expressions, to have them compiled for faster access.
     compileExpressions(knowledge);
@@ -290,25 +292,29 @@ void compileExpressions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 /**
  * Selects an area coverage algorithm given the string from the madara variable
  *
- * @param myIndexInList  the index of this drone in the area
  * @param algorithm  string determining which algorithm to select
+ * @param variables  access to the knowledge base.
  */
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-AreaCoverage* selectAreaCoverageAlgorithm(int myIndexInArea, string algorithm)
+AreaCoverage* selectAreaCoverageAlgorithm(string algorithm, Madara::Knowledge_Engine::Variables &variables)
 {
     AreaCoverage* coverageAlgorithm = NULL;
-    if(algorithm == AREA_COVERAGE_RANDOM)
+    if(algorithm == MO_AREA_COVERAGE_RANDOM)
     {
+        // Use my index in the search area plus the current time as the seed for the random algorithm.
+        int myIndexInArea = (int) variables.get(MV_MY_POS_IN_MY_AREA).to_integer();
         int seed = time(NULL) + myIndexInArea;
         coverageAlgorithm = new RandomAreaCoverage(seed);
     }
-    else if(algorithm == AREA_COVERAGE_SNAKE)
+    else if(algorithm == MO_AREA_COVERAGE_SNAKE)
     {
-        coverageAlgorithm = new SnakeAreaCoverage(Region::NORTH_WEST, SEARCH_LINE_OFFSET_DEGREES);
+        double searchLineOffset = variables.get(MV_AREA_COVERAGE_LINE_WIDTH).to_double();
+        coverageAlgorithm = new SnakeAreaCoverage(Region::NORTH_WEST, searchLineOffset);
     }
-    else if(algorithm == AREA_COVERAGE_INSIDEOUT)
+    else if(algorithm == MO_AREA_COVERAGE_INSIDEOUT)
     {
-        coverageAlgorithm = new InsideOutAreaCoverage((float)SEARCH_LINE_OFFSET_DEGREES);
+        double searchLineOffset = variables.get(MV_AREA_COVERAGE_LINE_WIDTH).to_double();
+        coverageAlgorithm = new InsideOutAreaCoverage(searchLineOffset);
     }
     else
     {
@@ -350,7 +356,7 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
 
     // Calculate the actual cell I will be covering.
     string algo = variables.get(variables.expand_statement(MV_AREA_COVERAGE_REQUESTED("{" MV_MY_ID "}"))).to_string();
-    m_coverageAlgorithm = selectAreaCoverageAlgorithm(myIndexInList, algo);
+    m_coverageAlgorithm = selectAreaCoverageAlgorithm(algo, variables);
     if(m_coverageAlgorithm != NULL)
     {
         // Calculate the cell I will be working on.
@@ -385,9 +391,10 @@ Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowledge_Eng
 {
     // Calculate and store my assigned or default altitude based on my index on the list.
     // (If the search area has not been initialized, all drones will end up at the same, default height).
-    double minAltitude = (double) variables.get(MV_MIN_ALTITUDE).to_double();
+    double minAltitude = variables.get(MV_MIN_ALTITUDE).to_double();
     int myIndexInList = (int) variables.get(MV_MY_POS_IN_MY_AREA).to_integer();
-    double myDefaultAltitude = minAltitude + ALTITUDE_DIFFERENCE * (double) myIndexInList;
+    double altitudeDifference = variables.get(MV_AREA_COVERAGE_HEIGHT_DIFF).to_double();
+    double myDefaultAltitude = minAltitude + altitudeDifference * (double) myIndexInList;
     variables.set(variables.expand_statement(MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}")), myDefaultAltitude);
 
     // Send the command to go to this altitude.

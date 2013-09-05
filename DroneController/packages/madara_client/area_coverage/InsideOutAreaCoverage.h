@@ -33,7 +33,7 @@ public:
     /**
      * Constructors
      */
-    InsideOutAreaCoverage(float delta = 0.5, direction_t heading = EAST, bool clockwise = false);
+    InsideOutAreaCoverage(double delta = 0.5, direction_t heading = EAST, bool clockwise = false);
   
     /**
      * Destructor
@@ -77,7 +77,7 @@ protected:
     int m_iteration;
   
     // Offset from previous row/column
-    float m_delta;
+    double m_delta;
   
     // rotation style
     bool m_clockwise;

@@ -18,6 +18,8 @@
 using namespace SMASH::Bridge;
 using namespace SMASH::Utilities;
 
+#define DEFAULT_MAX_COMM_DISTANCE_DEGREES      0.00004   // The default max range for the radio the bridge will be using to transfer data, in degrees.
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Madara Variable Definitions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,6 +73,9 @@ void SMASH::Bridge::BridgeModule::initialize(Madara::Knowledge_Engine::Knowledge
 {
     // Defines internal and external functions.
     defineFunctions(knowledge);
+
+    // Initialize some default and starting values.
+    knowledge.set(MV_COMM_RANGE, DEFAULT_MAX_COMM_DISTANCE_DEGREES);
 
     // Registers all default expressions, to have them compiled for faster access.
     compileExpressions(knowledge);
@@ -216,18 +221,18 @@ Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::F
 		variables.set(MV_CURR_BRIDGE_ID, (Madara::Knowledge_Record::Integer) bridgeId);
 
 		// Check if we have already checked if we belonged to this bridge, and if so skip it.
-		int currBridgeChecked = (int) variables.get(MV_BRIDGE_CHECKED("{" MV_CURR_BRIDGE_ID "}")).to_integer();
+        int currBridgeChecked = (int) variables.get(variables.expand_statement(MV_BRIDGE_CHECKED("{" MV_CURR_BRIDGE_ID "}"))).to_integer();
 		if(currBridgeChecked == 1)
 		{
 			continue;
 		}
 
 		// Simplify the source region for now, treating it as a point by calculating the middle point.
-		std::string bridgeSourceRegionId = variables.get(MV_BRIDGE_SOURCE_REGION_ID("{" MV_CURR_BRIDGE_ID "}")).to_string();
+		std::string bridgeSourceRegionId = variables.get(variables.expand_statement(MV_BRIDGE_SOURCE_REGION_ID("{" MV_CURR_BRIDGE_ID "}"))).to_string();
 		Position* sourcePosition = calculateMiddlePoint(variables, bridgeSourceRegionId);
 
 		// Simplify the sink region for now, treating it as a point by calculating the middle point.
-		std::string bridgeSinkRegionId = variables.get(MV_BRIDGE_SINK_REGION_ID("{" MV_CURR_BRIDGE_ID "}")).to_string();
+		std::string bridgeSinkRegionId = variables.get(variables.expand_statement(MV_BRIDGE_SINK_REGION_ID("{" MV_CURR_BRIDGE_ID "}"))).to_string();
 		Position* sinkPosition = calculateMiddlePoint(variables, bridgeSinkRegionId);
 
 		// Check if we couldn't find the required positions, returning immediately with false.
@@ -272,7 +277,7 @@ Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::F
 		myNewPosition = algorithm.getPositionInBridge(myId, commRange, *sourcePosition, *sinkPosition, availableDronePositions);
 
 		// Indicate that we have checked this bridge.
-		variables.set(MV_BRIDGE_CHECKED("{" MV_CURR_BRIDGE_ID "}"), 1.0, Madara::Knowledge_Engine::Eval_Settings(true));
+		variables.set(variables.expand_statement(MV_BRIDGE_CHECKED("{" MV_CURR_BRIDGE_ID "}")), 1.0, Madara::Knowledge_Engine::Eval_Settings(true));
 
 		// Cleanup.
 		delete sourcePosition;

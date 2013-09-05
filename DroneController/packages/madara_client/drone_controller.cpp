@@ -60,7 +60,7 @@ void SMASH::DroneController::cleanup(Madara::Knowledge_Engine::Knowledge_Base* k
 std::string SMASH::DroneController::getStatusSummaryExpression()
 {
     std::string status = 
-        "Drone {" MV_MY_ID "}\n"
+        "Drone:\t\t{" MV_MY_ID "}\n"
 		"Total:\t\t{" MV_TOTAL_DEVICES "}\n"
 		"Position:\t{" MV_DEVICE_LAT("{.id}") "},{" MV_DEVICE_LON("{.id}") "}\n"
 		"Mobile:\t\t{" MV_MOBILE("{.id}") "}\n"
@@ -134,7 +134,7 @@ void SMASH::DroneController::initializeDrone(int droneId, Madara::Knowledge_Engi
 
     // Set madara variable to control human detection. This means the drone will always
     // try to detect human.
-    knowledge.set(MV_HUMAN_DETECTION_REQUESTED(knowledge.expand_statement("{" MV_MY_ID "}")), HUMAN_DETECTION_BASIC);
+    knowledge.set(MV_HUMAN_DETECTION_REQUESTED(knowledge.expand_statement("{" MV_MY_ID "}")), MO_HUMAN_DETECTION_BASIC);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////

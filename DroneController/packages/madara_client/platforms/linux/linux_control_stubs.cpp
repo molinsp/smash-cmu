@@ -10,6 +10,11 @@
 #include "movement/platform_movement.h"
 #include "sensors/platform_sensors.h"
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Platform.h interface implementations.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool platform_init()
 {
 	return true;
@@ -32,69 +37,100 @@ bool platform_cleanup()
     return true;
 }
 
-bool init_sensor_functions()
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Platform_movement.h interface implementations.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool platform_init_control_functions()
 {
 	return true;
 }
 
-bool init_control_functions()
-{
-	return true;
-}
-
-void takeoff()
+void platform_takeoff()
 {
 	printf("Executing takeoff()\n");
 }
-void land()
+void platform_land()
 {
 	printf("Executing land()\n");
 }
 
-void move_up()
+void platform_move_up()
 {
 	printf("Executing move_up()\n");
 }
 
-void move_down()
+void platform_move_down()
 {
 	printf("Executing move_down()\n");
 }
 
-void move_left()
+void platform_move_left()
 {
 	printf("Executing move_left()\n");
 }
 
-void move_right()
+void platform_move_right()
 {
 	printf("Executing move_right()\n");
 }
 
-void move_forward()
+void platform_move_forward()
 {
 	printf("Executing move_forward()\n");
 }
 
-void move_backward()
+void platform_move_backward()
 {
 	printf("Executing move_backward()\n");
 }
 
-void read_thermal(double buffer[8][8])
+void platform_stop_movement()
 {
-	printf("Executing read_thermal()\n");
+    printf("Executing stop_movement()\n");
 }
 
-void read_gps(struct madara_gps * ret)
+void platform_move_to_location(double lat, double lon)
 {
-	printf("In read_gps\n");
+	printf("Executing move_to_location(%02f, %02f)\n", lat, lon);
+}
+
+void platform_move_to_altitude(double alt)
+{
+	printf("Executing platform move_to_altitude(%02f)\n", alt);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Platform_sensors.h interface implementations.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool platform_init_sensor_functions()
+{
+	return true;
+}
+
+void platform_read_thermal(double buffer[8][8])
+{
+	printf("Executing platform_read_thermal()\n");
+}
+
+void platform_read_gps(struct madara_gps * ret)
+{
+	printf("In platform_read_gps\n");
 	ret->latitude = 24;
 	ret->longitude = 121;
 	ret->num_sats = 8;
 }
 
-void move_to_location(double lat, double lon)
+double platform_read_ultrasound()
 {
-	printf("Executing move_to_location(%02f, %02f)\n", lat, lon);
+    printf("Executing platform_read_ultrasound()\n");
+    return 2.0;
 }
+
+double platform_get_gps_accuracy()
+{
+    printf("Executing platform_get_gps_accuracy()\n");
+    return 1.0;
+}
+

@@ -8,23 +8,21 @@
 #ifndef _PLATFORM_MOVEMENT_H
 #define _PLATFORM_MOVEMENT_H
 
-bool init_control_functions();
+bool platform_init_control_functions();
 
-void takeoff();
-void land();
+void platform_takeoff();
+void platform_land();
 
-void move_up();
-void move_down();
-void move_left();
-void move_right();
-void move_forward();
-void move_backward();
+void platform_move_up();
+void platform_move_down();
+void platform_move_left();
+void platform_move_right();
+void platform_move_forward();
+void platform_move_backward();
 
-void move_to_location(double, double, double);
-void move_to_altitude(double);
+void platform_move_to_location(double, double, double);
+void platform_move_to_altitude(double);
 
-void spin();
-
-void stop_movement();
+void platform_stop_movement();
 
 #endif

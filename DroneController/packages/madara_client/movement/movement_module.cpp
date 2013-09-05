@@ -24,7 +24,7 @@ void attainAltitude(Madara::Knowledge_Engine::Variables& variables)
 Madara::Knowledge_Record control_functions_takeoff (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
 	printf("In Madara::takeoff()\n");
-	takeoff();
+	platform_takeoff();
     variables.set(MV_IS_LANDED, 0.0);
 	return Madara::Knowledge_Record::Integer(1);
 }
@@ -33,7 +33,7 @@ Madara::Knowledge_Record control_functions_takeoff (Madara::Knowledge_Engine::Fu
 Madara::Knowledge_Record control_functions_land (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
 	printf("In Madara::land()\n");
-	land();
+	platform_land();
     variables.set(MV_IS_LANDED, 1.0);
 	return Madara::Knowledge_Record::Integer(1);
 }
@@ -42,7 +42,7 @@ Madara::Knowledge_Record control_functions_land (Madara::Knowledge_Engine::Funct
 Madara::Knowledge_Record control_functions_move_up (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
     ensureTakeoff(variables);
-	move_up();
+	platform_move_up();
 	return Madara::Knowledge_Record::Integer(1);
 }
 
@@ -50,7 +50,7 @@ Madara::Knowledge_Record control_functions_move_up (Madara::Knowledge_Engine::Fu
 Madara::Knowledge_Record control_functions_move_down (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
     ensureTakeoff(variables);
-	move_down();
+	platform_move_down();
 	return Madara::Knowledge_Record::Integer(1);
 }
 
@@ -58,7 +58,7 @@ Madara::Knowledge_Record control_functions_move_down (Madara::Knowledge_Engine::
 Madara::Knowledge_Record control_functions_move_left (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
     attainAltitude(variables);
-	move_left();
+	platform_move_left();
 	return Madara::Knowledge_Record::Integer(1);
 }
 
@@ -66,7 +66,7 @@ Madara::Knowledge_Record control_functions_move_left (Madara::Knowledge_Engine::
 Madara::Knowledge_Record control_functions_move_right (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
     attainAltitude(variables);
-	move_right();
+	platform_move_right();
 	return Madara::Knowledge_Record::Integer(1);
 }
 
@@ -74,7 +74,7 @@ Madara::Knowledge_Record control_functions_move_right (Madara::Knowledge_Engine:
 Madara::Knowledge_Record control_functions_move_forward (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
     attainAltitude(variables);
-	move_forward();
+	platform_move_forward();
 	return Madara::Knowledge_Record::Integer(1);
 }
 
@@ -82,7 +82,7 @@ Madara::Knowledge_Record control_functions_move_forward (Madara::Knowledge_Engin
 Madara::Knowledge_Record control_functions_move_backward (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
     attainAltitude(variables);
-	move_backward();
+	platform_move_backward();
 	return Madara::Knowledge_Record::Integer(1);
 }
 
@@ -96,7 +96,7 @@ Madara::Knowledge_Record madara_move_to_gps (Madara::Knowledge_Engine::Function_
 	
 	printf("Moving to %08f, %08f, %02f\n", lat, lon, alt);
 	
-	move_to_location(lat, lon, alt);
+	platform_move_to_location(lat, lon, alt);
 
     // Store the current target internally for control.
     variables.set(MV_LAST_TARGET_LAT, lat);
@@ -113,7 +113,7 @@ Madara::Knowledge_Record madara_move_to_altitude (Madara::Knowledge_Engine::Func
 	
 	printf("Moving to altitude %02f\n", alt);
 	
-	move_to_altitude(alt);
+	platform_move_to_altitude(alt);
 		
 	return Madara::Knowledge_Record::Integer(1);;
 }
@@ -147,7 +147,7 @@ void define_control_functions (Madara::Knowledge_Engine::Knowledge_Base & knowle
 void SMASH::Movement::MovementModule::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
 	printf("SMASH::Movement::initialize()\n");
-	init_control_functions();
+	platform_init_control_functions();
 	define_control_functions(knowledge);
 	printf("leaving SMASH::Movement::initialize()\n");
 }

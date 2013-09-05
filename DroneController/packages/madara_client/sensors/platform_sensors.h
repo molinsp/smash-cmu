@@ -19,12 +19,12 @@ struct madara_gps
 	unsigned int index;
 };
 
-bool init_sensor_functions();
+bool platform_init_sensor_functions();
 
-void read_thermal(double[8][8]);
-void read_gps(struct madara_gps *);
-double read_ultrasound();
+void platform_read_thermal(double[8][8]);
+void platform_read_gps(struct madara_gps *);
+double platform_read_ultrasound();
 
-double get_gps_accuracy();
+double platform_get_gps_accuracy();
 
 #endif

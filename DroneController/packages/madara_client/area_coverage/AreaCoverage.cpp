@@ -46,11 +46,11 @@ const Region* AreaCoverage::getSearchRegion()
 AreaCoverage* AreaCoverage::continueCoverage(AreaCoverage* coverage, const string& next)
 {
     AreaCoverage* retVal;
-    if(next == AREA_COVERAGE_RANDOM)
+    if(next == MO_AREA_COVERAGE_RANDOM)
         retVal = new RandomAreaCoverage();
-    else if(next == AREA_COVERAGE_SNAKE)
+    else if(next == MO_AREA_COVERAGE_SNAKE)
         retVal = new SnakeAreaCoverage();
-    else if(next == AREA_COVERAGE_INSIDEOUT)
+    else if(next == MO_AREA_COVERAGE_INSIDEOUT)
         retVal = new InsideOutAreaCoverage();
     else // default to repeat current coverage beginning from current location
         retVal = coverage->getNextCoverage();

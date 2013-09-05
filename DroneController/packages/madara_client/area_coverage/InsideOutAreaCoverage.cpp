@@ -23,7 +23,7 @@ using namespace SMASH::Utilities;
 using namespace SMASH::AreaCoverage;
 
 // Constructor
-InsideOutAreaCoverage::InsideOutAreaCoverage(float delta, direction_t heading,
+InsideOutAreaCoverage::InsideOutAreaCoverage(double delta, direction_t heading,
     bool clockwise) : AreaCoverage(), m_delta(delta), m_iteration(2), m_clockwise(clockwise),
     m_heading(heading), m_nsMultiplier(1.0), m_ewMultiplier(1.0) {}
 

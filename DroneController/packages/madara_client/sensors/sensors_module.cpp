@@ -41,7 +41,7 @@ Madara::Knowledge_Record read_thermal_sensor (Madara::Knowledge_Engine::Function
 {
 	printf("Inside read_thermal();\n");
 	double buffer[8][8];
-	read_thermal(buffer);
+	platform_read_thermal(buffer);
 	int x, y;
 	for (x = 0; x < 8; x++)
 	{
@@ -62,7 +62,7 @@ Madara::Knowledge_Record read_gps_sensor (Madara::Knowledge_Engine::Function_Arg
 {
     // Get GPS from platform.
 	struct madara_gps gps;
-	read_gps(&gps);
+	platform_read_gps(&gps);
 
     // Store the latitude and longitude in our local location variable.
 	std::stringstream buffer;
@@ -90,7 +90,7 @@ Madara::Knowledge_Record read_gps_sensor (Madara::Knowledge_Engine::Function_Arg
 Madara::Knowledge_Record read_ultrasound (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
     // Get the current ultrasound reading from the platform.
-    double ultraAlt = read_ultrasound();
+    double ultraAlt = platform_read_ultrasound();
 
     // Use ultrasound to override any other altitude if we were currently, and the ultrasound reported, a height below a certain limit.
     double estAlt = variables.get(MV_LOCAL_ALTITUDE).to_double();
@@ -164,7 +164,7 @@ Madara::Knowledge_Record gpsTargetReached (Madara::Knowledge_Engine::Function_Ar
 
     // The accuracy of whether a location has been reached depends on the platform. Get the accuracy for the particular platform we are using.
     // For now we assume the accuracy we want is the same as the GPS accuracy, though we may want to add some more slack.
-    double reachedAccuracyMeters = get_gps_accuracy();
+    double reachedAccuracyMeters = platform_get_gps_accuracy();
     if(dist < reachedAccuracyMeters)
     {
         printf("HAS reached target\n");
@@ -237,7 +237,7 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
 void SMASH::Sensors::SensorsModule::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
     printf("SMASH::Sensors::initialize...\n");
-	init_sensor_functions();
+	platform_init_sensor_functions();
 
 	define_sensor_functions(knowledge);
 	compile_sensor_function_expressions(knowledge);
