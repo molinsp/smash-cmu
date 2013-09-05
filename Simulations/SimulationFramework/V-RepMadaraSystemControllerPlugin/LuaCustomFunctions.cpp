@@ -23,10 +23,12 @@ MadaraController* madaraController;
 // Callback of the Lua simExtMadaraSystemControllerSetup command.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define the LUA function input parameters.
-static int g_setupInArgs[] = {3, 
+static int g_setupInArgs[] = {5, 
                     sim_lua_arg_int,                        // My ID.
                     sim_lua_arg_float,                        // Radio range.
                     sim_lua_arg_float,                        // Min altitude.
+                    sim_lua_arg_float,                        // Line width.
+                    sim_lua_arg_float,                        // Height diff.
                 };
 
 // The actual function.
@@ -43,15 +45,18 @@ void simExtMadaraSystemControllerSetup(SLuaCallBack* p)
         int myId = p->inputInt[0];
         double commRange = p->inputFloat[0];
         double minAltitude = p->inputFloat[1];
+        double lineWidth = p->inputFloat[2];
+        double heightDiff = p->inputFloat[3];
 
         // For debugging, print out what we received.
         std::stringstream sstm; 
-        sstm << "Values received inside simExtMadaraSystemControllerSetup function: myId:" << myId << ", commRange:" << commRange << "; minAltitude: " << minAltitude << std::endl;
+        sstm << "Values received inside simExtMadaraSystemControllerSetup function: myId: " << myId << ", commRange: " << commRange << "; minAltitude: " << minAltitude;
+        sstm << "; lineWidth: " << lineWidth << "; heightDiff: " << heightDiff << std::endl;
         std::string message = sstm.str();
         simAddStatusbarMessage(message.c_str());
 
         // Simply create the madara controller.
-        madaraController = new MadaraController(myId, commRange, minAltitude);
+        madaraController = new MadaraController(myId, commRange, minAltitude, lineWidth, heightDiff);
     }
 
     simLockInterface(0);
@@ -64,7 +69,9 @@ void registerMadaraSystemControllerSetupLuaCallback()
     simRegisterCustomLuaFunction("simExtMadaraSystemControllerSetup",                         // The Lua function name.
                                  "simExtMadaraSystemControllerSetup(int myId, "               // A tooltip to be shown to help the user know how to call it.
                                                          "number radioRange,"
-                                                         "number minAltitude)",
+                                                         "number minAltitude,"
+                                                         "number lineWidth,"
+                                                         "number heightDiff)",
                                  g_setupInArgs,                                                  // The argument types.
                                  simExtMadaraSystemControllerSetup);                          // The C function that will be called by the Lua function.
 }
@@ -354,7 +361,6 @@ void simExtMadaraSystemControllerCleanup(SLuaCallBack* p)
     simAddStatusbarMessage("simExtMadaraSystemControllerCleanup: cleaning up");
     if(madaraController != NULL)
     {
-        madaraController->terminate();
         delete madaraController;
         madaraController = NULL;
     }

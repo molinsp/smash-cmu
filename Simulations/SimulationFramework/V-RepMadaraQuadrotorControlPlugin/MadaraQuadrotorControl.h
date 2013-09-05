@@ -9,13 +9,13 @@
 #define _MADARA_QUADROTOR_CONTROL_H_
 
 #include "madara/knowledge_engine/Knowledge_Base.h"
+#include "Location.h"
+
 #include <vector>
 #include <string>
 #include <map>
-using std::string;
 
-#include "platforms/v_rep/v-rep_madara_variables.h"
-#include "Location.h"
+using std::string;
 
 /**
 * Publishes quadrotor information and executes commands

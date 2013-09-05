@@ -18,8 +18,10 @@ function doInitialSetup()
     local myControllerId = 2000    
     local radioRange = simGetScriptSimulationParameter(sim_handle_main_script, 'radioRange')
     local minAltitude = simGetScriptSimulationParameter(sim_handle_main_script, 'minimumAltitude')
+	local lineWidth = simGetScriptSimulationParameter(sim_handle_main_script, 'searchLineWidth')
+	local heightDiff = simGetScriptSimulationParameter(sim_handle_main_script, 'searchHeightDiff')
     simAddStatusbarMessage('Calling external method to set up Madara.')
-    simExtMadaraSystemControllerSetup(myControllerId, radioRange, minAltitude)
+    simExtMadaraSystemControllerSetup(myControllerId, radioRange, minAltitude, lineWidth, heightDiff)
 
     -- Used to identify each bridge request.
     g_bridgeRequestId = 0

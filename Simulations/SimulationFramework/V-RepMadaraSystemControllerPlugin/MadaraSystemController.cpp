@@ -4,63 +4,31 @@
  *
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
-#include "madara/knowledge_engine/Knowledge_Base.h"
+
 #include "MadaraSystemController.h"
+#include "VRepKnowledgeBaseUtils.h"
 #include "utilities/CommonMadaraVariables.h"
 #include "platforms/v_rep/v-rep_main_madara_transport_settings.h"
-#include <vector>
-
-#ifdef WIN_VREP
-  // Only include the custom transport in Windows, as it is not necessary in Linux.
-  #include "Windows_Multicast_Transport.h"
-#endif
 
 using namespace SMASH::Utilities;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constructor, sets up a Madara knowledge base and basic values.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-MadaraController::MadaraController(int id, double commRange, double minAltitude)
+MadaraController::MadaraController(int id, double commRange, double minAltitude, double lineWidth, double heightDiff)
 {
     // Start the counter at 0.
     m_regionId = 0;
 
-    // Define the transport settings.
-    m_host = "";
-    m_transportSettings.hosts_.resize (1);
-    m_transportSettings.hosts_[0] = MAIN_MULTICAST_ADDRESS;
-    m_transportSettings.id = id;
-
-    // Setup the actual transport.
-#ifndef WIN_VREP
-    // In Linux, or Windows outside of V-Rep, we can use the default Mulitcast transport.
-    m_transportSettings.type = Madara::Transport::MULTICAST;
-#endif
-    
-    // Delay launching the transport so that we can activate it when we want to, and setup logging.
-    m_transportSettings.delay_launch = true;
-    Madara::Knowledge_Engine::Knowledge_Base::log_level (10);
-    Madara::Knowledge_Engine::Knowledge_Base::log_to_file(
-      "systemcmadaralog.txt", true);
-
-    // Create the knowledge base.
-    m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base(m_host, m_transportSettings);
-    Madara::Knowledge_Record::set_precision(10);
-    m_knowledge->print ("Past the Knowledge_Base creation.\n");
-
-#ifdef WIN_VREP
-    // In Windows with V-Rep we need a custom transport to avoid crashes due to incompatibilities between Win V-Rep and ACE.
-    m_knowledge->attach_transport(new Windows_Multicast_Transport (m_knowledge->get_id (),
-                                  m_knowledge->get_context (), m_transportSettings, true));
-#else
-    // Everywhere else we just activate the default Multicast transport.
-    m_knowledge->activate_transport ();
-#endif
-   
-    // Set our id and comm range.
+    // Set our state.
     m_id = id;
     m_commRange = commRange;
     m_minAltitude = minAltitude;
+    m_lineWidth = lineWidth;
+    m_heightDiff = heightDiff;
+
+    // Get a proper simulation knowledge base.
+    m_knowledge = setupVRepKnowledgeBase(id, "systemcmadaralog.txt", MAIN_MULTICAST_ADDRESS);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,25 +36,8 @@ MadaraController::MadaraController(int id, double commRange, double minAltitude)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 MadaraController::~MadaraController()
 {
-    terminate();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Cleanup, terminating all threads and open communications.
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-void  MadaraController::terminate()
-{
-    if(m_knowledge != NULL)
-    {
-        MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-          DLINFO "MadaraController::terminate:" \
-          "Terminating Madara knowledge base.\n"));
-
-        //m_knowledge->close_transport();
-        m_knowledge->clear();
-        delete m_knowledge;
-        m_knowledge = NULL;
-    }
+    terminateVRepKnowledgeBase(m_knowledge);
+    m_knowledge = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

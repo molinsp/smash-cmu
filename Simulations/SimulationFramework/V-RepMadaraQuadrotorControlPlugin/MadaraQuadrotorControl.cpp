@@ -4,20 +4,14 @@
 *
 * https://code.google.com/p/smash-cmu/wiki/License
 *********************************************************************/
-#include "madara/knowledge_engine/Knowledge_Base.h"
-#include "MadaraQuadrotorControl.h"
-#include "utilities/Position.h"
 
-#include <vector>
-#include <string>
+#include "MadaraQuadrotorControl.h"
+#include "VRepKnowledgeBaseUtils.h"
+#include "platforms/v_rep/v-rep_madara_variables.h"
+#include "utilities/Position.h"
 
 using std::vector;
 using std::string;
-
-#ifdef WIN_VREP
-    // Only include the custom transport in Windows, as it is not necessary in Linux.
-    #include "Windows_Multicast_Transport.h"
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constructor, sets up a Madara knowledge base and basic values.
@@ -30,40 +24,9 @@ MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
     // Control id is derived from the droneId. But it has to be different to it to ensure different ids inside this domain.
     int transportId = droneId + 100;
 
-    // Define the transport settings.
-    Madara::Transport::Settings transportSettings;
-    transportSettings.hosts_.resize(1);
-    transportSettings.hosts_[0] = SIMULATED_HW_MULTICAST_ADDRESS;
-    transportSettings.id = transportId;
-    transportSettings.domains = VREP_DOMAIN;
-    transportSettings.queue_length = SIMULATION_TRANSPORT_QUEUE_LENGTH;
-
-    // Setup the actual transport.
-#ifndef WIN_VREP
-    // In Linux, or Windows outside of V-Rep, we can use the default Mulitcast transport.
-    transportSettings.type = Madara::Transport::MULTICAST;
-#endif
-    
-    // Delay launching the transport so that we can activate it when we want to, and setup logging.
-    transportSettings.delay_launch = true;
-    Madara::Knowledge_Engine::Knowledge_Base::log_level (10);
-    Madara::Knowledge_Engine::Knowledge_Base::log_to_file(
-      "quadrotormadaralog.txt", true);
-
-    // Create the knowledge base.
-    m_knowledge = new Madara::Knowledge_Engine::Knowledge_Base("", transportSettings);
-    Madara::Knowledge_Record::set_precision(10);
-    m_knowledge->print ("Past the Knowledge_Base creation.\n");
-
-#ifdef WIN_VREP
-    // In Windows with V-Rep we need a custom transport to avoid crashes due to incompatibilities between Win V-Rep and ACE.
-    m_knowledge->attach_transport(new Windows_Multicast_Transport (m_knowledge->get_id (),
-                                  m_knowledge->get_context (), transportSettings, true));
-#else
-    // Everywhere else we just activate the default Multicast transport.
-    m_knowledge->activate_transport ();
-#endif
-
+    // Get a proper simulation knowledge base.
+    m_knowledge = setupVRepKnowledgeBase(transportId, "quadrotormadaralog.txt", SIMULATED_HW_MULTICAST_ADDRESS, 
+                                        VREP_DOMAIN, SIMULATION_TRANSPORT_QUEUE_LENGTH);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -87,7 +50,8 @@ void MadaraQuadrotorControl::initInternalData(int droneId)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 MadaraQuadrotorControl::~MadaraQuadrotorControl()
 {    
-    terminate();
+    terminateVRepKnowledgeBase(m_knowledge);
+    m_knowledge = NULL;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,16 +71,8 @@ bool MadaraQuadrotorControl::terminate()
         }
         else
         {
-            // If there are no more drones using the plugin, we cleanup the knowledge base.
-            MADARA_DEBUG (MADARA_LOG_MAJOR_EVENT, (LM_DEBUG, 
-              DLINFO "MadaraQuadrotorControl::terminate:" \
-              "Terminating Madara knowledge base.\n"));
-
-            //m_knowledge->close_transport();
-            m_knowledge->clear();
-            delete m_knowledge;
+            terminateVRepKnowledgeBase(m_knowledge);
             m_knowledge = NULL;
-        
             return true;
         }
     }
