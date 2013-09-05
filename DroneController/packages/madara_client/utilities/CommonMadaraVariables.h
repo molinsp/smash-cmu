@@ -55,6 +55,7 @@
 #define MV_CURRENT_COVERAGE_TARGET(deviceId)    "device." + std::string(deviceId) + ".area_coverage.current_target" // A number (valid from 1) indicating the current target we are after (increments for each new target).
 #define MV_AREA_COVERAGE_LINE_WIDTH             "area_coverage.line_width"                                          // The width of a line of search in a search algorihtm that uses lines, IN DEGREES.
 #define MV_AREA_COVERAGE_HEIGHT_DIFF            "area_coverage.height_diff"                                         // The vertical space to leave between drones in a search area, in meters.
+#define MV_SEARCH_WAIT                          "area_coverage.wait_for_swarm"                                      // 1 means wait for all drones in the area to reach their targets, 0 just move on.
 
 // Bridge information.
 #define MV_BRIDGE_REQUESTED                     "bridge.bridge_requested"                          // Tells if a bridge was requested.

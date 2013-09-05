@@ -109,7 +109,7 @@ void MadaraController::setupBridgeRequest(int bridgeId, Region startRegion, Regi
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Requests a drone to be part of area coverage.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraController::requestAreaCoverage(std::vector<int> droneIds, int searchAreaId, string algorithm)
+void MadaraController::requestAreaCoverage(std::vector<int> droneIds, int searchAreaId, string algorithm, int wait)
 {
     // Set the given search area as the area for this drone to search; and tell it to start searching.
 
@@ -121,6 +121,9 @@ void MadaraController::requestAreaCoverage(std::vector<int> droneIds, int search
 		  Madara::Knowledge_Engine::Eval_Settings(true)); 
 		m_knowledge->set(MV_AREA_COVERAGE_REQUESTED(droneIdString), algorithm,
 		  Madara::Knowledge_Engine::Eval_Settings(true));
+        m_knowledge->set(MV_SEARCH_WAIT, (Madara::Knowledge_Record::Integer) wait,
+		  Madara::Knowledge_Engine::Eval_Settings(true));
+
 	}
 
 	m_knowledge->apply_modified();

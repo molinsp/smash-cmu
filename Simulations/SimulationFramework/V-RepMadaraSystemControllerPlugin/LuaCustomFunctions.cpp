@@ -271,10 +271,11 @@ void registerMadaraSystemControllerSetupSearchAreaLuaCallback()
 // Callback of the Lua simExtMadaraSystemControllerAreaCoverageRequest command.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define the LUA function input parameters.
-static int g_areaCoverageRequestInArgs[] = {3, 
+static int g_areaCoverageRequestInArgs[] = {4, 
                                     sim_lua_arg_string,                 // Drone IDs, separated by a comma.
                                     sim_lua_arg_int,                    // Area ID.
-                                    sim_lua_arg_string                  // Area coverage algorithm to implement.
+                                    sim_lua_arg_string,                 // Area coverage algorithm to implement.
+                                    sim_lua_arg_int                     // Wait flag.
                 };
 
 std::vector<std::string> &stringSplit(const std::string &s, char delim, std::vector<std::string> &elems) {
@@ -304,6 +305,7 @@ void simExtMadaraSystemControllerAreaCoverageRequest(SLuaCallBack* p)
     { 
         // Get the simple input values.
         int searchAreaId = p->inputInt[0];
+        int waitFlag = p->inputInt[1];
 
         // Get the values from the concatenated string with all of them.		
 		// First the concatenated list of drones.
@@ -316,7 +318,7 @@ void simExtMadaraSystemControllerAreaCoverageRequest(SLuaCallBack* p)
         std::stringstream sstm; 
         sstm << "Values received inside simExtMadaraSystemControllerAreaCoverageRequest(" <<
             "droneIds = " << droneIdsString << ", areaId= " << searchAreaId <<
-            ", algorithm: \"" << algorithm << "\")" << std::endl;
+            ", algorithm: \"" << algorithm << "\", waitFlag: " << waitFlag << ")" << std::endl;
         simAddStatusbarMessage(sstm.str().c_str());
 
 		// Parse the drone ids.
@@ -330,7 +332,7 @@ void simExtMadaraSystemControllerAreaCoverageRequest(SLuaCallBack* p)
 		}
 
         // Tell the controller to actually set this drone to search this area.
-        madaraController->requestAreaCoverage(droneIdList, searchAreaId, algorithm);
+        madaraController->requestAreaCoverage(droneIdList, searchAreaId, algorithm, waitFlag);
     }
 
     simLockInterface(0);
