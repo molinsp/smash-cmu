@@ -6,3 +6,5 @@
 ######################################################################
 
 LOCAL_SOURCES += utilities/utilities_module.cpp
+LOCAL_SOURCES += utilities/string_utils.cpp
+
