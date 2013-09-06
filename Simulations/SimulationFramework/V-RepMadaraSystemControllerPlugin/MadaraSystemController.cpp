@@ -41,16 +41,19 @@ MadaraController::~MadaraController()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Convenience method that updates the status of the drones with the information form the simulator.
+// Convenience method that updates general parameters of thw swarm.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraController::updateNetworkStatus(const int& numberOfDrones)
+void MadaraController::updateGeneralParameters(const int& numberOfDrones)
 {
-    // This is done just to ensure this is propagated, since we are just setting this value to the same value it already has.
+    // Set up the general parameters from the class into Madara variables.
     m_knowledge->set (MV_COMM_RANGE, m_commRange, Madara::Knowledge_Engine::Eval_Settings(true));
     m_knowledge->set (MV_MIN_ALTITUDE, m_minAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
-
-    // This call has no delay to flush all past changes, and updates the total of drones in the system.
-    m_knowledge->set(MV_TOTAL_DEVICES, (Madara::Knowledge_Record::Integer) numberOfDrones);
+    m_knowledge->set (MV_AREA_COVERAGE_LINE_WIDTH, m_lineWidth, Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set (MV_AREA_COVERAGE_HEIGHT_DIFF, m_heightDiff, Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set(MV_TOTAL_DEVICES, (Madara::Knowledge_Record::Integer) numberOfDrones, Madara::Knowledge_Engine::Eval_Settings(true));
+    
+    // This call will flush all past changes.
+    m_knowledge->apply_modified();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

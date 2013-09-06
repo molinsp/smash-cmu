@@ -186,7 +186,7 @@ void simExtMadaraSystemControllerUpdateStatus(SLuaCallBack* p)
         int totalNumberOfDrones = p->inputInt[0];
 
         // Propagate the status information through the network.
-        madaraController->updateNetworkStatus(totalNumberOfDrones);
+        madaraController->updateGeneralParameters(totalNumberOfDrones);
     }
 
     simLockInterface(0);

@@ -51,7 +51,8 @@ public:
     MadaraController(int id, double commRange, double minAltitude, double lineWidth, double heightDiff);
     ~MadaraController();
 
-    void updateNetworkStatus(const int& numberOfDrones);
+    // Sets general parameters in Madara variables.
+    void updateGeneralParameters(const int& numberOfDrones);
 
     // Bridge methods.
     void setupBridgeRequest(int bridgeId, SMASH::Utilities::Region startRegion, 
