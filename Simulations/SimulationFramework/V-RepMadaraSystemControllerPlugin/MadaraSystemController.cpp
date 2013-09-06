@@ -9,6 +9,8 @@
 #include "VRepKnowledgeBaseUtils.h"
 #include "utilities/CommonMadaraVariables.h"
 #include "platforms/v_rep/v-rep_main_madara_transport_settings.h"
+#include "utilities/string_utils.h"
+#include <map>
 
 using namespace SMASH::Utilities;
 
@@ -161,4 +163,57 @@ void MadaraController::setNewSearchArea(int searchAreaId, SMASH::Utilities::Regi
     // Update the total amount of search areas. No delay to apply all changes.
     int totalSearchAreas = searchAreaId + 1;
     m_knowledge->set(MV_TOTAL_SEARCH_AREAS, (Madara::Knowledge_Record::Integer) totalSearchAreas);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Convenience method that updates general parameters of thw swarm.
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<SMASH::Utilities::Position> MadaraController::getCurrentLocations()
+{
+    std::vector<SMASH::Utilities::Position> locations = std::vector<Position>();
+
+    // Loop over all drones to get the current location for all of them.
+    int numDrones = m_knowledge->get(MV_TOTAL_DEVICES).to_integer();
+    for(int i=0; i < numDrones; i++)
+    {
+        Position currDroneLocation;
+        std::string currDroneIdString = NUM_TO_STR(i);
+        currDroneLocation.latitude = m_knowledge->get(MV_DEVICE_LAT(currDroneIdString)).to_double();
+        currDroneLocation.longitude = m_knowledge->get(MV_DEVICE_LON(currDroneIdString)).to_double();
+        locations.push_back(currDroneLocation);
+    }
+
+    return locations;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Convenience method that updates general parameters of thw swarm.
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<SMASH::Utilities::Position> MadaraController::getCurrentThermals()
+{
+    std::vector<SMASH::Utilities::Position> locations = std::vector<Position>();
+
+    // Loop over all drones to get the current location for all of them.
+    std::map<std::string, Madara::Knowledge_Record> thermalLocations;
+    m_knowledge->to_map("location_*", thermalLocations);
+    
+    // Transfer the locations to the vector.
+    std::map<std::string, Madara::Knowledge_Record>::iterator iter;
+    for (iter = thermalLocations.begin(); iter != thermalLocations.end(); ++iter)
+    {
+        // Split the madara variable name to get the coordinates.
+        std::string locationString = iter->first;
+        std::vector<std::string> variableParts = stringSplit(locationString, '_');
+
+        // The coordinates will be in the position 1 and 2 of the split string (lat and long).
+        if(variableParts.size() >= 3)
+        {
+            Position currThermal;
+            currThermal.latitude = atof(variableParts[1].c_str());
+            currThermal.latitude = atof(variableParts[2].c_str());
+            locations.push_back(currThermal);
+        }
+    }
+     
+    return locations;
 }

@@ -51,8 +51,9 @@ Region* InsideOutAreaCoverage::initialize(const Region& grid, int deviceIdx,
             m_heading = m_clockwise ? SOUTH : NORTH;
             break;
         default:
-            cerr << "Invalid direction" << endl;
-            exit(-1);
+            // If for some weird reason we end up here, we just pick a particlar heading.
+            cerr << "Invalid direction, picking a default one." << endl;
+            m_heading = m_clockwise ? WEST : EAST;
     }
 
 	// find search region
@@ -102,8 +103,9 @@ Position InsideOutAreaCoverage::getNextTargetLocation()
                 m_heading = m_clockwise ? NORTH : SOUTH;
                 break;
             default:
+                // If for some weird reason we end up here, we just pick any heading.
                 cerr << "Invalid direction" << endl;
-                exit(-1);
+                m_heading = m_clockwise ? WEST : EAST;
         }
 
         // find new target
@@ -122,8 +124,9 @@ Position InsideOutAreaCoverage::getNextTargetLocation()
                 m_targetLocation.longitude -= (m_iteration / 2) * m_delta * m_ewMultiplier;
                 break;
             default:
+                // If for some weird reason we end up here, we just pick any heading.
                 cerr << "Invalid direction" << endl;
-                exit(-1);
+                m_targetLocation.latitude += (m_iteration / 2) * m_delta * m_nsMultiplier;
         }
 
         // go to next iteration

@@ -61,6 +61,10 @@ public:
     // Area coverage methods.
     void setNewSearchArea(int searchAreaId, SMASH::Utilities::Region areaBoundaries);
     void requestAreaCoverage(std::vector<int> droneIds, int searchAreaId, string algorithm, int wait);
+
+    // Information getter methods.
+    std::vector<SMASH::Utilities::Position> getCurrentLocations();
+    std::vector<SMASH::Utilities::Position> getCurrentThermals();
 };
 
 #endif

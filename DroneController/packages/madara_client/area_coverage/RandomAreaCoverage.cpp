@@ -111,8 +111,10 @@ Position RandomAreaCoverage::getNextTargetLocation()
       lat = frand(minLat, maxLat);
       break;
     default:
+      // If for some weird reason we end up here, we just pick any heading.
       cerr << "ERROR: side not in domain" << endl;
-      exit(-1);
+      lon = frand(minLon, maxLon);
+      lat = maxLat;
   }
 
   // update target

@@ -22,14 +22,6 @@ using std::string;
 #define NUM_TO_STR( x ) dynamic_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << std::setprecision(10) << x ) ).str()
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Checks if we have the expected amount and type of characters.
-// - p: the Lua callback pointer.
-// - inputArgumentsDescription: array with the amount of expected arguments as the first value, and their types
-//   as the rest of the array values.
-// - callerFunctionName: a string indicating the function that is processing this, to set error messages if required.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 struct type_to_string
 {
     int type;
@@ -45,6 +37,13 @@ const type_to_string TYPES[] =
 };
 unsigned int TYPES_SIZE = sizeof(TYPES) / sizeof(TYPES[0]);
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Checks if we have the expected amount and type of characters.
+// - p: the Lua callback pointer.
+// - inputArgumentsDescription: array with the amount of expected arguments as the first value, and their types
+//   as the rest of the array values.
+// - callerFunctionName: a string indicating the function that is processing this, to set error messages if required.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool checkInputArguments(SLuaCallBack* p, int inputArgumentsDescription[], const char* callerFunctionName)
 {
 	// The first value in the array is the number of arguments, which determines how many more values are in the array too.
@@ -111,19 +110,49 @@ bool checkInputArguments(SLuaCallBack* p, int inputArgumentsDescription[], const
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void setupDefaultOutput(SLuaCallBack* p, int numberOfOutputs)
 {
+    setupOutputTypes(p, numberOfOutputs, sim_lua_arg_nil);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Sets up the output buffer description about the outputs, setting all of them to the given type.
+// Does NOT setup the buffers for the actual values, if any.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void setupOutputTypes(SLuaCallBack* p, int numberOfOutputs, int type)
+{
 	// Setup the amount of arguments, and create the buffer for their types and sizes.
 	p->outputArgCount = numberOfOutputs;
 	int bufferSize = p->outputArgCount * (2 * sizeof(simInt));
 	p->outputArgTypeAndSize = (simInt*)simCreateBuffer(bufferSize);
 
-	// By default set all results to nil.
+	// Set up the types to the given value.
 	for(int i=0; i<p->outputArgCount; i++)
 	{
 		int currOutputTypePos = i*2;
 		int currOutputSizePos = currOutputTypePos + 1;
-		p->outputArgTypeAndSize[currOutputTypePos] = sim_lua_arg_nil;
+		p->outputArgTypeAndSize[currOutputTypePos] = type;
 		p->outputArgTypeAndSize[currOutputSizePos] = 1;
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Sets up the output buffer description about the outputs, setting only one output type, table, all of the same size.
+// Does NOT setup the buffers for the actual values, if any.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void setupOutputsToTables(SLuaCallBack* p, int numberOfTables, int tableSize)
+{
+	// Setup the amount of arguments, and create the buffer for their types and sizes.
+	p->outputArgCount = numberOfTables;
+	int bufferSize = p->outputArgCount * (2 * sizeof(simInt));
+	p->outputArgTypeAndSize = (simInt*)simCreateBuffer(bufferSize);
+
+	// Set the type and size.
+    for(int i=0; i < p->outputArgCount; i++)
+    {
+		int currOutputTypePos = i*2;
+		int currOutputSizePos = currOutputTypePos + 1;
+        p->outputArgTypeAndSize[currOutputTypePos] = sim_lua_arg_table;
+	    p->outputArgTypeAndSize[currOutputSizePos] = tableSize;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
