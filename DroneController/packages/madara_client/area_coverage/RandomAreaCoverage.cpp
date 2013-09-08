@@ -59,8 +59,6 @@ Region* RandomAreaCoverage::initialize(const Region& grid, int deviceIdx,
 // current target.
 Position RandomAreaCoverage::getNextTargetLocation()
 {
-  enum side_t { NORTH, EAST, SOUTH, WEST, NUM_SIDES };
-
   // region information
   const double maxLon = m_cellToSearch->southEast.longitude;
   const double minLon = m_cellToSearch->northWest.longitude;
@@ -68,31 +66,20 @@ Position RandomAreaCoverage::getNextTargetLocation()
   const double maxLat = m_cellToSearch->northWest.latitude;
 
   // select a side to go to
-  side_t side;
   if(!m_started) // select a random edge
   {
-    side = (side_t)(rand() % NUM_SIDES);
+    m_currentTargetSide = (side_t)(rand() % NUM_SIDES);
     m_started = true;
   }
   else // select a random different edge than we are on
   {
-    // what side are we on now
-    if(m_targetLocation.latitude == minLat)
-      side = SOUTH;
-    else if(m_targetLocation.latitude == maxLat)
-      side = NORTH;
-    else if(m_targetLocation.longitude == minLon)
-      side = WEST;
-    else // if(m_targetLocation.longitude == maxLon)
-      side = EAST;
-
-    // get a noncurrent side
-    side = (side_t)((side + 1 + (rand() % (NUM_SIDES - 1))) % NUM_SIDES);
+    // get a noncurrent side based on the last side we picked
+    m_currentTargetSide = (side_t)((m_currentTargetSide + 1 + (rand() % (NUM_SIDES - 1))) % NUM_SIDES);
   }
 
   // select a location on the side
   double lat, lon;
-  switch(side)
+  switch(m_currentTargetSide)
   {
     case EAST:
       lon = frand(minLon, maxLon);
@@ -127,12 +114,13 @@ Position RandomAreaCoverage::getNextTargetLocation()
 // Returns a random double between lower and upper
 double RandomAreaCoverage::frand(const double& lower, const double& upper)
 {
-  double position_in_range = ((double)rand()) / ((double)RAND_MAX);
+    // Get a double number between 0 and 1.
+    double position_in_range = ((double)rand()) / ((double)RAND_MAX);
 
-  if (lower < upper)
-    return (position_in_range * (upper - lower)) + lower;
-  else
-    return (position_in_range * (lower - upper)) + upper;
+    if (lower < upper)
+        return (position_in_range * (upper - lower)) + lower;
+    else
+        return (position_in_range * (lower - upper)) + upper;
 }
 
 /**
