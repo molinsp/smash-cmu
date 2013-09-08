@@ -127,8 +127,12 @@ Position RandomAreaCoverage::getNextTargetLocation()
 // Returns a random double between lower and upper
 double RandomAreaCoverage::frand(const double& lower, const double& upper)
 {
-  double norm = ((double)rand()) / ((double)RAND_MAX);
-  return (norm * (upper - lower)) + lower;
+  double position_in_range = ((double)rand()) / ((double)RAND_MAX);
+
+  if (lower < upper)
+    return (position_in_range * (upper - lower)) + lower;
+  else
+    return (position_in_range * (lower - upper)) + upper;
 }
 
 /**
