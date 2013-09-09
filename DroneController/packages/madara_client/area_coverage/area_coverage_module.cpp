@@ -165,11 +165,14 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                                             "("
                                                 // Update the last target that has been reached, only before we start waiting.
                                                 "(++" MV_LAST_REACHED_TARGET ");"
-                                                "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
 
                                                 // Indicate we are now in waiting mode.
                                                 "(" MV_WAITING " = 1);"
                                             ");"
+
+                                        // Propagate our current target continously once we have reached our target, so in case others are waiting and there
+                                        // are packets lost, they will get this eventually.
+                                        "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
 
                                         // Only look for a new target if we have not reached the last target, and all other drones have reached their current target.
                                         "( !(" MF_FINAL_TARGET_REACHED "()) && ((!" MV_SEARCH_WAIT ") || " MF_ALL_DRONES_READY "()) )"
