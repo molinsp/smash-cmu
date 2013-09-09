@@ -24,6 +24,10 @@ using namespace SMASH::Utilities;
 using std::cerr;
 using std::endl;
 
+enum side_t { NORTH, EAST, SOUTH, WEST};
+side_t side = NORTH; // initiate <side> where my target is.
+#define NUM_SIDES 4 // rectangle
+
 // Constructors
 RandomAreaCoverage::RandomAreaCoverage(int seed) : AreaCoverage()
 {
@@ -37,78 +41,87 @@ RandomAreaCoverage::RandomAreaCoverage(int seed) : AreaCoverage()
 // Destructor
 RandomAreaCoverage::~RandomAreaCoverage() {}
 
+//TODO
 // Query if algorithm has reached final target
 // @return  true if final target has been reached, false otherwise
-bool RandomAreaCoverage::isTargetingFinalWaypoint() 
-{ 
-	return false; 
+bool RandomAreaCoverage::isTargetingFinalWaypoint()
+{
+    return false;
 }
 
 // Initialize the area for the drone
 Region* RandomAreaCoverage::initialize(const Region& grid, int deviceIdx,
-  int numDrones)
+                                       int numDrones)
 {
-    // For this algorithm, all drones will be working on the complete search area.
     printf("Initializing random area coverage algorithm.\n");
-    m_cellToSearch = new Region(grid);
-    //       m_cellToSearch = calculateCellToSearch(deviceIdx, grid, numDrones);
+    if(numDrones == 1)
+        m_cellToSearch = new Region(grid);
+    else
+        m_cellToSearch = calculateCellToSearch(deviceIdx, grid, numDrones);
     return m_cellToSearch;
+}
+
+// Select a new side to go to. req.: try hard NOT choose the same side.
+side_t get_random_side(side_t curside){
+    side_t tmp_side;
+    
+    for (int i=0;i<1000;i++)
+    { //while(1) is ugly. try 1000 times to get a new target. if you can't, just return side NORTH...
+        tmp_side = (side_t)(rand() % NUM_SIDES);
+        if (tmp_side != curside)
+        {
+            printf("***Chosen side %i\n",tmp_side);
+            return tmp_side;
+        }
+    }
+    printf("***Chosen side %i\n",tmp_side);
+    
+    return NORTH;
 }
 
 // Calculates the next location to move to, assuming we have reached our
 // current target.
+// it assigns a new point in the perimeter in a rectangle perfectly oriented NORTH-SOUTH
 Position RandomAreaCoverage::getNextTargetLocation()
 {
-  // region information
-  const double maxLon = m_cellToSearch->southEast.longitude;
-  const double minLon = m_cellToSearch->northWest.longitude;
-  const double minLat = m_cellToSearch->southEast.latitude;
-  const double maxLat = m_cellToSearch->northWest.latitude;
-
-  // select a side to go to
-  if(!m_started) // select a random edge
-  {
-    m_currentTargetSide = (side_t)(rand() % NUM_SIDES);
-    m_started = true;
-  }
-  else // select a random different edge than we are on
-  {
-    // get a noncurrent side based on the last side we picked
-    m_currentTargetSide = (side_t)((m_currentTargetSide + 1 + (rand() % (NUM_SIDES - 1))) % NUM_SIDES);
-  }
-
-  // select a location on the side
-  double lat, lon;
-  switch(m_currentTargetSide)
-  {
-    case EAST:
-      lon = frand(minLon, maxLon);
-      lat = maxLat;
-      break;
-    case NORTH:
-      lon = maxLon;
-      lat = frand(minLat, maxLat);
-      break;
-    case SOUTH:
-      lon = frand(minLon, maxLon);
-      lat = minLat;
-      break;
-    case WEST:
-      lon = minLon;
-      lat = frand(minLat, maxLat);
-      break;
-    default:
-      // If for some weird reason we end up here, we just pick any heading.
-      cerr << "ERROR: side not in domain" << endl;
-      lon = frand(minLon, maxLon);
-      lat = maxLat;
-  }
-
-  // update target
-  m_targetLocation.longitude = lon;
-  m_targetLocation.latitude = lat;
-
-  return m_targetLocation;
+    // region information
+    const double maxLon = m_cellToSearch->southEast.longitude;
+    const double minLon = m_cellToSearch->northWest.longitude;
+    const double minLat = m_cellToSearch->southEast.latitude;
+    const double maxLat = m_cellToSearch->northWest.latitude;
+    
+    side = get_random_side(side); //returns a random side: N, S, W or E.
+    
+    // select a location on the side
+    double tlat = 0, tlon = 0;
+    switch(side)
+    {
+        case NORTH:
+            tlon = frand(minLon, maxLon);
+            tlat = maxLat;
+            break;
+        case EAST:
+            tlon = maxLon;
+            tlat = frand(minLat, maxLat);
+            break;
+        case SOUTH:
+            tlon = frand(minLon, maxLon);
+            tlat = minLat;
+            break;
+        case WEST:
+            tlon = minLon;
+            tlat = frand(minLat, maxLat);
+            break;
+        default:
+            cerr << "ERROR: side not in domain" << endl;
+            exit(-1);
+    }
+    
+    // update target
+    m_targetLocation.longitude = tlon;
+    m_targetLocation.latitude = tlat;
+    
+    return m_targetLocation;
 }
 
 // Returns a random double between lower and upper
@@ -116,7 +129,7 @@ double RandomAreaCoverage::frand(const double& lower, const double& upper)
 {
     // Get a double number between 0 and 1.
     double position_in_range = ((double)rand()) / ((double)RAND_MAX);
-
+    
     if (lower < upper)
         return (position_in_range * (upper - lower)) + lower;
     else
