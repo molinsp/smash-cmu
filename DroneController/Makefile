@@ -52,7 +52,7 @@ v_rep: .make_install_dir
 #               -> drone-rk
 ##################################################
 
-ar_drone_2: .make_install_dir drone-rk-realclean
+ar_drone_2: 
 	cd $(PACKAGES_ROOT)/drone-rk; $(AR_DRONE_2_CMD)
 	cd $(PACKAGES_ROOT)/ace; $(AR_DRONE_2_CMD)
 	cd $(PACKAGES_ROOT)/madara; $(AR_DRONE_2_CMD)

@@ -12,6 +12,8 @@
 #include "utilities/CommonMadaraVariables.h"
 #include "utilities/Position.h"
 
+#include <math.h>
+
 #define TASK_COUNT		    1
 #define EVALUATE_SENSORS	0
 
