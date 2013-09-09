@@ -52,9 +52,8 @@ using std::string;
 #define MV_MY_CELL_TOP_LEFT_LON         ".area_coverage.cell.top_left.location.longitude"       // The longitude of the top left corner of the cell I am searching.
 #define MV_MY_CELL_BOT_RIGHT_LAT        ".area_coverage.cell.bottom_right.location.latitude"    // The latitude of the bottom right corner of the cell I am searching.
 #define MV_MY_CELL_BOT_RIGHT_LON        ".area_coverage.cell.bottom_right.location.longitude"   // The longitude of the bottom right corner of the cell I am searching.
-#define MV_TOTAL_TARGETS_REACHED        ".area_coverage.target.total.reached"                   // Total number of targets reached.
-#define MV_STATE                        ".area_coverage.state"                                  // The state of area coverage method.
-#define MV_ITR_COUNT                    ".area_coverage.itr.count"
+#define MV_MOVE_TO_NEXT_TARGET_ALLOWED  ".area_coverage.target.move_to_next_allowed"            // 0 or 1 depending upon if we are allowed to move to next target.
+#define MV_STATE                        ".area_coverage.state"                                  // FSM of area coverage method.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private variables.
@@ -143,29 +142,22 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                         "(" MV_IS_AT_ASSIGNED_ALTITUDE "|| 1)" 
                         " => "
                             "("
-                                "(" MV_ITR_COUNT " += 1);"
-                                 
-                                // Check if I have reached target.
-                                "(" MV_REACHED_GPS_TARGET ")"
-                                    " => "
-                                        MV_TARGET_REACHED("{" MV_MY_ID "}") " = 1;"
-                                
-                                // Check if I have reached target.
-                                "(!" MV_REACHED_GPS_TARGET ")"
-                                    " => "
-                                        MV_TARGET_REACHED("{" MV_MY_ID "}") " = 0;"
-                                
                                 // Check if all drones have reached.
-                                "(" MV_TOTAL_TARGETS_REACHED " = 0);" 
+                                MV_MOVE_TO_NEXT_TARGET_ALLOWED "= 1;"
                                 ".i[0->" MV_TOTAL_DEVICES ")"
-                                "(" MV_TOTAL_TARGETS_REACHED " += " MV_TARGET_REACHED("{.i}")");"
+                                "("
+                                    "("MV_TARGETS_REACHED("{"MV_MY_ID"}") ">" MV_TARGETS_REACHED("{.i}")") => "MV_MOVE_TO_NEXT_TARGET_ALLOWED "= 0;"
+                                    "#print('***Targets reached by Drone#:{.i} = {"MV_TARGETS_REACHED("{.i}")"} | {" MV_MOVE_TO_NEXT_TARGET_ALLOWED "}\n');"
+                                ");"
+
+                                
 
                                 // Transition from INITIAL to MOVING state.
                                 "("
                                     "((" MV_STATE " == 0) && (" MV_NEXT_TARGET_LAT " == 0) && (" MV_NEXT_TARGET_LON " == 0))" 
                                         " => " 
                                             "("
-                                                "#print('***In STATE 0. Transitioning to STATE 1\n');" 
+                                                "#print('***Transitioning from STATE 0 to STATE 1\n');" 
                                                 MV_STATE " = 1;" 
                                                 MF_SET_NEW_TARGET "();"
                                             ")"
@@ -175,10 +167,11 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
   
                                 // Transition from MOVING to WAITING state.
                                 "("
-                                    "((" MV_STATE " == 1) && (" MV_TARGET_REACHED("{" MV_MY_ID "}") " == 1))" 
+                                    "((" MV_STATE " == 1) && (" MV_REACHED_GPS_TARGET "))" 
                                         " => " 
                                             "(" 
-                                                "#print('***In STATE 1. Transitioning to STATE 2\n');" 
+                                                "#print('***Transitioning from STATE 1 to STATE 2\n');"
+                                                "(++" MV_TARGETS_REACHED("{" MV_MY_ID "}")");"  
                                                 MV_STATE " = 2;" 
                                             ")"
                                 ")"
@@ -190,23 +183,12 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                                     "(" MV_STATE " == 2)"
                                         " => "
                                             "("
-                                                "(" MV_TARGET_REACHED("{" MV_MY_ID "}") " == 0)"
+                                                "(" MV_MOVE_TO_NEXT_TARGET_ALLOWED " || " MV_AREA_COVERAGE_NO_SYNC ")"
                                                     " => "
                                                         "("
-                                                            "#print('***In STATE 2. Transitioning to STATE 1 without new target\n');" 
-                                                            MV_STATE " = 1;" 
-                                                        ")"
-                                            ")"
-                                    
-                                            "||"
-
-                                            "("
-                                                "(" MV_TOTAL_TARGETS_REACHED " == " MV_TOTAL_DEVICES ")"
-                                                    " => "
-                                                        "("
-                                                            "#print('***In STATE 2. Transitioning to STATE 1 with new target\n');" 
+                                                            "#print('***Transitioning from STATE 2 to STATE 1 with new targets.\n');" 
+                                                            MV_STATE " = 1;"
                                                             MF_SET_NEW_TARGET "();" 
-                                                            MV_STATE " = 1;" 
                                                         ")"
                                             ")"
                                 ")"

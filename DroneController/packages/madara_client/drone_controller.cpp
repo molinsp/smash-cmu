@@ -205,7 +205,7 @@ void SMASH::DroneController::compileExpressions (Madara::Knowledge_Engine::Knowl
 	(
 		sensorsMainLogicCall + ";" +
 		"process_state ();"
-    //    "" + humanDetectionMainLogicCall + ";"
+    "" + humanDetectionMainLogicCall + ";"
 		"("
             ".movement_command"
 		    "||"

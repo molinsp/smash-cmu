@@ -24,6 +24,10 @@ using namespace SMASH::Utilities;
 using std::cerr;
 using std::endl;
 
+enum side_t { NORTH, EAST, SOUTH, WEST};
+side_t side = NORTH; // initiate <side> where my target is.
+#define NUM_SIDES 4 // rectangle
+
 // Constructors
 RandomAreaCoverage::RandomAreaCoverage(int seed) : AreaCoverage()
 {
@@ -37,6 +41,7 @@ RandomAreaCoverage::RandomAreaCoverage(int seed) : AreaCoverage()
 // Destructor
 RandomAreaCoverage::~RandomAreaCoverage() {}
 
+//TODO
 // Query if algorithm has reached final target
 // @return  true if final target has been reached, false otherwise
 bool RandomAreaCoverage::isTargetingFinalWaypoint() 
@@ -56,60 +61,56 @@ Region* RandomAreaCoverage::initialize(const Region& grid, int deviceIdx,
     return m_cellToSearch;
 }
 
+// Select a new side to go to. req.: try hard NOT choose the same side.
+side_t get_random_side(side_t curside){
+	side_t tmp_side;
+  
+	for (int i=0;i<1000;i++)
+	{ //while(1) is ugly. try 1000 times to get a new target. if you can't, just return side NORTH...
+		tmp_side = (side_t)(rand() % NUM_SIDES);	
+		if (tmp_side != curside)
+    {
+      printf("***Chosen side %i\n",tmp_side);	
+      return tmp_side;
+    }
+	}
+  printf("***Chosen side %i\n",tmp_side);	
+	
+	return NORTH;
+}
+
 // Calculates the next location to move to, assuming we have reached our
 // current target.
+// it assigns a new point in the perimeter in a rectangle perfectly oriented NORTH-SOUTH
 Position RandomAreaCoverage::getNextTargetLocation()
 {
-  enum side_t { NORTH, EAST, SOUTH, WEST, NUM_SIDES };
-
   // region information
   const double maxLon = m_cellToSearch->southEast.longitude;
   const double minLon = m_cellToSearch->northWest.longitude;
   const double minLat = m_cellToSearch->southEast.latitude;
   const double maxLat = m_cellToSearch->northWest.latitude;
-
-  // select a side to go to
-  side_t side;
-  if(!m_started) // select a random edge
-  {
-    side = (side_t)(rand() % NUM_SIDES);
-    m_started = true;
-  }
-  else // select a random different edge than we are on
-  {
-    // what side are we on now
-    if(m_targetLocation.latitude == minLat)
-      side = SOUTH;
-    else if(m_targetLocation.latitude == maxLat)
-      side = NORTH;
-    else if(m_targetLocation.longitude == minLon)
-      side = WEST;
-    else // if(m_targetLocation.longitude == maxLon)
-      side = EAST;
-
-    // get a noncurrent side
-    side = (side_t)((side + 1 + (rand() % (NUM_SIDES - 1))) % NUM_SIDES);
-  }
+ 
+	side = get_random_side(side); //returns a random side: N, S, W or E.
 
   // select a location on the side
-  double lat, lon;
+  double tlat = 0, tlon = 0;
   switch(side)
   {
-    case EAST:
-      lon = frand(minLon, maxLon);
-      lat = maxLat;
-      break;
     case NORTH:
-      lon = maxLon;
-      lat = frand(minLat, maxLat);
+      tlon = frand(minLon, maxLon);
+      tlat = maxLat;
+      break;
+    case EAST:
+      tlon = maxLon;
+      tlat = frand(minLat, maxLat);
       break;
     case SOUTH:
-      lon = frand(minLon, maxLon);
-      lat = minLat;
+      tlon = frand(minLon, maxLon);
+      tlat = minLat;
       break;
     case WEST:
-      lon = minLon;
-      lat = frand(minLat, maxLat);
+      tlon = minLon;
+      tlat = frand(minLat, maxLat);
       break;
     default:
       cerr << "ERROR: side not in domain" << endl;
@@ -117,8 +118,8 @@ Position RandomAreaCoverage::getNextTargetLocation()
   }
 
   // update target
-  m_targetLocation.longitude = lon;
-  m_targetLocation.latitude = lat;
+  m_targetLocation.longitude = tlon;
+  m_targetLocation.latitude = tlat;
 
   return m_targetLocation;
 }
