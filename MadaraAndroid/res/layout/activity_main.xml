@@ -1,20 +1,3 @@
-<!-- 
-	Copyright (c) 2013 Carnegie Mellon University.
-	All Rights Reserved.
-	Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-	1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following acknowledgments and disclaimers.
-	2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-	3. The names “Carnegie Mellon University,” "SEI” and/or “Software Engineering Institute" shall not be used to endorse or promote products derived from this software without prior written permission. For written permission, please contact permission@sei.cmu.edu.
-	4. Products derived from this software may not be called "SEI" nor may "SEI" appear in their names without prior written permission of permission@sei.cmu.edu.
-	5. Redistributions of any form whatsoever must retain the following acknowledgment:
-	This material is based upon work funded and supported by the Department of Defense under Contract No. FA8721-05-C-0003 with Carnegie Mellon University for the operation of the Software Engineering Institute, a federally funded research and development center.
-	Any opinions, findings and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of the United States Department of Defense.
-	NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN “AS-IS” BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-	This material has been approved for public release and unlimited distribution.
-	DM-0000245
-
- -->
-
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -27,129 +10,65 @@
         android:layout_height="fill_parent"
         android:apiKey="0zLXWfSArUINKJZJTCKqpZ8ZgkBQuAlw-uNkXGQ"
         android:clickable="true"
-        android:enabled="true" />
-
-    <LinearLayout
-        android:id="@+id/madara_var_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#AA000000"
-        android:gravity="center_vertical"
-        android:weightSum="3" >
-
-        <EditText
-            android:id="@+id/madara_var_edittext"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="Madara Var Name" >
-
-            <requestFocus />
-        </EditText>
-
-        <Spinner
-            android:id="@+id/madara_spinner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
-
-        <EditText
-            android:id="@+id/madara_val_edittext"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="Madara Value" />
-
-        <Button
-            android:id="@+id/send_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Send" />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/latlontextview"
-        android:layout_width="250dip"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/madara_var_container"
-        android:layout_centerHorizontal="true"
-        android:background="#AA000000"
-        android:gravity="center_vertical|center_horizontal"
-        android:text="00.000000,00.000000"
-        android:textColor="#FFFFFF" />
+        android:enabled="true" >
+    </com.google.android.maps.MapView>
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/madara_var_container"
-        android:background="#AA000000"
-        android:gravity="center_vertical"
-        android:orientation="vertical" >
-
-        <Spinner
-            android:id="@+id/drone_spinner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true" >
 
         <Button
-            android:id="@+id/takeoff_button"
-            android:layout_width="match_parent"
+            android:id="@+id/deselect_button"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="TakeOff" />
+            android:text="Deselect" />
 
         <Button
-            android:id="@+id/land_button"
-            android:layout_width="match_parent"
+            android:id="@+id/select_button"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/controller_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:visibility="gone" >
+
+        <Button
+            android:id="@+id/send_button"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Go To" />
+
+        <Button
+            android:id="@+id/button2"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Land" />
 
         <Button
-            android:id="@+id/up_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Up" />
-
-        <Button
-            android:id="@+id/down_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Down" />
-
-        <Button
-            android:id="@+id/left_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Left" />
-
-        <Button
-            android:id="@+id/right_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Right" />
-        
-                <Button
-                    android:id="@+id/forward_button"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Forward" />
-
-        <Button
-            android:id="@+id/backwars_button"
+            android:id="@+id/areacoverage_button"
+            style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Backward" />
-    </LinearLayout>
+            android:text="Area Coverage" />
 
-    <ImageView
-        android:id="@+id/cross_hair"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_centerVertical="true"
-        android:src="@drawable/marker" />
+        <Button
+            android:id="@+id/button3"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Network Bridge" />
+
+    </LinearLayout>
 
 </RelativeLayout>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    <EditTextPreference android:title="Device ID" android:key="device_id" android:defaultValue="device.3"/><EditTextPreference android:title="IP Address" android:key="ip_address" android:digits="0123456789." android:defaultValue="239.255.0.1"/>
+    
+    <EditTextPreference android:title="Port #" android:key="port_number" android:digits="0123456789" android:defaultValue="4150"/>
+    <ListPreference android:title="Transport Type" android:key="transport_type" android:entries="@array/transport_types_array_names" android:entryValues="@array/transport_types_array_values" android:defaultValue="5"/>
+    
+
+</PreferenceScreen>
