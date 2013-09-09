@@ -51,7 +51,8 @@ public:
     MadaraController(int id, double commRange, double minAltitude, double lineWidth, double heightDiff);
     ~MadaraController();
 
-    void updateNetworkStatus(const int& numberOfDrones);
+    // Sets general parameters in Madara variables.
+    void updateGeneralParameters(const int& numberOfDrones);
 
     // Bridge methods.
     void setupBridgeRequest(int bridgeId, SMASH::Utilities::Region startRegion, 
@@ -59,7 +60,11 @@ public:
 
     // Area coverage methods.
     void setNewSearchArea(int searchAreaId, SMASH::Utilities::Region areaBoundaries);
-    void requestAreaCoverage(std::vector<int> droneIds, int searchAreaId, string algorithm);
+    void requestAreaCoverage(std::vector<int> droneIds, int searchAreaId, string algorithm, int wait);
+
+    // Information getter methods.
+    std::vector<SMASH::Utilities::Position> getCurrentLocations();
+    std::vector<SMASH::Utilities::Position> getCurrentThermals();
 };
 
 #endif

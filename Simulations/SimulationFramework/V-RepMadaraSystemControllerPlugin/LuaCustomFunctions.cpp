@@ -8,6 +8,7 @@
 #include "MadaraSystemController.h"
 #include "LuaFunctionRegistration.h"
 #include "LuaExtensionsUtils.h"
+#include "utilities/string_utils.h"
 #include "v_repLib.h"
 
 #include <string>
@@ -186,7 +187,7 @@ void simExtMadaraSystemControllerUpdateStatus(SLuaCallBack* p)
         int totalNumberOfDrones = p->inputInt[0];
 
         // Propagate the status information through the network.
-        madaraController->updateNetworkStatus(totalNumberOfDrones);
+        madaraController->updateGeneralParameters(totalNumberOfDrones);
     }
 
     simLockInterface(0);
@@ -271,26 +272,12 @@ void registerMadaraSystemControllerSetupSearchAreaLuaCallback()
 // Callback of the Lua simExtMadaraSystemControllerAreaCoverageRequest command.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define the LUA function input parameters.
-static int g_areaCoverageRequestInArgs[] = {3, 
+static int g_areaCoverageRequestInArgs[] = {4, 
                                     sim_lua_arg_string,                 // Drone IDs, separated by a comma.
                                     sim_lua_arg_int,                    // Area ID.
-                                    sim_lua_arg_string                  // Area coverage algorithm to implement.
+                                    sim_lua_arg_string,                 // Area coverage algorithm to implement.
+                                    sim_lua_arg_int                     // Wait flag.
                 };
-
-std::vector<std::string> &stringSplit(const std::string &s, char delim, std::vector<std::string> &elems) {
-    std::stringstream ss(s);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-        elems.push_back(item);
-    }
-    return elems;
-}
-
-std::vector<std::string> stringSplit(const std::string &s, char delim) {
-    std::vector<std::string> elems;
-    stringSplit(s, delim, elems);
-    return elems;
-}
 
 // The actual callback function.
 void simExtMadaraSystemControllerAreaCoverageRequest(SLuaCallBack* p)
@@ -304,6 +291,7 @@ void simExtMadaraSystemControllerAreaCoverageRequest(SLuaCallBack* p)
     { 
         // Get the simple input values.
         int searchAreaId = p->inputInt[0];
+        int waitFlag = p->inputInt[1];
 
         // Get the values from the concatenated string with all of them.		
 		// First the concatenated list of drones.
@@ -316,7 +304,7 @@ void simExtMadaraSystemControllerAreaCoverageRequest(SLuaCallBack* p)
         std::stringstream sstm; 
         sstm << "Values received inside simExtMadaraSystemControllerAreaCoverageRequest(" <<
             "droneIds = " << droneIdsString << ", areaId= " << searchAreaId <<
-            ", algorithm: \"" << algorithm << "\")" << std::endl;
+            ", algorithm: \"" << algorithm << "\", waitFlag: " << waitFlag << ")" << std::endl;
         simAddStatusbarMessage(sstm.str().c_str());
 
 		// Parse the drone ids.
@@ -330,7 +318,7 @@ void simExtMadaraSystemControllerAreaCoverageRequest(SLuaCallBack* p)
 		}
 
         // Tell the controller to actually set this drone to search this area.
-        madaraController->requestAreaCoverage(droneIdList, searchAreaId, algorithm);
+        madaraController->requestAreaCoverage(droneIdList, searchAreaId, algorithm, waitFlag);
     }
 
     simLockInterface(0);
@@ -344,6 +332,42 @@ void registerMadaraSystemControllerAreaCoverageRequestLuaCallback()
                                  "simExtMadaraSystemControllerAreaCoverageRequest(int droneId, areaId, algorithm)",  // A tooltip to be shown to help the user know how to call it.
                                  g_areaCoverageRequestInArgs,                                             // The argument types.
                                  simExtMadaraSystemControllerAreaCoverageRequest);                        // The C function that will be called by the Lua function.
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Callback of the Lua simExtMadaraSystemControllerGetCurrentLocation command.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Define the LUA function input parameters.
+static int g_getCurrLocationInArgs[] = {0,
+                };
+
+// The actual callback function.
+void simExtMadaraSystemControllerGetCurrentLocation(SLuaCallBack* p)
+{
+    //WIN_AFX_MANAGE_STATE;
+    simLockInterface(1);
+
+    // Tell the controller to actually set this drone to search this area.
+    std::vector<SMASH::Utilities::Position> locations = madaraController->getCurrentLocations();
+
+    // We want to return two tables, one with the lats and another with the longs.
+    int numTables = 2;
+   	int tableSize = locations.size();
+    setupOutputsToTables(p, numTables, tableSize);
+
+    //p->output
+
+    simLockInterface(0);
+}
+
+// Registers the Lua simExtMadaraSystemControllerGetCurrentLocation command.
+void registerMadaraSystemControllerGetCurrentLocationLuaCallback()
+{
+    // Register the simExtGetPositionInBridge function.
+    simRegisterCustomLuaFunction("simExtMadaraSystemControllerGetCurrentLocation",                       // The Lua function name.
+                                 "lat, long = simExtMadaraSystemControllerGetCurrentLocation()",         // A tooltip to be shown to help the user know how to call it.
+                                 g_getCurrLocationInArgs,                                                // The argument types.
+                                 simExtMadaraSystemControllerGetCurrentLocation);                        // The C function that will be called by the Lua function.
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -390,4 +414,7 @@ void registerAllLuaExtensions()
     registerMadaraSystemControllerBridgeRequestLuaCallback();
     registerMadaraSystemControllerSetupSearchAreaLuaCallback();
     registerMadaraSystemControllerAreaCoverageRequestLuaCallback();
+
+    registerMadaraSystemControllerGetCurrentLocationLuaCallback();
+    //registerMadaraSystemControllerGetThermalsLuaCallback();
 }

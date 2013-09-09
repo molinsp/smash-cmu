@@ -21,6 +21,8 @@
 
 bool checkInputArguments(SLuaCallBack* p, int inputArgumentsDescription[], const char* callerFunctionName);
 void setupDefaultOutput(SLuaCallBack* p, int numberOfOutputs);
+void setupOutputTypes(SLuaCallBack* p, int numberOfOutputs, int type);
+void setupOutputsToTables(SLuaCallBack* p, int numberOfTables, int tableSize);
 void setupStringOutputBuffer(SLuaCallBack* p, std::vector<std::string> stringOutputs);
 
 #endif

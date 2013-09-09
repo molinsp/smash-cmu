@@ -110,6 +110,7 @@ void SMASH::AreaCoverage::AreaCoverageModule::initialize(Madara::Knowledge_Engin
     knowledge.set(MV_INITIAL_HEIGHT_REACHED, 0.0);
     knowledge.set(MV_AREA_COVERAGE_LINE_WIDTH, DEFAULT_SEARCH_LINE_OFFSET_DEGREES);
     knowledge.set(MV_AREA_COVERAGE_HEIGHT_DIFF, DEFAULT_ALTITUDE_DIFFERENCE);
+    knowledge.set(MV_SEARCH_WAIT, 0.0); // No wait by default.
 
     // Registers all default expressions, to have them compiled for faster access.
     compileExpressions(knowledge);
@@ -171,7 +172,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                                             ");"
 
                                         // Only look for a new target if we have not reached the last target, and all other drones have reached their current target.
-                                        "( !(" MF_FINAL_TARGET_REACHED "()) && (" MF_ALL_DRONES_READY "()) )"
+                                        "( !(" MF_FINAL_TARGET_REACHED "()) && ((!" MV_SEARCH_WAIT ") || " MF_ALL_DRONES_READY "()) )"
                                         " => "
                                             "("
                                                 "(" MF_SET_NEW_TARGET  "());"

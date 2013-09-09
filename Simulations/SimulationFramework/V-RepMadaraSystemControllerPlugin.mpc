@@ -28,6 +28,7 @@ project (V-RepMadaraSystemControllerPlugin) : using_ace, using_madara, using_vre
     V-RepCommonPluginUtils
     WindowsMulticastTransport
     V-RepMadaraSystemControllerPlugin
+    ../../DroneController/packages/madara_client/utilities/string_utils.cpp
   }
 
   Header_Files {

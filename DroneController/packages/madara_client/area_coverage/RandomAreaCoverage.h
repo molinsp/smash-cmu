@@ -22,6 +22,9 @@
 using namespace SMASH::Utilities;
 
 namespace SMASH { namespace AreaCoverage {
+
+    enum side_t { NORTH, EAST, SOUTH, WEST, NUM_SIDES };
+
 	/**
 	* @brief Represents a snaking area coverage algorithm.
 	**/
@@ -75,6 +78,12 @@ namespace SMASH { namespace AreaCoverage {
 		* Returns a random float between lower and upper
 		*/
 		double frand(const double& lower, const double& upper);
+
+        /**
+         * Stores the current side we are going towards (to select a different side next time).
+         */
+        side_t m_currentTargetSide;
+
 	}; // class RandomAreaCoverage
 
 }} // namespace SMASH::AreaCoverage

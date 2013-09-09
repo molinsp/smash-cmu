@@ -85,6 +85,14 @@ The source code for the plugins is in smash-cmu\Simulations\SimulationFramework.
      - autoBridgeRequest: used to automatically send a bridge request to the drones when
 	   a person is found (basically equivalent to pressing the Form Bridge button
 	   right after a person is found).
+	 - searchLineWidth: the width of each search "line" a drone will follow, for the 
+	   algorithms that follow lines (such as snake and inside_out). Determines how far
+	   the drone would move to its side for the next "line". In degrees.
+	 - searchHeightDiff: the amount of vertical distance to leave between drones searching
+	   the same area, to avoid collisions. In meters.
+	 - waitForRest: 1 means that after reaching each of its search targets, each drone will wait for the
+	   rest to reach their corresponding target too. Only then it will start moving towards its next
+	   target. 0 means move to your next target right after you get to your current one.
        
     Moving the locations of the laptop and the people on the scene can also be useful
     to check different behaviours.   

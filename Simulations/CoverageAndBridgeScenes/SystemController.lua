@@ -133,9 +133,9 @@ function addDronesToSearchArea(numDrones, areaId)
     end
     simAddStatusbarMessage("Drone ids string: " .. droneIdsString)
     
-    
     -- Ask Madara to send the search request.
-    simExtMadaraSystemControllerAreaCoverageRequest(droneIdsString, areaId, coverageAlgorithm)        
+	local waitForRest = simGetScriptSimulationParameter(sim_handle_main_script, 'waitForRest')
+    simExtMadaraSystemControllerAreaCoverageRequest(droneIdsString, areaId, coverageAlgorithm, waitForRest)        
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
