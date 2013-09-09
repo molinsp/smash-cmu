@@ -154,6 +154,14 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                             // We only need to wait for the assigned altitude to be reached the first time; we don't care here if it changes its altitude later.
                             "(" MV_INITIAL_HEIGHT_REACHED " = 1);"
 
+                            // If wait is enabled, propagate our current target continously once we have reached our target, so in case 
+                            // others are waiting and there are packets lost, they will get this eventually.
+                            "("
+                                "(" MV_SEARCH_WAIT ")"
+                                " => "
+                                    "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
+                            ");"
+
                             // Check if we have reached our next target.
                             "("
                                 "(" MV_FIRST_TARGET_SELECTED " && " MV_REACHED_GPS_TARGET ")"
@@ -165,14 +173,11 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                                             "("
                                                 // Update the last target that has been reached, only before we start waiting.
                                                 "(++" MV_LAST_REACHED_TARGET ");"
+                                                "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
 
                                                 // Indicate we are now in waiting mode.
                                                 "(" MV_WAITING " = 1);"
                                             ");"
-
-                                        // Propagate our current target continously once we have reached our target, so in case others are waiting and there
-                                        // are packets lost, they will get this eventually.
-                                        "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
 
                                         // Only look for a new target if we have not reached the last target, and all other drones have reached their current target.
                                         "( !(" MF_FINAL_TARGET_REACHED "()) && ((!" MV_SEARCH_WAIT ") || " MF_ALL_DRONES_READY "()) )"
