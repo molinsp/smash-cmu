@@ -128,7 +128,9 @@ void platform_stop_movement()
 void platform_move_to_location(double lat, double lon, double alt)
 {
     printf("entering platform::move_to_location(%08f, %08f, %f)...\n", lat, lon, alt);
-    drk_goto_gps(lat, lon, alt, 0.1, 2);
+    double speed = 0.1;
+    double tolerance = platform_get_gps_accuracy();
+    drk_goto_gps(lat, lon, alt, speed, tolerance);
 }
 
 void platform_move_to_altitude(double alt)
@@ -189,7 +191,7 @@ double platform_read_ultrasound()
 // Gets the accuracy of the GPS for this platform, in meters.
 double platform_get_gps_accuracy()
 {
-    return 5.0;
+    return 7.5;
 }
 
 #endif
