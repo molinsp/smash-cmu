@@ -8,7 +8,7 @@
 #include "sensors/sensors_module.h"
 #include "platform_sensors.h"
 #include <iomanip>		// std::setprecision
-
+#include <math.h>
 #include "utilities/CommonMadaraVariables.h"
 #include "utilities/Position.h"
 
@@ -198,7 +198,7 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
 {	
 	expressions2[EVALUATE_SENSORS] = knowledge.compile
 	(
-		//"read_thermal();"
+		"read_thermal();"
 
         // Note: since we are reading the ultrasound after the GPS, the height given by the ultrasound may overwrite the GPS 
         // depending on our current height and the max height defined to be the ultrasound limit.

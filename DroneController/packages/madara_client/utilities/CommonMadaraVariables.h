@@ -50,7 +50,8 @@
 #define MV_ASSIGNED_SEARCH_AREA(deviceId)       "device." + std::string(deviceId) + ".search_area_id"               // The id of the area that I have been assigned to search.
 #define MV_TOTAL_SEARCH_AREAS                   "search_areas"                                                      // The total number of search areas requested so far.
 #define MV_SEARCH_AREA_REGION(areaId)           "search_area." + std::string(areaId) + ""                           // Returns the region associated to a certain search area.
-#define MV_TARGET_REACHED(deviceId)             "device." + std::string(deviceId) + ".target_reached"
+#define MV_TARGETS_REACHED(deviceId)            "device." + std::string(deviceId) + ".targets_reached"
+#define MV_AREA_COVERAGE_NO_SYNC                "area_coverage_no_synchronization"                                  // Flag that controls whether area coverage should be synchronized.
 
 // Bridge information.
 #define MV_BRIDGE_REQUESTED                     "bridge.bridge_requested"                          // Tells if a bridge was requested.

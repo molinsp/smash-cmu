@@ -166,7 +166,7 @@ double read_ultrasound()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 double get_gps_accuracy()
 {
-    return 5.0;
+    return 7.5;
 }
 
 void stop_movement()
@@ -177,7 +177,9 @@ void stop_movement()
 void move_to_location(double lat, double lon, double alt)
 {
     printf("entering platform::move_to_location(%08f, %08f, %f)...\n", lat, lon, alt);
-    drk_goto_gps(lat, lon, alt, 0.1, 2);
+    double speed = 0.1;
+    double tolerance = get_gps_accuracy();
+    drk_goto_gps(lat, lon, alt, speed, tolerance);
 }
 
 void move_to_altitude(double alt)
