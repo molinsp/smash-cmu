@@ -6,8 +6,8 @@
 *********************************************************************/
 
 #include "MadaraQuadrotorControl.h"
-#include "VRepKnowledgeBaseUtils.h"
-#include "platforms/v_rep/v-rep_madara_variables.h"
+#include "platforms/v_rep/comm_sim.h"
+#include "platforms/v_rep/v-rep_sim_madara_variables.h"
 #include "utilities/Position.h"
 
 using std::vector;
@@ -25,8 +25,7 @@ MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
     int transportId = droneId + 100;
 
     // Get a proper simulation knowledge base.
-    m_knowledge = setupVRepKnowledgeBase(transportId, "quadrotormadaralog.txt", SIMULATED_HW_MULTICAST_ADDRESS, 
-                                        VREP_DOMAIN, SIMULATION_TRANSPORT_QUEUE_LENGTH);
+    m_knowledge = sim_comm_setup_knowledge_base(transportId, true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -50,7 +49,7 @@ void MadaraQuadrotorControl::initInternalData(int droneId)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 MadaraQuadrotorControl::~MadaraQuadrotorControl()
 {    
-    terminateVRepKnowledgeBase(m_knowledge);
+    sim_comm_cleanup_knowledge_base(m_knowledge);
     m_knowledge = NULL;
 }
 
@@ -71,7 +70,7 @@ bool MadaraQuadrotorControl::terminate()
         }
         else
         {
-            terminateVRepKnowledgeBase(m_knowledge);
+            sim_comm_cleanup_knowledge_base(m_knowledge);
             m_knowledge = NULL;
             return true;
         }
@@ -179,7 +178,7 @@ void MadaraQuadrotorControl::setNewThermalScan(int droneId, std::string thermalB
     if(m_knowledge != NULL)
     {
         std::stringstream thermalBufferName;
-        thermalBufferName << MS_SIM_DEVICES_PREFIX << droneId << MV_THERMAL_BUFFER;
+        thermalBufferName << MS_SIM_DEVICES_PREFIX << droneId << MV_SIM_THERMAL_BUFFER;
         m_knowledge->set(thermalBufferName.str(), thermalBuffer);
     }
 }

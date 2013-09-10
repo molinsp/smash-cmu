@@ -15,15 +15,6 @@
 
 #include <string>
 
-// Multicast IP group.
-const std::string SIMULATED_HW_MULTICAST_ADDRESS ("239.255.0.2:4250");
-
-// Domain
-const std::string VREP_DOMAIN ("v_rep");
-
-// Queue length
-const int SIMULATION_TRANSPORT_QUEUE_LENGTH = 512000;
-
 // For the thermal buffer.
 #define THERMAL_BUFFER_HEIGHT 8
 #define THERMAL_BUFFER_WIDTH 8
@@ -53,6 +44,6 @@ const int SIMULATION_TRANSPORT_QUEUE_LENGTH = 512000;
 #define MV_ALTITUDE             ".location.altitude"    // Altitude.
 
 // Sensor variables - thermal.
-#define MV_THERMAL_BUFFER       ".thermal.buffer"                                                   // A comma-separated stirng of thermal values.
+#define MV_SIM_THERMAL_BUFFER   ".thermal.buffer"                                                   // A comma-separated stirng of thermal values.
 
 #endif

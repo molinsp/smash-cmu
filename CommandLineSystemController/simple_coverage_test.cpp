@@ -20,6 +20,7 @@ using std::endl;
 #include "madara/utility/Log_Macros.h"
 #include "utilities/CommonMadaraVariables.h"
 #include "utilities/Position.h"
+#include "platforms/comm/comm.h"
 
 #include <sstream>
 
@@ -68,10 +69,16 @@ void handleArgs(int argc, char** argv, int& id, int& numDrones,
 
 int main (int argc, char** argv)
 {
-    // handle args
+    int local_debug_level = 0;
+    int id = 0;
+    int numDrones = 0;
+    double nLat = 0;
+    double wLong = 0;
+    double sLat = 0;
+    double eLong = 0;
+
+    // Handle args
     cout << "Parse args..." << endl;
-    int local_debug_level = 0, id = 0, numDrones;
-    double nLat, wLong, sLat, eLong;
     handleArgs(argc, argv, id, numDrones, nLat, wLong, sLat, eLong, local_debug_level);
     cout << "  id:           " << id << endl;
     cout << "  numDrones:    " << numDrones << endl;
@@ -81,22 +88,9 @@ int main (int argc, char** argv)
     cout << "  eastern lat:  " << eLong << endl;
     cout << "  debug level:  " << local_debug_level << endl;
         
-    // should move this to init_platform
     cout << "Init Knowlege Base..." << endl;
-    Madara::Transport::Settings settings;
-    settings.hosts_.resize (1);
-    settings.hosts_[0] = "192.168.1.255:15000";
-    settings.type = Madara::Transport::BROADCAST;
-    //settings.hosts_[0] = "239.255.0.1:4150";
-    //settings.type = Madara::Transport::MULTICAST;
-    settings.id = id;
-    settings.queue_length = 1024; //Smaller queue len to preserve memory
-    MADARA_debug_level = local_debug_level;
-    Madara::Knowledge_Engine::Knowledge_Base* knowledge =
-        new Madara::Knowledge_Engine::Knowledge_Base("", settings);
+    Madara::Knowledge_Engine::Knowledge_Base* knowledge = comm_setup_knowledge_base(id, true);
 
-    //First thing we do is set our ID, this needs to be changed to actually set it
-    //Set our ID
     knowledge->set(".id", Madara::Knowledge_Record::Integer(id));
 
     printf("\nInitializing search area...\n");

@@ -6,9 +6,10 @@
  *********************************************************************/
 
 #include "MadaraSystemController.h"
-#include "VRepKnowledgeBaseUtils.h"
 #include "utilities/CommonMadaraVariables.h"
-#include "platforms/v_rep/v-rep_main_madara_transport_settings.h"
+
+#include "platforms/comm/comm.h"
+
 #include "utilities/string_utils.h"
 #include <map>
 
@@ -30,7 +31,7 @@ MadaraController::MadaraController(int id, double commRange, double minAltitude,
     m_heightDiff = heightDiff;
 
     // Get a proper simulation knowledge base.
-    m_knowledge = setupVRepKnowledgeBase(id, "systemcmadaralog.txt", MAIN_MULTICAST_ADDRESS);
+    m_knowledge = comm_setup_knowledge_base(id, true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,7 +39,9 @@ MadaraController::MadaraController(int id, double commRange, double minAltitude,
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 MadaraController::~MadaraController()
 {
-    terminateVRepKnowledgeBase(m_knowledge);
+    //sim_comm_cleanup_knowledge_base(m_knowledge);
+    if(m_knowledge != NULL)
+        delete m_knowledge;
     m_knowledge = NULL;
 }
 

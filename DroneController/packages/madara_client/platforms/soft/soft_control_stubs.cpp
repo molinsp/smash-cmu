@@ -7,9 +7,9 @@
 #include <stdio.h>
 
 #include "platforms/platform.h"
+#include "platforms/comm/comm.h"
 #include "movement/platform_movement.h"
 #include "sensors/platform_sensors.h"
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Platform.h interface implementations.
@@ -21,14 +21,8 @@ bool platform_init()
 }
 
 Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
-{
-    Madara::Transport::Settings settings;
-    settings.hosts_.resize (1);
-    settings.hosts_[0] = "239.255.0.1:4150";
-    settings.type = Madara::Transport::MULTICAST;
-    settings.id = id;
-    
-    Madara::Knowledge_Engine::Knowledge_Base* knowledge = new Madara::Knowledge_Engine::Knowledge_Base("", settings);
+{    
+    Madara::Knowledge_Engine::Knowledge_Base* knowledge = comm_setup_knowledge_base(id, false);
     return knowledge;
 }
 

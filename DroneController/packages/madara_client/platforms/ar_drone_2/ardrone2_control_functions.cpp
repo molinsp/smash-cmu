@@ -9,10 +9,10 @@
 
 #include <stdio.h>
 
-#include "transport/DroneRK_Transport.h"
 #include "drk.h"
 
 #include "platforms/platform.h"
+#include "platforms/comm/comm.h"
 #include "movement/platform_movement.h"
 #include "sensors/platform_sensors.h"
 
@@ -34,24 +34,8 @@ bool platform_init()
 
 Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
 {
-    // should move this to init_platform
-    Madara::Transport::Settings settings;
-    settings.id = id;
-    settings.hosts_.resize (1);
-    settings.hosts_[0] = "192.168.1.255:15000";
-    settings.type = Madara::Transport::BROADCAST;
-    //settings.type = Madara::Transport::NO_TRANSPORT;
-    settings.queue_length = 1024; //Smaller queue len to preserve memory
-
-    // Name the host based on the drone id.
-    char host[30];
-    sprintf(host, "drone%d", id);
-
     // Create the knowledge base.
-    Madara::Knowledge_Engine::Knowledge_Base* knowledge = new Madara::Knowledge_Engine::Knowledge_Base(host, settings);
-
-    //knowledge->attach_transport(new DroneRK_Transport(out.str(),
-    //knowledge->get_context(), settings, true, 500));
+    Madara::Knowledge_Engine::Knowledge_Base* knowledge = comm_setup_knowledge_base(id, false);
     return knowledge;
 }
 

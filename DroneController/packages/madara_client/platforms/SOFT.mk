@@ -6,5 +6,7 @@
 ######################################################################
 
 
-LOCAL_SOURCES += platforms/linux/linux_control_stubs.cpp
+LOCAL_SOURCES += platforms/soft/soft_control_stubs.cpp
+LOCAL_SOURCES += platforms/comm/kb_setup.cpp
+LOCAL_SOURCES += platforms/comm/multicast/comm_multicast.cpp
 

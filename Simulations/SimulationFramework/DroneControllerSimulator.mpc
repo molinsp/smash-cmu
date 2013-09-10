@@ -1,12 +1,13 @@
 
-project (DroneControllerSimulator) : using_ace, using_madara, using_madara_client {
+project (DroneControllerSimulator) : using_ace, using_madara, using_madara_client, vrep_hw_sim {
   exeout = bin
   exename = DroneControllerSimulator
   
   Build_Files {
-    GAMS_Simulator.mwc
+    SimulationFramework.mwc
     DroneControllerSimulator.mpc
     using_madara_client.mpb
+    vrep_hw_sim.mpb
   }
 
   Inline_Files {
@@ -22,7 +23,9 @@ project (DroneControllerSimulator) : using_ace, using_madara, using_madara_clien
     ../../DroneController/packages/madara_client/human_detection
     ../../DroneController/packages/madara_client/movement
     ../../DroneController/packages/madara_client/platforms
-    ../../DroneController/packages/madara_client/platforms/v_rep
+    ../../DroneController/packages/madara_client/platforms/comm
+    ../../DroneController/packages/madara_client/platforms/comm/multicast
+    ../../DroneController/packages/madara_client/platforms/v_rep/v-rep_control_functions.cpp
     ../../DroneController/packages/madara_client/sensors
     ../../DroneController/packages/madara_client/utilities
   }
@@ -34,7 +37,7 @@ project (DroneControllerSimulator) : using_ace, using_madara, using_madara_clien
     ../../DroneController/packages/madara_client/human_detection
     ../../DroneController/packages/madara_client/movement
     ../../DroneController/packages/madara_client/platforms
-    ../../DroneController/packages/madara_client/platforms/v_rep
+    ../../DroneController/packages/madara_client/platforms/comm
     ../../DroneController/packages/madara_client/sensors
     ../../DroneController/packages/madara_client/utilities
   }

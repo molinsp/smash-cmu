@@ -1,0 +1,27 @@
+project {
+  includes +=     V-RepImports
+  includes +=     V-RepCommonPluginUtils
+
+  lit_libs += shlwapi
+
+  specific(prop:microsoft) {
+    Debug::postbuild += <%rm%> "lib<%slash%><%sharedname%>.dll" <%cmdsep%> \
+						<%mv%> "lib<%slash%><%sharedname%>d.dll" "lib<%slash%><%sharedname%>.dll" <%cmdsep%> \
+						<%cp%> "lib<%slash%><%sharedname%>.dll" "$(VREP_HOME)"
+	Release::postbuild += <%cp%> "lib<%slash%><%sharedname%>.dll" "$(VREP_HOME)"
+  }
+
+  verbatim (gnuace, local) {
+    postbuild = cp lib/<%sharedname%>* "$(VREP_HOME)"
+  }
+
+  Source_Files {
+    V-RepImports
+    V-RepCommonPluginUtils
+  }
+
+  Header_Files {
+    V-RepImports
+    V-RepCommonPluginUtils
+  }
+}

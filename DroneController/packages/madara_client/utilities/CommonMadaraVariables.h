@@ -28,7 +28,6 @@
 
 // Network information.
 #define MV_TOTAL_DEVICES                        "devices"           // The total amount of devices in the system.
-#define MV_MIN_ALTITUDE                         "device.min_alt"    // The minimum altitude to set a device to.
 
 // Information about specific devices.
 #define MV_DEVICE_LOCATION(deviceId)            "device." + std::string(deviceId) + ".location" // The location of a device in the format "lat,long".
@@ -56,6 +55,7 @@
 #define MV_AREA_COVERAGE_LINE_WIDTH             "area_coverage.line_width"                                          // The width of a line of search in a search algorihtm that uses lines, IN DEGREES.
 #define MV_AREA_COVERAGE_HEIGHT_DIFF            "area_coverage.height_diff"                                         // The vertical space to leave between drones in a search area, in meters.
 #define MV_SEARCH_WAIT                          "area_coverage.wait_for_swarm"                                      // 1 means wait for all drones in the area to reach their targets, 0 just move on.
+#define MV_MIN_ALTITUDE                         "device.min_alt"                                                    // The minimum altitude to set a device to.
 
 // Bridge information.
 #define MV_BRIDGE_REQUESTED                     "bridge.bridge_requested"                          // Tells if a bridge was requested.
