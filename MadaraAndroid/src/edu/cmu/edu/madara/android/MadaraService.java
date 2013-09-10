@@ -1,6 +1,8 @@
 package edu.cmu.edu.madara.android;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,6 +41,7 @@ public class MadaraService extends Service {
 
 	private HashMap<String, Object> madaraVariables;
 	private HashMap<String, Drone> drones;
+	private HashMap<String, Thermal> thermals;
 	private Binder madaraServiceBinder;
 	private MadaraReaderThread madaraReaderThread;
 
@@ -56,6 +59,7 @@ public class MadaraService extends Service {
 
 		madaraVariables = new HashMap<String, Object>();
 		drones = new HashMap<String, Drone>();
+		thermals = new HashMap<String, Thermal>();
 
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -162,10 +166,9 @@ public class MadaraService extends Service {
 						//Assume that all "device.{X}" items are drones for now
 						if(key.startsWith("device.")){
 							Matcher matcher = pattern.matcher(key);
-							matcher.matches();
 							String droneId = null;
 							String variable = null;
-							if(matcher.groupCount()==2){
+							if(matcher.matches() && matcher.groupCount()==2){
 								droneId = matcher.group(1);
 								variable = matcher.group(2);
 							}
@@ -211,6 +214,17 @@ public class MadaraService extends Service {
 								drone.setMovementCommand(record.toStringValue());
 							}
 						}
+						else if(key.startsWith("location_")){
+							try{
+								String split[] = key.split("_");
+								double lat = Double.parseDouble(split[1]);
+								double lon = Double.parseDouble(split[2]);
+								thermals.put(key, new Thermal(lat,lon,record.toLongValue()));
+							}
+							catch(Exception e ){
+								e.printStackTrace();
+							}
+						}
 						else{
 							//do nothing right now
 						}
@@ -238,7 +252,11 @@ public class MadaraService extends Service {
 		public HashMap<String, Drone> getDrones(){
 			return drones;
 		}
-		
+
+		public HashMap<String, Thermal> getThermals(){
+			return thermals;
+		}
+
 		public void sendMadaraMessage(String message){
 			EvalSettings evalSettings = new EvalSettings();
 			knowledge.evaluateNoReturn(message, evalSettings);

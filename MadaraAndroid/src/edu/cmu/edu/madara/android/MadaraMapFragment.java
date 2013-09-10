@@ -39,12 +39,14 @@ import com.google.android.gms.maps.MapFragment;
 			@Override
 			public boolean dispatchTouchEvent(MotionEvent ev) {
 				if( onTouchListener!=null ){
-					if(drawmode){
+/*					if(drawmode){
 						onTouchListener.onTouch(ev);
 						return true;
 					}
 					else
-						return super.dispatchTouchEvent(ev);
+						return super.dispatchTouchEvent(ev);*/
+					onTouchListener.onTouch(ev);
+					return super.dispatchTouchEvent(ev);
 				}
 				return super.dispatchTouchEvent(ev);
 			}
