@@ -36,6 +36,46 @@ extern "C" void terminate (int)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Instructions on how the program works.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void programSummary(char* arg)
+{
+    cerr << arg << endl;
+    cerr << "  [-i] id" << endl;
+    cerr << "  [-d] numDrones" << endl;
+    cerr << "  [-n] northern latitude" << endl;
+    cerr << "  [-s] southern latitude" << endl;
+    cerr << "  [-e] eastern longitude" << endl;
+    cerr << "  [-w] western longitude" << endl;
+    cerr << "  [-l] MADARA log level" << endl;
+    exit(-1);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Argument handling.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void handleArgs(int argc, char** argv, int& id, int& logLevel)
+{
+    for(int i = 1; i < argc; ++i)
+    {
+        string arg(argv[i]);
+
+        if(arg == "-i" && i + 1 < argc)
+        {
+            sscanf(argv[++i], "%d", &id);
+        }
+        else if(arg == "-l" && i + 1 < argc)
+        {
+            sscanf(argv[++i], "%d", &logLevel);
+        }
+        else
+        {
+            programSummary(argv[0]);
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Enntry point.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int main (int argc, char** argv)
@@ -44,20 +84,12 @@ int main (int argc, char** argv)
     ACE_Sig_Action sa ((ACE_SignalHandler) terminate, SIGINT);
     
     // Check command-line parameters.
-    // The first parameter should be an id.
     int id = 0;
-    if (argc > 1)
-        id = atoi(argv[1]);
-    else
-    {
-        printf("You must supply an ID as the first argument\n");
-        return 0;
-    }
-
-    // The second optional parameters is the debug level for logging.
-    int local_debug_level = 0;
-    if (argc > 2)
-        local_debug_level = atoi(argv[2]);
+    int local_debug_level = -1;
+    cout << "Parsing args..." << endl;
+    handleArgs(argc, argv, id, local_debug_level);
+    cout << "  id:           " << id << endl;
+    cout << "  debug level:  " << local_debug_level << endl;
         
     // We call platform init early in case it has to fork().
     if (!platform_init())
@@ -67,11 +99,15 @@ int main (int argc, char** argv)
     }
 
     // Set the debug level.
-    MADARA_debug_level = local_debug_level;
+    bool enableLogging = false;
+    if(local_debug_level != -1)
+    {
+        MADARA_debug_level = local_debug_level;
+        enableLogging = true;
+    }
 
     // Create the knowledge base.
-    Madara::Knowledge_Engine::Knowledge_Base* knowledge = platform_setup_knowledge_base(id);
-    Madara::Knowledge_Record::set_precision(10);
+    Madara::Knowledge_Engine::Knowledge_Base* knowledge = platform_setup_knowledge_base(id, enableLogging);
  
 	// Setup the drone controller.
     SMASH::DroneController controller;

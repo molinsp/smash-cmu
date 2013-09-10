@@ -14,7 +14,7 @@
 bool platform_init();
 
 // Sets up a knowledge base with a transport that is appropriate for this platform.
-Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id);
+Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id, bool enableLogging);
 
 // Cleans up any resources that are particular to this platform.
 bool platform_cleanup();

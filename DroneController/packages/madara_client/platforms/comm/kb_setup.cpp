@@ -26,7 +26,6 @@ Madara::Knowledge_Engine::Knowledge_Base* setup_knowledge_base(int id, bool enab
     {
         std::stringstream stream;
         stream << id;
-        Madara::Knowledge_Engine::Knowledge_Base::log_level(10);
         Madara::Knowledge_Engine::Knowledge_Base::log_to_file(std::string("madara_id_" + stream.str() + "_log.txt").c_str(), false);
     }
 

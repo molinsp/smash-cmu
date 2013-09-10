@@ -20,9 +20,9 @@ bool platform_init()
 	return true;
 }
 
-Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
+Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id, bool enableLogging)
 {    
-    Madara::Knowledge_Engine::Knowledge_Base* knowledge = comm_setup_knowledge_base(id, false);
+    Madara::Knowledge_Engine::Knowledge_Base* knowledge = comm_setup_knowledge_base(id, enableLogging);
     return knowledge;
 }
 

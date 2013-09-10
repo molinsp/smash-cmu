@@ -64,13 +64,13 @@ bool platform_init()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Overrides: setup_knowledge_base().
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
+Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id, bool enableLogging)
 {
     // Setup the internal, totally separate knowledge base to be used as a proxy for the hardware.
     setupInternalHardwareKnowledgeBase(id);
 
     // Create the knowledge base.
-    Madara::Knowledge_Engine::Knowledge_Base* knowledge = comm_setup_knowledge_base(id, false);
+    Madara::Knowledge_Engine::Knowledge_Base* knowledge = comm_setup_knowledge_base(id, enableLogging);
     return knowledge;
 }
 
