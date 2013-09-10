@@ -74,7 +74,7 @@ bool platform_init_control_functions()
 void platform_takeoff()
 {
 	printf("In AR_DRDONE_2 execute_takeoff()\n");
-    drk_ar_flat_trim();
+  drk_ar_flat_trim();
 	drk_takeoff();
 }
 void platform_land()

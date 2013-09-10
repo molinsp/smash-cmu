@@ -37,16 +37,17 @@ RandomAreaCoverage::RandomAreaCoverage(int seed) : AreaCoverage()
 // Destructor
 RandomAreaCoverage::~RandomAreaCoverage() {}
 
+//TODO
 // Query if algorithm has reached final target
 // @return  true if final target has been reached, false otherwise
-bool RandomAreaCoverage::isTargetingFinalWaypoint() 
-{ 
-	return false; 
+bool RandomAreaCoverage::isTargetingFinalWaypoint()
+{
+    return false;
 }
 
 // Initialize the area for the drone
 Region* RandomAreaCoverage::initialize(const Region& grid, int deviceIdx,
-  int numDrones)
+                                       int numDrones)
 {
     // For this algorithm, all drones will be working on the complete search area.
     printf("Initializing random area coverage algorithm.\n");
@@ -55,8 +56,27 @@ Region* RandomAreaCoverage::initialize(const Region& grid, int deviceIdx,
     return m_cellToSearch;
 }
 
+// Select a new side to go to. req.: try hard NOT choose the same side.
+side_t get_random_side(side_t curside){
+    side_t tmp_side;
+    
+    for (int i=0;i<1000;i++)
+    { //while(1) is ugly. try 1000 times to get a new target. if you can't, just return side NORTH...
+        tmp_side = (side_t)(rand() % NUM_SIDES);
+        if (tmp_side != curside)
+        {
+            printf("***Chosen side %i\n",tmp_side);
+            return tmp_side;
+        }
+    }
+    printf("***Chosen side %i\n",tmp_side);
+    
+    return NORTH;
+}
+
 // Calculates the next location to move to, assuming we have reached our
 // current target.
+// it assigns a new point in the perimeter in a rectangle perfectly oriented NORTH-SOUTH
 Position RandomAreaCoverage::getNextTargetLocation()
 {
   // region information
@@ -116,7 +136,7 @@ double RandomAreaCoverage::frand(const double& lower, const double& upper)
 {
     // Get a double number between 0 and 1.
     double position_in_range = ((double)rand()) / ((double)RAND_MAX);
-
+    
     if (lower < upper)
         return (position_in_range * (upper - lower)) + lower;
     else

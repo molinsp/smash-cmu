@@ -134,7 +134,6 @@ void SMASH::DroneController::initializeDrone(int droneId, Madara::Knowledge_Engi
 
     // Set madara variable to control human detection. This means the drone will always
     // try to detect human.
-    knowledge.set(MV_HUMAN_DETECTION_REQUESTED(knowledge.expand_statement("{" MV_MY_ID "}")), MO_HUMAN_DETECTION_BASIC);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -207,7 +206,7 @@ void SMASH::DroneController::compileExpressions (Madara::Knowledge_Engine::Knowl
 	(
 		sensorsMainLogicCall + ";" +
 		"process_state ();"
-        "" + humanDetectionMainLogicCall + ";"
+    "" + humanDetectionMainLogicCall + ";"
 		"("
             ".movement_command"
 		    "||"

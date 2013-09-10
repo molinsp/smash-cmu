@@ -36,6 +36,8 @@ endif
 #DOWNLOAD DRK
 #================================
 download:
+	@echo "In download"
+
 ifeq ($(wildcard $(DRK_ROOT)),)
 	@echo "Downloading Drone-RK source and compilers..."
 	@git clone ssh://drone-rk@wise.ece.cmu.edu/~/drone-rk.git $(DRK_ROOT)

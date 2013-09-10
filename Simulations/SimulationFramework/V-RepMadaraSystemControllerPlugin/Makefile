@@ -4,7 +4,7 @@ WARN = -Wall -Wextra -pedantic
 OPT = -O3
 DEBUG = 
 ifndef REPO_ROOT
-  REPO_ROOT = $(HOME)/dev/smash-cmu
+  REPO_ROOT = $(HOME)/smash-cmu
 endif
 MADARA_CLIENT = $(REPO_ROOT)/DroneController/packages/madara_client
 INC = -I../V-RepImports -I$(ACE_ROOT) -I$(MADARA_ROOT)/include -I$(MADARA_CLIENT) -I../V-RepCommonPluginUtils

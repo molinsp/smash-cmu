@@ -84,7 +84,9 @@ int main (int argc, char** argv)
     while (!g_terminated)
     {
         knowledge->evaluate (mainExpression, eval_settings);
+        printf("=====================================\n");
         //knowledge->print_knowledge();
+        //printf("=====================================\n");
         ACE_OS::sleep (1);
         printf("\n");
     }

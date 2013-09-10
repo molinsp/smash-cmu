@@ -84,7 +84,7 @@ function simulateSensors()
     updateDronePosition()
     
     -- "Thermal": Check if we have found a person to stop on top of it (only if we are patrolling).
-    lookForPersonBelow()
+    --lookForPersonBelow()
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////

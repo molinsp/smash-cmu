@@ -53,6 +53,8 @@ using std::string;
 #define MV_MY_CELL_TOP_LEFT_LON         ".area_coverage.cell.top_left.location.longitude"       // The longitude of the top left corner of the cell I am searching.
 #define MV_MY_CELL_BOT_RIGHT_LAT        ".area_coverage.cell.bottom_right.location.latitude"    // The latitude of the bottom right corner of the cell I am searching.
 #define MV_MY_CELL_BOT_RIGHT_LON        ".area_coverage.cell.bottom_right.location.longitude"   // The longitude of the bottom right corner of the cell I am searching.
+#define MV_MOVE_TO_NEXT_TARGET_ALLOWED  ".area_coverage.target.move_to_next_allowed"            // 0 or 1 depending upon if we are allowed to move to next target.
+#define MV_STATE                        ".area_coverage.state"                                  // FSM of area coverage method.
 
 #define MV_INITIAL_HEIGHT_REACHED       ".area_coverage.initial_height_reached"                 // Variable to check if the initial height has been reached at least once.
 #define MV_FIRST_TARGET_SELECTED        ".area_coverage.first_target_selected"                  // Variable to check if the first target has been selected.

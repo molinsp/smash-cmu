@@ -139,6 +139,7 @@ int main (int argc, char** argv)
         string droneIdString = NUM_TO_STR(i);
         knowledge->set(MV_ASSIGNED_SEARCH_AREA(droneIdString), Madara::Knowledge_Record::Integer(0), Madara::Knowledge_Engine::Eval_Settings(true));
         knowledge->set(MV_AREA_COVERAGE_REQUESTED(droneIdString), "random", Madara::Knowledge_Engine::Eval_Settings(true));
+        knowledge->set(MV_HUMAN_DETECTION_REQUESTED(droneIdString), MO_HUMAN_DETECTION_BASIC, Madara::Knowledge_Engine::Eval_Settings(true));
     }
 
     knowledge->apply_modified();
