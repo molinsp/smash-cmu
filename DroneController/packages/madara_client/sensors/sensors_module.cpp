@@ -7,10 +7,10 @@
  
 #include "sensors/sensors_module.h"
 #include "platform_sensors.h"
-#include <iomanip>		// std::setprecision
-#include <math.h>
 #include "utilities/CommonMadaraVariables.h"
 #include "utilities/Position.h"
+
+#include <iomanip>		// std::setprecision
 #include <math.h>
 
 #define TASK_COUNT		    1

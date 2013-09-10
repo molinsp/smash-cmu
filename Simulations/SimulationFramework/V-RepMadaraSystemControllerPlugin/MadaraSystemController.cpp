@@ -114,7 +114,7 @@ void MadaraController::setupBridgeRequest(int bridgeId, Region startRegion, Regi
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Requests a drone to be part of area coverage.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraController::requestAreaCoverage(std::vector<int> droneIds, int searchAreaId, string algorithm, int wait)
+void MadaraController::requestAreaCoverage(std::vector<int> droneIds, int searchAreaId, string searchAlgorithm, int wait, string humanDetectionAlgorithm)
 {
     // Set the given search area as the area for this drone to search; and tell it to start searching.
 
@@ -124,11 +124,13 @@ void MadaraController::requestAreaCoverage(std::vector<int> droneIds, int search
 		std::string droneIdString = NUM_TO_STR(droneIds[i]);
 		m_knowledge->set(MV_ASSIGNED_SEARCH_AREA(droneIdString), (Madara::Knowledge_Record::Integer) searchAreaId,
 		  Madara::Knowledge_Engine::Eval_Settings(true)); 
-		m_knowledge->set(MV_AREA_COVERAGE_REQUESTED(droneIdString), algorithm,
+		m_knowledge->set(MV_AREA_COVERAGE_REQUESTED(droneIdString), searchAlgorithm,
 		  Madara::Knowledge_Engine::Eval_Settings(true));
         m_knowledge->set(MV_SEARCH_WAIT, (Madara::Knowledge_Record::Integer) wait,
 		  Madara::Knowledge_Engine::Eval_Settings(true));
 
+        // Setup the human detection algorithm we want.
+        m_knowledge->set(MV_HUMAN_DETECTION_REQUESTED(droneIdString), humanDetectionAlgorithm);
 	}
 
 	m_knowledge->apply_modified();
