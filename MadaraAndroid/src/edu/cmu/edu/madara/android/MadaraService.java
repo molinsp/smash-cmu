@@ -1,18 +1,19 @@
 package edu.cmu.edu.madara.android;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.madara.EvalSettings;
 import com.madara.KnowledgeBase;
 import com.madara.KnowledgeMap;
 import com.madara.KnowledgeRecord;
-import com.madara.KnowledgeType;
 import com.madara.transport.Settings;
 import com.madara.transport.TransportType;
+import edu.cmu.edu.madara.android.model.Drone;
+import edu.cmu.edu.madara.android.model.Region;
+import edu.cmu.edu.madara.android.model.Thermal;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -42,6 +43,7 @@ public class MadaraService extends Service {
 	private HashMap<String, Object> madaraVariables;
 	private HashMap<String, Drone> drones;
 	private HashMap<String, Thermal> thermals;
+	private HashMap<String, Region> regions;
 	private Binder madaraServiceBinder;
 	private MadaraReaderThread madaraReaderThread;
 
@@ -60,7 +62,8 @@ public class MadaraService extends Service {
 		madaraVariables = new HashMap<String, Object>();
 		drones = new HashMap<String, Drone>();
 		thermals = new HashMap<String, Thermal>();
-
+		regions = new HashMap<String, Region>();
+		
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
 		hostName = prefs.getString("device_id", "device.3");
@@ -126,7 +129,8 @@ public class MadaraService extends Service {
 		public void run() {
 			running = true;
 
-			Pattern pattern = Pattern.compile("(device\\.[0-9]+)\\.(.*)");
+			Pattern dronePattern = Pattern.compile("(device\\.[0-9]+)\\.(.*)");
+			Pattern regionPattern = Pattern.compile("(region\\.[0-9]+)\\.(.*)");
 
 			while(running){
 				try {
@@ -165,7 +169,7 @@ public class MadaraService extends Service {
 						//Update the drones map
 						//Assume that all "device.{X}" items are drones for now
 						if(key.startsWith("device.")){
-							Matcher matcher = pattern.matcher(key);
+							Matcher matcher = dronePattern.matcher(key);
 							String droneId = null;
 							String variable = null;
 							if(matcher.matches() && matcher.groupCount()==2){
@@ -225,6 +229,41 @@ public class MadaraService extends Service {
 								e.printStackTrace();
 							}
 						}
+						else if(key.startsWith("region.")){
+							Matcher matcher = regionPattern.matcher(key);
+							String regionId = null;
+							String variable = null;
+							if(matcher.matches() && matcher.groupCount()==2){
+								regionId = matcher.group(1);
+								variable = matcher.group(2);
+							}
+							else{
+								continue;
+							}
+							
+							Region region = regions.get(regionId);
+							if(region==null){
+								region = new Region();
+								region.setId(regionId);
+								regions.put(regionId, region);
+							}
+							
+							if(variable.equals(MadaraConstants.REGION_TYPE)){
+								region.setType(record.toLongValue());
+							}
+							else if(variable.equals(MadaraConstants.REGION_TOP_LEFT_LOCATION)){
+								String split[] = record.toStringValue().split(",");
+								double lat = Double.parseDouble(split[0]);
+								double lon = Double.parseDouble(split[1]);
+								region.setTopLeft( new LatLng(lat, lon));
+							}
+							else if(variable.equals(MadaraConstants.REGION_BOTTOM_RIGHT_LOCATION)){
+								String split[] = record.toStringValue().split(",");
+								double lat = Double.parseDouble(split[0]);
+								double lon = Double.parseDouble(split[1]);
+								region.setBottomRight( new LatLng(lat, lon));
+							}
+						}
 						else{
 							//do nothing right now
 						}
@@ -255,6 +294,10 @@ public class MadaraService extends Service {
 
 		public HashMap<String, Thermal> getThermals(){
 			return thermals;
+		}
+		
+		public HashMap<String, Region> getRegions(){
+			return regions;
 		}
 
 		public void sendMadaraMessage(String message){

@@ -6,6 +6,6 @@
         android:showAsAction="never"
         android:title="@string/action_settings"/>
     <item android:id="@+id/action_log" android:title="Madara Logs"></item>
-    <item android:id="@+id/action_create_bounding_box" android:title="Create Bounding Box"></item>
+    <item android:id="@+id/action_go_to" android:title="Go To..."></item>
 
 </menu>
