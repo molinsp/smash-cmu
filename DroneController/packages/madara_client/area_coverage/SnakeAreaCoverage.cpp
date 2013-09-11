@@ -62,15 +62,15 @@ Position SnakeAreaCoverage::getNextTargetLocation()
         if(m_movingNorthSouth)
         {
             // If we were moving North-South, that means that we just finished searching in the
-            //  current search column.
+            // current search column.
             // We set our next target to the east, to the start of the next column.
             // After we reach this target, we will be ready to move down or up the search column.
-            m_targetLocation.longitude -= m_searchColumnWidth;
+            m_targetLocation.longitude += m_searchColumnWidth;
             m_movingNorthSouth = false;
         }
         else
         {
-            // If we are in here, we just moved to the beginning of a search column
+            // If we are in here, we just moved to the beginning of a search column.
 
             // Check if we are at the end of a column in the north or south of the area.
             if(m_targetLocation.latitude == m_cellToSearch->southEast.latitude)
@@ -98,9 +98,10 @@ Position SnakeAreaCoverage::getNextTargetLocation()
 // @return  true if final target has been reached, false otherwise
 bool SnakeAreaCoverage::isTargetingFinalWaypoint()
 {
-  return (fabs(m_targetLocation.longitude - m_cellToSearch->southEast.longitude) <
-                    (m_searchColumnWidth / 2)) &&
-         ((m_targetLocation.latitude == m_cellToSearch->southEast.latitude));
+    double accuracy = (m_searchColumnWidth / 2); 
+    bool reachedBottom = fabs(m_targetLocation.longitude - m_cellToSearch->southEast.longitude) < accuracy;
+    bool reachedRight =  fabs(m_targetLocation.latitude - m_cellToSearch->southEast.latitude) < accuracy;
+    return reachedBottom && reachedRight;
 }
 
 

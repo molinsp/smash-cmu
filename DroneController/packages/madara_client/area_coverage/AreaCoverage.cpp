@@ -69,7 +69,7 @@ Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
     }
 
     // Just for debugging purposes, print the grid we are searching in.
-    string out = "Given grid: NW = " + grid.northWest.toString() + " SE = ";
+    string out = "Choosing my cell in given grid: NW = " + grid.northWest.toString() + " SE = ";
     out += grid.southEast.toString();
     printf("%s\n", out.c_str());
 
@@ -85,41 +85,59 @@ Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
     // Calculate the size of each cell by diviging the real size of the grid in
     // the amount of drones that will cover the grid, for both sides. Each drone
     // will end up covering a rectangular cell of this size.
-    double cellSizeX = (grid.bottomRightCorner.x - grid.topLeftCorner.x) /
-        amountOfLines;
-    double cellSizeY = (grid.topLeftCorner.y - grid.bottomRightCorner.y) /
-        amountOfColumns;
-    printf("Cell size deltaLat: %.10f deltaLong: %.10f \n", cellSizeY, cellSizeX);
+    double cellHeight = fabs((grid.northWest.latitude - grid.southEast.latitude) / amountOfLines);
+    double cellWidth = fabs((grid.northWest.longitude - grid.southEast.longitude) / amountOfColumns);
+    printf("Cell size: height: %.10f, width: %.10f \n", cellHeight, cellWidth);
 
-    // Calculate my line and column to find my cell, based on my idx.
+    // Calculate my line and column to find my cell, based on my idx, using module and integer division.
     int deviceLine = (int) floor( ((double) deviceIdx) / ((double) amountOfColumns));
     int deviceColumn = deviceIdx % amountOfColumns;
-    printf("My idx, line and column: %d, %d, %d \n", deviceIdx, deviceLine, deviceColumn);
+    printf("My idx is %d, and my line and column are: %d, %d \n", deviceIdx, deviceLine, deviceColumn);
+
+    // Check what is the actual orientation of the box, to see if we have to add or substract to form our cell.
+    double topLatitude = grid.northWest.latitude;
+    double bottomLatitude = grid.southEast.latitude;
+    if(topLatitude < bottomLatitude)
+    {
+        // If the south latitude is greater than the north one, we recieved an inverted grid.
+        // Switch to get the real top and bottom latitudes.
+        topLatitude = grid.southEast.latitude;
+        bottomLatitude = grid.northWest.latitude;
+    }
+
+    // Check what is the actual orientation of the box, to see if we have to add or substract to form our cell.
+    double leftLongitude = grid.northWest.longitude;
+    double rightLongitude = grid.southEast.longitude;
+    if(leftLongitude > rightLongitude)
+    {
+        // If the west longitude is greater than the east one, we recieved an inverted grid.
+        // Switch to get the real top and bottom latitudes.
+        leftLongitude = grid.southEast.longitude;
+        rightLongitude = grid.northWest.longitude;
+    }
 
     // Calculate the starting position based on the cell (line and column) and the
     // cells's size.
-    Position deviceCellTopLeftCorner;
-    deviceCellTopLeftCorner.x = grid.topLeftCorner.x + (deviceLine*cellSizeX);
-    deviceCellTopLeftCorner.y = grid.topLeftCorner.y - (deviceColumn*cellSizeY);
-    printf("TopLeft lat: %.10f long:%.10f \n", deviceCellTopLeftCorner.y, deviceCellTopLeftCorner.x);
+    Position deviceCellNorthWestCorner;
+    deviceCellNorthWestCorner.latitude = topLatitude - (deviceLine*cellHeight);
+    deviceCellNorthWestCorner.longitude = leftLongitude + (deviceColumn*cellWidth);
+    printf("NorthWest lat: %.10f long:%.10f \n", deviceCellNorthWestCorner.latitude, deviceCellNorthWestCorner.longitude);
 
-    // Calculate the ending position based on the starting one and the cell's size
-    SMASH::Utilities::Position deviceCellBottomRightCorner;
-    deviceCellBottomRightCorner.x = deviceCellTopLeftCorner.x + cellSizeX;
-    deviceCellBottomRightCorner.y = deviceCellTopLeftCorner.y - cellSizeY;
-    printf("BottomRight lat: %.10f long: %.10f \n", deviceCellBottomRightCorner.y, deviceCellBottomRightCorner.x);
+    // Calculate the ending position based on the starting one and the cell's size.
+    SMASH::Utilities::Position deviceCellSouthEastCorner;
+    deviceCellSouthEastCorner.latitude = deviceCellNorthWestCorner.latitude - cellHeight;
+    deviceCellSouthEastCorner.longitude = deviceCellNorthWestCorner.longitude + cellWidth;
+    printf("SouthEast lat: %.10f long: %.10f \n", deviceCellSouthEastCorner.latitude, deviceCellSouthEastCorner.longitude);
 
     // Reset the search; indicate that we have not started searching or moving on
     // any axis yet.
     m_started = false;
 
     // Return the cell region (also storing it locally for further reference).
-    Region* deviceCell = new Region(deviceCellTopLeftCorner, deviceCellBottomRightCorner);
-    
+    Region* deviceCell = new Region(deviceCellNorthWestCorner, deviceCellSouthEastCorner);
     m_cellToSearch = deviceCell;
     return deviceCell;
 }
-
 
 // Returns a vector with the two middle divisors of a number (the ones closest
 // to one another).
