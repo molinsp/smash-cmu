@@ -116,7 +116,10 @@ end
 -- Adds drones to a search area, by requesting that out of each of them.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function addDronesToSearchArea(numDrones, areaId)
+	-- Get configurable parameters for the search.
 	local coverageAlgorithm = simGetScriptSimulationParameter(sim_handle_main_script, 'coverageAlgorithm')
+	local humanDetectionAlgorithm = simGetScriptSimulationParameter(sim_handle_main_script, 'humanDetectionAlgorithm')
+	local waitForRest = simGetScriptSimulationParameter(sim_handle_main_script, 'waitForRest')	
     
     local droneIdsString = ''
     local firstInList = true
@@ -134,8 +137,7 @@ function addDronesToSearchArea(numDrones, areaId)
     simAddStatusbarMessage("Drone ids string: " .. droneIdsString)
     
     -- Ask Madara to send the search request.
-	local waitForRest = simGetScriptSimulationParameter(sim_handle_main_script, 'waitForRest')
-    simExtMadaraSystemControllerAreaCoverageRequest(droneIdsString, areaId, coverageAlgorithm, waitForRest)        
+    simExtMadaraSystemControllerAreaCoverageRequest(droneIdsString, areaId, coverageAlgorithm, waitForRest, humanDetectionAlgorithm)        
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////

@@ -6,5 +6,7 @@
 ######################################################################
 
 LOCAL_SOURCES += platforms/ar_drone_2/ardrone2_control_functions.cpp
+LOCAL_SOURCES += platforms/comm/kb_setup.cpp
+LOCAL_SOURCES += platforms/comm/broadcast/comm_broadcast.cpp
 
 LOCAL_CFLAGS += -ldrk

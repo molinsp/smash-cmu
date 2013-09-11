@@ -5,14 +5,18 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
+#include "madara/knowledge_engine/Knowledge_Base.h"
+
+// Platform-specific includes.
+#include "platforms/comm/comm.h"
 #include "platforms/platform.h"
 #include "movement/platform_movement.h"
 #include "sensors/platform_sensors.h"
 
-#include "madara/knowledge_engine/Knowledge_Base.h"
+// Includes for HW simulation through VRep.
+#include "platforms/v_rep/v-rep_sim_madara_variables.h"
+#include "platforms/v_rep/comm_sim.h"
 
-#include "v-rep_madara_variables.h"
-#include "v-rep_main_madara_transport_settings.h"
 #include "utilities/Position.h"
 #include "utilities/string_utils.h"
 
@@ -60,30 +64,13 @@ bool platform_init()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Overrides: setup_knowledge_base().
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id)
+Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id, bool enableLogging)
 {
     // Setup the internal, totally separate knowledge base to be used as a proxy for the hardware.
     setupInternalHardwareKnowledgeBase(id);
 
-    // Define the transport.
-    Madara::Transport::Settings g_settings;
-    g_settings.hosts_.resize (1);
-    g_settings.hosts_[0] = MAIN_MULTICAST_ADDRESS;
-    g_settings.type = Madara::Transport::MULTICAST;
-    g_settings.queue_length = SIMULATION_TRANSPORT_QUEUE_LENGTH;
-
-    // Set the transport id as the given id.
-    g_settings.id = id;
-    
-    // Setup a log for Madara.
-    //Madara::Knowledge_Engine::Knowledge_Base::log_level(10);
-    //Madara::Knowledge_Engine::Knowledge_Base::log_to_file(std::string("dronemadaralog" + NUM_TO_STR(id) + ".txt").c_str(), false);
-    
     // Create the knowledge base.
-    std::string g_host ("");
-    Madara::Knowledge_Engine::Knowledge_Base* knowledge = new Madara::Knowledge_Engine::Knowledge_Base(g_host, g_settings);
-    Madara::Knowledge_Record::set_precision(10);
-
+    Madara::Knowledge_Engine::Knowledge_Base* knowledge = comm_setup_knowledge_base(id, enableLogging);
     return knowledge;
 }
 
@@ -108,31 +95,14 @@ bool platform_cleanup()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static void setupInternalHardwareKnowledgeBase(int id)
 {
-    // Used for updating various transport settings
-    Madara::Transport::Settings transportSettings;
-
-    // Define the transport.
-    transportSettings.hosts_.resize (1);
-    transportSettings.hosts_[0] = SIMULATED_HW_MULTICAST_ADDRESS;
-    transportSettings.type = Madara::Transport::MULTICAST;
-    transportSettings.domains = VREP_DOMAIN;
-
-    // Sets the id. NOTE: we are assuming that g_id will be setup externally by the code.
-    transportSettings.id = id;
-
-    // Setup a log for Madara.
-    //Madara::Knowledge_Engine::Knowledge_Base::log_level(10);
-    //Madara::Knowledge_Engine::Knowledge_Base::log_to_file(std::string("simhwmadaralog" + NUM_TO_STR(id) + ".txt").c_str(), false);
-    
     // Create the knowledge base.
-    std::string host = "";
-    m_sim_knowledge = new Madara::Knowledge_Engine::Knowledge_Base(host, transportSettings);
+    m_sim_knowledge = sim_comm_setup_knowledge_base(id, false);
 
     // Define Madara functions.
     compileExpressions(m_sim_knowledge);
 
     // Set the ID inside Madara.
-    m_sim_knowledge->set (".id", (Madara::Knowledge_Record::Integer) transportSettings.id);
+    m_sim_knowledge->set (".id", (Madara::Knowledge_Record::Integer) id);
 
 	// Indicate that we have not sent or received replied to commands yet. The first id sent will be 1.
     // NOTE: this is currently not being used for anything other than debugging. It could be used to fix a bug where
@@ -308,7 +278,7 @@ void initialize_thermal_variables()
 	}
 
     std::stringstream thermalBufferName;
-    thermalBufferName << MS_SIM_DEVICES_PREFIX << "{" MV_MY_ID "}" << MV_THERMAL_BUFFER;
+    thermalBufferName << MS_SIM_DEVICES_PREFIX << "{" MV_MY_ID "}" << MV_SIM_THERMAL_BUFFER;
     m_sim_knowledge->set(m_sim_knowledge->expand_statement(thermalBufferName.str()), emptyThermalBuffer.str());
 }
 
@@ -319,6 +289,15 @@ bool platform_init_sensor_functions()
 {
     initialize_thermal_variables();
 	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// The percentage of battery remaining.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+double platform_get_battery_remaining()
+{
+    // Because we are not running on batteries...
+    return 100;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -334,7 +313,7 @@ void platform_read_thermal(double buffer[8][8])
 
     // Get the thermal string from the knowledge base.
     std::stringstream thermalBufferName;
-    thermalBufferName << MS_SIM_DEVICES_PREFIX << "{" MV_MY_ID "}" << MV_THERMAL_BUFFER;
+    thermalBufferName << MS_SIM_DEVICES_PREFIX << "{" MV_MY_ID "}" << MV_SIM_THERMAL_BUFFER;
     std::string thermalValues = m_sim_knowledge->get(m_sim_knowledge->expand_statement(thermalBufferName.str())).to_string();
 
 	// Parse the thermal values.

@@ -4,7 +4,7 @@ Set objNewProcess = objWMIService.Get("Win32_Process")
 Set objConfig = objWMIService.Get("Win32_ProcessStartup")
 objConfig.SpawnInstance_
 
-startCommand = "cmd.exe /K DroneControllerSimulator.exe "
+startCommand = "cmd.exe /K DroneControllerSimulator.exe -l 0 -i "
 sCurPath = CreateObject("Scripting.FileSystemObject").GetAbsolutePathName(".")
 exePath = sCurPath  & "\bin"
 

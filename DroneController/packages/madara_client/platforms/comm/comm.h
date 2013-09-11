@@ -5,18 +5,16 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
-#ifndef _PLATFORM_H
-#define _PLATFORM_H
+/*********************************************************************
+ * comm.h - Sets up a communication platform thorugh a Knowledge Base.
+ *********************************************************************/
+
+#ifndef _COMM_H
+#define _COMM_H
 
 #include "madara/knowledge_engine/Knowledge_Base.h"
 
-// Initializes whatever is required for the platform to be ready to work.
-bool platform_init();
-
 // Sets up a knowledge base with a transport that is appropriate for this platform.
-Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id, bool enableLogging);
-
-// Cleans up any resources that are particular to this platform.
-bool platform_cleanup();
+Madara::Knowledge_Engine::Knowledge_Base* comm_setup_knowledge_base(int id, bool enableLog);
 
 #endif

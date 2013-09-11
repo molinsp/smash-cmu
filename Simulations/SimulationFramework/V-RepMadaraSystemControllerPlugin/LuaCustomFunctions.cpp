@@ -209,11 +209,11 @@ void registerMadaraSystemControllerUpdateStatusLuaCallback()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define the LUA function input parameters.
 static int g_setupSearchAreaInArgs[] = {5, 
-                    sim_lua_arg_int,                      // Area ID.
+                    sim_lua_arg_int,                         // Area ID.
                     sim_lua_arg_string,                      // The X position of the top left corner.
                     sim_lua_arg_string,                      // The Y position of the top left corner.
                     sim_lua_arg_string,                      // The X position of the bottom right corner.
-                    sim_lua_arg_string                      // The Y position of the bottom right corner.
+                    sim_lua_arg_string                       // The Y position of the bottom right corner.
                 };
 
 // The actual callback function.
@@ -272,11 +272,12 @@ void registerMadaraSystemControllerSetupSearchAreaLuaCallback()
 // Callback of the Lua simExtMadaraSystemControllerAreaCoverageRequest command.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define the LUA function input parameters.
-static int g_areaCoverageRequestInArgs[] = {4, 
+static int g_areaCoverageRequestInArgs[] = {5, 
                                     sim_lua_arg_string,                 // Drone IDs, separated by a comma.
                                     sim_lua_arg_int,                    // Area ID.
                                     sim_lua_arg_string,                 // Area coverage algorithm to implement.
-                                    sim_lua_arg_int                     // Wait flag.
+                                    sim_lua_arg_int,                    // Wait flag.
+                                    sim_lua_arg_string                  // The human detection algorithm to use.
                 };
 
 // The actual callback function.
@@ -297,14 +298,17 @@ void simExtMadaraSystemControllerAreaCoverageRequest(SLuaCallBack* p)
 		// First the concatenated list of drones.
 		std::string droneIdsString = p->inputChar;
 
-        // Now the algorithm.
-        std::string algorithm(p->inputChar+droneIdsString.length()+1);
+        // Now the search algorithm.
+        std::string searchAlgorithm(p->inputChar + droneIdsString.length() + 1);
+
+        // Now the human detection algorithm.
+        std::string humanDetectionAlgorithm(p->inputChar + droneIdsString.length() + 1 + searchAlgorithm.length() + 1);
 
         // For debugging, print out what we received.
         std::stringstream sstm; 
         sstm << "Values received inside simExtMadaraSystemControllerAreaCoverageRequest(" <<
             "droneIds = " << droneIdsString << ", areaId= " << searchAreaId <<
-            ", algorithm: \"" << algorithm << "\", waitFlag: " << waitFlag << ")" << std::endl;
+            ", search algo: \"" << searchAlgorithm << "\", human algo: \"" << humanDetectionAlgorithm << "\", waitFlag: " << waitFlag << ")" << std::endl;
         simAddStatusbarMessage(sstm.str().c_str());
 
 		// Parse the drone ids.
@@ -318,7 +322,7 @@ void simExtMadaraSystemControllerAreaCoverageRequest(SLuaCallBack* p)
 		}
 
         // Tell the controller to actually set this drone to search this area.
-        madaraController->requestAreaCoverage(droneIdList, searchAreaId, algorithm, waitFlag);
+        madaraController->requestAreaCoverage(droneIdList, searchAreaId, searchAlgorithm, waitFlag, humanDetectionAlgorithm);
     }
 
     simLockInterface(0);
@@ -329,7 +333,8 @@ void registerMadaraSystemControllerAreaCoverageRequestLuaCallback()
 {
     // Register the simExtGetPositionInBridge function.
     simRegisterCustomLuaFunction("simExtMadaraSystemControllerAreaCoverageRequest",                       // The Lua function name.
-                                 "simExtMadaraSystemControllerAreaCoverageRequest(int droneId, areaId, algorithm)",  // A tooltip to be shown to help the user know how to call it.
+                                 "simExtMadaraSystemControllerAreaCoverageRequest(int droneId, "
+                                            "areaId, searchAlgorithm, waitFlag, humanDetectionAlgorithm)",  // A tooltip to be shown to help the user know how to call it.
                                  g_areaCoverageRequestInArgs,                                             // The argument types.
                                  simExtMadaraSystemControllerAreaCoverageRequest);                        // The C function that will be called by the Lua function.
 }

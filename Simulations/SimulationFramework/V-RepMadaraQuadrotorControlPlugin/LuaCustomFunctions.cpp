@@ -9,7 +9,7 @@
 #include "LuaFunctionRegistration.h"
 #include "LuaExtensionsUtils.h"
 #include "utilities/Position.h"
-#include "platforms/v_rep/v-rep_madara_variables.h"
+#include "platforms/v_rep/v-rep_sim_madara_variables.h"
 
 #include <string>
 using std::string;

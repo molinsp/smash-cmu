@@ -26,5 +26,6 @@ void platform_read_gps(struct madara_gps *);
 double platform_read_ultrasound();
 
 double platform_get_gps_accuracy();
+double platform_get_battery_remaining();
 
 #endif

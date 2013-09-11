@@ -5,3 +5,8 @@
 Debug/
 Release/
 ipch/
+bin/
+lib/
+*.filters
+*.vcxproj
+*.sln
