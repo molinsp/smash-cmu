@@ -25,7 +25,7 @@ project (DroneControllerSimulator) : using_ace, using_madara, using_madara_clien
     ../../DroneController/packages/madara_client/platforms
     ../../DroneController/packages/madara_client/platforms/comm
     ../../DroneController/packages/madara_client/platforms/comm/multicast
-    ../../DroneController/packages/madara_client/platforms/v_rep/v-rep_control_functions.cpp
+    ../../DroneController/packages/madara_client/platforms/v_rep/platform_vrep.cpp
     ../../DroneController/packages/madara_client/sensors
     ../../DroneController/packages/madara_client/utilities
   }

@@ -5,7 +5,7 @@
 # https://code.google.com/p/smash-cmu/wiki/License
 ######################################################################
 
-LOCAL_SOURCES += platforms/ar_drone_2/ardrone2_control_functions.cpp
+LOCAL_SOURCES += platforms/ar_drone_2/platform_ardrone2.cpp
 LOCAL_SOURCES += platforms/comm/kb_setup.cpp
 LOCAL_SOURCES += platforms/comm/broadcast/comm_broadcast.cpp
 
