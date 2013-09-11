@@ -92,9 +92,9 @@ Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
     printf("Cell size deltaLat: %.10f deltaLong: %.10f \n", cellSizeY, cellSizeX);
 
     // Calculate my line and column to find my cell, based on my idx.
-    int deviceLine = deviceIdx % amountOfLines;
-    int deviceColumn = (int) floor((double) (deviceIdx / amountOfColumns));
-    printf("My line and column: %d, %d \n", deviceLine, deviceColumn);
+    int deviceLine = (int) floor( ((double) deviceIdx) / ((double) amountOfColumns));
+    int deviceColumn = deviceIdx % amountOfColumns;
+    printf("My idx, line and column: %d, %d, %d \n", deviceIdx, deviceLine, deviceColumn);
 
     // Calculate the starting position based on the cell (line and column) and the
     // cells's size.

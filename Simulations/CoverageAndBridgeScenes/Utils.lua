@@ -83,8 +83,8 @@ end
 -- This reference point is chosen to get better latitudes. Now it is at CMU.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 g_referencePoint = {}
-g_referencePoint['latitude'] = 40.44319
-g_referencePoint['longitude'] =  -79.94033
+g_referencePoint['latitude'] = 40.44108
+g_referencePoint['longitude'] =  -79.947164
 
 --/////////////////////////////////////////////////////////////////////////////////////////////    
 -- Gets 

@@ -8,7 +8,7 @@
 require("Utils")
     
 -- The speed defines how far the target moves, and therefore how fast the drone will follow.
-TARGET_SPEED = 0.0000003    -- This is rougly equivalent to 3 cm.
+TARGET_SPEED = 0.0000005    -- This is rougly equivalent to 3 cm.
 
 -- Altitude to reach when taking off.
 TAKEOFF_ALTITUDE = 1.5
