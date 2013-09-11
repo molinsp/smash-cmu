@@ -28,14 +28,16 @@
 
 // Network information.
 #define MV_TOTAL_DEVICES                        "devices"           // The total amount of devices in the system.
-#define MV_MIN_ALTITUDE                         "device.min_alt"    // The minimum altitude to set a device to.
 
 // Information about specific devices.
 #define MV_DEVICE_LOCATION(deviceId)            "device." + std::string(deviceId) + ".location" // The location of a device in the format "lat,long".
 #define MV_MOBILE(deviceId)                     "device." + std::string(deviceId) + ".mobile"   // Indicates if the device can fly (i.e., if it is a drone with enough battery left).
 #define MV_BUSY(deviceId)                       "device." + std::string(deviceId) + ".busy"     // Indicates if the device is not available for procedures (such as coverage or bridging)
+#define MV_DEVICE_GPS_LOCKS(deviceId)           "device." + std::string(deviceId) + ".location.gps.locks"     // Indicates the amount of GPS locks they have.
+#define MV_DEVICE_BATTERY(deviceId)             "device." + std::string(deviceId) + ".battery"  // The percentage of battery remaining.
 
 // Movement commands.
+#define MV_SWARM_MOVE_REQUESTED                 "swarm.movement_command"                                // Command to tell all drones to move.
 #define MV_DEVICE_MOVE_REQUESTED(deviceId)      "device." + std::string(deviceId) + ".movement_command" // Command to tell that we want certain movement.
 
 // Region information.
@@ -56,6 +58,7 @@
 #define MV_AREA_COVERAGE_LINE_WIDTH             "area_coverage.line_width"                                          // The width of a line of search in a search algorihtm that uses lines, IN DEGREES.
 #define MV_AREA_COVERAGE_HEIGHT_DIFF            "area_coverage.height_diff"                                         // The vertical space to leave between drones in a search area, in meters.
 #define MV_SEARCH_WAIT                          "area_coverage.wait_for_swarm"                                      // 1 means wait for all drones in the area to reach their targets, 0 just move on.
+#define MV_MIN_ALTITUDE                         "device.min_alt"                                                    // The minimum altitude to set a device to.
 
 // Bridge information.
 #define MV_BRIDGE_REQUESTED                     "bridge.bridge_requested"                          // Tells if a bridge was requested.
@@ -115,7 +118,11 @@
 #define MV_IS_AT_ASSIGNED_ALTITUDE          ".movement.at_assigned_altitude"     // 1 if drone is at its assigned altitude, 0 otherwise.
 
 // Sensor variables.
-#define MV_THERMAL_BUFFER(i,j)              ".sensors.thermal." + std::string(i) + "." + std::string(j) + "" // The value of the thermal buffer at i,j.
+#define MV_THERMAL_BUFFER(i,j)       ".sensors.thermal." + std::string(i) + "." + std::string(j) + "" // The value of the thermal buffer at i,j.
+#define MV_LOCAL_LOCATION            ".location"            // The location (lat,lon) in a local variable.
+#define MV_LOCAL_ALTITUDE            ".location.altitude"   // The altitude, in a local variable.
+#define MV_GPS_LOCKS                 ".location.gps.locks"  // The amount of GPS locks when the location was taken.
+#define MV_BATTERY                   ".battery"             // The percentage of battery remaining.
 
 // Human detection variables.
 #define MV_ENVIRONMENT_TEMPERATURE          ".human_detection.environment.temperature"       // Environment temperature used by some algorithms.

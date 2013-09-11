@@ -42,6 +42,9 @@ private:
     // The vertical distance to leave between drones.
     double m_heightDiff;
 
+    // Whether human detection should be on or off: 1 is on, 0 is off.
+    int m_humanDetection;
+
     // The actual knowledge base.
     Madara::Knowledge_Engine::Knowledge_Base* m_knowledge;
 
@@ -60,7 +63,7 @@ public:
 
     // Area coverage methods.
     void setNewSearchArea(int searchAreaId, SMASH::Utilities::Region areaBoundaries);
-    void requestAreaCoverage(std::vector<int> droneIds, int searchAreaId, string algorithm, int wait);
+    void requestAreaCoverage(std::vector<int> droneIds, int searchAreaId, string searchAlgorithm, int wait, std::string humanDetectionAlgorithm);
 
     // Information getter methods.
     std::vector<SMASH::Utilities::Position> getCurrentLocations();

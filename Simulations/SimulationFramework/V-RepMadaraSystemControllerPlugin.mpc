@@ -1,44 +1,29 @@
 
-project (V-RepMadaraSystemControllerPlugin) : using_ace, using_madara, using_vrep, using_madara_client, custom_multicast {
+project (V-RepMadaraSystemControllerPlugin) : using_ace, using_madara, using_vrep_plugin, using_madara_client, windows_multicast {
 
   sharedname = v_repExtMadaraSystemControllerPlugin
   libout = lib
-  
-  specific(prop:microsoft) {
-    Debug::postbuild += <%rm%> "lib<%slash%><%sharedname%>.dll" <%cmdsep%> \
-						<%mv%> "lib<%slash%><%sharedname%>d.dll" "lib<%slash%><%sharedname%>.dll" <%cmdsep%> \
-						<%cp%> "lib<%slash%><%sharedname%>.dll" "$(VREP_HOME)"
-	Release::postbuild += <%cp%> "lib<%slash%><%sharedname%>.dll" "$(VREP_HOME)"
-  }
-  
-  verbatim (gnuace, local) {
-    postbuild = cp lib/<%sharedname%>* "$(VREP_HOME)"
-  }  
 
   Build_Files {
-    GAMS_Simulator.mwc
+    SimulationFramework.mwc
     V-RepMadaraSystemControllerPlugin.mpc
     using_madara_client.mpb
-    using_vrep.mpb
-    custom_multicast.mpb
+    using_vrep_plugin.mpb
+    windows_multicast.mpb
   }
   
   Source_Files {
-    V-RepImports
-    V-RepCommonPluginUtils
-    WindowsMulticastTransport
     V-RepMadaraSystemControllerPlugin
     ../../DroneController/packages/madara_client/utilities/string_utils.cpp
+    ../../DroneController/packages/madara_client/platforms/comm
+    ../../DroneController/packages/madara_client/platforms/comm/multicast
   }
 
   Header_Files {
-    V-RepImports
-    V-RepCommonPluginUtils
-    WindowsMulticastTransport
     V-RepMadaraSystemControllerPlugin
-    ../../DroneController/packages/madara_client
     ../../DroneController/packages/madara_client/utilities
-    ../../DroneController/packages/madara_client/platforms/v_rep
+    ../../DroneController/packages/madara_client/platforms/comm
+    ../../DroneController/packages/madara_client/platforms/comm/multicast
   }
 }
 

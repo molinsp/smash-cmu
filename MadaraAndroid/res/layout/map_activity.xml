@@ -5,34 +5,107 @@
     android:orientation="vertical" >
     
         <fragment
-          android:id="@+id/map"
-          android:layout_width="match_parent"
-          android:layout_height="match_parent"
-          android:name="edu.cmu.edu.madara.android.MadaraMapFragment"/>
+            android:id="@+id/map"
+            android:name="edu.cmu.edu.madara.android.MadaraMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/buttons_bar" />
+
+        <TextView
+            android:id="@+id/latlng_textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#000"
+            android:text="Small Text"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="#FFF"
+            android:visibility="invisible" />
+
+        <ImageView
+            android:id="@+id/imageView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/marker"
+            android:visibility="invisible" />
 
         <LinearLayout
+            android:id="@+id/buttons_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:background="#FFF"
-            android:orientation="horizontal" >
+            android:orientation="vertical" >
 
-            <EditText
-                android:id="@+id/madara_message"
+            <LinearLayout
+                android:id="@+id/draw_region_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="20"
+                android:orientation="horizontal"
+                android:visibility="gone" >
+
+                <Button
+                    android:id="@+id/cancel_button"
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Cancel" />
+
+                <Button
+                    android:id="@+id/done_button"
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Done" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/actions_buttons_bar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="20" >
 
-                <requestFocus />
-            </EditText>
+                <Button
+                    android:id="@+id/drones_button"
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Drones" />
 
-            <Button
-                android:id="@+id/send_button"
-                style="?android:attr/buttonStyleSmall"
-                android:layout_width="wrap_content"
-                android:layout_height="fill_parent"
-                android:layout_weight="1"
-                android:text="Button" />
+                <Button
+                    android:id="@+id/actions_button"
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Actions" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" >
+
+                <EditText
+                    android:id="@+id/madara_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <Button
+                    android:id="@+id/send_button"
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="3"
+                    android:text="Send" />
+
+            </LinearLayout>
 
         </LinearLayout>
 

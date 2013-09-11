@@ -7,10 +7,10 @@
  
 #include "sensors/sensors_module.h"
 #include "platform_sensors.h"
-#include <iomanip>		// std::setprecision
-#include <math.h>
 #include "utilities/CommonMadaraVariables.h"
 #include "utilities/Position.h"
+
+#include <iomanip>		// std::setprecision
 #include <math.h>
 
 #define TASK_COUNT		    1
@@ -20,14 +20,9 @@
 #define LAND_ACCURACY       "0.1"     // How many meters to use to determine that a drone has landed.
 #define ULTRASOUND_LIMIT    5.5       // Where to stop using ultrasound readings.
 
-// Internal Madara variables.
-#define MV_LOCAL_LOCATION            ".location"            // The location (lat,lon) in a local variable.
-#define MV_LOCAL_ALTITUDE            ".location.altitude"   // The altitude, in a local variable.
-#define MV_GPS_LOCKS                 ".location.gps.locks"  // The amount of GPS locks when the location was taken.
-
 // For Windows compatibility.
 #ifndef M_PI
-	#define M_PI 3.14159265358979323846
+    #define M_PI 3.14159265358979323846
 #endif
 
 // Conversion from degrees to radians.
@@ -40,20 +35,20 @@ static Madara::Knowledge_Engine::Compiled_Expression expressions2 [TASK_COUNT];
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record read_thermal_sensor (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-	printf("Inside read_thermal();\n");
-	double buffer[8][8];
-	platform_read_thermal(buffer);
-	int x, y;
-	for (x = 0; x < 8; x++)
-	{
-		for (y = 0; y < 8; y++)
-		{
+    printf("Inside read_thermal();\n");
+    double buffer[8][8];
+    platform_read_thermal(buffer);
+    int x, y;
+    for (x = 0; x < 8; x++)
+    {
+        for (y = 0; y < 8; y++)
+        {
             std::string rowString = NUM_TO_STR(x);
             std::string colString = NUM_TO_STR(y);
-			variables.set(MV_THERMAL_BUFFER(rowString,colString), buffer[x][y]);
-		}
-	}
-	return Madara::Knowledge_Record::Integer(1);
+            variables.set(MV_THERMAL_BUFFER(rowString,colString), buffer[x][y]);
+        }
+    }
+    return Madara::Knowledge_Record::Integer(1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,27 +57,27 @@ Madara::Knowledge_Record read_thermal_sensor (Madara::Knowledge_Engine::Function
 Madara::Knowledge_Record read_gps_sensor (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
     // Get GPS from platform.
-	struct madara_gps gps;
-	platform_read_gps(&gps);
+    struct madara_gps gps;
+    platform_read_gps(&gps);
 
     // Store the latitude and longitude in our local location variable.
-	std::stringstream buffer;
-	buffer << std::setprecision(10) << gps.latitude << "," << gps.longitude;
-	variables.set(MV_LOCAL_LOCATION, buffer.str());
+    std::stringstream buffer;
+    buffer << std::setprecision(10) << gps.latitude << "," << gps.longitude;
+    variables.set(MV_LOCAL_LOCATION, buffer.str());
 
     // Store the altitude obtained by the GPS, but only if we currently were, and the GPS is reporting, an altitude 
     // higher than the ultrasound limit. Otherwise, we will ignore this altitude in favor of the ultrasound one.
     double estAlt = variables.get(MV_LOCAL_ALTITUDE).to_double();
     if(gps.altitude > ULTRASOUND_LIMIT || estAlt > ULTRASOUND_LIMIT)
     {
-	    variables.set(MV_LOCAL_ALTITUDE, gps.altitude);
+        variables.set(MV_LOCAL_ALTITUDE, gps.altitude);
         variables.set(variables.expand_statement(MV_DEVICE_ALT("{.id}")), gps.altitude);
     }
 
     // Set the amount of GPS locks available for these values.
-	variables.set(MV_GPS_LOCKS, Madara::Knowledge_Record::Integer(gps.num_sats));
-	
-	return Madara::Knowledge_Record::Integer(1);
+    variables.set(MV_GPS_LOCKS, Madara::Knowledge_Record::Integer(gps.num_sats));
+    
+    return Madara::Knowledge_Record::Integer(1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,9 +102,21 @@ Madara::Knowledge_Record read_ultrasound (Madara::Knowledge_Engine::Function_Arg
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Madara::Knowledge_Record read_battery (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
+{
+    // Get the battery remaining from the platform and move it into a Madara variable.
+    double batteryRemaining = platform_get_battery_remaining();
+    variables.set(MV_BATTERY, batteryRemaining);
+
+    return Madara::Knowledge_Record::Integer(1);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record read_sensors (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-	return variables.evaluate(expressions2[EVALUATE_SENSORS], Madara::Knowledge_Engine::Eval_Settings(false, true));
+    return variables.evaluate(expressions2[EVALUATE_SENSORS], Madara::Knowledge_Engine::Eval_Settings(false, true));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -153,9 +160,9 @@ Madara::Knowledge_Record gpsTargetReached (Madara::Knowledge_Engine::Function_Ar
 
     // Get all current values.
     double currLat = variables.get(variables.expand_statement(MV_DEVICE_LAT("{" MV_MY_ID "}"))).to_double();
-	  double currLon = variables.get(variables.expand_statement(MV_DEVICE_LON("{" MV_MY_ID "}"))).to_double();
-	  double targetLat = variables.get(MV_LAST_TARGET_LAT).to_double();
-	  double targetLon = variables.get(MV_LAST_TARGET_LON).to_double();
+      double currLon = variables.get(variables.expand_statement(MV_DEVICE_LON("{" MV_MY_ID "}"))).to_double();
+      double targetLat = variables.get(MV_LAST_TARGET_LAT).to_double();
+      double targetLon = variables.get(MV_LAST_TARGET_LON).to_double();
 
     printf("Lat:      %.10f Long:   %.10f\n", currLat, currLon);
     printf("T_Lat:    %.10f T_Long: %.10f\n", targetLat, targetLon);
@@ -183,11 +190,12 @@ Madara::Knowledge_Record gpsTargetReached (Madara::Knowledge_Engine::Function_Ar
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void define_sensor_functions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 {
-	  knowledge.define_function ("read_thermal", read_thermal_sensor);
-	  knowledge.define_function ("read_gps", read_gps_sensor);
-    knowledge.define_function ("read_ultrasound", read_ultrasound);
-	  knowledge.define_function ("read_sensors", read_sensors);
-    knowledge.define_function ("sensors_gpsTargetReached", gpsTargetReached);
+      knowledge.define_function ("read_thermal", read_thermal_sensor);
+      knowledge.define_function ("read_gps", read_gps_sensor);
+      knowledge.define_function ("read_ultrasound", read_ultrasound);
+      knowledge.define_function ("read_sensors", read_sensors);
+      knowledge.define_function ("read_battery", read_battery);
+      knowledge.define_function ("sensors_gpsTargetReached", gpsTargetReached);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -195,13 +203,14 @@ void define_sensor_functions (Madara::Knowledge_Engine::Knowledge_Base & knowled
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Base & knowledge)
 {	
-	expressions2[EVALUATE_SENSORS] = knowledge.compile
-	(
-		"read_thermal();"
+    expressions2[EVALUATE_SENSORS] = knowledge.compile
+    (
+        "read_battery();"
+        "read_thermal();"
 
         // Note: since we are reading the ultrasound after the GPS, the height given by the ultrasound may overwrite the GPS 
         // depending on our current height and the max height defined to be the ultrasound limit.
-		"read_gps();"
+        "read_gps();"
         "read_ultrasound();"
 
         // Check if we have reached our assigned altitude.
@@ -229,7 +238,7 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
             MV_REACHED_GPS_TARGET " = 0;"
            "sensors_gpsTargetReached()" " => " MV_REACHED_GPS_TARGET " = 1;"
         ");"
-	);
+    );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -238,10 +247,10 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
 void SMASH::Sensors::SensorsModule::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
     printf("SMASH::Sensors::initialize...\n");
-	platform_init_sensor_functions();
+    platform_init_sensor_functions();
 
-	define_sensor_functions(knowledge);
-	compile_sensor_function_expressions(knowledge);
+    define_sensor_functions(knowledge);
+    compile_sensor_function_expressions(knowledge);
     printf("leaving SMASH::Sensors::initialize...\n");
 }
 
@@ -257,5 +266,5 @@ void SMASH::Sensors::SensorsModule::cleanup(Madara::Knowledge_Engine::Knowledge_
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::string SMASH::Sensors::SensorsModule::get_core_function()
 {
-	return "read_sensors()";
+    return "read_sensors()";
 }

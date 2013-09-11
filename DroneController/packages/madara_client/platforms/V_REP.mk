@@ -6,5 +6,7 @@
 ######################################################################
 
 LOCAL_SOURCES += platforms/v_rep/v-rep_control_functions.cpp
+LOCAL_SOURCES += platforms/comm/kb_setup.cpp
+LOCAL_SOURCES += platforms/comm/multicast/comm_multicast.cpp
 
 LOCAL_CFLAGS +=

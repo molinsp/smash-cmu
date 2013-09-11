@@ -11,5 +11,9 @@ public class MadaraConstants {
 	public static final String NEXT_AREA_COVERAGE_REQUESTED = "next_area_coverage_requested";
 	public static final String SEARCH_AREA_ID = "search_area_id";
 	public static final String MOVEMENT_COMMAND = "movement_command";
+	
+	public static final String REGION_TYPE = "type";
+	public static final String REGION_TOP_LEFT_LOCATION = "top_left.location";
+	public static final String REGION_BOTTOM_RIGHT_LOCATION = "bottom_right.location";
 
 }
