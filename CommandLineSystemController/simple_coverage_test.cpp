@@ -93,6 +93,12 @@ int main (int argc, char** argv)
 
     knowledge->set(".id", Madara::Knowledge_Record::Integer(id));
 
+    // Send takeoff command and wait for a bit so the drones take off.
+    printf("\nSending takeoff command...\n");
+    int takeoffWaitTime = 3;
+    knowledge->set(MV_SWARM_MOVE_REQUESTED, MO_TAKEOFF_CMD);
+    ACE_OS::sleep (takeoffWaitTime);
+
     printf("\nInitializing search area...\n");
 
     // setup search area

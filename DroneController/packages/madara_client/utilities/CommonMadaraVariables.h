@@ -33,8 +33,11 @@
 #define MV_DEVICE_LOCATION(deviceId)            "device." + std::string(deviceId) + ".location" // The location of a device in the format "lat,long".
 #define MV_MOBILE(deviceId)                     "device." + std::string(deviceId) + ".mobile"   // Indicates if the device can fly (i.e., if it is a drone with enough battery left).
 #define MV_BUSY(deviceId)                       "device." + std::string(deviceId) + ".busy"     // Indicates if the device is not available for procedures (such as coverage or bridging)
+#define MV_DEVICE_GPS_LOCKS(deviceId)           "device." + std::string(deviceId) + ".location.gps.locks"     // Indicates the amount of GPS locks they have.
+#define MV_DEVICE_BATTERY(deviceId)             "device." + std::string(deviceId) + ".battery"  // The percentage of battery remaining.
 
 // Movement commands.
+#define MV_SWARM_MOVE_REQUESTED                 "swarm.movement_command"                                // Command to tell all drones to move.
 #define MV_DEVICE_MOVE_REQUESTED(deviceId)      "device." + std::string(deviceId) + ".movement_command" // Command to tell that we want certain movement.
 
 // Region information.
@@ -115,7 +118,11 @@
 #define MV_IS_AT_ASSIGNED_ALTITUDE          ".movement.at_assigned_altitude"     // 1 if drone is at its assigned altitude, 0 otherwise.
 
 // Sensor variables.
-#define MV_THERMAL_BUFFER(i,j)              ".sensors.thermal." + std::string(i) + "." + std::string(j) + "" // The value of the thermal buffer at i,j.
+#define MV_THERMAL_BUFFER(i,j)       ".sensors.thermal." + std::string(i) + "." + std::string(j) + "" // The value of the thermal buffer at i,j.
+#define MV_LOCAL_LOCATION            ".location"            // The location (lat,lon) in a local variable.
+#define MV_LOCAL_ALTITUDE            ".location.altitude"   // The altitude, in a local variable.
+#define MV_GPS_LOCKS                 ".location.gps.locks"  // The amount of GPS locks when the location was taken.
+#define MV_BATTERY                   ".battery"             // The percentage of battery remaining.
 
 // Human detection variables.
 #define MV_ENVIRONMENT_TEMPERATURE          ".human_detection.environment.temperature"       // Environment temperature used by some algorithms.

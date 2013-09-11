@@ -64,6 +64,8 @@ std::string SMASH::DroneController::getStatusSummaryExpression()
         "Total:\t\t{" MV_TOTAL_DEVICES "}\n"
         "Position:\t{" MV_DEVICE_LAT("{.id}") "},{" MV_DEVICE_LON("{.id}") "}\n"
         "Mobile:\t\t{" MV_MOBILE("{.id}") "}\n"
+        "GPS Locks:\t{" MV_GPS_LOCKS "}\n"
+        "Battery :\t{" MV_BATTERY "}\n"
         "Bridge ID:\t{" MV_BRIDGE_ID("{.id}") "}\n"
         "Search alg:\t{" MV_AREA_COVERAGE_REQUESTED("{.id}") "}\n"
         "Target pos:\t{" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n"
@@ -131,7 +133,7 @@ void SMASH::DroneController::initializeDrone(int droneId, Madara::Knowledge_Engi
 
     // Setup the initial command for the first loop of the drone logic as "take off".
     // This is done through variables, similar to how a command would be sent by an external user.
-    knowledge.set(MV_DEVICE_MOVE_REQUESTED(knowledge.expand_statement("{" MV_MY_ID "}")), MO_TAKEOFF_CMD);
+    //knowledge.set(MV_DEVICE_MOVE_REQUESTED(knowledge.expand_statement("{" MV_MY_ID "}")), MO_TAKEOFF_CMD);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -177,10 +179,11 @@ void SMASH::DroneController::compileExpressions (Madara::Knowledge_Engine::Knowl
     (
         knowledge.expand_statement
         (
-            // TODO: remove this. Just for now, we are constantly setting the values for mobile and busy, to disseminate them.
+            // TODO: check if we really want to broadcast this. We are constantly setting these values, to disseminate them.
             "("
                 MV_BUSY("{" MV_MY_ID "}") "=" MV_BUSY("{" MV_MY_ID "}") ";"
                 MV_MOBILE("{" MV_MY_ID "}") "=" MV_MOBILE("{" MV_MY_ID "}") ";"
+                MV_DEVICE_BATTERY("{" MV_MY_ID "}") "=" MV_BATTERY ";"
             ");"
 
             "device.{.id}.location=.location;"

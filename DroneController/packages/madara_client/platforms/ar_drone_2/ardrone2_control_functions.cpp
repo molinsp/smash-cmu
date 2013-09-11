@@ -132,6 +132,12 @@ bool platform_init_sensor_functions()
 	return drk_init_status;
 }
 
+double platform_get_battery_remaining()
+{
+    // TODO: use actual DRK API method (not yet coded) to get this info.
+    return 100;
+}
+
 void platform_read_thermal(double buffer[8][8])
 {
   printf("in read_thermal()\n");

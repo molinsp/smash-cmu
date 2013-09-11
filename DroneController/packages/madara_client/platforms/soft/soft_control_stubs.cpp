@@ -103,6 +103,12 @@ bool platform_init_sensor_functions()
 	return true;
 }
 
+double platform_get_battery_remaining()
+{
+    // Because we are not running on batteries...
+    return 100;
+}
+
 void platform_read_thermal(double buffer[8][8])
 {
 	printf("Executing platform_read_thermal()\n");
