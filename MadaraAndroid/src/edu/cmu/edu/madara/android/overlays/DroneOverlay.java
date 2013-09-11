@@ -28,6 +28,10 @@ public class DroneOverlay {
 	
 	public synchronized void updateDroneMarkers(Drone drone, GoogleMap map){
 		
+/*		if(drone.getId().equals("device.3"))
+			return;*/
+		
+		
 		droneMap.put(drone.getId(), drone);
 		
 		if(!droneMarkers.containsKey(drone.getId())){

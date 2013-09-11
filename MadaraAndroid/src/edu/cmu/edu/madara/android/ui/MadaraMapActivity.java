@@ -76,6 +76,7 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 
 	private MadaraMapTouchListener madaraMapTouchListener;
 	private boolean drawRegionMode;
+	private String searchAlgorithm;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -210,7 +211,7 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 
 		case R.id.action_go_to:
 
-			CharSequence[] items = new CharSequence[]{"Flagstaff Hill"};
+			CharSequence[] items = new CharSequence[]{"Flagstaff Hill", "Gesling Field"};
 			AlertDialog.Builder builder = new AlertDialog.Builder(MadaraMapActivity.this);
 			builder.setTitle("Go to...");
 			builder.setItems(items, new DialogInterface.OnClickListener() {
@@ -219,6 +220,9 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 					switch( which ){
 					case 0: //FLAGSTAFF HILL
 						mapView.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(40.441210, -79.946738), 19));
+						break;
+					case 1: //GESLING FIELD
+						mapView.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(40.443258, -79.940347), 19));
 						break;
 					}
 
@@ -369,7 +373,7 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 
 						dialog.dismiss();
 
-						CharSequence[] items = new CharSequence[]{"Random", "Cell Decomposition"};
+						CharSequence[] items = new CharSequence[]{"Random", "Snake", "Inside Out"};
 
 						AlertDialog.Builder builder = new AlertDialog.Builder(MadaraMapActivity.this);
 						builder.setTitle("Choose an algorithm");
@@ -379,10 +383,16 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 
 								switch( which ){
 								case 0: //RANDOM
+									searchAlgorithm="random";
 									drawRegionMode(true);
 									break;
-								case 1: //CELL DECOMP	
-									Toast.makeText(MadaraMapActivity.this, "Not implemented yet.", Toast.LENGTH_SHORT).show();
+								case 1: //SNAKE
+									searchAlgorithm="snake";
+									drawRegionMode(true);
+									break;
+								case 2: //INSIDE OUT
+									searchAlgorithm="inside_out";
+									drawRegionMode(true);
 									break;
 								}
 							}
@@ -444,7 +454,7 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 				int regionId = -1;
 				HashMap<String, Region> regions = binder.getRegions();
 				for(String key: regions.keySet()){
-					String regionIdIntString = key.substring(key.indexOf("."), key.length());
+					String regionIdIntString = key.substring(key.indexOf(".")+1, key.length());
 					int id = Integer.parseInt(regionIdIntString);
 					if(id > regionId)
 						regionId = id;
@@ -455,11 +465,11 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 				LatLng bottomRight = polygon.getPoints().get(2);
 
 				binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_TYPE+"=0");
-				binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_TOP_LEFT_LOCATION+"=\""+topLeft.latitude+","+topLeft.latitude+"\"");
-				binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_BOTTOM_RIGHT_LOCATION+"=\""+bottomRight.latitude+","+bottomRight.latitude+"\"");
+				binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_TOP_LEFT_LOCATION+"=\""+topLeft.latitude+","+topLeft.longitude+"\"");
+				binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_BOTTOM_RIGHT_LOCATION+"=\""+bottomRight.latitude+","+bottomRight.longitude+"\"");
 
 				for(String droneId: selectedDrones){
-					binder.sendMadaraMessage(droneId+".area_coverage_requested=\"random\"");
+					binder.sendMadaraMessage(droneId+".area_coverage_requested=\""+searchAlgorithm+"\"");
 					binder.sendMadaraMessage(droneId+".search_area_id="+regionId);
 				}
 			}
