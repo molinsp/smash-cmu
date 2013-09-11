@@ -11,8 +11,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import edu.cmu.edu.madara.android.Drone;
 import edu.cmu.edu.madara.android.R;
+import edu.cmu.edu.madara.android.model.Drone;
 
 
 public class DroneOverlay {

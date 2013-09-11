@@ -189,21 +189,25 @@ containing a value of this type.
         public static final int marker=0x7f02001b;
     }
     public static final class id {
-        public static final int action_create_bounding_box=0x7f060018;
-        public static final int action_log=0x7f060017;
-        public static final int action_settings=0x7f060016;
-        public static final int actions_button=0x7f060014;
+        public static final int action_go_to=0x7f06001c;
+        public static final int action_log=0x7f06001b;
+        public static final int action_settings=0x7f06001a;
+        public static final int actions_button=0x7f060018;
+        public static final int actions_buttons_bar=0x7f060016;
         public static final int areacoverage_button=0x7f06000b;
-        public static final int button2=0x7f06000a;
         public static final int button3=0x7f06000c;
+        public static final int buttons_bar=0x7f060011;
+        public static final int cancel_button=0x7f06000a;
         public static final int controller_layout=0x7f060008;
         public static final int deselect_button=0x7f060006;
-        public static final int drones_button=0x7f060013;
+        public static final int done_button=0x7f060015;
+        public static final int draw_region_layout=0x7f060014;
+        public static final int drones_button=0x7f060017;
         public static final int hybrid=0x7f060004;
-        public static final int imageView1=0x7f060012;
-        public static final int latlng_textView=0x7f060011;
+        public static final int imageView1=0x7f060013;
+        public static final int latlng_textView=0x7f060012;
         public static final int log_container=0x7f06000f;
-        public static final int madara_message=0x7f060015;
+        public static final int madara_message=0x7f060019;
         public static final int map=0x7f060010;
         public static final int mapview=0x7f060005;
         public static final int none=0x7f060000;

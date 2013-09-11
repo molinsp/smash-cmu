@@ -10,7 +10,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import edu.cmu.edu.madara.android.R;
-import edu.cmu.edu.madara.android.Thermal;
+import edu.cmu.edu.madara.android.model.Thermal;
 
 public class ThermalOverlay {
 	
