@@ -53,4 +53,5 @@ public class CustomMapTileProvider implements TileProvider {
     private String getTileFilename(int x, int y, int zoom) {
         return Environment.getExternalStorageDirectory()+"/osmdroid/tiles/" + zoom + '/' + x + '/' + y + ".png";
     }
+    
 }

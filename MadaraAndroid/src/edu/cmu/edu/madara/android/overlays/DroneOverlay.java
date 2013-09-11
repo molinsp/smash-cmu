@@ -1,6 +1,9 @@
 package edu.cmu.edu.madara.android.overlays;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -40,5 +43,13 @@ public class DroneOverlay {
 			Marker marker = droneMarkers.get(drone.getId());
 			marker.setPosition(new LatLng(drone.getLatitude(), drone.getLongitude()));
 		}
+	}
+	
+	public List<String> getDroneIds(){
+		List<String> droneIds = new ArrayList<String>();
+		for(String key: droneMap.keySet()){
+			droneIds.add(key);
+		}
+		return droneIds;
 	}
 }
