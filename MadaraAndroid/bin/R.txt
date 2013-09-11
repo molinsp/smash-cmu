@@ -56,9 +56,10 @@ int drawable common_signin_btn_text_pressed_dark 0x7f020018
 int drawable common_signin_btn_text_pressed_light 0x7f020019
 int drawable ic_launcher 0x7f02001a
 int drawable marker 0x7f02001b
-int id action_create_bounding_box 0x7f060019
-int id action_log 0x7f060018
-int id action_settings 0x7f060017
+int id action_create_bounding_box 0x7f060018
+int id action_log 0x7f060017
+int id action_settings 0x7f060016
+int id actions_button 0x7f060014
 int id areacoverage_button 0x7f06000b
 int id button2 0x7f06000a
 int id button3 0x7f06000c
@@ -67,10 +68,9 @@ int id deselect_button 0x7f060006
 int id drones_button 0x7f060013
 int id hybrid 0x7f060004
 int id imageView1 0x7f060012
-int id land_button 0x7f060015
 int id latlng_textView 0x7f060011
 int id log_container 0x7f06000f
-int id madara_message 0x7f060016
+int id madara_message 0x7f060015
 int id map 0x7f060010
 int id mapview 0x7f060005
 int id none 0x7f060000
@@ -80,7 +80,6 @@ int id scrollLockCheckBox 0x7f06000d
 int id scrollView1 0x7f06000e
 int id select_button 0x7f060007
 int id send_button 0x7f060009
-int id takeoff_button 0x7f060014
 int id terrain 0x7f060003
 int layout activity_main 0x7f030000
 int layout log_activity 0x7f030001

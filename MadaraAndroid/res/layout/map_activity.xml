@@ -47,24 +47,18 @@
                     android:text="Drones" />
 
                 <Button
-                    android:id="@+id/takeoff_button"
+                    android:id="@+id/actions_button"
                     style="?android:attr/buttonStyleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Takeoff" />
-
-                <Button
-                    android:id="@+id/land_button"
-                    style="?android:attr/buttonStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Land" />
+                    android:text="Actions" />
 
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" >
+                android:layout_height="match_parent"
+                android:visibility="gone" >
 
                 <EditText
                     android:id="@+id/madara_message"

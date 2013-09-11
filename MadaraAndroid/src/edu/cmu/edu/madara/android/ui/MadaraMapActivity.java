@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.google.android.gms.internal.di;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 
 import edu.cmu.edu.madara.android.CustomMapTileProvider;
@@ -54,8 +57,7 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 	private Button sendButton;
 
 	private Button dronesButton;
-	private Button takeoffButton;
-	private Button landButton;
+	private Button actionsButton;
 
 	private int firstx;
 	private int firsty;
@@ -63,6 +65,8 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 
 	private List<String> droneIds;
 	private List<String> selectedDrones;
+	
+	private AlertDialog alertDialog;
 	
 	private TextView latLngTextView;
 	private LatLng mapCenter;
@@ -79,10 +83,8 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 		sendButton.setOnClickListener(this);
 		dronesButton = (Button)findViewById(R.id.drones_button);
 		dronesButton.setOnClickListener(this);
-		takeoffButton = (Button)findViewById(R.id.takeoff_button);
-		takeoffButton.setOnClickListener(this);
-		landButton = (Button)findViewById(R.id.land_button);
-		landButton.setOnClickListener(this);
+		actionsButton = (Button)findViewById(R.id.actions_button);
+		actionsButton.setOnClickListener(this);
 
 		droneIds = new ArrayList<String>();
 		selectedDrones = new ArrayList<String>();
@@ -94,7 +96,7 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 		mapView.setMyLocationEnabled(true);
 
 		mapView.setMapType(GoogleMap.MAP_TYPE_NONE);
-		TileOverlayOptions options = new TileOverlayOptions().tileProvider(new CustomMapTileProvider());
+		TileOverlayOptions options = new TileOverlayOptions().tileProvider(new CustomMapTileProvider()).zIndex(0);
 		mapView.addTileOverlay(options);
 
 
@@ -133,7 +135,7 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 								mapView.getProjection().fromScreenLocation(new Point(firstx+x,firsty)),
 								mapView.getProjection().fromScreenLocation(new Point(firstx,firsty)))
 								.strokeColor(Color.RED)
-								.fillColor(Color.BLUE));
+								.fillColor(Color.BLUE).zIndex(10));
 					}
 
 					return true;
@@ -143,7 +145,7 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 			}
 		});
 
-		//mapFragment.drawOn();
+		mapFragment.drawOn();
 
 		/*		Polygon polygon = mapView.addPolygon(new PolygonOptions()
 	     .add(new LatLng(0, 0), new LatLng(0, 5), new LatLng(3, 5), new LatLng(0, 0))
@@ -154,10 +156,19 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 		madaraReaderThread.start();
 
 
-		/*		Polygon polygon = mapView.addPolygon(new PolygonOptions()
-	     .add(new LatLng(40.447380, -79.950305), new LatLng(0, 5), new LatLng(3, 5), new LatLng(0, 0))
-	     .strokeColor(Color.RED)
-	     .fillColor(Color.BLUE));*/
+				Polygon polygon = mapView.addPolygon(new PolygonOptions()
+	     .add(new LatLng(40.441182, -79.947039),new LatLng(40.441161, -79.946625),new LatLng(
+	    		 40.440790, -79.946607),new LatLng(
+	    				 40.440811, -79.947098),new LatLng(40.441182, -79.947039))
+	     .strokeColor(Color.argb(100, 0, 0, 255))
+	     .fillColor(Color.argb(50, 0, 0, 255)).strokeWidth(5f).zIndex(10));
+		
+/*		Polyline polyline = mapView.addPolyline( new PolylineOptions()
+		.add(new LatLng(40.441182, -79.947039),new LatLng(40.441161, -79.946625))
+		.color(Color.RED)
+		.width(1f)
+		.zIndex(10)
+		);*/
 
 	}
 
@@ -166,6 +177,7 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
+	
 
 	@Override
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
@@ -241,10 +253,12 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 
 	@Override
 	protected void onPause() {
+		super.onPause();
 		if(madaraReaderThread!=null && madaraReaderThread.isRunning()){
 			madaraReaderThread.stopRunning();
 		}
-		super.onPause();
+		if(alertDialog!=null && alertDialog.isShowing())
+			alertDialog.dismiss();
 	}
 
 	public class TouchableWrapper extends FrameLayout {
@@ -275,8 +289,62 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 		if(v.equals(sendButton)){
 			binder.sendMadaraMessage(madaraEditText.getText().toString());
 		}
+		else if(v.equals(actionsButton)){
+			
+			CharSequence[] items = new CharSequence[]{"Takeoff", "Land", "Go to GPS", "Area Coverage", "Bridging"};
+			
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle("Select an Action");
+			builder.setItems(items, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					switch(which){
+					case 0: // TAKEOFF
+						for(String droneId: selectedDrones ){
+							binder.sendMadaraMessage(droneId+".movement_command=\"takeoff\"");
+						}
+						break;
+					case 1: //LAND
+						for(String droneId: selectedDrones ){
+							binder.sendMadaraMessage(droneId+".movement_command=\"land\"");
+						}
+						break;
+					case 2: //GO TO GPS
+						break;
+					case 3: //AREA COVERAGE
+						
+						dialog.dismiss();
+						
+						CharSequence[] items = new CharSequence[]{"Random", "Cell Decomposition"};
+						
+						AlertDialog.Builder builder = new AlertDialog.Builder(MadaraMapActivity.this);
+						builder.setTitle("Choose an algorithm");
+						builder.setItems(items, new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								
+								switch( which ){
+								case 0: //RANDOM
+									break;
+								case 1: //CELL DECOMP	
+									break;
+								}
+							}
+						});
+						alertDialog = builder.create();
+						alertDialog.show();
+						
+						break;
+					case 4: // BRIDGING
+						break;
+					}
+				}
+			});
+			alertDialog = builder.create();
+			alertDialog.show();
+		}
 		else if(v.equals(dronesButton)){
-			AlertDialog dialog = null;
+			
 			droneIds = droneOverlay.getDroneIds();
 			AlertDialog.Builder builder = new AlertDialog.Builder(MadaraMapActivity.this);
 			CharSequence[] items = new CharSequence[droneIds.size()];
@@ -306,18 +374,8 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 						dialog.dismiss();
 				}
 			});
-			dialog = builder.create();
-			dialog.show();
-		}
-		else if(v.equals(takeoffButton)){
-			for(String droneId: selectedDrones ){
-				binder.sendMadaraMessage(droneId+".movement_command=\"takeoff\"");
-			}
-		}
-		else if(v.equals(landButton)){
-			for(String droneId: selectedDrones ){
-				binder.sendMadaraMessage(droneId+".movement_command=\"land\"");
-			}
+			alertDialog = builder.create();
+			alertDialog.show();
 		}
 	}
 }
