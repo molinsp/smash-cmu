@@ -52,14 +52,12 @@ void MadaraController::updateGeneralParameters(const int& numberOfDrones)
 {
     // Ask the drones to take off, and wait for a bit.
     m_knowledge->set(MV_SWARM_MOVE_REQUESTED, MO_TAKEOFF_CMD);
-    int takeoffWaitTime = 3;
-    ACE_OS::sleep (takeoffWaitTime);
 
     // Set up the general parameters from the class into Madara variables.
-    m_knowledge->set (MV_COMM_RANGE, m_commRange, Madara::Knowledge_Engine::Eval_Settings(true));
-    m_knowledge->set (MV_MIN_ALTITUDE, m_minAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
-    m_knowledge->set (MV_AREA_COVERAGE_LINE_WIDTH, m_lineWidth, Madara::Knowledge_Engine::Eval_Settings(true));
-    m_knowledge->set (MV_AREA_COVERAGE_HEIGHT_DIFF, m_heightDiff, Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set(MV_COMM_RANGE, m_commRange, Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set(MV_MIN_ALTITUDE, m_minAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set(MV_AREA_COVERAGE_LINE_WIDTH, m_lineWidth, Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set(MV_AREA_COVERAGE_HEIGHT_DIFF, m_heightDiff, Madara::Knowledge_Engine::Eval_Settings(true));
     m_knowledge->set(MV_TOTAL_DEVICES, (Madara::Knowledge_Record::Integer) numberOfDrones, Madara::Knowledge_Engine::Eval_Settings(true));
     
     // This call will flush all past changes.

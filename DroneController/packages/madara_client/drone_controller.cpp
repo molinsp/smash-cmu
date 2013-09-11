@@ -62,17 +62,21 @@ std::string SMASH::DroneController::getStatusSummaryExpression()
     std::string status = 
         "Drone:\t\t{" MV_MY_ID "}\n"
         "Total:\t\t{" MV_TOTAL_DEVICES "}\n"
-        "Position:\t{" MV_DEVICE_LAT("{.id}") "},{" MV_DEVICE_LON("{.id}") "}\n"
         "Mobile:\t\t{" MV_MOBILE("{.id}") "}\n"
-        "GPS Locks:\t{" MV_GPS_LOCKS "}\n"
         "Battery :\t{" MV_BATTERY "}\n"
-        "Bridge ID:\t{" MV_BRIDGE_ID("{.id}") "}\n"
+        "Position:\t{" MV_DEVICE_LAT("{.id}") "},{" MV_DEVICE_LON("{.id}") "}\n"
+        "Height:\t\t{" MV_DEVICE_ALT("{.id}") "}\n"
+        "GPS Locks:\t{" MV_GPS_LOCKS "}\n"
+        "\n"
+        "Command:\t{" MV_MOVEMENT_REQUESTED "}\n"
+        "Curr target:\t{" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n"
+        "\n"
         "Search alg:\t{" MV_AREA_COVERAGE_REQUESTED("{.id}") "}\n"
-        "Target pos:\t{" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n"
-        "Search end:\t{.area_coverage.cell.bottom_right.location.latitude},{.area_coverage.cell.bottom_right.location.longitude}\n\n"
+        "Search end:\t{.area_coverage.cell.bottom_right.location.latitude},{.area_coverage.cell.bottom_right.location.longitude}\n"
         "Last targ:\t{" MV_CURRENT_COVERAGE_TARGET("{.id}") "}\n"
         "Waiting :\t{" ".area_coverage.my_area.waiting" "}\n"
-        "Command:\t{" MV_MOVEMENT_REQUESTED "}: {" MV_MOVEMENT_TARGET_LAT "},{" MV_MOVEMENT_TARGET_LON "}\n"
+        "\n"
+        "Bridge ID:\t{" MV_BRIDGE_ID("{.id}") "}\n"
         ;
 
     return status;
