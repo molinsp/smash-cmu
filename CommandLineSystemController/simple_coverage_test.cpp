@@ -24,6 +24,8 @@ using std::endl;
 
 #include <sstream>
 
+std::string coverage_type = "random";
+
 #define NUM_TO_STR( x ) dynamic_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << std::setprecision(10) << x ) ).str()
 
@@ -37,6 +39,7 @@ void programSummary(char* arg)
     cerr << "  [-e] eastern longitude" << endl;
     cerr << "  [-w] western longitude" << endl;
     cerr << "  [-l] MADARA log level" << endl;
+    cerr << "  [-t] coverage type" << endl;
     exit(-1);
 }
 
@@ -62,6 +65,8 @@ void handleArgs(int argc, char** argv, int& id, int& numDrones,
             sscanf(argv[++i], "%lf", &wLong);
         else if(arg == "-l" && i + 1 < argc)
             sscanf(argv[++i], "%d", &logLevel);
+        else if(arg == "-t" && i + 1 < argc)
+            coverage_type = argv[++i];
         else
             programSummary(argv[0]);
     }
@@ -87,6 +92,7 @@ int main (int argc, char** argv)
     cout << "  western lat:  " << wLong << endl;
     cout << "  eastern lat:  " << eLong << endl;
     cout << "  debug level:  " << local_debug_level << endl;
+    cout << "  coverage type:  " << coverage_type << endl;
         
     cout << "Init Knowlege Base..." << endl;
     Madara::Knowledge_Engine::Knowledge_Base* knowledge = comm_setup_knowledge_base(id, true);
@@ -120,7 +126,11 @@ int main (int argc, char** argv)
         Madara::Knowledge_Engine::Eval_Settings(true));
     knowledge->set(MV_MIN_ALTITUDE, 2.0,
         Madara::Knowledge_Engine::Eval_Settings(true));
-    knowledge->set(MV_TOTAL_SEARCH_AREAS, Madara::Knowledge_Record::Integer(1));
+    knowledge->set(MV_TOTAL_SEARCH_AREAS,
+        Madara::Knowledge_Record::Integer(1));
+
+    knowledge->set("area_coverage.line_width", 0.00005);
+    Madara::Knowledge_Record::set_precision(6);
 
     printf("\nSet drones as mobile...\n");
     for(int i = 0; i < numDrones; ++i)
