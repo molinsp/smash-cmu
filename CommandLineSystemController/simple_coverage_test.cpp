@@ -21,6 +21,7 @@ using std::endl;
 #include "utilities/CommonMadaraVariables.h"
 #include "utilities/Position.h"
 #include "platforms/comm/comm.h"
+#include "ace/Signal.h"
 
 #include <sstream>
 
@@ -28,6 +29,13 @@ std::string coverage_type = "random";
 
 #define NUM_TO_STR( x ) dynamic_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << std::setprecision(10) << x ) ).str()
+
+// Interupt handling.
+volatile bool g_terminated = false;
+extern "C" void terminate (int)
+{
+    g_terminated = true;
+}
 
 void programSummary(char* arg)
 {
@@ -40,12 +48,13 @@ void programSummary(char* arg)
     cerr << "  [-w] western longitude" << endl;
     cerr << "  [-l] MADARA log level" << endl;
     cerr << "  [-t] coverage type" << endl;
+    cerr << "  [-st] search stride" << endl;
     exit(-1);
 }
 
 void handleArgs(int argc, char** argv, int& id, int& numDrones,
     double& nLat, double& wLong, double& sLat, double& eLong,
-    int& logLevel)
+    int& logLevel, double& stride)
 {
     for(int i = 1; i < argc; ++i)
     {
@@ -67,6 +76,8 @@ void handleArgs(int argc, char** argv, int& id, int& numDrones,
             sscanf(argv[++i], "%d", &logLevel);
         else if(arg == "-t" && i + 1 < argc)
             coverage_type = argv[++i];
+        else if(arg == "-st" && i + 1 < argc)
+            sscanf(argv[++i], "%lf", &stride);
         else
             programSummary(argv[0]);
     }
@@ -74,17 +85,21 @@ void handleArgs(int argc, char** argv, int& id, int& numDrones,
 
 int main (int argc, char** argv)
 {
-    int local_debug_level = 0;
+    // Set the use of Ctrl+C to terminate.
+    ACE_Sig_Action sa ((ACE_SignalHandler) terminate, SIGINT);
+
+    int local_debug_level = -1;
     int id = 0;
     int numDrones = 0;
     double nLat = 0;
     double wLong = 0;
     double sLat = 0;
     double eLong = 0;
+    double stride = 0;
 
     // Handle args
     cout << "Parse args..." << endl;
-    handleArgs(argc, argv, id, numDrones, nLat, wLong, sLat, eLong, local_debug_level);
+    handleArgs(argc, argv, id, numDrones, nLat, wLong, sLat, eLong, local_debug_level, stride);
     cout << "  id:           " << id << endl;
     cout << "  numDrones:    " << numDrones << endl;
     cout << "  northern lat: " << nLat << endl;
@@ -93,9 +108,18 @@ int main (int argc, char** argv)
     cout << "  eastern lat:  " << eLong << endl;
     cout << "  debug level:  " << local_debug_level << endl;
     cout << "  coverage type:  " << coverage_type << endl;
+    cout << "  stride:  " << stride << endl;
+
+    // Set the debug level.
+    bool enableLogging = false;
+    if(local_debug_level != -1)
+    {
+        MADARA_debug_level = local_debug_level;
+        enableLogging = true;
+    }
         
     cout << "Init Knowlege Base..." << endl;
-    Madara::Knowledge_Engine::Knowledge_Base* knowledge = comm_setup_knowledge_base(id, true);
+    Madara::Knowledge_Engine::Knowledge_Base* knowledge = comm_setup_knowledge_base(id, enableLogging);
 
     knowledge->set(".id", Madara::Knowledge_Record::Integer(id));
 
@@ -129,8 +153,10 @@ int main (int argc, char** argv)
     knowledge->set(MV_TOTAL_SEARCH_AREAS,
         Madara::Knowledge_Record::Integer(1));
 
-    knowledge->set("area_coverage.line_width", 0.00005);
-    Madara::Knowledge_Record::set_precision(6);
+    if(stride != 0)
+    {
+        knowledge->set("area_coverage.line_width", stride);
+    }
 
     printf("\nSet drones as mobile...\n");
     for(int i = 0; i < numDrones; ++i)
@@ -153,11 +179,16 @@ int main (int argc, char** argv)
     }
 
     knowledge->apply_modified();
-
-
-    printf("\nExiting...\n");
+    
+    printf("\nCommands sent...\n");
 
     knowledge->print_knowledge();
+
+    while(true)
+    {
+        knowledge->print_knowledge();
+        ACE_OS::sleep (1);
+    }
 
     delete knowledge;
 

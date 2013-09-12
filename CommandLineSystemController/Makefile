@@ -7,19 +7,18 @@
 
 CC = g++
 
-LOCAL_EXECUTABLE = simple_coverage_test
-
-LOCAL_SOURCES = simple_coverage_test.cpp
-
 REPO_ROOT = ../
 MADARA_CLIENT_ROOT = $(REPO_ROOT)/DroneController/packages/madara_client
-LOCAL_CFLAGS = -ggdb
+
 LOCAL_LIBS = -lMADARA -lACE
 LOCAL_LD_PATH = -L$(MADARA_ROOT)/lib -L$(ACE_ROOT)/lib
 LOCAL_INCLUDES = -I$(MADARA_ROOT)/include -I$(ACE_ROOT) -I$(MADARA_CLIENT_ROOT)
 
-LOCAL_SOURCES += $(MADARA_CLIENT_ROOT)/comm/*.cpp
-LOCAL_SOURCES += $(MADARA_CLIENT_ROOT)/comm/multicast/*.cpp
+LOCAL_EXECUTABLE = simple_coverage_test
+
+LOCAL_SOURCES = simple_coverage_test.cpp
+LOCAL_SOURCES += $(MADARA_CLIENT_ROOT)/platforms/comm/*.cpp
+LOCAL_SOURCES += $(MADARA_CLIENT_ROOT)/platforms/comm/multicast/*.cpp
 
 LOCAL_OBJ = $(LOCAL_SOURCES:.cpp=.o)
 
