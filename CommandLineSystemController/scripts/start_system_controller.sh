@@ -31,5 +31,5 @@ STRIDE=0.00005
 LOG_LEVEL=0
 
 
-~/smash-cmu/CommandLineSystemController/simple_coverage_test -i $ID -d $DRONES -n $NORTHERN -s $SOUTHERN -w $WESTERN -e $EASTERN -t $TYPE -st STRIDE -l LOG_LEVEL
+~/smash-cmu/CommandLineSystemController/simple_coverage_test -i $ID -d $DRONES -n $NORTHERN -s $SOUTHERN -w $WESTERN -e $EASTERN -t $TYPE -st STRIDE -l $LOG_LEVEL
 
