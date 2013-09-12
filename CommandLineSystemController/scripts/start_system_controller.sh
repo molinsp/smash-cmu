@@ -32,5 +32,5 @@ STRIDE=0.00005
 LOG_LEVEL=0
 
 cd $SMASH_ROOT/CommandLineSystemController
-simple_coverage_test -i $ID -d $DRONES -n $NORTHERN -s $SOUTHERN -w $WESTERN -e $EASTERN -t $TYPE -st STRIDE -l $LOG_LEVEL
+./simple_coverage_test -i $ID -d $DRONES -n $NORTHERN -s $SOUTHERN -w $WESTERN -e $EASTERN -t $TYPE -st STRIDE -l $LOG_LEVEL
 
