@@ -19,6 +19,7 @@
 #           be generated.
 #################################################################
 
+SMASH_ROOT=~/smash-cmu
 
 NORTHERN=40.441155
 SOUTHERN=40.440845
@@ -30,6 +31,6 @@ TYPE=snake
 STRIDE=0.00005
 LOG_LEVEL=0
 
-
-~/smash-cmu/CommandLineSystemController/simple_coverage_test -i $ID -d $DRONES -n $NORTHERN -s $SOUTHERN -w $WESTERN -e $EASTERN -t $TYPE -st STRIDE -l $LOG_LEVEL
+cd $SMASH_ROOT/CommandLineSystemController
+simple_coverage_test -i $ID -d $DRONES -n $NORTHERN -s $SOUTHERN -w $WESTERN -e $EASTERN -t $TYPE -st STRIDE -l $LOG_LEVEL
 
