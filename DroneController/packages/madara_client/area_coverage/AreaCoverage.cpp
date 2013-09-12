@@ -62,10 +62,15 @@ AreaCoverage* AreaCoverage::continueCoverage(AreaCoverage* coverage, const strin
 Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
     int numDrones)
 {
-    // If there is only one drone, return the whole search area, no need to do calculations.
+    // Reset the search; indicate that we have not started searching or moving on
+    // any axis yet.
+    m_started = false;
+
+    // If there is only one drone, return the whole grid as its cell, no need to do calculations.
     if(numDrones <= 1)
     {
-        return new Region(grid);
+        m_cellToSearch = new Region(grid);
+        return m_cellToSearch;
     }
 
     // Just for debugging purposes, print the grid we are searching in.
@@ -94,33 +99,11 @@ Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
     int deviceColumn = deviceIdx % amountOfColumns;
     printf("My idx is %d, and my line and column are: %d, %d \n", deviceIdx, deviceLine, deviceColumn);
 
-    // Check what is the actual orientation of the box, to see if we have to add or substract to form our cell.
-    double topLatitude = grid.northWest.latitude;
-    double bottomLatitude = grid.southEast.latitude;
-    if(topLatitude < bottomLatitude)
-    {
-        // If the south latitude is greater than the north one, we recieved an inverted grid.
-        // Switch to get the real top and bottom latitudes.
-        topLatitude = grid.southEast.latitude;
-        bottomLatitude = grid.northWest.latitude;
-    }
-
-    // Check what is the actual orientation of the box, to see if we have to add or substract to form our cell.
-    double leftLongitude = grid.northWest.longitude;
-    double rightLongitude = grid.southEast.longitude;
-    if(leftLongitude > rightLongitude)
-    {
-        // If the west longitude is greater than the east one, we recieved an inverted grid.
-        // Switch to get the real top and bottom latitudes.
-        leftLongitude = grid.southEast.longitude;
-        rightLongitude = grid.northWest.longitude;
-    }
-
     // Calculate the starting position based on the cell (line and column) and the
     // cells's size.
     Position deviceCellNorthWestCorner;
-    deviceCellNorthWestCorner.latitude = topLatitude - (deviceLine*cellHeight);
-    deviceCellNorthWestCorner.longitude = leftLongitude + (deviceColumn*cellWidth);
+    deviceCellNorthWestCorner.latitude = grid.northWest.latitude - (deviceLine*cellHeight);
+    deviceCellNorthWestCorner.longitude = grid.northWest.longitude + (deviceColumn*cellWidth);
     printf("NorthWest lat: %.10f long:%.10f \n", deviceCellNorthWestCorner.latitude, deviceCellNorthWestCorner.longitude);
 
     // Calculate the ending position based on the starting one and the cell's size.
@@ -129,14 +112,9 @@ Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
     deviceCellSouthEastCorner.longitude = deviceCellNorthWestCorner.longitude + cellWidth;
     printf("SouthEast lat: %.10f long: %.10f \n", deviceCellSouthEastCorner.latitude, deviceCellSouthEastCorner.longitude);
 
-    // Reset the search; indicate that we have not started searching or moving on
-    // any axis yet.
-    m_started = false;
-
     // Return the cell region (also storing it locally for further reference).
-    Region* deviceCell = new Region(deviceCellNorthWestCorner, deviceCellSouthEastCorner);
-    m_cellToSearch = deviceCell;
-    return deviceCell;
+    m_cellToSearch = new Region(deviceCellNorthWestCorner, deviceCellSouthEastCorner);
+    return m_cellToSearch;
 }
 
 // Returns a vector with the two middle divisors of a number (the ones closest

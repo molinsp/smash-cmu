@@ -29,8 +29,8 @@ function doInitialSetup()
     g_mapWidthInMeters = x2 - x1
     g_mapHeightInMeters = y2 - y1
     
-    g_mapOriginX = x1
-    g_mapOriginY = y1
+    g_mapOriginX = x2
+    g_mapOriginY = y2
 
     -- Reset the name suffix to its default, just in case.
 	local namesuffix = -1
@@ -132,8 +132,9 @@ end
 -- Turns a cartesian position into a cell number.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function positionToCell(position)
-    local column = math.floor((position[1]-g_mapOriginX)*MAP_WIDTH_IN_CELLS/g_mapWidthInMeters)
-    local line = math.floor((position[2] - g_mapOriginY)*MAP_HEIGHT_IN_CELLS/g_mapHeightInMeters)
+    local column = math.floor((g_mapOriginX - position[1])*MAP_WIDTH_IN_CELLS/g_mapWidthInMeters)
+    local line = math.floor((g_mapOriginY - position[2])*MAP_HEIGHT_IN_CELLS/g_mapHeightInMeters)
+    --simAddStatusbarMessage('Column ' .. column .. ', line ' .. line)
 
     if(column < 0) then
         column = 0

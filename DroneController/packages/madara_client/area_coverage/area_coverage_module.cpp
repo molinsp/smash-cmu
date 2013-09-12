@@ -96,6 +96,7 @@ static Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowle
     Madara::Knowledge_Engine::Variables &variables);
 static Madara::Knowledge_Record madaraAltitudeReached (Madara::Knowledge_Engine::Function_Arguments &args,
     Madara::Knowledge_Engine::Variables &variables);
+static Region invertRegionIfRequired(const Region& sourceRegion);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Initializer, gets the refence to the knowledge base and compiles expressions.
@@ -363,14 +364,16 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
     double seLon = variables.get(MV_REGION_BOTRIGHT_LON(myAssignedSearchRegion)).to_double();
     Region searchArea = Region(Position(nwLon, nwLat), Position(seLon, seLat));
 
+    // Swap sides of the region if it was incorrectly setup originally in the Madara variables.
+    searchArea = invertRegionIfRequired(searchArea);
+
     // Calculate the actual cell I will be covering.
     string algo = variables.get(variables.expand_statement(MV_AREA_COVERAGE_REQUESTED("{" MV_MY_ID "}"))).to_string();
     m_coverageAlgorithm = selectAreaCoverageAlgorithm(algo, variables);
     if(m_coverageAlgorithm != NULL)
     {
         // Calculate the cell I will be working on.
-        Region* myCell = m_coverageAlgorithm->initialize(searchArea, myIndexInList,
-                                                         availableDrones);
+        Region* myCell = m_coverageAlgorithm->initialize(searchArea, myIndexInList, availableDrones);
 
         if(myCell != NULL)
         {
@@ -491,4 +494,38 @@ Madara::Knowledge_Record madaraSetNewCoverage(Madara::Knowledge_Engine::Function
     }
     // If we couldn't generate our cell for some reason, the function was not successful.
     return Madara::Knowledge_Record(0.0);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// Returns the same region if its coordinates actually corresponded to the cardinal points.
+// If not, if inverts either the north-south latitudes, west-east longitudes, or both.
+// The end result is a region where the latitudes and longitudes match the names of the
+// object fields.
+////////////////////////////////////////////////////////////////////////////////////////////
+Region invertRegionIfRequired(const Region& sourceRegion)
+{
+    // Start by assuming no inversion if required.
+    Region cleanedRegion(sourceRegion);
+
+    // Check if we need a north-south latitude inversion.
+    if(sourceRegion.northWest.latitude < sourceRegion.southEast.latitude)
+    {
+        // If the south latitude is greater than the north one, we recieved an inverted grid.
+        // Switch to get the real north and south latitudes.
+        printf("Inverting north and south latitudes.\n");
+        cleanedRegion.northWest.latitude = sourceRegion.southEast.latitude;
+        cleanedRegion.southEast.latitude = sourceRegion.northWest.latitude;
+    }
+
+    // Check if we need a west-east longitude inversion.
+    if(sourceRegion.northWest.longitude > sourceRegion.southEast.longitude)
+    {
+        // If the west longitude is greater than the east one, we recieved an inverted grid.
+        // Switch to get the real west and east latitudes.
+        printf("Inverting west and east latitudes.\n");
+        cleanedRegion.northWest.longitude = sourceRegion.southEast.longitude;
+        cleanedRegion.southEast.longitude = sourceRegion.northWest.longitude;
+    }
+
+    return cleanedRegion;
 }
