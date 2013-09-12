@@ -16,9 +16,9 @@ LOCAL_INCLUDES = -I$(MADARA_ROOT)/include -I$(ACE_ROOT) -I$(MADARA_CLIENT_ROOT)
 
 LOCAL_EXECUTABLE = simple_coverage_test
 
-LOCAL_SOURCES = simple_coverage_test.cpp
 LOCAL_SOURCES += $(MADARA_CLIENT_ROOT)/platforms/comm/kb_setup.cpp
 LOCAL_SOURCES += $(MADARA_CLIENT_ROOT)/platforms/comm/multicast/comm_multicast.cpp
+LOCAL_SOURCES += simple_coverage_test.cpp
 
 LOCAL_OBJ = $(LOCAL_SOURCES:.cpp=.o)
 

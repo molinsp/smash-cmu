@@ -184,7 +184,7 @@ int main (int argc, char** argv)
 
     knowledge->print_knowledge();
 
-    while(true)
+    while(!g_terminated)
     {
         knowledge->print_knowledge();
         ACE_OS::sleep (1);
