@@ -21,6 +21,8 @@ using namespace SMASH::Sensors;
 using namespace SMASH::Utilities;
 using namespace SMASH::HumanDetection;
 
+#define STRING_ENDS_WITH(str, end) (str.length() >= end.length() ? (0 == str.compare (str.length() - end.length(), end.length(), end)) : false)
+
 // Compiled expressions that we expect to be called frequently
 static Madara::Knowledge_Engine::Compiled_Expression expressions [NUM_TASKS];
 
@@ -51,7 +53,6 @@ void SMASH::DroneController::cleanup(Madara::Knowledge_Engine::Knowledge_Base* k
 
     // Cleanup Madara.
     knowledge->close_transport();
-    knowledge->clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,10 +136,6 @@ void SMASH::DroneController::initializeDrone(int droneId, Madara::Knowledge_Engi
     knowledge.set(MV_MY_ID, (Madara::Knowledge_Record::Integer) droneId);
     knowledge.set(knowledge.expand_statement(MV_MOBILE("{" MV_MY_ID "}")), 1.0);
     knowledge.set(knowledge.expand_statement(MV_BUSY("{" MV_MY_ID "}")), 0.0);
-
-    // Setup the initial command for the first loop of the drone logic as "take off".
-    // This is done through variables, similar to how a command would be sent by an external user.
-    //knowledge.set(MV_DEVICE_MOVE_REQUESTED(knowledge.expand_statement("{" MV_MY_ID "}")), MO_TAKEOFF_CMD);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -146,9 +143,36 @@ void SMASH::DroneController::initializeDrone(int droneId, Madara::Knowledge_Engi
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static Madara::Knowledge_Record process_state_movement_commands (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-  /*TREAT_AS_LOCAL*/
+  // Treat as local to avoid deleting commands for other devices when clearing those variables so that we do not execute them twice.
   return variables.evaluate(expressions[PROCESS_STATE_MOVEMENT_COMMANDS],
                             Madara::Knowledge_Engine::Knowledge_Update_Settings(true));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Function to calculate the amount of devices we currently see in the network.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Madara::Knowledge_Record calculateNumDevices (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
+{
+    // Get all the variables with the "device" prefix.
+	std::map<std::string, Madara::Knowledge_Record> map;
+	variables.to_map(args[0].to_string(), map);
+	
+    // Iterate over the map, and find the ones that correspond to location, just to choose one common variable.
+    int numDevices = 0;
+	std::map<std::string, Madara::Knowledge_Record>::iterator iter;
+	for (iter = map.begin(); iter != map.end(); ++iter)
+	{
+		if (STRING_ENDS_WITH(iter->first, std::string(".location")))
+		{
+            numDevices++;
+		}		
+	}
+
+    // Set the number of devices, locally.
+    variables.set(MV_TOTAL_DEVICES, Madara::Knowledge_Record::Integer(numDevices),
+                  Madara::Knowledge_Engine::Eval_Settings(true, true));
+
+	return Madara::Knowledge_Record::Integer(1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -156,63 +180,94 @@ static Madara::Knowledge_Record process_state_movement_commands (Madara::Knowled
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SMASH::DroneController::compileExpressions (Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
+    // Expression (and function to execute this) to parse commands sent by other devices into our local commands.
     expressions[PROCESS_STATE_MOVEMENT_COMMANDS] = knowledge.compile
     (
         knowledge.expand_statement
         (
+            // Reset our internal command variable.
             ".movement_command=0;"
-            "swarm.movement_command  || device.{.id}.movement_command =>"
+
+            // Check if we have an external swarm or individual command.
+            "(swarm.movement_command || device.{.id}.movement_command) =>"
             "("
+                // Swarm commands have priority over regular ones.
                 "(( swarm.movement_command => "
                 "("
+                    // Pass the swarm command plus its parameters into the local variables the movement module will check.
                     ".movement_command = swarm.movement_command;"
                     "copy_vector('swarm.movement_command.*', '.movement_command.');"
                 "))"
                 "||"
+                // If there was no swarm command, we check if we were sent and individual command.
                 "( device.{.id}.movement_command => "
                 "(" 
+                    // Pass the swarm command plus its parameters into the local variables the movement module will check.
                     ".movement_command = device.{.id}.movement_command;"
                     "copy_vector('device.{.id}.movement_command.*', '.movement_command.');"
                 ")));"
+
+                // Clear the commands so that we do not execute them again (note that when this is called, this will be done only locally,
+                // so as not to propagate this deletion which could prevent other drones from seeing this command.
                 "swarm.movement_command = 0; device.{.id}.movement_command = 0;"
             ")"
         )
     );
     knowledge.define_function("process_state_movement_commands", process_state_movement_commands);
 
+    // Define an expression (and an associated function) to broadcast our current information and process external variables
+    // tha we have received.
     expressions[PROCESS_STATE] = knowledge.compile
     (
         knowledge.expand_statement
         (
-            // TODO: check if we really want to broadcast this. We are constantly setting these values, to disseminate them.
+            // TODO: check if we really want to broadcast all of these. We are constantly setting these values, to disseminate them.
             "("
                 MV_BUSY("{" MV_MY_ID "}") "=" MV_BUSY("{" MV_MY_ID "}") ";"
                 MV_MOBILE("{" MV_MY_ID "}") "=" MV_MOBILE("{" MV_MY_ID "}") ";"
                 MV_DEVICE_BATTERY("{" MV_MY_ID "}") "=" MV_BATTERY ";"
+                MV_DEVICE_GPS_LOCKS("{" MV_MY_ID "}") "=" MV_GPS_LOCKS ";"
             ");"
 
+            // This will actually broadcast my current location to the network.
             "device.{.id}.location=.location;"
+
+            // Copy the location to the local variables to be used.
             ".device.{.id}.location.altitude=.location.altitude;"
+            
+            // Parse the location into separate variables.
             "inflate_coords(.location, '.location');"
+
+            // Parse multiple locations from global variables.
             "inflate_coord_array_to_local('device.*');"
             "inflate_coord_array_to_local('region.*');"
+
+            // Check if there are any movement commands, and process them for the movement module.
             "process_state_movement_commands();"
         )
-    );
-    
+    );    
     knowledge.define_function("process_state", expressions[PROCESS_STATE]);
 
+    // Get the main functions for each module.
     std::string areaMainLogicCall = m_areaCoverageModule.get_core_function();
     std::string bridgeMainLogicCall = m_bridgeModule.get_core_function();	
     std::string movementMainLogicCall = m_movementModule.get_core_function();
     std::string sensorsMainLogicCall = m_sensorsModule.get_core_function();	
     std::string humanDetectionMainLogicCall = m_humanDetectionModule.get_core_function();  
 
+    // Main logic of the program, which will be called once in every iteration.
     expressions[MAIN_LOGIC] = knowledge.compile
     (
+        // First get data from sensors.
         sensorsMainLogicCall + ";" +
-        "process_state ();"
-    "" + humanDetectionMainLogicCall + ";"
+
+        // Process external data we may have received.
+        "process_state ();" +
+
+        // Run the human detection algorithms.
+        humanDetectionMainLogicCall + ";"
+
+        // Choose between either executing a movement command (if any), or bridge building, or area coverage, in that order.
         "("
             ".movement_command"
             "||"
@@ -220,7 +275,8 @@ void SMASH::DroneController::compileExpressions (Madara::Knowledge_Engine::Knowl
             "||"
             "(" + areaMainLogicCall + ")"
         ");"
+
+        // Execute movement commands, if any.
         ".movement_command => " + movementMainLogicCall + ";"
     );
-
 }

@@ -27,6 +27,7 @@ using std::string;
 
 #define DEFAULT_SEARCH_LINE_OFFSET_DEGREES      0.0000100   // Margin (in degrees) to use when moving to another column or line of search. Should be similar to the view range of a drone.
 #define DEFAULT_ALTITUDE_DIFFERENCE             0.5         // The amount of vertical space (in meters) to leave between drones.
+#define DEFAULT_MIN_HEIGHT                      1.5         // The default minimum height (in meters) to use when choosing heights for search coverage.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Madara Variable Definitions
@@ -104,14 +105,22 @@ static Region invertRegionIfRequired(const Region& sourceRegion);
 void SMASH::AreaCoverage::AreaCoverageModule::initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 {
     knowledge.print("SMASH::AreaCoverage::initialize...\n");
+
     // Defines internal and external functions.
     defineFunctions(knowledge);
 
-    // Initialize variables.
+    // Initialize common search parameters with default values, locally.
+    knowledge.set(MV_AREA_COVERAGE_LINE_WIDTH, DEFAULT_SEARCH_LINE_OFFSET_DEGREES,
+                  Madara::Knowledge_Engine::Eval_Settings(true, true));
+    knowledge.set(MV_AREA_COVERAGE_HEIGHT_DIFF, DEFAULT_ALTITUDE_DIFFERENCE,
+                  Madara::Knowledge_Engine::Eval_Settings(true, true));
+    knowledge.set(MV_MIN_ALTITUDE, DEFAULT_MIN_HEIGHT,
+                  Madara::Knowledge_Engine::Eval_Settings(true, true));
+    knowledge.set(MV_SEARCH_WAIT, 0.0,
+                  Madara::Knowledge_Engine::Eval_Settings(true, true)); // No wait by default.
+
+    // Initialize local variables.
     knowledge.set(MV_INITIAL_HEIGHT_REACHED, 0.0);
-    knowledge.set(MV_AREA_COVERAGE_LINE_WIDTH, DEFAULT_SEARCH_LINE_OFFSET_DEGREES);
-    knowledge.set(MV_AREA_COVERAGE_HEIGHT_DIFF, DEFAULT_ALTITUDE_DIFFERENCE);
-    knowledge.set(MV_SEARCH_WAIT, 0.0); // No wait by default.
 
     // Registers all default expressions, to have them compiled for faster access.
     compileExpressions(knowledge);
