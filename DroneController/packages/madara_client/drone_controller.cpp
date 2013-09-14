@@ -151,26 +151,41 @@ static Madara::Knowledge_Record process_state_movement_commands (Madara::Knowled
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Function to calculate the amount of devices we currently see in the network.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Madara::Knowledge_Record calculateNumDevices (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
+static Madara::Knowledge_Record calculateNumDevices (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
     // Get all the variables with the "device" prefix.
 	std::map<std::string, Madara::Knowledge_Record> map;
-	variables.to_map(args[0].to_string(), map);
+	variables.to_map("device.*", map);
 	
     // Iterate over the map, and find the ones that correspond to location, just to choose one common variable.
-    int numDevices = 0;
+    int numDevicesISee = 0;
 	std::map<std::string, Madara::Knowledge_Record>::iterator iter;
 	for (iter = map.begin(); iter != map.end(); ++iter)
 	{
 		if (STRING_ENDS_WITH(iter->first, std::string(".location")))
 		{
-            numDevices++;
+            numDevicesISee++;
 		}		
 	}
 
     // Set the number of devices, locally.
-    variables.set(MV_TOTAL_DEVICES, Madara::Knowledge_Record::Integer(numDevices),
+    variables.set(MV_TOTAL_DEVICES_I_SEE, Madara::Knowledge_Record::Integer(numDevicesISee),
                   Madara::Knowledge_Engine::Eval_Settings(true, true));
+    
+    // Check if the total number of devices has been set globally.
+    int globalNumDevices = (int) variables.get(MV_TOTAL_DEVICES_GLOBAL).to_integer();
+    if(globalNumDevices != 0)
+    {
+        // If the number of devices has been set globally, overwrite our internal value with it.
+        variables.set(MV_TOTAL_DEVICES, Madara::Knowledge_Record::Integer(globalNumDevices),
+                      Madara::Knowledge_Engine::Eval_Settings(true, true));
+    }
+    else
+    {
+        // Otherwise use the number of devices I see.
+        variables.set(MV_TOTAL_DEVICES, Madara::Knowledge_Record::Integer(numDevicesISee),
+                      Madara::Knowledge_Engine::Eval_Settings(true, true));
+    }
 
 	return Madara::Knowledge_Record::Integer(1);
 }
@@ -232,6 +247,9 @@ void SMASH::DroneController::compileExpressions (Madara::Knowledge_Engine::Knowl
             // This will actually broadcast my current location to the network.
             "device.{.id}.location=.location;"
 
+            // Calculate the number of devices I see.
+            "calculate_num_devices();"
+
             // Copy the location to the local variables to be used.
             ".device.{.id}.location.altitude=.location.altitude;"
             
@@ -247,6 +265,8 @@ void SMASH::DroneController::compileExpressions (Madara::Knowledge_Engine::Knowl
         )
     );    
     knowledge.define_function("process_state", expressions[PROCESS_STATE]);
+
+    knowledge.define_function("calculate_num_devices", calculateNumDevices);
 
     // Get the main functions for each module.
     std::string areaMainLogicCall = m_areaCoverageModule.get_core_function();
