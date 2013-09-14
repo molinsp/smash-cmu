@@ -7,8 +7,11 @@
 
 require("Utils")
     
--- The speed defines how far the target moves, and therefore how fast the drone will follow.
-TARGET_SPEED = 0.0000005    -- This is rougly equivalent to 3 cm.
+-- Indicates how much to move (in meters) the target for the drone to follow. The bigger this value,
+-- the further the target will move, and the faster the drone will follow. Therefore,
+-- higher values result in higher movement speeds (up to the max speed of the drone model).
+-- This value has to be less than the GPS accuracy of the VRep platform in the simulated Drones.
+TARGET_STEP = 0.1    -- 10 cm.
 
 -- Altitude to reach when taking off.
 TAKEOFF_ALTITUDE = 1.5
@@ -282,32 +285,44 @@ end
 -- Moves the target to a new position, so the drone will follow it there.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function moveTargetTowardsPosition(newPositionLon, newPositionLat, newAltitude)
-    -- Get the current position of the target.
+    -- Turn the target position into meters for simplicity.
+    local newPosition = {}
+    newPosition['longitude'] = newPositionLon
+    newPosition['latitude'] = newPositionLat
+    local newPositionCartesian = getXYpos(newPosition)
+    
+    -- Get the current position of the target. Work in meters for simplicity.
     local droneTargetHandle = simGetObjectHandle('Quadricopter_target')
-    local droneTargetPosition = getObjectPositionInDegrees(droneTargetHandle, -1)
+    local droneTargetPosition = simGetObjectPosition(droneTargetHandle, -1)
     
-    local speed = TARGET_SPEED
-    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Curr target position' .. droneTargetPosition[1] .. ',' .. droneTargetPosition[2]..':'..newAltitude)
+    local targetStep = TARGET_STEP
+    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Curr target position' .. droneTargetPosition[1] .. ',' .. droneTargetPosition[2])
     
-    local deltaLon = newPositionLon - droneTargetPosition[1]
-    local deltaLat = newPositionLat - droneTargetPosition[2]
-    local deltaTotal = math.sqrt(math.pow(deltaLon, 2) + math.pow(deltaLat, 2))
+    -- Calculate the distance between the current and new position as the diagonal distance between these two points.
+    -- Note that they are both in meters, and so is the distance.
+    local distanceInX = newPositionCartesian['x'] - droneTargetPosition[1]
+    local distanceInY = newPositionCartesian['y'] - droneTargetPosition[2]
+    local distanceToNewPosition = math.sqrt(math.pow(distanceInX, 2) + math.pow(distanceInY, 2))
 
-    if(deltaTotal < speed) then
-        droneTargetPosition[1] = newPositionLon
-        droneTargetPosition[2] = newPositionLat
+    -- Check if the distance to the new position is less than the steps that the target takes.
+    if(distanceToNewPosition < targetStep) then
+        -- If so, we just move the target to the new position, since it will be less or equal than a regular step anyway.
+        droneTargetPosition[1] = newPositionCartesian['x']
+        droneTargetPosition[2] = newPositionCartesian['y']
     else
-        deltaLon = speed / deltaTotal * deltaLon
-        deltaLat = speed / deltaTotal * deltaLat
-        droneTargetPosition[1] = droneTargetPosition[1] + deltaLon 
-        droneTargetPosition[2] = droneTargetPosition[2] + deltaLat
+        -- Calculate how much to move the target in X and Y to achieve an actual movement distance of the target of targetStep
+        targetStepX = targetStep * (distanceInX / distanceToNewPosition)
+        targetStepY = targetStep * (distanceInY / distanceToNewPosition)
+        
+        -- Update the new position of the target.
+        droneTargetPosition[1] = droneTargetPosition[1] + targetStepX 
+        droneTargetPosition[2] = droneTargetPosition[2] + targetStepY
     end
     
     -- The altitude that we were assinged will be set directly, independently of our current one.
     droneTargetPosition[3] = newAltitude    
 
     -- Move the target to a new position, so the drone will follow it there.
-    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Final target position' .. (newPositionLon) .. ',' .. (newPositionLat)..', speed: '..speed)
-    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Moving target to position' .. ((droneTargetPosition[1]+79.9402)*10000) .. ',' .. ((droneTargetPosition[2]-40.4432)*1000))
-    setObjectPositionFromDegrees(droneTargetHandle, -1, droneTargetPosition)
+    --simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') Final target position' .. droneTargetPosition[1] .. ',' .. droneTargetPosition[2])
+    simSetObjectPosition(droneTargetHandle, -1, droneTargetPosition)
 end

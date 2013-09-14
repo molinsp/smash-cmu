@@ -371,5 +371,7 @@ double platform_read_ultrasound()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 double platform_get_gps_accuracy()
 {
-    return 0.3;
+    // Note that this has to match the value used in VRep to determine how close to a location the drone is.
+    double gpsAccuracy = 0.3;
+    return gpsAccuracy;
 }

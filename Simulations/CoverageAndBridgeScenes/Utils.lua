@@ -5,6 +5,16 @@
 --# https://code.google.com/p/smash-cmu/wiki/License
 --######################################################################
 
+-- This reference point is chosen to get better latitudes. Now it is at CMU.
+g_referencePoint = {}
+g_referencePoint['latitude'] = 40.44108
+g_referencePoint['longitude'] =  -79.947164
+
+-- Real Earth measurements are required to transform between cartesian and lat/long positions.
+g_degressInCircumference = 360
+g_earthPolesPerimeter = 40008000
+g_earthEquatorialPerimter = 40075160    
+
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Load the people's locations, so we are able to check when we find one.
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,13 +76,6 @@ function getDroneInfoFromId(id)
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
--- Helper function used to sort a table by the third value in each tuple.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function compare(a,b)
-  return a[3] < b[3]
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
 --
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function asRadians(degrees)
@@ -80,14 +83,7 @@ function asRadians(degrees)
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////    
--- This reference point is chosen to get better latitudes. Now it is at CMU.
---/////////////////////////////////////////////////////////////////////////////////////////////
-g_referencePoint = {}
-g_referencePoint['latitude'] = 40.44108
-g_referencePoint['longitude'] =  -79.947164
-
---/////////////////////////////////////////////////////////////////////////////////////////////    
--- Gets 
+-- Returns the position of a given object in degrees.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function getObjectPositionInDegrees(objectHandle, relativeTo)
     -- Get the cartesian position first.
@@ -106,7 +102,7 @@ function getObjectPositionInDegrees(objectHandle, relativeTo)
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////    
--- Gets 
+-- Sets the real cartesian position of an object in the simulation given a latitude and longitude.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function setObjectPositionFromDegrees(objectHandle, relativeTo, latAndLongPosition)
     -- Turn into a named table.
@@ -122,13 +118,6 @@ function setObjectPositionFromDegrees(objectHandle, relativeTo, latAndLongPositi
     --simAddStatusbarMessage('Moving to pos in cart: ' .. vrepPosition[1] .. ',' .. vrepPosition[2] .. ',' .. vrepPosition[3])
     simSetObjectPosition(objectHandle, relativeTo, vrepPosition)
 end    
-    
---/////////////////////////////////////////////////////////////////////////////////////////////    
--- These values are based on the size of the Earth.
---/////////////////////////////////////////////////////////////////////////////////////////////
-g_degressInCircumference = 360
-g_earthPolesPerimeter = 40008000
-g_earthEquatorialPerimter = 40075160    
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Calculates X and Y distances in meters.
