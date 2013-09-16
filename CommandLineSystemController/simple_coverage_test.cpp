@@ -49,12 +49,16 @@ void programSummary(char* arg)
     cerr << "  [-l] MADARA log level" << endl;
     cerr << "  [-t] coverage type" << endl;
     cerr << "  [-st] search stride" << endl;
+    cerr << "  [-hm] min height" << endl;
+    cerr << "  [-hd] height diff" << endl;
+    cerr << "  [-r] comm range" << endl;
     exit(-1);
 }
 
 void handleArgs(int argc, char** argv, int& id, int& numDrones,
     double& nLat, double& wLong, double& sLat, double& eLong,
-    int& logLevel, double& stride)
+    int& logLevel, double& stride, double& minHeight, double& heightDiff,
+    double& commRange)
 {
     for(int i = 1; i < argc; ++i)
     {
@@ -78,6 +82,12 @@ void handleArgs(int argc, char** argv, int& id, int& numDrones,
             coverage_type = argv[++i];
         else if(arg == "-st" && i + 1 < argc)
             sscanf(argv[++i], "%lf", &stride);
+        else if(arg == "-hm" && i + 1 < argc)
+            sscanf(argv[++i], "%lf", &minHeight);
+        else if(arg == "-hd" && i + 1 < argc)
+            sscanf(argv[++i], "%lf", &heightDiff);
+        else if(arg == "-r" && i + 1 < argc)
+            sscanf(argv[++i], "%lf", &commRange);
         else
             programSummary(argv[0]);
     }
@@ -96,10 +106,13 @@ int main (int argc, char** argv)
     double sLat = 0;
     double eLong = 0;
     double stride = 0;
+    double minHeight = 0;
+    double heightDiff = 0;
+    double commRange = 0;
 
     // Handle args
     cout << "Parse args..." << endl;
-    handleArgs(argc, argv, id, numDrones, nLat, wLong, sLat, eLong, local_debug_level, stride);
+    handleArgs(argc, argv, id, numDrones, nLat, wLong, sLat, eLong, local_debug_level, stride, minHeight, heightDiff, commRange);
     cout << "  id:           " << id << endl;
     cout << "  numDrones:    " << numDrones << endl;
     cout << "  northern lat: " << nLat << endl;
@@ -107,8 +120,11 @@ int main (int argc, char** argv)
     cout << "  western lat:  " << wLong << endl;
     cout << "  eastern lat:  " << eLong << endl;
     cout << "  debug level:  " << local_debug_level << endl;
-    cout << "  coverage type:  " << coverage_type << endl;
-    cout << "  stride:  " << stride << endl;
+    cout << "  coverage type:" << coverage_type << endl;
+    cout << "  stride:       " << stride << endl;
+    cout << "  min height:   " << minHeight << endl;
+    cout << "  height diff:  " << heightDiff << endl;
+    cout << "  commRange:    " << commRange << endl;
 
     // Set the debug level.
     bool enableLogging = false;
@@ -122,6 +138,20 @@ int main (int argc, char** argv)
     Madara::Knowledge_Engine::Knowledge_Base* knowledge = comm_setup_knowledge_base(id, enableLogging);
 
     knowledge->set(".id", Madara::Knowledge_Record::Integer(id));
+
+    printf("\nSetting up base parameters...\n");
+    if(minHeight != 0)
+    {
+        knowledge->set(MV_MIN_ALTITUDE, minHeight);
+    }
+    if(heightDiff != 0)
+    {
+        knowledge->set(MV_AREA_COVERAGE_HEIGHT_DIFF, heightDiff);
+    }
+    if(commRange != 0)
+    {
+        knowledge->set(MV_COMM_RANGE, commRange);
+    }
 
     // Send takeoff command and wait for a bit so the drones take off.
     printf("\nSending takeoff command...\n");
@@ -155,7 +185,7 @@ int main (int argc, char** argv)
 
     if(stride != 0)
     {
-        knowledge->set("area_coverage.line_width", stride);
+        knowledge->set(MV_AREA_COVERAGE_LINE_WIDTH, stride);
     }
 
     printf("\nSet drones as mobile...\n");

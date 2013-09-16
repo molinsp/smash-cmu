@@ -26,7 +26,7 @@ using namespace SMASH::Utilities;
 using std::string;
 
 #define DEFAULT_SEARCH_LINE_OFFSET_DEGREES      0.0000100   // Margin (in degrees) to use when moving to another column or line of search. Should be similar to the view range of a drone.
-#define DEFAULT_ALTITUDE_DIFFERENCE             0.5         // The amount of vertical space (in meters) to leave between drones.
+#define DEFAULT_ALTITUDE_DIFFERENCE             0.8         // The amount of vertical space (in meters) to leave between drones.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Madara Variable Definitions
