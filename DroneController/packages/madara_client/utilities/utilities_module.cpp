@@ -64,23 +64,32 @@ Madara::Knowledge_Record inflate_coords (Madara::Knowledge_Engine::Function_Argu
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record inflate_coord_array_to_local (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
+    // If we were called with no parameters, return false.
 	if (args.size() != 1)
 		return Madara::Knowledge_Record::Integer(0);
+
+    // Get all the variables with the given prefix.
 	std::map<std::string, Madara::Knowledge_Record> map;
 	variables.to_map(args[0].to_string(), map);
 	
+    // Iterate over the map, and find the ones that correspond to location.
 	std::map<std::string, Madara::Knowledge_Record>::iterator iter;
 	for (iter = map.begin(); iter != map.end(); ++iter)
 	{
 		std::stringstream evalBuffer;
 		if (STRING_ENDS_WITH(iter->first, std::string(".location")))
-		{
+		{	
+            // Copy the location to the corresponding local variable.
+			evalBuffer << std::setprecision(10) << "." << iter->first << "=" << iter->first << ";";
+
+            // Parse these coordinates.
+            evalBuffer << "inflate_coords(." << iter->first << ",'." << iter->first << "');";
 			
-			evalBuffer << std::setprecision(10) << "." << iter->first << "=" << iter->first << ";inflate_coords(." << iter->first << ",'." << iter->first << "');";
-			variables.evaluate(evalBuffer.str());
-		}
-		
+            // Actually execute these commands.
+            variables.evaluate(evalBuffer.str());
+		}		
 	}
+
 	return Madara::Knowledge_Record::Integer(1);
 }
 

@@ -74,8 +74,9 @@ void SMASH::Bridge::BridgeModule::initialize(Madara::Knowledge_Engine::Knowledge
     // Defines internal and external functions.
     defineFunctions(knowledge);
 
-    // Initialize some default and starting values.
-    knowledge.set(MV_COMM_RANGE, DEFAULT_MAX_COMM_DISTANCE_DEGREES);
+    // Initialize some default and starting values, locally.
+    knowledge.set(MV_COMM_RANGE, DEFAULT_MAX_COMM_DISTANCE_DEGREES,
+                  Madara::Knowledge_Engine::Eval_Settings(true, true));
 
     // Registers all default expressions, to have them compiled for faster access.
     compileExpressions(knowledge);

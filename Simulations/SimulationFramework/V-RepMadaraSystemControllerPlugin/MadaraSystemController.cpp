@@ -58,7 +58,7 @@ void MadaraController::updateGeneralParameters(const int& numberOfDrones)
     m_knowledge->set(MV_MIN_ALTITUDE, m_minAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
     m_knowledge->set(MV_AREA_COVERAGE_LINE_WIDTH, m_lineWidth, Madara::Knowledge_Engine::Eval_Settings(true));
     m_knowledge->set(MV_AREA_COVERAGE_HEIGHT_DIFF, m_heightDiff, Madara::Knowledge_Engine::Eval_Settings(true));
-    m_knowledge->set(MV_TOTAL_DEVICES, (Madara::Knowledge_Record::Integer) numberOfDrones, Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set(MV_TOTAL_DEVICES_GLOBAL, (Madara::Knowledge_Record::Integer) numberOfDrones, Madara::Knowledge_Engine::Eval_Settings(true));
     
     // This call will flush all past changes.
     m_knowledge->apply_modified();

@@ -27,7 +27,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Network information.
-#define MV_TOTAL_DEVICES                        "devices"           // The total amount of devices in the system.
+#define MV_TOTAL_DEVICES_GLOBAL                 "devices"            // The total amount of devices in the system, set externally.
 
 // Information about specific devices.
 #define MV_DEVICE_LOCATION(deviceId)            "device." + std::string(deviceId) + ".location" // The location of a device in the format "lat,long".
@@ -77,6 +77,9 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Local preprocessed variables, filled in by other modules in each drone.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define MV_TOTAL_DEVICES                        ".devices"           // The total amount of devices in the system.
+#define MV_TOTAL_DEVICES_I_SEE                  ".devices.seen"          // The total amount of devices I see in the system.
 
 // Information about specific devices.
 #define MV_MY_ID                                ".id"                                                           // The id of this device.
