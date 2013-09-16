@@ -7,18 +7,15 @@
  
 #include "utilities/utilities_module.h"
 #include <iomanip>		// std::setprecision
+
 #include "Position.h"
-
 #include "utilities/CommonMadaraVariables.h"
-
-#define STRING_ENDS_WITH(str, end) (str.length() >= end.length() ? (0 == str.compare (str.length() - end.length(), end.length(), end)) : false)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record inflate_coords (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-
 	if(args.size() != 2)
     {
 		return Madara::Knowledge_Record::Integer(0);

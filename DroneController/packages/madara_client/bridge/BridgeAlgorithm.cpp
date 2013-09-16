@@ -15,6 +15,7 @@
 #include <vector>
 #include <map>
 #include "BridgeAlgorithm.h"
+#include "utilities/gps_utils.h"
 
 #include <iostream>
 #include <fstream>
@@ -48,8 +49,11 @@ Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Posit
 
 	Position* myNewPosition = NULL;
 
-	// Calculate how many drones we need for the bridge. Note that it is assuming the positions are in meters.
-	double bridgeLength = sqrt(pow(sourcePosition.x - sinkPosition.x, 2) + pow(sourcePosition.y - sinkPosition.y, 2));
+    // Calculate the length of the bridge in meters, to compare it to the comm range we got. Note that it is assuming the positions are in degrees.
+	//double bridgeLength = sqrt(pow(sourcePosition.x - sinkPosition.x, 2) + pow(sourcePosition.y - sinkPosition.y, 2));
+    double bridgeLength = gps_coordinates_distance(sourcePosition.latitude, sourcePosition.longitude, sinkPosition.latitude, sinkPosition.longitude);
+
+	// Calculate how many drones we need for the bridge.
 	int numberOfRelays = (int) ceil(bridgeLength/commRange + 1);    // +1 to add a relay in each end point.
 
 #if BRIDGE_ALGORITHM_DEBUG

@@ -5,9 +5,10 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
-#include "utilities/CommonMadaraVariables.h"
-
 #include "drone_controller.h"
+
+#include "utilities/CommonMadaraVariables.h"
+#include "utilities/string_utils.h"
 
 #define NUM_TASKS 	3
 #define MAIN_LOGIC 	0
@@ -20,8 +21,6 @@ using namespace SMASH::Movement;
 using namespace SMASH::Sensors;
 using namespace SMASH::Utilities;
 using namespace SMASH::HumanDetection;
-
-#define STRING_ENDS_WITH(str, end) (str.length() >= end.length() ? (0 == str.compare (str.length() - end.length(), end.length(), end)) : false)
 
 // Compiled expressions that we expect to be called frequently
 static Madara::Knowledge_Engine::Compiled_Expression expressions [NUM_TASKS];

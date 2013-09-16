@@ -9,9 +9,9 @@
 #include "platform_sensors.h"
 #include "utilities/CommonMadaraVariables.h"
 #include "utilities/Position.h"
+#include "utilities/gps_utils.h"
 
 #include <iomanip>		// std::setprecision
-#include <math.h>
 
 #define TASK_COUNT		    1
 #define EVALUATE_SENSORS	0
@@ -19,14 +19,6 @@
 #define HEIGHT_ACCURACY     "0.5"     // How many meters to use to determine that a certain height has been reached.
 #define LAND_ACCURACY       "0.1"     // How many meters to use to determine that a drone has landed.
 #define ULTRASOUND_LIMIT    5.5       // Where to stop using ultrasound readings.
-
-// For Windows compatibility.
-#ifndef M_PI
-    #define M_PI 3.14159265358979323846
-#endif
-
-// Conversion from degrees to radians.
-#define DEG_TO_RAD(x) (x)*M_PI/180.0
 
 static Madara::Knowledge_Engine::Compiled_Expression expressions2 [TASK_COUNT];
 
@@ -119,28 +111,6 @@ Madara::Knowledge_Record read_sensors (Madara::Knowledge_Engine::Function_Argume
     return variables.evaluate(expressions2[EVALUATE_SENSORS], Madara::Knowledge_Engine::Eval_Settings(false, true));
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Calculate the distance between two coordinate pairs.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static double gps_coordinates_distance (double lat1, double long1, double lat2, double long2)
-{
-    const double EARTH_RADIUS = 6371000;
-
-    // Get the difference between our two points then convert the difference into radians
-    double lat_diff = DEG_TO_RAD(lat2 - lat1);
-    double long_diff = DEG_TO_RAD(long2 - long1);
-
-    lat1 =  DEG_TO_RAD(lat1);
-    lat2 =  DEG_TO_RAD(lat2);
-
-    double a =  pow(sin(lat_diff/2),2)+
-                cos(lat1) * cos(lat2) *
-                pow ( sin(long_diff/2), 2 );
-
-    double c = 2 * atan2( sqrt(a), sqrt( 1 - a));
-    return EARTH_RADIUS * c;
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
 * Checks last target set to move to has been reached.
@@ -167,7 +137,7 @@ Madara::Knowledge_Record gpsTargetReached (Madara::Knowledge_Engine::Function_Ar
     printf("Lat:      %.10f Long:   %.10f\n", currLat, currLon);
     printf("T_Lat:    %.10f T_Long: %.10f\n", targetLat, targetLon);
 
-    double dist = gps_coordinates_distance(currLat, currLon, targetLat, targetLon);
+    double dist = SMASH::Utilities::gps_coordinates_distance(currLat, currLon, targetLat, targetLon);
     printf("Distance: %.2f\n", dist);
 
     // The accuracy of whether a location has been reached depends on the platform. Get the accuracy for the particular platform we are using.

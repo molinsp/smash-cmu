@@ -317,7 +317,7 @@ void platform_read_thermal(double buffer[8][8])
     std::string thermalValues = m_sim_knowledge->get(m_sim_knowledge->expand_statement(thermalBufferName.str())).to_string();
 
 	// Parse the thermal values.
-	std::vector<std::string> thermalValueList = stringSplit(thermalValues, ',');
+    std::vector<std::string> thermalValueList = SMASH::Utilities::stringSplit(thermalValues, ',');
 		
     // Get the thermals from the string, if any.
     if(thermalValueList.size() >= (unsigned) numRows*numColumns)

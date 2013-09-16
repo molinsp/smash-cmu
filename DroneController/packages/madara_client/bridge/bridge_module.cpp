@@ -18,7 +18,7 @@
 using namespace SMASH::Bridge;
 using namespace SMASH::Utilities;
 
-#define DEFAULT_MAX_COMM_DISTANCE_DEGREES      0.00004   // The default max range for the radio the bridge will be using to transfer data, in degrees.
+#define DEFAULT_MAX_COMM_DISTANCE_METERS      4.0   // The default max range for the radio the bridge will be using to transfer data, in meters.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Madara Variable Definitions
@@ -75,7 +75,7 @@ void SMASH::Bridge::BridgeModule::initialize(Madara::Knowledge_Engine::Knowledge
     defineFunctions(knowledge);
 
     // Initialize some default and starting values, locally.
-    knowledge.set(MV_COMM_RANGE, DEFAULT_MAX_COMM_DISTANCE_DEGREES,
+    knowledge.set(MV_COMM_RANGE, DEFAULT_MAX_COMM_DISTANCE_METERS,
                   Madara::Knowledge_Engine::Eval_Settings(true, true));
 
     // Registers all default expressions, to have them compiled for faster access.

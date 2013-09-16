@@ -20,15 +20,13 @@ using std::endl;
 #include "madara/utility/Log_Macros.h"
 #include "utilities/CommonMadaraVariables.h"
 #include "utilities/Position.h"
+#include "utilities/string_utils.h"
 #include "platforms/comm/comm.h"
 #include "ace/Signal.h"
 
 #include <sstream>
 
 std::string coverage_type = "random";
-
-#define NUM_TO_STR( x ) dynamic_cast< std::ostringstream & >( \
-        ( std::ostringstream() << std::dec << std::setprecision(10) << x ) ).str()
 
 // Interupt handling.
 volatile bool g_terminated = false;
@@ -177,8 +175,6 @@ int main (int argc, char** argv)
     knowledge->set(MV_REGION_BOTRIGHT_LOC(sourceRegionIdString), botRightLocation,
         Madara::Knowledge_Engine::Eval_Settings(true));
     knowledge->set(MV_TOTAL_DEVICES, Madara::Knowledge_Record::Integer(numDrones),
-        Madara::Knowledge_Engine::Eval_Settings(true));
-    knowledge->set(MV_MIN_ALTITUDE, 2.0,
         Madara::Knowledge_Engine::Eval_Settings(true));
     knowledge->set(MV_TOTAL_SEARCH_AREAS,
         Madara::Knowledge_Record::Integer(1));
