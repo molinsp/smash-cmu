@@ -11,6 +11,8 @@ import com.madara.KnowledgeMap;
 import com.madara.KnowledgeRecord;
 import com.madara.transport.Settings;
 import com.madara.transport.TransportType;
+
+import edu.cmu.edu.madara.android.model.Bridge;
 import edu.cmu.edu.madara.android.model.Drone;
 import edu.cmu.edu.madara.android.model.Region;
 import edu.cmu.edu.madara.android.model.Thermal;
@@ -44,6 +46,7 @@ public class MadaraService extends Service {
 	private HashMap<String, Drone> drones;
 	private HashMap<String, Thermal> thermals;
 	private HashMap<String, Region> regions;
+	private HashMap<String, Bridge> bridges;
 	private Binder madaraServiceBinder;
 	private MadaraReaderThread madaraReaderThread;
 
@@ -63,6 +66,7 @@ public class MadaraService extends Service {
 		drones = new HashMap<String, Drone>();
 		thermals = new HashMap<String, Thermal>();
 		regions = new HashMap<String, Region>();
+		bridges = new HashMap<String, Bridge>();
 		
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -131,6 +135,7 @@ public class MadaraService extends Service {
 
 			Pattern dronePattern = Pattern.compile("(device\\.[0-9]+)\\.(.*)");
 			Pattern regionPattern = Pattern.compile("(region\\.[0-9]+)\\.(.*)");
+			Pattern bridgePattern = Pattern.compile("(bridge\\.[0-9]+)\\.(.*)");
 
 			while(running){
 				try {
@@ -264,6 +269,26 @@ public class MadaraService extends Service {
 								region.setBottomRight( new LatLng(lat, lon));
 							}
 						}
+						else if( key.startsWith("bridge.") ){
+							Matcher matcher = bridgePattern.matcher(key);
+							String bridgeId = null;
+							String variable = null;
+							if(matcher.matches() && matcher.groupCount()==2){
+								bridgeId = matcher.group(1);
+								variable = matcher.group(2);
+							}
+							else{
+								continue;
+							}
+							
+							Bridge bridge = bridges.get(bridgeId);
+							if(bridge==null){
+								bridge = new Bridge();
+								bridge.setId(bridgeId);
+								bridges.put(bridgeId, bridge);
+							}
+							//TODO - add rest of bridge stuff
+						}
 						else{
 							//do nothing right now
 						}
@@ -298,6 +323,10 @@ public class MadaraService extends Service {
 		
 		public HashMap<String, Region> getRegions(){
 			return regions;
+		}
+		
+		public HashMap<String, Bridge> getBridges(){
+			return bridges;
 		}
 
 		public void sendMadaraMessage(String message){

@@ -56,6 +56,8 @@ int drawable common_signin_btn_text_pressed_dark 0x7f020018
 int drawable common_signin_btn_text_pressed_light 0x7f020019
 int drawable ic_launcher 0x7f02001a
 int drawable marker 0x7f02001b
+int drawable white01 0x7f02001c
+int drawable white02 0x7f02001d
 int id action_go_to 0x7f06001c
 int id action_log 0x7f06001b
 int id action_settings 0x7f06001a

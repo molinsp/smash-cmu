@@ -187,6 +187,8 @@ containing a value of this type.
         public static final int common_signin_btn_text_pressed_light=0x7f020019;
         public static final int ic_launcher=0x7f02001a;
         public static final int marker=0x7f02001b;
+        public static final int white01=0x7f02001c;
+        public static final int white02=0x7f02001d;
     }
     public static final class id {
         public static final int action_go_to=0x7f06001c;

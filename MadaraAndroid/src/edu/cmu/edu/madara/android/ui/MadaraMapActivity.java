@@ -6,7 +6,10 @@ import java.util.List;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.Projection;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.TileOverlayOptions;
@@ -15,6 +18,7 @@ import edu.cmu.edu.madara.android.MadaraConstants;
 import edu.cmu.edu.madara.android.MadaraMapFragment;
 import edu.cmu.edu.madara.android.MadaraMapTouchListener;
 import edu.cmu.edu.madara.android.R;
+import edu.cmu.edu.madara.android.model.Bridge;
 import edu.cmu.edu.madara.android.model.Drone;
 import edu.cmu.edu.madara.android.model.Region;
 import edu.cmu.edu.madara.android.model.Thermal;
@@ -26,6 +30,7 @@ import android.content.DialogInterface.OnMultiChoiceClickListener;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
@@ -76,6 +81,11 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 
 	private MadaraMapTouchListener madaraMapTouchListener;
 	private boolean drawRegionMode;
+	private boolean setBridgeMarkersMode;
+
+	private Marker marker1;
+	private Marker marker2;
+
 	private String searchAlgorithm;
 
 	@Override
@@ -112,7 +122,6 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 		mapView.setMapType(GoogleMap.MAP_TYPE_NONE);
 		TileOverlayOptions options = new TileOverlayOptions().tileProvider(new CustomMapTileProvider()).zIndex(0);
 		mapView.addTileOverlay(options);
-
 
 		madaraMapTouchListener =  new MadaraMapTouchListener() {
 			@Override
@@ -159,6 +168,43 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 						return true;
 					}
 				}
+
+				else if( setBridgeMarkersMode ){
+
+					final int x = (int)ev.getX();
+					final int y = (int)ev.getY();
+
+					switch(ev.getAction()){
+
+					case MotionEvent.ACTION_UP:
+
+						if( marker1 == null ){
+							marker1 = mapView.addMarker( new MarkerOptions()
+							.position(mapView.getProjection().fromScreenLocation(new Point(x,y)))
+							.title("")
+							.snippet(""));
+						}
+						else if( marker2 == null ){
+							marker2 = mapView.addMarker( new MarkerOptions()
+							.position(mapView.getProjection().fromScreenLocation(new Point(x,y)))
+							.title("")
+							.snippet(""));
+						}
+
+						return true;
+					case MotionEvent.ACTION_DOWN:
+						return true;
+					case MotionEvent.ACTION_MOVE:
+						return true;
+
+					default:
+						return true;
+					}
+
+				}
+
+
+
 				return false;
 			}
 		};
@@ -315,7 +361,21 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 			actionsButtonsLayout.setVisibility(View.VISIBLE);
 			drawRegionLayout.setVisibility(View.GONE);
 		}
+	}
 
+	public void setBrideMarkersMode(boolean bridge){
+		setBridgeMarkersMode = bridge;
+
+		if(bridge){
+			mapFragment.addOnTouchListener(madaraMapTouchListener);
+			actionsButtonsLayout.setVisibility(View.GONE);
+			drawRegionLayout.setVisibility(View.VISIBLE);
+		}
+		else{
+			mapFragment.removeOnTouchListener();
+			actionsButtonsLayout.setVisibility(View.VISIBLE);
+			drawRegionLayout.setVisibility(View.GONE);
+		}
 	}
 
 	/*	public class TouchableWrapper extends FrameLayout {
@@ -402,7 +462,7 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 
 						break;
 					case 4: // BRIDGING
-						Toast.makeText(MadaraMapActivity.this, "Not implemented yet.", Toast.LENGTH_SHORT).show();
+						setBrideMarkersMode(true);
 						break;
 					}
 				}
@@ -447,9 +507,37 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 		else if( v.equals( doneButton ) ){
 			// do something else
 
-			if(polygon!=null){
-				//create region
+			if( drawRegionMode ){
+				if(polygon!=null){
+					//create region
 
+					//figure out next region id
+					int regionId = -1;
+					HashMap<String, Region> regions = binder.getRegions();
+					for(String key: regions.keySet()){
+						String regionIdIntString = key.substring(key.indexOf(".")+1, key.length());
+						int id = Integer.parseInt(regionIdIntString);
+						if(id > regionId)
+							regionId = id;
+					}
+					regionId++; 
+
+					LatLng topLeft = polygon.getPoints().get(0);
+					LatLng bottomRight = polygon.getPoints().get(2);
+
+					binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_TYPE+"=0");
+					binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_TOP_LEFT_LOCATION+"=\""+topLeft.latitude+","+topLeft.longitude+"\"");
+					binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_BOTTOM_RIGHT_LOCATION+"=\""+bottomRight.latitude+","+bottomRight.longitude+"\"");
+
+					for(String droneId: selectedDrones){
+						binder.sendMadaraMessage(droneId+".area_coverage_requested=\""+searchAlgorithm+"\"");
+						binder.sendMadaraMessage(droneId+".search_area_id="+regionId);
+					}
+				}
+				drawRegionMode(false);
+			}
+			else if( setBridgeMarkersMode ){
+				
 				//figure out next region id
 				int regionId = -1;
 				HashMap<String, Region> regions = binder.getRegions();
@@ -460,24 +548,67 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 						regionId = id;
 				}
 				regionId++; 
- 
-				LatLng topLeft = polygon.getPoints().get(0);
-				LatLng bottomRight = polygon.getPoints().get(2);
-
-				binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_TYPE+"=0");
-				binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_TOP_LEFT_LOCATION+"=\""+topLeft.latitude+","+topLeft.longitude+"\"");
-				binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_BOTTOM_RIGHT_LOCATION+"=\""+bottomRight.latitude+","+bottomRight.longitude+"\"");
-
-				for(String droneId: selectedDrones){
-					binder.sendMadaraMessage(droneId+".area_coverage_requested=\""+searchAlgorithm+"\"");
-					binder.sendMadaraMessage(droneId+".search_area_id="+regionId);
+				
+				//figure out next bridge id
+				int bridgeId = -1;
+				HashMap<String, Bridge> bridges = binder.getBridges();
+				for(String key: bridges.keySet()){
+					String bridgeIntString = key.substring(key.indexOf(".")+1, key.length());
+					int id = Integer.parseInt(bridgeIntString);
+					if(id > bridgeId)
+						bridgeId = id;
 				}
+				bridgeId++;
+				
+				if(marker1!=null){
+					LatLng topLeft = marker1.getPosition();
+					LatLng bottomRight = marker1.getPosition();
+					
+					binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_TYPE+"=0");
+					binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_TOP_LEFT_LOCATION+"=\""+topLeft.latitude+","+topLeft.longitude+"\"");
+					binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_BOTTOM_RIGHT_LOCATION+"=\""+bottomRight.latitude+","+bottomRight.longitude+"\"");
+					binder.sendMadaraMessage("bridge."+bridgeId+"."+MadaraConstants.BRIDGE_ENDPOINT_1+"="+regionId);
+					
+					marker1.remove();
+					marker1 = null;
+				}
+				if(marker2!=null){
+					
+					regionId++;
+					
+					LatLng topLeft = marker2.getPosition();
+					LatLng bottomRight = marker2.getPosition();
+					
+					binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_TYPE+"=0");
+					binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_TOP_LEFT_LOCATION+"=\""+topLeft.latitude+","+topLeft.longitude+"\"");
+					binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_BOTTOM_RIGHT_LOCATION+"=\""+bottomRight.latitude+","+bottomRight.longitude+"\"");
+					binder.sendMadaraMessage("bridge."+bridgeId+"."+MadaraConstants.BRIDGE_ENDPOINT_2+"="+regionId);
+					binder.sendMadaraMessage("bridges="+bridgeId+1);
+					binder.sendMadaraMessage("bridge."+MadaraConstants.BRIDGE_REUQESTED+"=1");
+					
+					marker2.remove();
+					marker2 = null;
+				}
+				
+				setBrideMarkersMode(false);
 			}
-			drawRegionMode(false);
 		}
 		else if( v.equals( cancelButton ) ){
-			drawRegionMode(false);
-			polygon.setVisible(false);
+			if(drawRegionMode){
+				drawRegionMode(false);
+				polygon.setVisible(false);
+			}
+			else if(setBridgeMarkersMode){
+				if(marker1!=null){
+					marker1.remove();
+					marker1 = null;
+				}
+				if(marker2!=null){
+					marker2.remove();
+					marker2 = null;
+				}
+				setBrideMarkersMode(false);
+			}
 		}
 	}
 }
