@@ -18,15 +18,17 @@ using std::endl;
 
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include "madara/utility/Log_Macros.h"
+#include "ace/Signal.h"
+
 #include "utilities/CommonMadaraVariables.h"
 #include "utilities/Position.h"
 #include "utilities/string_utils.h"
 #include "platforms/comm/comm.h"
-#include "ace/Signal.h"
+#include "MadaraSystemController.h"
 
 #include <sstream>
 
-Madara::Knowledge_Engine::Knowledge_Base* knowledge;
+MadaraController* madaraController;
 
 // Interupt handling.
 volatile bool g_terminated = false;
@@ -40,7 +42,14 @@ void programSummary(char* arg)
 {
     cerr << arg << endl;
     cerr << "  [-i] id" << endl;
+
+    // General parameters.
     cerr << "  [-d] numDrones" << endl;
+    cerr << "  [-hm] min height" << endl;
+    cerr << "  [-hd] height diff" << endl;
+    cerr << "  [-r] comm range" << endl;
+
+    // Search request parameters.
     cerr << "  [-n] northern latitude" << endl;
     cerr << "  [-s] southern latitude" << endl;
     cerr << "  [-e] eastern longitude" << endl;
@@ -48,9 +57,13 @@ void programSummary(char* arg)
     cerr << "  [-l] MADARA log level" << endl;
     cerr << "  [-t] coverage type" << endl;
     cerr << "  [-st] search stride" << endl;
-    cerr << "  [-hm] min height" << endl;
-    cerr << "  [-hd] height diff" << endl;
-    cerr << "  [-r] comm range" << endl;
+
+    // Bridge request parameters.
+    cerr << "  [-bplat] person latitude" << endl;
+    cerr << "  [-bplon] person southern longitude" << endl;
+    cerr << "  [-bslat] sink latitude" << endl;
+    cerr << "  [-bslon] sink longitude" << endl;
+
     exit(-1);
 }
 
@@ -58,7 +71,7 @@ void programSummary(char* arg)
 void handleArgs(int argc, char** argv, int& id, int& numDrones,
     double& nLat, double& wLong, double& sLat, double& eLong,
     int& logLevel, std::string& coverage_type, double& stride, double& minHeight, double& heightDiff,
-    double& commRange)
+    double& commRange, double& personLat, double& personLon, double& sinkLat, double& sinkLon)
 {
     for(int i = 1; i < argc; ++i)
     {
@@ -88,62 +101,56 @@ void handleArgs(int argc, char** argv, int& id, int& numDrones,
             sscanf(argv[++i], "%lf", &heightDiff);
         else if(arg == "-r" && i + 1 < argc)
             sscanf(argv[++i], "%lf", &commRange);
+
+        else if(arg == "-bplat" && i + 1 < argc)
+            sscanf(argv[++i], "%lf", &personLat);
+        else if(arg == "-bplon" && i + 1 < argc)
+            sscanf(argv[++i], "%lf", &personLon);
+        else if(arg == "-bslat" && i + 1 < argc)
+            sscanf(argv[++i], "%lf", &sinkLat);
+        else if(arg == "-bslon" && i + 1 < argc)
+            sscanf(argv[++i], "%lf", &sinkLon);
+
         else
             programSummary(argv[0]);
     }
 }
 
 // Sets a search region and sends a coverage request.
-void setAreaCoverageRequest(int& numDrones, double& nLat, double& wLong, double& sLat, double& eLong, std::string& coverage_type, double& stride)
+void setAreaCoverageRequest(int& numDrones, double& nLat, double& wLong, double& sLat, double& eLong, std::string& coverage_type, int waitForOthers, std::string& human_type)
 {
-    printf("\nInitializing search area...\n");
+    // Set area to cover.
+    int searchAreaId = 0 ;
+    SMASH::Utilities::Position northWest;
+    northWest.latitude = nLat;
+    northWest.longitude = wLong;
+    SMASH::Utilities::Position southEast;
+    southEast.latitude = sLat;
+    southEast.longitude = eLong;
+    madaraController->setNewSearchArea(searchAreaId, SMASH::Utilities::Region(northWest, southEast));
 
-    // Setup search area.
-    int rectangleType = 0;
-    SMASH::Utilities::Position nwCorner(wLong, nLat);
-    SMASH::Utilities::Position seCorner(eLong, sLat);
-    SMASH::Utilities::Region areaBoundaries(nwCorner, seCorner);
-    string sourceRegionIdString = NUM_TO_STR(0);
-
-    string topLeftLocation = areaBoundaries.northWest.toString();
-    string botRightLocation = areaBoundaries.southEast.toString();
-
-    knowledge->set(MV_REGION_TYPE(sourceRegionIdString),
-        (Madara::Knowledge_Record::Integer) rectangleType,
-        Madara::Knowledge_Engine::Eval_Settings(true));
-    knowledge->set(MV_REGION_TOPLEFT_LOC(sourceRegionIdString), topLeftLocation,
-        Madara::Knowledge_Engine::Eval_Settings(true));
-    knowledge->set(MV_REGION_BOTRIGHT_LOC(sourceRegionIdString), botRightLocation,
-        Madara::Knowledge_Engine::Eval_Settings(true));
-    knowledge->set(MV_TOTAL_SEARCH_AREAS,
-        Madara::Knowledge_Record::Integer(1));
-
-    if(stride != 0)
+    // Request the area coverage.
+    std::vector<int> droneIds;
+    for(int i=0; i<numDrones; i++)
     {
-        knowledge->set(MV_AREA_COVERAGE_LINE_WIDTH, stride);
+        droneIds.push_back(i);
     }
+    madaraController->requestAreaCoverage(droneIds, searchAreaId, coverage_type, waitForOthers, human_type);
+}
 
-    printf("\nSet drones as mobile...\n");
-    for(int i = 0; i < numDrones; ++i)
-    {
-        knowledge->set(MV_MOBILE(NUM_TO_STR(i)), 1.0,
-            Madara::Knowledge_Engine::Eval_Settings(true));
-        knowledge->set(MV_BUSY(NUM_TO_STR(i)), 0.0,
-            Madara::Knowledge_Engine::Eval_Settings(true));
-    }
-
-    knowledge->apply_modified();
-
-    printf("\nAssigning search area...\n");
-    for(int i = 0; i < numDrones; ++i)
-    {
-        string droneIdString = NUM_TO_STR(i);
-        knowledge->set(MV_ASSIGNED_SEARCH_AREA(droneIdString), Madara::Knowledge_Record::Integer(0), Madara::Knowledge_Engine::Eval_Settings(true));
-        knowledge->set(MV_AREA_COVERAGE_REQUESTED(droneIdString), "random", Madara::Knowledge_Engine::Eval_Settings(true));
-        knowledge->set(MV_HUMAN_DETECTION_REQUESTED(droneIdString), MO_HUMAN_DETECTION_BASIC, Madara::Knowledge_Engine::Eval_Settings(true));
-    }
-
-    knowledge->apply_modified();
+void setBridgeRequest(double& personLat, double& personLon, double& sinkLat, double& sinkLon)
+{
+    // Set bridge request.
+    int bridgeId = 0;
+    SMASH::Utilities::Position sourcePos;
+    sourcePos.latitude = personLat;
+    sourcePos.longitude = personLon;
+    SMASH::Utilities::Position sinkPos;
+    sinkPos.latitude = sinkLat;
+    sinkPos.longitude = sinkLon;
+    SMASH::Utilities::Region startRegion(sourcePos, sourcePos);
+    SMASH::Utilities::Region endRegion(sinkPos, sinkPos);
+    madaraController->setupBridgeRequest(bridgeId, startRegion, endRegion);
 }
 
 // Main entry point.
@@ -156,31 +163,49 @@ int main (int argc, char** argv)
     int local_debug_level = -1;
     int id = 0;
     int numDrones = 0;
+
+    // Default parameters.
+    double stride = 0.00001;
+    double minHeight = 1.5;
+    double heightDiff = 0.8;
+    double commRange = 4;
+
+    // Search parameters.
     double nLat = 0;
     double wLong = 0;
     double sLat = 0;
     double eLong = 0;
     std::string coverage_type = "random";
-    double stride = 0;
-    double minHeight = 0;
-    double heightDiff = 0;
-    double commRange = 0;
+    std::string human_type = "basic";
+    int waitForOthers = 0;
+
+    // Bridge parameters.
+    double personLat = 0;
+    double personLon = 0;
+    double sinkLat = 0;
+    double sinkLon = 0;
 
     // Load arguments and show them.
     cout << "Parse args..." << endl;
-    handleArgs(argc, argv, id, numDrones, nLat, wLong, sLat, eLong, local_debug_level, coverage_type, stride, minHeight, heightDiff, commRange);
+    handleArgs(argc, argv, id, numDrones, nLat, wLong, sLat, eLong, local_debug_level, coverage_type, stride, minHeight, heightDiff, commRange,
+               personLat, personLon, sinkLat, sinkLon);
     cout << "  id:           " << id << endl;
     cout << "  numDrones:    " << numDrones << endl;
     cout << "  northern lat: " << nLat << endl;
     cout << "  southern lat: " << sLat << endl;
-    cout << "  western lat:  " << wLong << endl;
-    cout << "  eastern lat:  " << eLong << endl;
+    cout << "  western lon:  " << wLong << endl;
+    cout << "  eastern lon:  " << eLong << endl;
     cout << "  debug level:  " << local_debug_level << endl;
     cout << "  coverage type:" << coverage_type << endl;
     cout << "  stride:       " << stride << endl;
     cout << "  min height:   " << minHeight << endl;
     cout << "  height diff:  " << heightDiff << endl;
     cout << "  commRange:    " << commRange << endl;
+
+    cout << "  person lat: " << personLat << endl;
+    cout << "  person lon: " << personLon << endl;
+    cout << "  sink lat:  " << sinkLat << endl;
+    cout << "  sink lon:  " << sinkLon << endl;
 
     // Set the debug level.
     bool enableLogging = false;
@@ -189,54 +214,39 @@ int main (int argc, char** argv)
         MADARA_debug_level = local_debug_level;
         enableLogging = true;
     }
-    
-    // Setup the knowledge base.
+
+    // Setup the knowledge base and basic parameters.
     cout << "Init Knowlege Base..." << endl;
-    knowledge = comm_setup_knowledge_base(id, enableLogging);
+    madaraController = new MadaraController(id, commRange, minHeight, stride, heightDiff);
 
-    // Setup basic parameters, mandatory and optional ones.
+    // Disseminating basic parameters, mandatory and optional ones.
+    // Also send takeoff command.
     printf("\nSetting up basic parameters...\n");
-    knowledge->set(".id", Madara::Knowledge_Record::Integer(id),
-            Madara::Knowledge_Engine::Eval_Settings(true));
-    if(numDrones != 0)
-    {
-        knowledge->set(MV_TOTAL_DEVICES, Madara::Knowledge_Record::Integer(numDrones),
-            Madara::Knowledge_Engine::Eval_Settings(true));
-    }
-    if(minHeight != 0)
-    {
-        knowledge->set(MV_MIN_ALTITUDE, minHeight,
-            Madara::Knowledge_Engine::Eval_Settings(true));
-    }
-    if(heightDiff != 0)
-    {
-        knowledge->set(MV_AREA_COVERAGE_HEIGHT_DIFF, heightDiff,
-            Madara::Knowledge_Engine::Eval_Settings(true));
-    }
-    if(commRange != 0)
-    {
-        knowledge->set(MV_COMM_RANGE, commRange,
-            Madara::Knowledge_Engine::Eval_Settings(true));
-    }
-    knowledge->apply_modified();
-
-    // Send takeoff command and wait for a bit so the drones take off.
     printf("\nSending takeoff command, and waiting for drones to take off...\n");
+    madaraController->updateGeneralParameters(numDrones);
     int takeoffWaitTime = 3;
-    knowledge->set(MV_SWARM_MOVE_REQUESTED, MO_TAKEOFF_CMD);
     ACE_OS::sleep (takeoffWaitTime);
 
-    // Set area coverage.
-    setAreaCoverageRequest(numDrones, nLat, wLong, sLat, eLong, coverage_type, stride);
+    // Set area coverage, if requested.
+    if(nLat != 0 && wLong != 0 && sLat != 0 && eLong != 0)
+    {
+        setAreaCoverageRequest(numDrones, nLat, wLong, sLat, eLong, coverage_type, waitForOthers, human_type);
+    }
+
+    // Set bridge buidling, if requested.
+    if(nLat != 0 && wLong != 0 && sLat != 0 && eLong != 0)
+    {
+        setBridgeRequest(personLat, personLon, sinkLat, sinkLon);
+    }
     
     printf("\nCommands sent, entering loop to show status of knowledge base.\n");
     while(!g_terminated)
     {
-        knowledge->print_knowledge();
+        madaraController->printKnowledge();
         ACE_OS::sleep (1);
     }
 
     // Simply delete the knowledge base when the program terminates.
-    delete knowledge;
+    delete madaraController;
     return 0;
 }

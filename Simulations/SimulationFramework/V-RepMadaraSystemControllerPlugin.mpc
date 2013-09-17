@@ -4,6 +4,8 @@ project (V-RepMadaraSystemControllerPlugin) : using_ace, using_madara, using_vre
   sharedname = v_repExtMadaraSystemControllerPlugin
   libout = lib
 
+  includes +=  ../../SystemControllerAPI
+
   Build_Files {
     SimulationFramework.mwc
     V-RepMadaraSystemControllerPlugin.mpc
@@ -14,6 +16,7 @@ project (V-RepMadaraSystemControllerPlugin) : using_ace, using_madara, using_vre
   
   Source_Files {
     V-RepMadaraSystemControllerPlugin
+    ../../SystemControllerAPI
     ../../DroneController/packages/madara_client/utilities/string_utils.cpp
     ../../DroneController/packages/madara_client/platforms/comm
     ../../DroneController/packages/madara_client/platforms/comm/multicast
@@ -21,6 +24,7 @@ project (V-RepMadaraSystemControllerPlugin) : using_ace, using_madara, using_vre
 
   Header_Files {
     V-RepMadaraSystemControllerPlugin
+    ../../SystemControllerAPI
     ../../DroneController/packages/madara_client/utilities
     ../../DroneController/packages/madara_client/platforms/comm
     ../../DroneController/packages/madara_client/platforms/comm/multicast

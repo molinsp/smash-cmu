@@ -68,6 +68,8 @@ public:
     // Information getter methods.
     std::vector<SMASH::Utilities::Position> getCurrentLocations();
     std::vector<SMASH::Utilities::Position> getCurrentThermals();
+
+    void printKnowledge();
 };
 
 #endif
