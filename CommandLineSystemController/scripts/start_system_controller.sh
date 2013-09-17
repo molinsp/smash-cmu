@@ -31,6 +31,13 @@ TYPE=snake
 STRIDE=0.00005
 LOG_LEVEL=0
 
+COMM_RANGE=4
+PERSON_LAT=40.441155
+PERSON_LON=-79.946861
+SINK_LAT=40.440845
+SINK_LON=-79.946758
+
+
 cd $SMASH_ROOT/CommandLineSystemController
-./simple_coverage_test -i $ID -d $DRONES -n $NORTHERN -s $SOUTHERN -w $WESTERN -e $EASTERN -t $TYPE -st STRIDE -l $LOG_LEVEL
+./simple_coverage_test -i $ID -d $DRONES -n $NORTHERN -s $SOUTHERN -w $WESTERN -e $EASTERN -t $TYPE -st STRIDE -l $LOG_LEVEL -bplat $PERSON_LAT -bplon $PERSON_LON -bslat $SINK_LAT -bslon $SINK_LON -r $COMM_RANGE
 
