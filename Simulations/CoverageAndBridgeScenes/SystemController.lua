@@ -15,7 +15,7 @@ function doInitialSetup()
 	g_numDrones = simGetScriptSimulationParameter(sim_handle_main_script, 'numberOfDrones')
 
     -- Setup Madara for communications.
-    local myControllerId = 2000    
+    local myControllerId = 202    
     local radioRange = simGetScriptSimulationParameter(sim_handle_main_script, 'radioRange')
     local minAltitude = simGetScriptSimulationParameter(sim_handle_main_script, 'minimumAltitude')
 	local lineWidth = simGetScriptSimulationParameter(sim_handle_main_script, 'searchLineWidth')
@@ -54,7 +54,7 @@ function checkForButtonPress()
     -- If the button handle is valid and the second event detail is 1, it means a button was pressed.
     if(not (buttonHandle == -1) and (eventDetails[2] == 0)) then
         local buttonLabel = simGetUIButtonLabel(commandsUIHandle, buttonHandle)
-        --simAddStatusbarMessage('Button pressed and released! ' .. buttonLabel)
+        simAddStatusbarMessage('Button pressed and released! ' .. buttonLabel)
         
         -- Send network-wide parameters (radio range, num drones, min height).
         if(buttonLabel == 'Setup Network') then

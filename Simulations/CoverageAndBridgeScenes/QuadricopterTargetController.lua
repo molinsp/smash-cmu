@@ -117,7 +117,7 @@ function lookForPersonBelow()
             local sourceSuffix, sourceName = simGetNameSuffix(nil)
             simSetScriptSimulationParameter(sim_handle_main_script, 'personFoundId', i)
             simSetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound', sourceSuffix)
-            --simAddStatusbarMessage('Drone with id ' .. g_myDroneId .. ' is seeing person ' .. i .. '!')
+            simAddStatusbarMessage('Drone with id ' .. g_myDroneId .. ' is seeing person ' .. i .. '!')
 			break
         end
     end

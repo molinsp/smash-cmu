@@ -39,7 +39,7 @@ MadaraController::MadaraController(int id, double commRange, double minAltitude,
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 MadaraController::~MadaraController()
 {
-    //sim_comm_cleanup_knowledge_base(m_knowledge);
+    m_knowledge->print_knowledge();
     if(m_knowledge != NULL)
         delete m_knowledge;
     m_knowledge = NULL;

@@ -111,16 +111,22 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
             // Only used when there is a new bridge request.
             MV_BRIDGE_REQUESTED " => "
             "("
+                "#print('New bridge request received.');"
                 // We turn off the bridge request, but only locally.
-               MF_TURN_OFF_BRIDGE_REQUEST "();"
+                MF_TURN_OFF_BRIDGE_REQUEST "();"
 
-               // If we are available and there are bridges to check, check if we can help.
+                // If we are available and there are bridges to check, check if we can help.
                 "(" MV_MOBILE("{" MV_MY_ID "}") " && (!" MV_BUSY("{" MV_MY_ID "}") ") && (" MV_TOTAL_BRIDGES " > 0)" ")"
-                    " => " MF_FIND_POS_IN_BRIDGE "();"
+                " => " 
+                    "("
+                        "#print('Checking bridge request.');"
+                        MF_FIND_POS_IN_BRIDGE "();"
+                    ");"
             ");"
             // Only used when we are in the process of moving towards a bridge.
             MV_MOVING_TO_BRIDGE " => "
             "("
+                "#print('Moving to location in bridge.');"
                 // If we reached our bridge location, record that and land.
                 MV_REACHED_GPS_TARGET " => " 
                     "("
@@ -161,14 +167,6 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
             ");"
         ");"
     );
-
-    // Returns 1 if we are closer than a certain accuracy to the current target of our search.
-    //knowledge.define_function(MF_BRIDGE_LOCATION_REACHED, 
-    //    "("
-    //        "(" MF_TARGET_REACHED "(" MV_DEVICE_LAT("{.id}") "," MV_DEVICE_LON("{.id}") "," 
-    //                                  MV_BRIDGE_LOC_LAT  "," MV_BRIDGE_LOC_LON  ")" ")"
-    //    ");"
-    //);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
