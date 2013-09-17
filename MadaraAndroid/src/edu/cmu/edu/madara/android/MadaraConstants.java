@@ -15,5 +15,9 @@ public class MadaraConstants {
 	public static final String REGION_TYPE = "type";
 	public static final String REGION_TOP_LEFT_LOCATION = "top_left.location";
 	public static final String REGION_BOTTOM_RIGHT_LOCATION = "bottom_right.location";
+	
+	public static final String BRIDGE_REUQESTED = "bridge_requested";
+	public static final String BRIDGE_ENDPOINT_1 = "endpoint.1";
+	public static final String BRIDGE_ENDPOINT_2 = "endpoint.2";
 
 }
