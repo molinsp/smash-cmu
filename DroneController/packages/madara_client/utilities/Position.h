@@ -133,7 +133,7 @@ namespace SMASH
                 {
                     // If the south latitude is greater than the north one, we recieved an inverted grid.
                     // Switch to get the real north and south latitudes.
-                    printf("Inverting north and south latitudes.\n");
+                    //printf("Inverting north and south latitudes.\n");
                     this->northWest.latitude = originalSouthEast.latitude;
                     this->southEast.latitude = originalNorthWest.latitude;
                 }
@@ -143,7 +143,7 @@ namespace SMASH
                 {
                     // If the west longitude is greater than the east one, we recieved an inverted grid.
                     // Switch to get the real west and east latitudes.
-                    printf("Inverting west and east latitudes.\n");
+                    //printf("Inverting west and east latitudes.\n");
                     this->northWest.longitude = originalSouthEast.longitude;
                     this->southEast.longitude = originalNorthWest.longitude;
                 }
