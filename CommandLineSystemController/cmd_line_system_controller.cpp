@@ -127,7 +127,8 @@ void setAreaCoverageRequest(int& numDrones, double& nLat, double& wLong, double&
     SMASH::Utilities::Position southEast;
     southEast.latitude = sLat;
     southEast.longitude = eLong;
-    madaraController->setNewSearchArea(searchAreaId, SMASH::Utilities::Region(northWest, southEast));
+    SMASH::Utilities::Region searchRegion(northWest, southEast);
+    madaraController->setNewSearchArea(searchAreaId, searchRegion);
 
     // Request the area coverage.
     std::vector<int> droneIds;
