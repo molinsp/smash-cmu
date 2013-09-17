@@ -9,6 +9,8 @@
 #include "platform_movement.h"
 #include "utilities/CommonMadaraVariables.h"
 
+#define MV_LOCAL_MOVEMENT_COMMAND ".movement_command"
+
 void ensureTakeoff(Madara::Knowledge_Engine::Variables& variables)
 {
     //variables.evaluate(MV_IS_LANDED " => takeoff();");
@@ -17,7 +19,7 @@ void ensureTakeoff(Madara::Knowledge_Engine::Variables& variables)
 void attainAltitude(Madara::Knowledge_Engine::Variables& variables)
 {
     ensureTakeoff(variables);
-    //variables.evaluate(variables.expand_statement(MV_IS_AT_ASSIGNED_ALTITUDE " == 0 => (.movement_command.0 = " MV_ASSIGNED_ALTITUDE("{.id}") "; move_to_altitude();)"));
+    //variables.evaluate(variables.expand_statement(MV_IS_AT_ASSIGNED_ALTITUDE " == 0 => (" MV_LOCAL_MOVEMENT_COMMAND ".0 = " MV_ASSIGNED_ALTITUDE("{.id}") "; move_to_altitude();)"));
 }
 
 //Madara function to interface with takeoff()
@@ -107,7 +109,7 @@ Madara::Knowledge_Record madara_move_to_gps (Madara::Knowledge_Engine::Function_
 
 Madara::Knowledge_Record madara_move_to_altitude (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {		
-	double alt = variables.get(".movement_command.0").to_double();
+	double alt = variables.get(MV_LOCAL_MOVEMENT_COMMAND ".0").to_double();
 
     ensureTakeoff(variables);
 	
@@ -120,10 +122,14 @@ Madara::Knowledge_Record madara_move_to_altitude (Madara::Knowledge_Engine::Func
 
 Madara::Knowledge_Record process_movement_commands (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-    // Store the current command in another variable for control, since the movement command one will be cleared in each loop.
-    variables.evaluate(MV_LAST_MOVEMENT_REQUESTED "=.movement_command");
+    // Store the current command in another variable for later checks, since the movement command one will be cleared in each loop.
+    std::string currentMovementCommand = variables.get(MV_LOCAL_MOVEMENT_COMMAND).to_string();
+    if(currentMovementCommand != "0")
+    {
+        variables.set(MV_LAST_MOVEMENT_REQUESTED, currentMovementCommand);
+    }
 
-	std::string expansion = variables.expand_statement("{.movement_command}();");
+	std::string expansion = variables.expand_statement("{" MV_LOCAL_MOVEMENT_COMMAND "}();");
 	printf("Expanded Movement Command: %s\n", expansion.c_str());
 	return variables.evaluate(expansion, Madara::Knowledge_Engine::Eval_Settings(false, true));
 }

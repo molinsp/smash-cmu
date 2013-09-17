@@ -27,6 +27,7 @@ using std::string;
 
 #define DEFAULT_SEARCH_LINE_OFFSET_DEGREES      0.0000100   // Margin (in degrees) to use when moving to another column or line of search. Should be similar to the view range of a drone.
 #define DEFAULT_ALTITUDE_DIFFERENCE             0.5         // The amount of vertical space (in meters) to leave between drones.
+#define DEFAULT_MIN_HEIGHT                      1.5         // The default minimum height (in meters) to use when choosing heights for search coverage.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Madara Variable Definitions
@@ -96,25 +97,34 @@ static Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowle
     Madara::Knowledge_Engine::Variables &variables);
 static Madara::Knowledge_Record madaraAltitudeReached (Madara::Knowledge_Engine::Function_Arguments &args,
     Madara::Knowledge_Engine::Variables &variables);
+static Region invertRegionIfRequired(const Region& sourceRegion);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Initializer, gets the refence to the knowledge base and compiles expressions.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SMASH::AreaCoverage::AreaCoverageModule::initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 {
-    printf("SMASH::AreaCoverage::initialize...\n");
+    knowledge.print("SMASH::AreaCoverage::initialize...\n");
+
     // Defines internal and external functions.
     defineFunctions(knowledge);
 
-    // Initialize variables.
+    // Initialize common search parameters with default values, locally.
+    knowledge.set(MV_AREA_COVERAGE_LINE_WIDTH, DEFAULT_SEARCH_LINE_OFFSET_DEGREES,
+                  Madara::Knowledge_Engine::Eval_Settings(true, true));
+    knowledge.set(MV_AREA_COVERAGE_HEIGHT_DIFF, DEFAULT_ALTITUDE_DIFFERENCE,
+                  Madara::Knowledge_Engine::Eval_Settings(true, true));
+    knowledge.set(MV_MIN_ALTITUDE, DEFAULT_MIN_HEIGHT,
+                  Madara::Knowledge_Engine::Eval_Settings(true, true));
+    knowledge.set(MV_SEARCH_WAIT, 0.0,
+                  Madara::Knowledge_Engine::Eval_Settings(true, true)); // No wait by default.
+
+    // Initialize local variables.
     knowledge.set(MV_INITIAL_HEIGHT_REACHED, 0.0);
-    knowledge.set(MV_AREA_COVERAGE_LINE_WIDTH, DEFAULT_SEARCH_LINE_OFFSET_DEGREES);
-    knowledge.set(MV_AREA_COVERAGE_HEIGHT_DIFF, DEFAULT_ALTITUDE_DIFFERENCE);
-    knowledge.set(MV_SEARCH_WAIT, 0.0); // No wait by default.
 
     // Registers all default expressions, to have them compiled for faster access.
     compileExpressions(knowledge);
-    printf("leaving SMASH::AreaCoverage::initialize...\n");
+    knowledge.print("leaving SMASH::AreaCoverage::initialize...\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -363,14 +373,16 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
     double seLon = variables.get(MV_REGION_BOTRIGHT_LON(myAssignedSearchRegion)).to_double();
     Region searchArea = Region(Position(nwLon, nwLat), Position(seLon, seLat));
 
+    // Swap sides of the region if it was incorrectly setup originally in the Madara variables.
+    searchArea = invertRegionIfRequired(searchArea);
+
     // Calculate the actual cell I will be covering.
     string algo = variables.get(variables.expand_statement(MV_AREA_COVERAGE_REQUESTED("{" MV_MY_ID "}"))).to_string();
     m_coverageAlgorithm = selectAreaCoverageAlgorithm(algo, variables);
     if(m_coverageAlgorithm != NULL)
     {
         // Calculate the cell I will be working on.
-        Region* myCell = m_coverageAlgorithm->initialize(searchArea, myIndexInList,
-                                                         availableDrones);
+        Region* myCell = m_coverageAlgorithm->initialize(searchArea, myIndexInList, availableDrones);
 
         if(myCell != NULL)
         {
@@ -491,4 +503,38 @@ Madara::Knowledge_Record madaraSetNewCoverage(Madara::Knowledge_Engine::Function
     }
     // If we couldn't generate our cell for some reason, the function was not successful.
     return Madara::Knowledge_Record(0.0);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// Returns the same region if its coordinates actually corresponded to the cardinal points.
+// If not, if inverts either the north-south latitudes, west-east longitudes, or both.
+// The end result is a region where the latitudes and longitudes match the names of the
+// object fields.
+////////////////////////////////////////////////////////////////////////////////////////////
+Region invertRegionIfRequired(const Region& sourceRegion)
+{
+    // Start by assuming no inversion if required.
+    Region cleanedRegion(sourceRegion);
+
+    // Check if we need a north-south latitude inversion.
+    if(sourceRegion.northWest.latitude < sourceRegion.southEast.latitude)
+    {
+        // If the south latitude is greater than the north one, we recieved an inverted grid.
+        // Switch to get the real north and south latitudes.
+        printf("Inverting north and south latitudes.\n");
+        cleanedRegion.northWest.latitude = sourceRegion.southEast.latitude;
+        cleanedRegion.southEast.latitude = sourceRegion.northWest.latitude;
+    }
+
+    // Check if we need a west-east longitude inversion.
+    if(sourceRegion.northWest.longitude > sourceRegion.southEast.longitude)
+    {
+        // If the west longitude is greater than the east one, we recieved an inverted grid.
+        // Switch to get the real west and east latitudes.
+        printf("Inverting west and east latitudes.\n");
+        cleanedRegion.northWest.longitude = sourceRegion.southEast.longitude;
+        cleanedRegion.southEast.longitude = sourceRegion.northWest.longitude;
+    }
+
+    return cleanedRegion;
 }

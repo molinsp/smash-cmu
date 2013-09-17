@@ -9,7 +9,7 @@ else
     for i in $(seq 1 1 $1)
     do
         id=`expr $i - 1`
-        xterm -hold -l -e $REPO_ROOT/DroneController/install/bin/madara_client $id &
+        xterm -hold -l -e $REPO_ROOT/DroneController/install/bin/madara_client -i $id &
         sleep $SLEEP
     done
 fi

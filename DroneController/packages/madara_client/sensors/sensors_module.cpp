@@ -160,9 +160,9 @@ Madara::Knowledge_Record gpsTargetReached (Madara::Knowledge_Engine::Function_Ar
 
     // Get all current values.
     double currLat = variables.get(variables.expand_statement(MV_DEVICE_LAT("{" MV_MY_ID "}"))).to_double();
-      double currLon = variables.get(variables.expand_statement(MV_DEVICE_LON("{" MV_MY_ID "}"))).to_double();
-      double targetLat = variables.get(MV_LAST_TARGET_LAT).to_double();
-      double targetLon = variables.get(MV_LAST_TARGET_LON).to_double();
+    double currLon = variables.get(variables.expand_statement(MV_DEVICE_LON("{" MV_MY_ID "}"))).to_double();
+    double targetLat = variables.get(MV_LAST_TARGET_LAT).to_double();
+    double targetLon = variables.get(MV_LAST_TARGET_LON).to_double();
 
     printf("Lat:      %.10f Long:   %.10f\n", currLat, currLon);
     printf("T_Lat:    %.10f T_Long: %.10f\n", targetLat, targetLon);

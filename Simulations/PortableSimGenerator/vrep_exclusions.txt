@@ -1,0 +1,4 @@
+\helpfiles\
+\programming\
+\tutorials\
+\scenes\
