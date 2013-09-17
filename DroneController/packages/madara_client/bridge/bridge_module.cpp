@@ -111,7 +111,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
             // Only used when there is a new bridge request.
             MV_BRIDGE_REQUESTED " => "
             "("
-                "#print('New bridge request received.');"
+                "#print('New bridge request received.\n');"
                 // We turn off the bridge request, but only locally.
                 MF_TURN_OFF_BRIDGE_REQUEST "();"
 
@@ -119,17 +119,18 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                 "(" MV_MOBILE("{" MV_MY_ID "}") " && (!" MV_BUSY("{" MV_MY_ID "}") ") && (" MV_TOTAL_BRIDGES " > 0)" ")"
                 " => " 
                     "("
-                        "#print('Checking bridge request.');"
+                        "#print('Checking bridge request.\n');"
                         MF_FIND_POS_IN_BRIDGE "();"
                     ");"
             ");"
             // Only used when we are in the process of moving towards a bridge.
             MV_MOVING_TO_BRIDGE " => "
             "("
-                "#print('Moving to location in bridge.');"
+                "#print('Moving to location in bridge.\n');"
                 // If we reached our bridge location, record that and land.
                 MV_REACHED_GPS_TARGET " => " 
                     "("
+                        "#print('Location in bridge reached.\n');"
                         MV_MOVING_TO_BRIDGE "= 0;"
                         "(" MV_MOVEMENT_REQUESTED "='" MO_LAND_CMD "');"
                     ")"
@@ -256,20 +257,21 @@ Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::F
 		// Obtain the ids, and x and y parts of the available drone's positions from Madara.
 		int availableDrones = (int) variables.get(MV_AVAILABLE_DRONES_AMOUNT).to_integer();
 		std::vector<Madara::Knowledge_Record> availableDronesIds;
-		std::vector<Madara::Knowledge_Record> availableDronesPosX;
-		std::vector<Madara::Knowledge_Record> availableDronesPosY;
+		std::vector<Madara::Knowledge_Record> availableDronesLats;
+		std::vector<Madara::Knowledge_Record> availableDronesLongs;
 		variables.to_vector(MV_AVAILABLE_DRONES_IDS, 0, availableDrones, availableDronesIds);
-		variables.to_vector(MV_AVAILABLE_DRONES_LAT, 0, availableDrones, availableDronesPosX);
-		variables.to_vector(MV_AVAILABLE_DRONES_LON, 0, availableDrones, availableDronesPosY);
+		variables.to_vector(MV_AVAILABLE_DRONES_LAT, 0, availableDrones, availableDronesLats);
+		variables.to_vector(MV_AVAILABLE_DRONES_LON, 0, availableDrones, availableDronesLongs);
 
 		// Move the ids and position coordinates from the three arrays into a combined map.
 		std::map<int, Position> availableDronePositions;
 		for(int i=0; i < availableDrones; i++)
 		{
+            Position currDronePos;
 			int currDroneId = (int) availableDronesIds[i].to_integer();
-			double currDronePosX = availableDronesPosX[i].to_double();
-			double currDronePosY = availableDronesPosY[i].to_double();
-			availableDronePositions[currDroneId] = Position(currDronePosX, currDronePosY);
+            currDronePos.latitude = availableDronesLats[i].to_double();
+            currDronePos.longitude = availableDronesLongs[i].to_double();
+			availableDronePositions[currDroneId] = currDronePos;
 		}
 
 		// Call the bridge algorithm to find out if I have to move to help witht the bridge.
@@ -293,15 +295,15 @@ Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::F
 				Madara::Knowledge_Engine::Eval_Settings(true));
 
             // Set all the command parameters.
-            variables.set(MV_MOVEMENT_TARGET_LAT, myNewPosition->x,
+            variables.set(MV_MOVEMENT_TARGET_LAT, myNewPosition->latitude,
 				Madara::Knowledge_Engine::Eval_Settings(true));
-			variables.set(MV_MOVEMENT_TARGET_LON, myNewPosition->y,
+			variables.set(MV_MOVEMENT_TARGET_LON, myNewPosition->longitude,
 				Madara::Knowledge_Engine::Eval_Settings(true));
 			variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
 
             // Locally store our destination.
-            variables.set(MV_BRIDGE_LOC_LAT, myNewPosition->x);
-			variables.set(MV_BRIDGE_LOC_LON, myNewPosition->y);
+            variables.set(MV_BRIDGE_LOC_LAT, myNewPosition->latitude);
+			variables.set(MV_BRIDGE_LOC_LON, myNewPosition->longitude);
 
             // Locally note that we are moving towards a bridge.
             variables.set(MV_MOVING_TO_BRIDGE, 1.0);
@@ -331,15 +333,15 @@ Position* calculateMiddlePoint(Madara::Knowledge_Engine::Variables &variables, s
         case 0: // Rectangle.
         {
             // Get the bounding box from Madara.
-            double topLeftX = variables.get(MV_REGION_TOPLEFT_LAT(regionId)).to_double();
-            double topLeftY = variables.get(MV_REGION_TOPLEFT_LON(regionId) ).to_double();
-            double bottomRightX = variables.get(MV_REGION_BOTRIGHT_LAT(regionId)).to_double();
-            double bottomRightY = variables.get(MV_REGION_BOTRIGHT_LON(regionId) ).to_double();
+            double northWestLat = variables.get(MV_REGION_TOPLEFT_LAT(regionId)).to_double();
+            double northWestLong = variables.get(MV_REGION_TOPLEFT_LON(regionId) ).to_double();
+            double southEastLat = variables.get(MV_REGION_BOTRIGHT_LAT(regionId)).to_double();
+            double southEastlong = variables.get(MV_REGION_BOTRIGHT_LON(regionId) ).to_double();
 
             // Just find the middle point of the diagonal between the two border points.
             middlePoint = new Position();
-            middlePoint->x = (bottomRightX - topLeftX)/2.0 + topLeftX;
-            middlePoint->y = (topLeftY - bottomRightY)/2.0 + bottomRightY;
+            middlePoint->latitude = northWestLat - fabs(northWestLat - southEastLat)/2.0;
+            middlePoint->longitude = northWestLong + fabs(northWestLong - southEastlong)/2.0;
         }
     }
 

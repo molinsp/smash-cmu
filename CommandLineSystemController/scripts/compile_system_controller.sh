@@ -14,5 +14,5 @@ SMASH_ROOT=~/smash-cmu
 MADARA_CLIENT_ROOT=$SMASH_ROOT/DroneController/packages/madara_client
 
 cd $SMASH_ROOT/CommandLineSystemController
-g++ -I$MADARA_ROOT/include -I$ACE_ROOT -I$MADARA_CLIENT_ROOT -L$MADARA_ROOT/lib -L$ACE_ROOT/lib simple_coverage_test.cpp $MADARA_CLIENT_ROOT/platforms/comm/kb_setup.cpp $MADARA_CLIENT_ROOT/platforms/comm/multicast/comm_multicast.cpp -lMADARA -lACE -o simple_coverage_test
+g++ -I$MADARA_ROOT/include -I$ACE_ROOT -I$MADARA_CLIENT_ROOT -L$MADARA_ROOT/lib -L$ACE_ROOT/lib cmd_line_system_controller.cpp $MADARA_CLIENT_ROOT/platforms/comm/kb_setup.cpp $MADARA_CLIENT_ROOT/platforms/comm/multicast/comm_multicast.cpp -lMADARA -lACE -o simple_coverage_test
 

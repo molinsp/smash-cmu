@@ -89,11 +89,11 @@ void MadaraController::setupBridgeRequest(int bridgeId, Region startRegion, Regi
 
     // Set the bounding box of the regions. For now, the rectangle will actually just be a point.
     // NOTE: we use substring below to store the information not in the local but a global variable, which is only needed in a simulation.
-    std::string sourceTopLeftLocation = startRegion.topLeftCorner.toString();
-    std::string sourceBotRightLocation = startRegion.bottomRightCorner.toString();
-    m_knowledge->set(MV_REGION_TOPLEFT_LOC(sourceRegionIdString), sourceTopLeftLocation,
+    std::string sourceNorthWestLocation = startRegion.northWest.toString();
+    std::string sourceSouthEastLocation = startRegion.southEast.toString();
+    m_knowledge->set(MV_REGION_TOPLEFT_LOC(sourceRegionIdString), sourceNorthWestLocation,
       Madara::Knowledge_Engine::Eval_Settings(true));
-    m_knowledge->set(MV_REGION_BOTRIGHT_LOC(sourceRegionIdString), sourceBotRightLocation,
+    m_knowledge->set(MV_REGION_BOTRIGHT_LOC(sourceRegionIdString), sourceSouthEastLocation,
       Madara::Knowledge_Engine::Eval_Settings(true));
 
     // Store the id of the sink region for this bridge.
@@ -105,11 +105,11 @@ void MadaraController::setupBridgeRequest(int bridgeId, Region startRegion, Regi
       Madara::Knowledge_Engine::Eval_Settings(true));
 
     // Set the bounding box of the regions. For now, the rectangle will actually just be a point.
-    std::string sinkTopLeftLocation = endRegion.topLeftCorner.toString();
-    std::string sinkBotRightLocation = endRegion.bottomRightCorner.toString();
-    m_knowledge->set(MV_REGION_TOPLEFT_LOC(sinkRegionIdString), sinkTopLeftLocation,
+    std::string sinkNorthWestLocation = endRegion.northWest.toString();
+    std::string sinkSouthEastLocation = endRegion.southEast.toString();
+    m_knowledge->set(MV_REGION_TOPLEFT_LOC(sinkRegionIdString), sinkNorthWestLocation,
       Madara::Knowledge_Engine::Eval_Settings(true));
-    m_knowledge->set(MV_REGION_BOTRIGHT_LOC(sinkRegionIdString), sinkBotRightLocation,
+    m_knowledge->set(MV_REGION_BOTRIGHT_LOC(sinkRegionIdString), sinkSouthEastLocation,
       Madara::Knowledge_Engine::Eval_Settings(true));
 
     // Indicates that we are requesting a bridge.
@@ -145,19 +145,22 @@ void MadaraController::requestAreaCoverage(std::vector<int> droneIds, int search
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Requests a drone to be part of area coverage.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraController::setNewSearchArea(int searchAreaId, SMASH::Utilities::Region areaBoundaries)
+void MadaraController::setNewSearchArea(int searchAreaId, SMASH::Utilities::Region& areaBoundaries)
 {
     // Add a new search area.
     int searchAreaRegionId = m_regionId++;
     std::string searchAreaIdString = NUM_TO_STR(searchAreaId);
     m_knowledge->set(MV_SEARCH_AREA_REGION(searchAreaIdString), (Madara::Knowledge_Record::Integer) searchAreaRegionId,
       Madara::Knowledge_Engine::Eval_Settings(true));
+    int totalSearchAreas = searchAreaId + 1;
+    m_knowledge->set(MV_TOTAL_SEARCH_AREAS, (Madara::Knowledge_Record::Integer) totalSearchAreas,
+      Madara::Knowledge_Engine::Eval_Settings(true));
 
     // Set the type and bounding box of the region associated with this search area.
     int rectangleType = 0;
     std::string sourceRegionIdString = NUM_TO_STR(searchAreaRegionId);
-    std::string topLeftLocation = areaBoundaries.topLeftCorner.toString();
-    std::string botRightLocation = areaBoundaries.bottomRightCorner.toString();
+    std::string topLeftLocation = areaBoundaries.northWest.toString();
+    std::string botRightLocation = areaBoundaries.southEast.toString();
     m_knowledge->set(MV_REGION_TYPE(sourceRegionIdString), (Madara::Knowledge_Record::Integer) rectangleType,
       Madara::Knowledge_Engine::Eval_Settings(true));
     m_knowledge->set(MV_REGION_TOPLEFT_LOC(sourceRegionIdString), topLeftLocation,
@@ -168,9 +171,8 @@ void MadaraController::setNewSearchArea(int searchAreaId, SMASH::Utilities::Regi
     // Ensure that the min altitude is sent.
     m_knowledge->set (MV_MIN_ALTITUDE, m_minAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
 
-    // Update the total amount of search areas. No delay to apply all changes.
-    int totalSearchAreas = searchAreaId + 1;
-    m_knowledge->set(MV_TOTAL_SEARCH_AREAS, (Madara::Knowledge_Record::Integer) totalSearchAreas);
+    // Apply all changes.
+    m_knowledge->apply_modified();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -26,7 +26,7 @@ using std::endl;
 
 #include <sstream>
 
-std::string coverage_type = "random";
+Madara::Knowledge_Engine::Knowledge_Base* knowledge;
 
 // Interupt handling.
 volatile bool g_terminated = false;
@@ -35,6 +35,7 @@ extern "C" void terminate (int)
     g_terminated = true;
 }
 
+// Shows a summary of the parameters available for this program.
 void programSummary(char* arg)
 {
     cerr << arg << endl;
@@ -53,9 +54,10 @@ void programSummary(char* arg)
     exit(-1);
 }
 
+// Loads all available input parameters.
 void handleArgs(int argc, char** argv, int& id, int& numDrones,
     double& nLat, double& wLong, double& sLat, double& eLong,
-    int& logLevel, double& stride, double& minHeight, double& heightDiff,
+    int& logLevel, std::string& coverage_type, double& stride, double& minHeight, double& heightDiff,
     double& commRange)
 {
     for(int i = 1; i < argc; ++i)
@@ -91,90 +93,27 @@ void handleArgs(int argc, char** argv, int& id, int& numDrones,
     }
 }
 
-int main (int argc, char** argv)
+// Sets a search region and sends a coverage request.
+void setAreaCoverageRequest(int& numDrones, double& nLat, double& wLong, double& sLat, double& eLong, std::string& coverage_type, double& stride)
 {
-    // Set the use of Ctrl+C to terminate.
-    ACE_Sig_Action sa ((ACE_SignalHandler) terminate, SIGINT);
-
-    int local_debug_level = -1;
-    int id = 0;
-    int numDrones = 0;
-    double nLat = 0;
-    double wLong = 0;
-    double sLat = 0;
-    double eLong = 0;
-    double stride = 0;
-    double minHeight = 0;
-    double heightDiff = 0;
-    double commRange = 0;
-
-    // Handle args
-    cout << "Parse args..." << endl;
-    handleArgs(argc, argv, id, numDrones, nLat, wLong, sLat, eLong, local_debug_level, stride, minHeight, heightDiff, commRange);
-    cout << "  id:           " << id << endl;
-    cout << "  numDrones:    " << numDrones << endl;
-    cout << "  northern lat: " << nLat << endl;
-    cout << "  southern lat: " << sLat << endl;
-    cout << "  western lat:  " << wLong << endl;
-    cout << "  eastern lat:  " << eLong << endl;
-    cout << "  debug level:  " << local_debug_level << endl;
-    cout << "  coverage type:" << coverage_type << endl;
-    cout << "  stride:       " << stride << endl;
-    cout << "  min height:   " << minHeight << endl;
-    cout << "  height diff:  " << heightDiff << endl;
-    cout << "  commRange:    " << commRange << endl;
-
-    // Set the debug level.
-    bool enableLogging = false;
-    if(local_debug_level != -1)
-    {
-        MADARA_debug_level = local_debug_level;
-        enableLogging = true;
-    }
-        
-    cout << "Init Knowlege Base..." << endl;
-    Madara::Knowledge_Engine::Knowledge_Base* knowledge = comm_setup_knowledge_base(id, enableLogging);
-
-    knowledge->set(".id", Madara::Knowledge_Record::Integer(id));
-
-    printf("\nSetting up base parameters...\n");
-    if(minHeight != 0)
-    {
-        knowledge->set(MV_MIN_ALTITUDE, minHeight);
-    }
-    if(heightDiff != 0)
-    {
-        knowledge->set(MV_AREA_COVERAGE_HEIGHT_DIFF, heightDiff);
-    }
-    if(commRange != 0)
-    {
-        knowledge->set(MV_COMM_RANGE, commRange);
-    }
-
-    // Send takeoff command and wait for a bit so the drones take off.
-    printf("\nSending takeoff command...\n");
-    int takeoffWaitTime = 3;
-    knowledge->set(MV_SWARM_MOVE_REQUESTED, MO_TAKEOFF_CMD);
-    ACE_OS::sleep (takeoffWaitTime);
-
     printf("\nInitializing search area...\n");
 
-    // setup search area
+    // Setup search area.
     int rectangleType = 0;
     SMASH::Utilities::Position nwCorner(wLong, nLat);
     SMASH::Utilities::Position seCorner(eLong, sLat);
     SMASH::Utilities::Region areaBoundaries(nwCorner, seCorner);
     string sourceRegionIdString = NUM_TO_STR(0);
-    string topLeftLocation = areaBoundaries.topLeftCorner.toString();
-    string botRightLocation = areaBoundaries.bottomRightCorner.toString();
+
+    string topLeftLocation = areaBoundaries.northWest.toString();
+    string botRightLocation = areaBoundaries.southEast.toString();
+
     knowledge->set(MV_REGION_TYPE(sourceRegionIdString),
         (Madara::Knowledge_Record::Integer) rectangleType,
         Madara::Knowledge_Engine::Eval_Settings(true));
     knowledge->set(MV_REGION_TOPLEFT_LOC(sourceRegionIdString), topLeftLocation,
         Madara::Knowledge_Engine::Eval_Settings(true));
     knowledge->set(MV_REGION_BOTRIGHT_LOC(sourceRegionIdString), botRightLocation,
-        Madara::Knowledge_Engine::Eval_Settings(true));
-    knowledge->set(MV_TOTAL_DEVICES, Madara::Knowledge_Record::Integer(numDrones),
         Madara::Knowledge_Engine::Eval_Settings(true));
     knowledge->set(MV_TOTAL_SEARCH_AREAS,
         Madara::Knowledge_Record::Integer(1));
@@ -205,18 +144,99 @@ int main (int argc, char** argv)
     }
 
     knowledge->apply_modified();
+}
+
+// Main entry point.
+int main (int argc, char** argv)
+{
+    // Set the use of Ctrl+C to terminate.
+    ACE_Sig_Action sa ((ACE_SignalHandler) terminate, SIGINT);
+
+    // Variables to hold input parameters.
+    int local_debug_level = -1;
+    int id = 0;
+    int numDrones = 0;
+    double nLat = 0;
+    double wLong = 0;
+    double sLat = 0;
+    double eLong = 0;
+    std::string coverage_type = "random";
+    double stride = 0;
+    double minHeight = 0;
+    double heightDiff = 0;
+    double commRange = 0;
+
+    // Load arguments and show them.
+    cout << "Parse args..." << endl;
+    handleArgs(argc, argv, id, numDrones, nLat, wLong, sLat, eLong, local_debug_level, coverage_type, stride, minHeight, heightDiff, commRange);
+    cout << "  id:           " << id << endl;
+    cout << "  numDrones:    " << numDrones << endl;
+    cout << "  northern lat: " << nLat << endl;
+    cout << "  southern lat: " << sLat << endl;
+    cout << "  western lat:  " << wLong << endl;
+    cout << "  eastern lat:  " << eLong << endl;
+    cout << "  debug level:  " << local_debug_level << endl;
+    cout << "  coverage type:" << coverage_type << endl;
+    cout << "  stride:       " << stride << endl;
+    cout << "  min height:   " << minHeight << endl;
+    cout << "  height diff:  " << heightDiff << endl;
+    cout << "  commRange:    " << commRange << endl;
+
+    // Set the debug level.
+    bool enableLogging = false;
+    if(local_debug_level != -1)
+    {
+        MADARA_debug_level = local_debug_level;
+        enableLogging = true;
+    }
     
-    printf("\nCommands sent...\n");
+    // Setup the knowledge base.
+    cout << "Init Knowlege Base..." << endl;
+    knowledge = comm_setup_knowledge_base(id, enableLogging);
 
-    knowledge->print_knowledge();
+    // Setup basic parameters, mandatory and optional ones.
+    printf("\nSetting up basic parameters...\n");
+    knowledge->set(".id", Madara::Knowledge_Record::Integer(id),
+            Madara::Knowledge_Engine::Eval_Settings(true));
+    if(numDrones != 0)
+    {
+        knowledge->set(MV_TOTAL_DEVICES, Madara::Knowledge_Record::Integer(numDrones),
+            Madara::Knowledge_Engine::Eval_Settings(true));
+    }
+    if(minHeight != 0)
+    {
+        knowledge->set(MV_MIN_ALTITUDE, minHeight,
+            Madara::Knowledge_Engine::Eval_Settings(true));
+    }
+    if(heightDiff != 0)
+    {
+        knowledge->set(MV_AREA_COVERAGE_HEIGHT_DIFF, heightDiff,
+            Madara::Knowledge_Engine::Eval_Settings(true));
+    }
+    if(commRange != 0)
+    {
+        knowledge->set(MV_COMM_RANGE, commRange,
+            Madara::Knowledge_Engine::Eval_Settings(true));
+    }
+    knowledge->apply_modified();
 
+    // Send takeoff command and wait for a bit so the drones take off.
+    printf("\nSending takeoff command, and waiting for drones to take off...\n");
+    int takeoffWaitTime = 3;
+    knowledge->set(MV_SWARM_MOVE_REQUESTED, MO_TAKEOFF_CMD);
+    ACE_OS::sleep (takeoffWaitTime);
+
+    // Set area coverage.
+    setAreaCoverageRequest(numDrones, nLat, wLong, sLat, eLong, coverage_type, stride);
+    
+    printf("\nCommands sent, entering loop to show status of knowledge base.\n");
     while(!g_terminated)
     {
         knowledge->print_knowledge();
         ACE_OS::sleep (1);
     }
 
+    // Simply delete the knowledge base when the program terminates.
     delete knowledge;
-
     return 0;
 }

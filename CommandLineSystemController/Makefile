@@ -14,11 +14,11 @@ LOCAL_LIBS = -lMADARA -lACE
 LOCAL_LD_PATH = -L$(MADARA_ROOT)/lib -L$(ACE_ROOT)/lib
 LOCAL_INCLUDES = -I$(MADARA_ROOT)/include -I$(ACE_ROOT) -I$(MADARA_CLIENT_ROOT)
 
-LOCAL_EXECUTABLE = simple_coverage_test
+LOCAL_EXECUTABLE = cmd_line_system_controller
 
 LOCAL_SOURCES += $(MADARA_CLIENT_ROOT)/platforms/comm/kb_setup.cpp
 LOCAL_SOURCES += $(MADARA_CLIENT_ROOT)/platforms/comm/multicast/comm_multicast.cpp
-LOCAL_SOURCES += simple_coverage_test.cpp
+LOCAL_SOURCES += cmd_line_system_controller.cpp
 
 LOCAL_OBJ = $(LOCAL_SOURCES:.cpp=.o)
 

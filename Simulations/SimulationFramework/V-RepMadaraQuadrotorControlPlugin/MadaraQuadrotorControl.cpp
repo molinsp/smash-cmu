@@ -9,6 +9,7 @@
 #include "platforms/v_rep/comm_sim.h"
 #include "platforms/v_rep/v-rep_sim_madara_variables.h"
 #include "utilities/Position.h"
+#include "utilities/string_utils.h"
 
 using std::vector;
 using std::string;

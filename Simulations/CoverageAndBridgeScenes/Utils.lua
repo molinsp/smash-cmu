@@ -21,8 +21,7 @@ g_earthEquatorialPerimter = 40075160
 function loadPeoplePositions()
 	-- Load all of these in global variables.
 	g_numPeople = simGetScriptSimulationParameter(sim_handle_main_script, 'numberOfPeople')
-	g_personCoordsX = {}
-    g_personCoordsY = {}
+	g_personCoords = {}
     
 	local counter = 1
 	for i=1, g_numPeople, 1 do
@@ -33,46 +32,19 @@ function loadPeoplePositions()
 		end
 
         local billposition = getObjectPositionInDegrees(personHandle, -1)
-		g_personCoordsX[i] = billposition[1]
-		g_personCoordsY[i] = billposition[2]
-		--simAddStatusbarMessage('Person ' .. counter .. ' : ' .. g_personCoords[counter] .. ', ' .. counter+1 .. ' : '..g_personCoords[counter+1])
+		g_personCoords[i] = billposition
 	end    
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
--- Returns the name and position (as a x,y,x table) of a drone with a given suffix.
+-- Returns the position of the source person found as a table with x,y,z.
 --/////////////////////////////////////////////////////////////////////////////////////////////
-function getDroneInfoFromSuffix(suffix)
-    local droneObjectName = 'Quadricopter#'
-
-    -- For all drones but the first one (suffix -1), we have to add the suffix, which starts at 0.
-    if(suffix ~= -1) then
-        droneObjectName = droneObjectName .. suffix
-    end
-    
-    -- Get the position from the drone object.
-    local droneHandle = simGetObjectHandle(droneObjectName)
-    local dronePosition = getObjectPositionInDegrees(droneHandle, -1)    
-    
-    return droneObjectName, dronePosition    
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
--- Returns the name and position (as a x,y,x table) of a drone with a given id (starting at 0).
---/////////////////////////////////////////////////////////////////////////////////////////////
-function getDroneInfoFromId(id)
-    local droneObjectName = 'Quadricopter#'
-
-    -- For all drones but the first one (id 0), we have to add the suffix, which starts at 0 (id-1).
-    if(id ~= 0) then
-        droneObjectName = droneObjectName .. (id-1)
-    end
-    
-    -- Get the position from the drone object.
-    local droneHandle = simGetObjectHandle(droneObjectName)
-    local dronePosition = getObjectPositionInDegrees(droneHandle, -1)    
-    
-    return droneObjectName, dronePosition    
+function getPersonPositionInDegrees(personFoundId)
+	local personPosition = {}
+	personPosition['latitude'] = g_personCoords[personFoundId]['latitude']
+	personPosition['longitude'] = g_personCoords[personFoundId]['longitude']
+	personPosition['altitude'] = 0
+	return personPosition
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,7 +69,10 @@ function getObjectPositionInDegrees(objectHandle, relativeTo)
     local latAndLong = getLatAndLong(cartesianPosition)
     
     -- Return the new coordinates. Note that the height was already in meters, and will be still in meters.
-    local newPosition = {latAndLong['longitude'], latAndLong['latitude'], vrepPosition[3]}
+    local newPosition = {}
+	newPosition['latitude'] = latAndLong['latitude']
+	newPosition['longitude'] = latAndLong['longitude']
+	newPosition['altitude'] = vrepPosition[3]
     return newPosition
 end
 

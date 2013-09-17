@@ -10,6 +10,7 @@
 #include "LuaExtensionsUtils.h"
 #include "utilities/Position.h"
 #include "platforms/v_rep/v-rep_sim_madara_variables.h"
+#include "utilities/string_utils.h"
 
 #include <string>
 using std::string;

@@ -16,8 +16,6 @@
 #include <sstream>      // std::ostringstream
 #include <iomanip>        // std::setprecision
 
-#include "utilities/string_utils.h"
-
 namespace SMASH
 {
     namespace Utilities
@@ -28,46 +26,45 @@ namespace SMASH
         class Position
         {
         public:
-            // TODO: fix other code so this is no longer necessary
-            double x;
-            double& longitude;
-            double y;
-            double& latitude;
+            double longitude;
+            double latitude;
 
             /**
              * Blank default constructor.
              **/
-            Position() : longitude(x), latitude(y) {}
+            Position() {}
 
             /** Constructor from data.
-             * @param   newX    The value for the X coordinate.
-             * @param   newY    The value for the Y coordinate.
+             * @param   newLong    The value for the longitude coordinate.
+             * @param   newLat    The value for the latitude coordinate.
              **/
-            Position(double newX, double newY) : longitude(x), latitude(y)
+            Position(double newLong, double newLat) 
             {
-                x = newX;
-                y = newY;
+                longitude = newLong;
+                latitude = newLat;
             }
 
-            Position(const Position& copy) : longitude(x), latitude(y)
+            Position(const Position& copy)
             {
-                x = copy.x;
-                y = copy.y;
+                longitude = copy.longitude;
+                latitude = copy.latitude;
             }
 
             const Position& operator=(const Position& right)
             {
-                x = right.x;
-                y = right.y;
+                longitude = right.longitude;
+                latitude = right.latitude;
                 return *this;
             }
 
             /** Turns a position into a string.
-             * @return a string of the form "x,y".
+             * @return a string of the form "lat,lon".
              **/
             std::string toString()
             {
-                return NUM_TO_STR(latitude) + std::string(",") + NUM_TO_STR(longitude);
+                std::stringstream sstream;
+                sstream << std::setprecision(10) << latitude << "," << longitude;
+                return sstream.str();
             }
         };
 
@@ -82,47 +79,74 @@ namespace SMASH
              */
             enum Corner { SOUTH_WEST, SOUTH_EAST, NORTH_WEST, NORTH_EAST };
 
-            // TODO: fix other code so this is no longer needed
-            Position topLeftCorner;
-            Position& northWest;
-            Position bottomRightCorner;
-            Position& southEast;
-
-            /**
-             * Blank default constructor.
-             **/
-            Region() : southEast(bottomRightCorner), northWest(topLeftCorner) {}
+            Position northWest;
+            Position southEast;
 
             /** Constructor from data.
              * @param   newTopLeftCorner        The Position for the top left corner.
              * @param   newBottomRightCorner    The Position for the bottom right corner.
              **/
-            Region(Position newTopLeftCorner, Position newBottomRightCorner) :
-                southEast(bottomRightCorner), northWest(topLeftCorner)
+            Region(Position newNorthWestCorner, Position newSouthEastCorner)
             {
-                topLeftCorner = newTopLeftCorner;
-                bottomRightCorner = newBottomRightCorner;
+                northWest = newNorthWestCorner;
+                southEast = newSouthEastCorner;
+                invertRegionIfRequired();
             }
 
-            Region(const Region& copy) : southEast(bottomRightCorner), northWest(topLeftCorner)
+            Region(const Region& copy)
             {
-                topLeftCorner = copy.topLeftCorner;
-                bottomRightCorner = copy.bottomRightCorner;
+                northWest = copy.northWest;
+                southEast = copy.southEast;
+                invertRegionIfRequired();
             }
 
             const Region& operator=(const Region& copy)
             {
-                topLeftCorner = copy.topLeftCorner;
-                bottomRightCorner = copy.bottomRightCorner;
+                northWest = copy.northWest;
+                southEast = copy.southEast;
+                invertRegionIfRequired();
                 return *this;
             }
 
             bool contains(const Position& test)
             {
-                return ((test.x >= topLeftCorner.x) &&
-                        (test.x <= bottomRightCorner.x) &&
-                        (test.y >= bottomRightCorner.y) &&
-                        (test.y <= topLeftCorner.y));
+                return ((test.longitude >= northWest.longitude) &&
+                        (test.longitude <= southEast.longitude) &&
+                        (test.latitude >= southEast.latitude) &&
+                        (test.latitude <= northWest.latitude));
+            }
+
+            ////////////////////////////////////////////////////////////////////////////////////////////
+            // Returns the same region if its coordinates actually corresponded to the cardinal points.
+            // If not, if inverts either the north-south latitudes, west-east longitudes, or both.
+            // The end result is a region where the latitudes and longitudes match the names of the
+            // object fields.
+            ////////////////////////////////////////////////////////////////////////////////////////////
+            void invertRegionIfRequired()
+            {
+                // Store the original values in temporary variables.
+                Position originalNorthWest = this->northWest;
+                Position originalSouthEast = this->southEast;
+
+                // Check if we need a north-south latitude inversion.
+                if(this->northWest.latitude < this->southEast.latitude)
+                {
+                    // If the south latitude is greater than the north one, we recieved an inverted grid.
+                    // Switch to get the real north and south latitudes.
+                    printf("Inverting north and south latitudes.\n");
+                    this->northWest.latitude = originalSouthEast.latitude;
+                    this->southEast.latitude = originalNorthWest.latitude;
+                }
+
+                // Check if we need a west-east longitude inversion.
+                if(this->northWest.longitude > this->southEast.longitude)
+                {
+                    // If the west longitude is greater than the east one, we recieved an inverted grid.
+                    // Switch to get the real west and east latitudes.
+                    printf("Inverting west and east latitudes.\n");
+                    this->northWest.longitude = originalSouthEast.longitude;
+                    this->southEast.longitude = originalNorthWest.longitude;
+                }
             }
         };
     }

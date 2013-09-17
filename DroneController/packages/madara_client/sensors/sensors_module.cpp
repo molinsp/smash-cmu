@@ -10,6 +10,7 @@
 #include "utilities/CommonMadaraVariables.h"
 #include "utilities/Position.h"
 #include "utilities/gps_utils.h"
+#include "utilities/string_utils.h"
 
 #include <iomanip>		// std::setprecision
 
@@ -27,7 +28,7 @@ static Madara::Knowledge_Engine::Compiled_Expression expressions2 [TASK_COUNT];
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record read_thermal_sensor (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-    printf("Inside read_thermal();\n");
+    variables.print("Inside read_thermal();\n", 0);
     double buffer[8][8];
     platform_read_thermal(buffer);
     int x, y;
@@ -124,7 +125,7 @@ Madara::Knowledge_Record gpsTargetReached (Madara::Knowledge_Engine::Function_Ar
     std::string lastCommand = variables.get(MV_LAST_MOVEMENT_REQUESTED).to_string();
     if(lastCommand != MO_MOVE_TO_GPS_CMD)
     {
-        //printf("Current command no longer move to GPS, checking for target reached does not make sense.\n");
+        //variables.print("Current command no longer move to GPS, checking for target reached does not make sense.\n", 0);
         return Madara::Knowledge_Record::Integer(0);
     }
 
@@ -133,24 +134,26 @@ Madara::Knowledge_Record gpsTargetReached (Madara::Knowledge_Engine::Function_Ar
     double currLon = variables.get(variables.expand_statement(MV_DEVICE_LON("{" MV_MY_ID "}"))).to_double();
     double targetLat = variables.get(MV_LAST_TARGET_LAT).to_double();
     double targetLon = variables.get(MV_LAST_TARGET_LON).to_double();
-
-    printf("Lat:      %.10f Long:   %.10f\n", currLat, currLon);
-    printf("T_Lat:    %.10f T_Long: %.10f\n", targetLat, targetLon);
-
     double dist = SMASH::Utilities::gps_coordinates_distance(currLat, currLon, targetLat, targetLon);
-    printf("Distance: %.2f\n", dist);
+
+    // Print the current state.
+    std::stringstream sstream;
+    sstream << "Lat:      " << currLat   << ", Long:   " << currLon << "\n";
+    sstream << "T_Lat:    " << targetLat << ", T_Long: " << targetLon << "\n";
+    sstream << "Distance: " << dist << "\n";
+    variables.print(sstream.str(), 0);
 
     // The accuracy of whether a location has been reached depends on the platform. Get the accuracy for the particular platform we are using.
     // For now we assume the accuracy we want is the same as the GPS accuracy, though we may want to add some more slack.
     double reachedAccuracyMeters = platform_get_gps_accuracy();
     if(dist < reachedAccuracyMeters)
     {
-        printf("HAS reached target\n");
+        variables.print("HAS reached target\n", 0);
         return Madara::Knowledge_Record::Integer(1);
     }
     else
     {
-        printf("HAS NOT reached target yet\n");
+        variables.print("HAS NOT reached target yet\n", 0);
         return Madara::Knowledge_Record::Integer(0);
     }
 }
@@ -216,12 +219,12 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SMASH::Sensors::SensorsModule::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
-    printf("SMASH::Sensors::initialize...\n");
+    knowledge.print("SMASH::Sensors::initialize...\n");
     platform_init_sensor_functions();
 
     define_sensor_functions(knowledge);
     compile_sensor_function_expressions(knowledge);
-    printf("leaving SMASH::Sensors::initialize...\n");
+    knowledge.print("leaving SMASH::Sensors::initialize...\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -18,14 +18,14 @@ void ensureTakeoff(Madara::Knowledge_Engine::Variables& variables)
 
 void attainAltitude(Madara::Knowledge_Engine::Variables& variables)
 {
-    ensureTakeoff(variables);
+    //ensureTakeoff(variables);
     //variables.evaluate(variables.expand_statement(MV_IS_AT_ASSIGNED_ALTITUDE " == 0 => (" MV_LOCAL_MOVEMENT_COMMAND ".0 = " MV_ASSIGNED_ALTITUDE("{.id}") "; move_to_altitude();)"));
 }
 
 //Madara function to interface with takeoff()
 Madara::Knowledge_Record control_functions_takeoff (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-	printf("In Madara::takeoff()\n");
+	variables.print("In Madara::takeoff()\n", 0);
 	platform_takeoff();
     variables.set(MV_IS_LANDED, 0.0);
 	return Madara::Knowledge_Record::Integer(1);
@@ -34,7 +34,7 @@ Madara::Knowledge_Record control_functions_takeoff (Madara::Knowledge_Engine::Fu
 //Madara function to interface with land()
 Madara::Knowledge_Record control_functions_land (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-	printf("In Madara::land()\n");
+	variables.print("In Madara::land()\n", 0);
 	platform_land();
     variables.set(MV_IS_LANDED, 1.0);
 	return Madara::Knowledge_Record::Integer(1);
@@ -96,7 +96,10 @@ Madara::Knowledge_Record madara_move_to_gps (Madara::Knowledge_Engine::Function_
 
     attainAltitude(variables);
 	
-	printf("Moving to %08f, %08f, %02f\n", lat, lon, alt);
+    // Print an our movement.
+    std::stringstream sstream;
+    sstream << "Moving to " << lat << ", " << lon << ", " << alt << "\n";
+    variables.print(sstream.str(), 0);
 	
 	platform_move_to_location(lat, lon, alt);
 
@@ -113,7 +116,9 @@ Madara::Knowledge_Record madara_move_to_altitude (Madara::Knowledge_Engine::Func
 
     ensureTakeoff(variables);
 	
-	printf("Moving to altitude %02f\n", alt);
+    std::stringstream sstream;
+    sstream << "Moving to altitude" << alt << "\n";
+    variables.print(sstream.str(), 0);
 	
 	platform_move_to_altitude(alt);
 		
@@ -130,7 +135,7 @@ Madara::Knowledge_Record process_movement_commands (Madara::Knowledge_Engine::Fu
     }
 
 	std::string expansion = variables.expand_statement("{" MV_LOCAL_MOVEMENT_COMMAND "}();");
-	printf("Expanded Movement Command: %s\n", expansion.c_str());
+	variables.print("Expanded Movement Command: " + expansion + "\n", 0);
 	return variables.evaluate(expansion, Madara::Knowledge_Engine::Eval_Settings(false, true));
 }
 
@@ -152,10 +157,10 @@ void define_control_functions (Madara::Knowledge_Engine::Knowledge_Base & knowle
 
 void SMASH::Movement::MovementModule::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
-	printf("SMASH::Movement::initialize()\n");
+	knowledge.print("SMASH::Movement::initialize()\n");
 	platform_init_control_functions();
 	define_control_functions(knowledge);
-	printf("leaving SMASH::Movement::initialize()\n");
+	knowledge.print("leaving SMASH::Movement::initialize()\n");
 }
 
 void SMASH::Movement::MovementModule::cleanup(Madara::Knowledge_Engine::Knowledge_Base& knowledge)

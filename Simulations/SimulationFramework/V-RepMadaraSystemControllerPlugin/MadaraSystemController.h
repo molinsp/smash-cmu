@@ -62,7 +62,7 @@ public:
                                           SMASH::Utilities::Region endRegion);
 
     // Area coverage methods.
-    void setNewSearchArea(int searchAreaId, SMASH::Utilities::Region areaBoundaries);
+    void setNewSearchArea(int searchAreaId, SMASH::Utilities::Region& areaBoundaries);
     void requestAreaCoverage(std::vector<int> droneIds, int searchAreaId, string searchAlgorithm, int wait, std::string humanDetectionAlgorithm);
 
     // Information getter methods.

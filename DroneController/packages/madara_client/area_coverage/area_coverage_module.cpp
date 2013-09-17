@@ -97,7 +97,6 @@ static Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowle
     Madara::Knowledge_Engine::Variables &variables);
 static Madara::Knowledge_Record madaraAltitudeReached (Madara::Knowledge_Engine::Function_Arguments &args,
     Madara::Knowledge_Engine::Variables &variables);
-static Region invertRegionIfRequired(const Region& sourceRegion);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Initializer, gets the refence to the knowledge base and compiles expressions.
@@ -334,10 +333,10 @@ AreaCoverage* selectAreaCoverageAlgorithm(string algorithm, Madara::Knowledge_En
     }
     else
     {
-        string err = "selectAreaCoverageAlgorithm(algo = \"";
-        err += algorithm;
-        err += "\") failed to find match\n";
-        printf("%s", err.c_str());
+        // Print an error.
+        std::stringstream sstream;
+        sstream << "selectAreaCoverageAlgorithm(algo = \"" << algorithm << "\") failed to find match\n";
+        variables.print(sstream.str(), 0);
     }
 
     return coverageAlgorithm;
@@ -369,9 +368,6 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
     double seLat = variables.get(MV_REGION_BOTRIGHT_LAT(myAssignedSearchRegion)).to_double();
     double seLon = variables.get(MV_REGION_BOTRIGHT_LON(myAssignedSearchRegion)).to_double();
     Region searchArea = Region(Position(nwLon, nwLat), Position(seLon, seLat));
-
-    // Swap sides of the region if it was incorrectly setup originally in the Madara variables.
-    searchArea = invertRegionIfRequired(searchArea);
 
     // Calculate the actual cell I will be covering.
     string algo = variables.get(variables.expand_statement(MV_AREA_COVERAGE_REQUESTED("{" MV_MY_ID "}"))).to_string();
@@ -418,7 +414,11 @@ Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowledge_Eng
     // Send the command to go to this altitude.
     variables.set(MV_MOVEMENT_TARGET_ALT, myDefaultAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
     variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_ALTITUDE_CMD));
-    printf("Moving to altitude %f!\n", myDefaultAltitude);
+
+    // Print what we are doing.
+    std::stringstream sstream;
+    sstream << "Moving to altitude " << myDefaultAltitude << "!\n";
+    variables.print(sstream.str(), 0);
 
     return Madara::Knowledge_Record(1.0);
 }
@@ -463,10 +463,12 @@ Madara::Knowledge_Record madaraReachedFinalTarget(
     // change to new coverage algorithm
     if(m_coverageAlgorithm->isTargetingFinalWaypoint())
     {
-        printf("IS targeting final waypoint.\n");
+        // Print what we are doing.
+        variables.print("IS targeting final waypoint.\n", 0);
         return Madara::Knowledge_Record(1.0);
     }
-    printf("IS NOT targeting final waypoint.\n");
+
+    variables.print("IS NOT targeting final waypoint.\n", 0);
     return Madara::Knowledge_Record(0.0);
 }
 
@@ -477,7 +479,7 @@ Madara::Knowledge_Record madaraReachedFinalTarget(
 Madara::Knowledge_Record madaraSetNewCoverage(Madara::Knowledge_Engine::Function_Arguments &args,
     Madara::Knowledge_Engine::Variables &variables)
 {
-    printf("Setting new coverage");
+    variables.print("Setting new coverage", 0);
     string next = variables.get(variables.expand_statement(MV_NEXT_AREA_COVERAGE_REQUEST("{" MV_MY_ID "}"))).to_string();
     AreaCoverage* temp = m_coverageAlgorithm;
     Region searchArea(*(m_coverageAlgorithm->getSearchRegion()));
@@ -500,38 +502,4 @@ Madara::Knowledge_Record madaraSetNewCoverage(Madara::Knowledge_Engine::Function
     }
     // If we couldn't generate our cell for some reason, the function was not successful.
     return Madara::Knowledge_Record(0.0);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////
-// Returns the same region if its coordinates actually corresponded to the cardinal points.
-// If not, if inverts either the north-south latitudes, west-east longitudes, or both.
-// The end result is a region where the latitudes and longitudes match the names of the
-// object fields.
-////////////////////////////////////////////////////////////////////////////////////////////
-Region invertRegionIfRequired(const Region& sourceRegion)
-{
-    // Start by assuming no inversion if required.
-    Region cleanedRegion(sourceRegion);
-
-    // Check if we need a north-south latitude inversion.
-    if(sourceRegion.northWest.latitude < sourceRegion.southEast.latitude)
-    {
-        // If the south latitude is greater than the north one, we recieved an inverted grid.
-        // Switch to get the real north and south latitudes.
-        printf("Inverting north and south latitudes.\n");
-        cleanedRegion.northWest.latitude = sourceRegion.southEast.latitude;
-        cleanedRegion.southEast.latitude = sourceRegion.northWest.latitude;
-    }
-
-    // Check if we need a west-east longitude inversion.
-    if(sourceRegion.northWest.longitude > sourceRegion.southEast.longitude)
-    {
-        // If the west longitude is greater than the east one, we recieved an inverted grid.
-        // Switch to get the real west and east latitudes.
-        printf("Inverting west and east latitudes.\n");
-        cleanedRegion.northWest.longitude = sourceRegion.southEast.longitude;
-        cleanedRegion.southEast.longitude = sourceRegion.northWest.longitude;
-    }
-
-    return cleanedRegion;
 }

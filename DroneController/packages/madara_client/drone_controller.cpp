@@ -60,6 +60,8 @@ void SMASH::DroneController::cleanup(Madara::Knowledge_Engine::Knowledge_Base* k
 std::string SMASH::DroneController::getStatusSummaryExpression()
 {
     std::string status = 
+        "\n**********************************************************************\n"
+        "Status Report\n\n"
         "Drone:\t\t{" MV_MY_ID "}\n"
         "Total:\t\t{" MV_TOTAL_DEVICES "}\n"
         "Mobile:\t\t{" MV_MOBILE("{.id}") "}\n"
@@ -78,6 +80,7 @@ std::string SMASH::DroneController::getStatusSummaryExpression()
         "Waiting :\t{" ".area_coverage.my_area.waiting" "}\n"
         "\n"
         "Bridge ID:\t{" MV_BRIDGE_ID("{.id}") "}\n"
+        "**********************************************************************\n\n"
         ;
 
     return status;
