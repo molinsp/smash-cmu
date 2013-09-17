@@ -44,6 +44,7 @@ void programSummary(char* arg)
     cerr << "  [-i] id" << endl;
 
     // General parameters.
+    cerr << "  [-l] MADARA log level" << endl;
     cerr << "  [-d] numDrones" << endl;
     cerr << "  [-hm] min height" << endl;
     cerr << "  [-hd] height diff" << endl;
@@ -54,7 +55,6 @@ void programSummary(char* arg)
     cerr << "  [-s] southern latitude" << endl;
     cerr << "  [-e] eastern longitude" << endl;
     cerr << "  [-w] western longitude" << endl;
-    cerr << "  [-l] MADARA log level" << endl;
     cerr << "  [-t] coverage type" << endl;
     cerr << "  [-st] search stride" << endl;
 
@@ -224,18 +224,23 @@ int main (int argc, char** argv)
     printf("\nSetting up basic parameters...\n");
     printf("\nSending takeoff command, and waiting for drones to take off...\n");
     madaraController->updateGeneralParameters(numDrones);
-    int takeoffWaitTime = 3;
+    int takeoffWaitTime = 5;
     ACE_OS::sleep (takeoffWaitTime);
 
     // Set area coverage, if requested.
     if(nLat != 0 && wLong != 0 && sLat != 0 && eLong != 0)
     {
+        printf("\nSending area coverage request.\n");
         setAreaCoverageRequest(numDrones, nLat, wLong, sLat, eLong, coverage_type, waitForOthers, human_type);
     }
 
+    printf("\nWaiting for area coverage request to kick in....\n");
+    ACE_OS::sleep (5);
+
     // Set bridge buidling, if requested.
-    if(nLat != 0 && wLong != 0 && sLat != 0 && eLong != 0)
+    if(personLat != 0 && personLon != 0 && sinkLat != 0 && sinkLon != 0)
     {
+        printf("\nSending bridge request.\n");
         setBridgeRequest(personLat, personLon, sinkLat, sinkLon);
     }
     
