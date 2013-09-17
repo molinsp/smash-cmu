@@ -134,3 +134,7 @@ double platform_get_gps_accuracy()
     return 1.0;
 }
 
+double platform_get_landed_height_accuracy()
+{
+    return 0.1;
+}

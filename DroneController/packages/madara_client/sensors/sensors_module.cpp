@@ -18,7 +18,7 @@
 #define EVALUATE_SENSORS	0
 
 #define HEIGHT_ACCURACY     "0.5"     // How many meters to use to determine that a certain height has been reached.
-#define LAND_ACCURACY       "0.1"     // How many meters to use to determine that a drone has landed.
+#define MV_LAND_ACCURACY       ".sensors.land_accuracy"     // How many meters to use to determine that a drone has landed.
 #define ULTRASOUND_LIMIT    5.5       // Where to stop using ultrasound readings.
 
 static Madara::Knowledge_Engine::Compiled_Expression expressions2 [TASK_COUNT];
@@ -202,7 +202,7 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
         // NOTE: Should this be here or somewhere else?
         "("
             MV_IS_LANDED " = 1;"
-            MV_DEVICE_ALT("{" MV_MY_ID "}") " > " LAND_ACCURACY " => " MV_IS_LANDED " = 0;"
+            MV_DEVICE_ALT("{" MV_MY_ID "}") " > " MV_LAND_ACCURACY " => " MV_IS_LANDED " = 0;"
         ");"
 
         // Check if we have reached our GPS target, if any.
@@ -224,6 +224,11 @@ void SMASH::Sensors::SensorsModule::initialize(Madara::Knowledge_Engine::Knowled
 
     define_sensor_functions(knowledge);
     compile_sensor_function_expressions(knowledge);
+
+    // Initialize internal variables.
+    double landAccuracy = platform_get_landed_height_accuracy();
+    knowledge.set(MV_LAND_ACCURACY, landAccuracy);
+
     knowledge.print("leaving SMASH::Sensors::initialize...\n");
 }
 

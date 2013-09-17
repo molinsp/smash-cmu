@@ -375,3 +375,12 @@ double platform_get_gps_accuracy()
     double gpsAccuracy = 0.3;
     return gpsAccuracy;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Gets the height at which we define the drone is landed.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+double platform_get_landed_height_accuracy()
+{
+    // High because in the simulation they don't really land, but hover over the ground.
+    return 0.7;
+}

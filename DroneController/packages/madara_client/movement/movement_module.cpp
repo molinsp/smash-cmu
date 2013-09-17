@@ -26,8 +26,19 @@ void attainAltitude(Madara::Knowledge_Engine::Variables& variables)
 Madara::Knowledge_Record control_functions_takeoff (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
 	variables.print("In Madara::takeoff()\n", 0);
-	platform_takeoff();
-    variables.set(MV_IS_LANDED, 0.0);
+    
+    // Only take off if we are landed, to prevent strange behavior in the drone.
+    double isLanded = variables.get(MV_IS_LANDED).to_double();
+    if(isLanded == 1)
+    {
+	    platform_takeoff();
+        variables.set(MV_IS_LANDED, 0.0);
+    }
+    else
+    {
+        variables.print("Ignoring takeoff command since we are already flying.", 0);
+    }
+
 	return Madara::Knowledge_Record::Integer(1);
 }
 
@@ -158,8 +169,13 @@ void define_control_functions (Madara::Knowledge_Engine::Knowledge_Base & knowle
 void SMASH::Movement::MovementModule::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
 	knowledge.print("SMASH::Movement::initialize()\n");
+
 	platform_init_control_functions();
 	define_control_functions(knowledge);
+
+    // Set initial variables; initially we are not flying.
+    knowledge.set(MV_IS_LANDED, 1.0);
+
 	knowledge.print("leaving SMASH::Movement::initialize()\n");
 }
 
