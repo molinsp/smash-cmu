@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <map>
+#include <math.h>
 #include "utilities/CommonMadaraVariables.h"
 #include "bridge_module.h"
 #include "BridgeAlgorithm.h"
