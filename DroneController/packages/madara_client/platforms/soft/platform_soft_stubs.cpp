@@ -133,8 +133,3 @@ double platform_get_gps_accuracy()
     printf("Executing platform_get_gps_accuracy()\n");
     return 1.0;
 }
-
-double platform_get_landed_height_accuracy()
-{
-    return 0.1;
-}
