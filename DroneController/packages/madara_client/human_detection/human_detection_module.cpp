@@ -124,7 +124,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                 "(" MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}") " == '" MO_HUMAN_DETECTION_BASIC "' ) => " 
                 "("
                     // We have to calculate the ambient temperature once we have reached our assigned height, but only once.
-                    "(" MV_IS_AT_ASSIGNED_ALTITUDE " && (" MV_AMBIENT_TEMP_CALCULATED " == 0) ) => "
+                    "(" MV_ASSIGNED_ALTITUDE_REACHED " && (" MV_AMBIENT_TEMP_CALCULATED " == 0) ) => "
                     "("
                         // Calculate the ambient temperature and mark that as done to prevent recalculating it.
                         MF_CALCULATE_AMBIENT_TEMP "();"
@@ -175,7 +175,7 @@ HumanDetection* selectHumanDetectionAlgorithm (string algo, Madara::Knowledge_En
         // Print an error.
         std::stringstream sstream;
         sstream << "selectHumanDetectionAlgorithm(algo = \"" << algo << "\") failed to find match\n";
-        variables.print(sstream.str(), 0);
+        variables.print(sstream.str(), MADARA_LOG_NONFATAL_ERROR);
 
         // Choose the basic one as the default one.
         humanDetectionAlgorithm = new BasicStrategy(ambient_min, ambient_max);
@@ -258,7 +258,7 @@ Madara::Knowledge_Record madaraCalculateAmbientTemp (Madara::Knowledge_Engine::F
     std::stringstream sstream;
     sstream << "Final Ambient Min: " << ambient_min << "!\n";
     sstream << "Final Ambient Max: " << ambient_max << "!\n\n";
-    variables.print(sstream.str(), 0);
+    variables.print(sstream.str(), 1);
 
     return Madara::Knowledge_Record(1.0);  
 }
@@ -299,8 +299,8 @@ Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Function_A
     if (result > 0)
     {
         std::stringstream sstream;
-        sstream << "RESULT: " << result << "!\n";
-        variables.print(sstream.str(), 0);
+        sstream << "Humans found, count: " << result << "!\n";
+        variables.print(sstream.str(), 1);
 
         // Set the Madara variables to indicate we found thermals, and how many, at our current location.
         std::string lat = variables.get(variables.expand_statement(MV_DEVICE_LAT("{" MV_MY_ID "}"))).to_string();
@@ -308,7 +308,7 @@ Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Function_A
         variables.set(MV_THERMALS_AT_LOCATION(lat, lon), (Madara::Knowledge_Record::Integer) result);
     }
     else
-        variables.print("No Human Detected \n", 0);
+        variables.print("No Human Detected \n", 1);
 
     return Madara::Knowledge_Record(1.0);
 }

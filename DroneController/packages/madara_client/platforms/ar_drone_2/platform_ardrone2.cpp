@@ -50,6 +50,12 @@ bool platform_cleanup()
 // Platform_movement.h interface implementations.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Rate at which to move; basically speed, as a percentage of the max speed. Must be between 0 and 1.
+#define RATE_TO_MOVE_DRONE      0.5
+
+// Time for the simple movement commands to execute, in milliseconds.
+#define TIME_TO_MOVE_DRONE      1000
+
 bool platform_init_control_functions()
 {
 	return drk_init_status;
@@ -71,37 +77,37 @@ void platform_land()
 void platform_move_up()
 {
     printf("In AR_DRDONE_2 move_up()\n");
-    drk_move_up(0.5, 1000, DRK_HOVER);
+    drk_move_up(RATE_TO_MOVE_DRONE, TIME_TO_MOVE_DRONE, DRK_HOVER);
 }
 
 void platform_move_down()
 {
 	printf("In AR_DRDONE_2 move_down()\n");
-	drk_move_down(0.5, 1000, DRK_HOVER);
+	drk_move_down(RATE_TO_MOVE_DRONE, TIME_TO_MOVE_DRONE, DRK_HOVER);
 }
 
 void platform_move_left()
 {
 	printf("In AR_DRDONE_2 move_left()\n");
-	drk_move_left(0.5, 1000, DRK_HOVER);
+	drk_move_left(RATE_TO_MOVE_DRONE, TIME_TO_MOVE_DRONE, DRK_HOVER);
 }
 
 void platform_move_right()
 {
 	printf("In AR_DRDONE_2 move_right()\n");
-	drk_move_right(0.5, 1000, DRK_HOVER);
+	drk_move_right(RATE_TO_MOVE_DRONE, TIME_TO_MOVE_DRONE, DRK_HOVER);
 }
 
 void platform_move_forward()
 {
 	printf("In AR_DRDONE_2 move_forward()\n");
-	drk_move_forward(0.5, 1000, DRK_HOVER);
+	drk_move_forward(RATE_TO_MOVE_DRONE, TIME_TO_MOVE_DRONE, DRK_HOVER);
 }
 
 void platform_move_backward()
 {
 	printf("In AR_DRDONE_2 move_backward()\n");
-	drk_move_backward(0.5, 1000, DRK_HOVER);
+	drk_move_backward(RATE_TO_MOVE_DRONE, TIME_TO_MOVE_DRONE, DRK_HOVER);
 }
 
 void platform_stop_movement()
@@ -123,9 +129,24 @@ void platform_move_to_altitude(double alt)
     drk_goto_altitude(alt);
 }
 
+bool platform_location_reached()
+{
+    // TODO: implement this when there is a function for this in the DroneRK API. Currently not being used.
+    return false;
+}
+
+bool platform_altitude_reached()
+{
+    // TODO: implement this when there is a function for this in the DroneRK API. Currently not being used.
+    return false;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Platform_sensors.h interface implementations.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Where to stop using ultrasound readings, since higher than this they are very innaccurate.
+#define ULTRASOUND_LIMIT    5.5       
 
 bool platform_init_sensor_functions()
 {
@@ -166,16 +187,37 @@ void platform_read_thermal(double buffer[8][8])
 void platform_read_gps(struct madara_gps * ret)
 {
     printf("entering read_gps\n");
-	struct gps gps= drk_gps_data();
+	struct gps gps = drk_gps_data();
 	ret->latitude = gps.latitude;
 	ret->longitude = gps.longitude;
+    ret->altitude = gps.altitude;
 	ret->num_sats = gps.num_sats;
     printf("leaving read_gps\n");
 }
 
-double platform_read_ultrasound()
+double platform_get_altitude()
 {
-    return drk_ultrasound_altitude();
+    // By default we get the ultrasound height. 
+    double ultrasoundAltitude = drk_ultrasound_altitude();
+
+    // The ultrasound sensor has a max limit over which it will not provide meaningful results.
+    // Check if we are within this range or not.
+    double currentAltitude = 0;
+    if(ultrasoundAltitude < ULTRASOUND_LIMIT)
+    {
+        // If we are below the ultrasound threshold, we can simply get the altitude it provides.
+        currentHeight = ultrasoundAltitude;
+    }
+    else
+    {
+        // If we are higher than the ultrasound sensor's limits, this height can't  be
+        // trusted, and we should get the GPS-provided altitude instead.
+        struct gps gpsData = drk_gps_data();
+        double gpsAltitude = gps.altitude;
+        currentHeight = gpsAltitude;
+    }
+
+    return currentAltitude;
 }
 
 // Gets the accuracy of the GPS for this platform, in meters.

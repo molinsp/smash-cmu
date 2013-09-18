@@ -23,7 +23,7 @@ bool platform_init_sensor_functions();
 
 void platform_read_thermal(double[8][8]);
 void platform_read_gps(struct madara_gps *);
-double platform_read_ultrasound();
+double platform_get_altitude();
 
 double platform_get_gps_accuracy();
 double platform_get_battery_remaining();

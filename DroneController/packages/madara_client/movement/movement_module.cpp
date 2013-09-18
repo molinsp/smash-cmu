@@ -9,7 +9,8 @@
 #include "platform_movement.h"
 #include "utilities/CommonMadaraVariables.h"
 
-#define MV_LOCAL_MOVEMENT_COMMAND ".movement_command"
+// Local madara variables.
+#define MV_IS_LANDED                        ".movement.landed"    // 1 if drone is landed, 0 otherwise.
 
 void ensureTakeoff(Madara::Knowledge_Engine::Variables& variables)
 {
@@ -19,13 +20,13 @@ void ensureTakeoff(Madara::Knowledge_Engine::Variables& variables)
 void attainAltitude(Madara::Knowledge_Engine::Variables& variables)
 {
     //ensureTakeoff(variables);
-    //variables.evaluate(variables.expand_statement(MV_IS_AT_ASSIGNED_ALTITUDE " == 0 => (" MV_LOCAL_MOVEMENT_COMMAND ".0 = " MV_ASSIGNED_ALTITUDE("{.id}") "; move_to_altitude();)"));
+    //variables.evaluate(variables.expand_statement(MV_IS_AT_ASSIGNED_ALTITUDE " == 0 => (" MV_MOVEMENT_REQUESTED ".0 = " MV_ASSIGNED_ALTITUDE) "; move_to_altitude();)"));
 }
 
 //Madara function to interface with takeoff()
 Madara::Knowledge_Record control_functions_takeoff (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-	variables.print("In Madara::takeoff()\n", 0);
+	variables.print("In Madara::takeoff()\n", 2);
     
     // Only take off if we are landed, to prevent strange behavior in the drone.
     double isLanded = variables.get(MV_IS_LANDED).to_double();
@@ -36,7 +37,7 @@ Madara::Knowledge_Record control_functions_takeoff (Madara::Knowledge_Engine::Fu
     }
     else
     {
-        variables.print("Ignoring takeoff command since we are already flying.", 0);
+        variables.print("Ignoring takeoff command since we are already flying.", 1);
     }
 
 	return Madara::Knowledge_Record::Integer(1);
@@ -45,7 +46,7 @@ Madara::Knowledge_Record control_functions_takeoff (Madara::Knowledge_Engine::Fu
 //Madara function to interface with land()
 Madara::Knowledge_Record control_functions_land (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-	variables.print("In Madara::land()\n", 0);
+	variables.print("In Madara::land()\n", 2);
 	platform_land();
     variables.set(MV_IS_LANDED, 1.0);
 	return Madara::Knowledge_Record::Integer(1);
@@ -103,14 +104,14 @@ Madara::Knowledge_Record madara_move_to_gps (Madara::Knowledge_Engine::Function_
 {
 	double lat = variables.get(MV_MOVEMENT_TARGET_LAT).to_double();
 	double lon = variables.get(MV_MOVEMENT_TARGET_LON).to_double();
-    double alt = variables.get(variables.expand_statement(MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}"))).to_double();
+    double alt = variables.get(MV_ASSIGNED_ALTITUDE).to_double();
 
     attainAltitude(variables);
 	
     // Print an our movement.
     std::stringstream sstream;
     sstream << "Moving to " << lat << ", " << lon << ", " << alt << "\n";
-    variables.print(sstream.str(), 0);
+    variables.print(sstream.str(), 1);
 	
 	platform_move_to_location(lat, lon, alt);
 
@@ -123,15 +124,18 @@ Madara::Knowledge_Record madara_move_to_gps (Madara::Knowledge_Engine::Function_
 
 Madara::Knowledge_Record madara_move_to_altitude (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {		
-	double alt = variables.get(MV_LOCAL_MOVEMENT_COMMAND ".0").to_double();
+	double alt = variables.get(MV_MOVEMENT_REQUESTED ".0").to_double();
 
     ensureTakeoff(variables);
 	
     std::stringstream sstream;
     sstream << "Moving to altitude" << alt << "\n";
-    variables.print(sstream.str(), 0);
+    variables.print(sstream.str(), 1);
 	
 	platform_move_to_altitude(alt);
+
+    // Store the current target internally for control.
+    variables.set(MV_LAST_TARGET_ALT, alt);
 		
 	return Madara::Knowledge_Record::Integer(1);;
 }
@@ -139,14 +143,14 @@ Madara::Knowledge_Record madara_move_to_altitude (Madara::Knowledge_Engine::Func
 Madara::Knowledge_Record process_movement_commands (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
     // Store the current command in another variable for later checks, since the movement command one will be cleared in each loop.
-    std::string currentMovementCommand = variables.get(MV_LOCAL_MOVEMENT_COMMAND).to_string();
+    std::string currentMovementCommand = variables.get(MV_MOVEMENT_REQUESTED).to_string();
     if(currentMovementCommand != "0")
     {
         variables.set(MV_LAST_MOVEMENT_REQUESTED, currentMovementCommand);
     }
 
-	std::string expansion = variables.expand_statement("{" MV_LOCAL_MOVEMENT_COMMAND "}();");
-	variables.print("Expanded Movement Command: " + expansion + "\n", 0);
+	std::string expansion = variables.expand_statement("{" MV_MOVEMENT_REQUESTED "}();");
+	variables.print("Expanded Movement Command: " + expansion + "\n", 1);
 	return variables.evaluate(expansion, Madara::Knowledge_Engine::Eval_Settings(false, true));
 }
 

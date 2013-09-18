@@ -17,6 +17,13 @@
 #        distance to move when changing to another line in the coverage.
 # LOG_LEVEL indicates the log level. If not included, not log file will
 #           be generated.
+# COMM_RANGE is the max distance (in meters) that two drones can be without
+#            losing contact, important for bridge building.
+# PERSON_LAT and PERSON_LON are the lat and long of a person we want to build
+#            a bridge towards (it can be just a source position).
+# SINK_LAT and SINK_LON are the lat and long of a device that wants to receive
+#            communication from a formed bridge (the sink position).
+# 
 #################################################################
 
 SMASH_ROOT=~/smash-cmu
@@ -27,11 +34,11 @@ WESTERN=-79.946861
 EASTERN=-79.946758
 DRONES=1
 ID=203
-TYPE=snake
-STRIDE=0.00005
+TYPE=random
+STRIDE=0.00001
 LOG_LEVEL=0
 
-COMM_RANGE=4
+COMM_RANGE=15
 PERSON_LAT=40.441155
 PERSON_LON=-79.946861
 SINK_LAT=40.440845

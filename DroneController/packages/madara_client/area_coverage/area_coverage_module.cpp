@@ -55,7 +55,6 @@ using std::string;
 #define MV_MY_CELL_BOT_RIGHT_LAT        ".area_coverage.cell.bottom_right.location.latitude"    // The latitude of the bottom right corner of the cell I am searching.
 #define MV_MY_CELL_BOT_RIGHT_LON        ".area_coverage.cell.bottom_right.location.longitude"   // The longitude of the bottom right corner of the cell I am searching.
 
-#define MV_INITIAL_HEIGHT_REACHED       ".area_coverage.initial_height_reached"                 // Variable to check if the initial height has been reached at least once.
 #define MV_FIRST_TARGET_SELECTED        ".area_coverage.first_target_selected"                  // Variable to check if the first target has been selected.
 
 #define MV_READY_DRONES_AMOUNT          ".area_coverage.my_area.devices.waiting"                // The amount of drones in my area in waiting  state.
@@ -108,6 +107,10 @@ void SMASH::AreaCoverage::AreaCoverageModule::initialize(Madara::Knowledge_Engin
     // Defines internal and external functions.
     defineFunctions(knowledge);
 
+    // Initialize internal variables.
+    knowledge.set(MV_ASSIGNED_ALTITUDE_REACHED, (Madara::Knowledge_Record::Integer) 0,
+                  Madara::Knowledge_Engine::Eval_Settings(true, true));
+
     // Initialize common search parameters with default values, locally.
     knowledge.set(MV_AREA_COVERAGE_LINE_WIDTH, DEFAULT_SEARCH_LINE_OFFSET_DEGREES,
                   Madara::Knowledge_Engine::Eval_Settings(true, true));
@@ -149,83 +152,86 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     // Function that can be included in main loop of another method to introduce area coverage.
     knowledge.define_function(MF_MAIN_LOGIC, 
         // If there is any string value for the requested area coverage, and we are mobile and not busy, do area coverage.
-        "(" MV_AREA_COVERAGE_REQUESTED("{" MV_MY_ID "}") " && " MV_MOBILE("{" MV_MY_ID "}") " && (!" MV_BUSY("{" MV_MY_ID "}") ")" ")" 
+        "(" MV_AREA_COVERAGE_REQUESTED("{" MV_MY_ID "}") " && " MV_MOBILE("{" MV_MY_ID "}") " && (!" MV_BUSY("{" MV_MY_ID "}") "))" 
         " => "
             "("
-                "("
-                    // Only do the following if the cell we will be searching in has alerady been set up, and we have reached at least once our assigned height.
-                    "(" MV_CELL_INITIALIZED " && (" MV_INITIAL_HEIGHT_REACHED " || " MV_IS_AT_ASSIGNED_ALTITUDE ") )" 
-                    " => " 
-                        "("
-                            // We only need to wait for the assigned altitude to be reached the first time; we don't care here if it changes its altitude later.
-                            "(" MV_INITIAL_HEIGHT_REACHED " = 1);"
+                // Only do the following if the cell we will be searching in has alerady been set up.
+                "(" MV_CELL_INITIALIZED ")" 
+                " => " 
+                    "("
+                        // We only need to wait for the assigned altitude to be reached the first time; we don't care here if it changes its altitude later.
+                        "((!" MV_ASSIGNED_ALTITUDE_REACHED ") => (" MV_ASSIGNED_ALTITUDE_REACHED " = " MV_REACHED_ALTITUDE "));"
 
-                            // If wait is enabled, propagate our current target continously once we have reached our target, so in case 
-                            // others are waiting and there are packets lost, they will get this eventually.
+                        // Once we have sent the command to reach our default height, we have to wait till we get there before doing anything else.
+                        "(" MV_ASSIGNED_ALTITUDE_REACHED ")"
+                        " => "
                             "("
-                                "(" MV_SEARCH_WAIT ")"
-                                " => "
-                                    "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
-                            ");"
-
-                            // Check if we have reached our next target.
-                            "("
-                                "(" MV_FIRST_TARGET_SELECTED " && " MV_REACHED_GPS_TARGET ")"
-                                " => "
-                                    "("
-                                        // Check if we are not waiting yet, to update data and start waiting.  
-                                        "(" MV_WAITING " == 0)"
-                                        " => "
-                                            "("
-                                                // Update the last target that has been reached, only before we start waiting.
-                                                "(++" MV_LAST_REACHED_TARGET ");"
-                                                "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
-
-                                                // Indicate we are now in waiting mode.
-                                                "(" MV_WAITING " = 1);"
-                                            ");"
-
-                                        // Only look for a new target if we have not reached the last target, and all other drones have reached their current target.
-                                        "( !(" MF_FINAL_TARGET_REACHED "()) && ((!" MV_SEARCH_WAIT ") || " MF_ALL_DRONES_READY "()) )"
-                                        " => "
-                                            "("
-                                                "(" MF_SET_NEW_TARGET  "());"
-                                                "(" MV_WAITING " = 0);"
-                                            ")"
-                                    ");"
-                            ");"
-
-                            // Check if we are initializing the search; if so, get a new target.
-                            "("
-                                "(" MV_FIRST_TARGET_SELECTED " == 0)"
-                                " => "
-                                    "("
-                                        // Get a new target, the first one.
-                                        "(" MV_FIRST_TARGET_SELECTED " = 1);"
-                                        "(" MV_LAST_REACHED_TARGET " = 0);"
-                                        "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
-                                        "(" MF_SET_NEW_TARGET "());" 
-                                        "(" MV_WAITING " = 0);"
-                                    ")"
-                            ");"
-                        ");"
-                ");"
-                "("
-                    // If we haven't defined our cell yet, do it. 
-                    "(!" MV_CELL_INITIALIZED ")"
-                    " => "
-                        "("                            
-                            "(" MF_INIT_SEARCH_CELL "() ) " 
-                            " => "
+                                // If wait is enabled, propagate our current target continously once we have reached our target, so in case 
+                                // others are waiting and there are packets lost, they will get this eventually.
                                 "("
-                                    // Indicate that we have initialized the cell, and request to move to our assigned height.
-                                    "(" MV_CELL_INITIALIZED " = 1);"
-                                    "(" MV_FIRST_TARGET_SELECTED " = 0);"
-                                    "(" MF_ASSIGN_ALT_AND_REQUEST_MOVE "() );"
+                                    "(" MV_SEARCH_WAIT ")"
+                                    " => "
+                                        "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
                                 ");"
+
+                                // Check if we have reached our next target.
+                                "("
+                                    "(" MV_FIRST_TARGET_SELECTED " && " MV_REACHED_GPS_TARGET ")"
+                                    " => "
+                                        "("
+                                            // Check if we are not waiting yet, to update data and start waiting.  
+                                            "(" MV_WAITING " == 0)"
+                                            " => "
+                                                "("
+                                                    // Update the last target that has been reached, only before we start waiting.
+                                                    "(++" MV_LAST_REACHED_TARGET ");"
+                                                    "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
+
+                                                    // Indicate we are now in waiting mode.
+                                                    "(" MV_WAITING " = 1);"
+                                                ");"
+
+                                            // Only look for a new target if we have not reached the last target, and all other drones have reached their current target.
+                                            "( !(" MF_FINAL_TARGET_REACHED "()) && ((!" MV_SEARCH_WAIT ") || " MF_ALL_DRONES_READY "()) )"
+                                            " => "
+                                                "("
+                                                    "(" MF_SET_NEW_TARGET  "());"
+                                                    "(" MV_WAITING " = 0);"
+                                                ")"
+                                        ");"
+                                ");"
+
+                                // Check if we are initializing the search; if so, get a new target.
+                                "("
+                                    "(" MV_FIRST_TARGET_SELECTED " == 0)"
+                                    " => "
+                                        "("
+                                            // Get a new target, the first one.
+                                            "(" MV_FIRST_TARGET_SELECTED " = 1);"
+                                            "(" MV_LAST_REACHED_TARGET " = 0);"
+                                            "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
+                                            "(" MF_SET_NEW_TARGET "());" 
+                                            "(" MV_WAITING " = 0);"
+                                        ")"
+                                ");"
+                            ");" // End MV_ASSIGNED_ALTITUDE_REACHED
+                    ");" // End MV_CELL_INITIALIZED
+
+                // If we haven't defined our cell yet, do it. 
+                "(!" MV_CELL_INITIALIZED ")"
+                " => "
+                    "(" MF_INIT_SEARCH_CELL "() ) " 
+                    " => "
+                        "("
+                            // Indicate that we have initialized the cell.
+                            "(" MV_CELL_INITIALIZED " = 1);"
+                            "(" MV_FIRST_TARGET_SELECTED " = 0);"
+
+                            // Request to move to our assigned height.                                    
+                            "(" MF_ASSIGN_ALT_AND_REQUEST_MOVE "() );"
                         ");"
-                ");"
-            ");"
+
+            ");" // End MV_AREA_COVERAGE_REQUESTED ... 
     );
 
     // Function to update the amount and positions of drones available for covering a specific area.
@@ -336,7 +342,7 @@ AreaCoverage* selectAreaCoverageAlgorithm(string algorithm, Madara::Knowledge_En
         // Print an error.
         std::stringstream sstream;
         sstream << "selectAreaCoverageAlgorithm(algo = \"" << algorithm << "\") failed to find match\n";
-        variables.print(sstream.str(), 0);
+        variables.print(sstream.str(), MADARA_LOG_NONFATAL_ERROR);
     }
 
     return coverageAlgorithm;
@@ -409,7 +415,10 @@ Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowledge_Eng
     int myIndexInList = (int) variables.get(MV_MY_POS_IN_MY_AREA).to_integer();
     double altitudeDifference = variables.get(MV_AREA_COVERAGE_HEIGHT_DIFF).to_double();
     double myDefaultAltitude = minAltitude + altitudeDifference * (double) myIndexInList;
-    variables.set(variables.expand_statement(MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}")), myDefaultAltitude);
+    variables.set(MV_ASSIGNED_ALTITUDE, myDefaultAltitude);
+
+    // Set flag to indicate that we have not reached our assigned altitude yet.
+    variables.set(MV_ASSIGNED_ALTITUDE_REACHED, (Madara::Knowledge_Record::Integer) 0);
 
     // Send the command to go to this altitude.
     variables.set(MV_MOVEMENT_TARGET_ALT, myDefaultAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
@@ -418,7 +427,7 @@ Madara::Knowledge_Record madaraCalculateAndMoveToAltitude (Madara::Knowledge_Eng
     // Print what we are doing.
     std::stringstream sstream;
     sstream << "Moving to altitude " << myDefaultAltitude << "!\n";
-    variables.print(sstream.str(), 0);
+    variables.print(sstream.str(), 1);
 
     return Madara::Knowledge_Record(1.0);
 }
@@ -464,11 +473,11 @@ Madara::Knowledge_Record madaraReachedFinalTarget(
     if(m_coverageAlgorithm->isTargetingFinalWaypoint())
     {
         // Print what we are doing.
-        variables.print("IS targeting final waypoint.\n", 0);
+        variables.print("IS targeting final waypoint.\n", 1);
         return Madara::Knowledge_Record(1.0);
     }
 
-    variables.print("IS NOT targeting final waypoint.\n", 0);
+    variables.print("IS NOT targeting final waypoint.\n", 1);
     return Madara::Knowledge_Record(0.0);
 }
 
@@ -479,7 +488,7 @@ Madara::Knowledge_Record madaraReachedFinalTarget(
 Madara::Knowledge_Record madaraSetNewCoverage(Madara::Knowledge_Engine::Function_Arguments &args,
     Madara::Knowledge_Engine::Variables &variables)
 {
-    variables.print("Setting new coverage", 0);
+    variables.print("Setting new coverage", 1);
     string next = variables.get(variables.expand_statement(MV_NEXT_AREA_COVERAGE_REQUEST("{" MV_MY_ID "}"))).to_string();
     AreaCoverage* temp = m_coverageAlgorithm;
     Region searchArea(*(m_coverageAlgorithm->getSearchRegion()));

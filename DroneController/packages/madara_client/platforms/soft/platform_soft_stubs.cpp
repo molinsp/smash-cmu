@@ -94,6 +94,18 @@ void platform_move_to_altitude(double alt)
 	printf("Executing platform move_to_altitude(%02f)\n", alt);
 }
 
+bool platform_location_reached()
+{
+    printf("Checking if location has been reached.\n");
+    return false;
+}
+
+bool platform_altitude_reached()
+{
+    printf("Checking if altitude has been reached.\n");
+    return false;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Platform_sensors.h interface implementations.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,9 +134,9 @@ void platform_read_gps(struct madara_gps * ret)
 	ret->num_sats = 8;
 }
 
-double platform_read_ultrasound()
+double platform_get_altitude()
 {
-    printf("Executing platform_read_ultrasound()\n");
+    printf("Executing platform_get_altitude()\n");
     return 2.0;
 }
 
