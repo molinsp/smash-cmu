@@ -211,6 +211,7 @@ void SMASH::DroneController::compileExpressions (Madara::Knowledge_Engine::Knowl
                 // Swarm commands have priority over regular ones.
                 "(( swarm.movement_command => "
                 "("
+                    "#print('Swarm command received.\n');"
                     // Pass the swarm command plus its parameters into the local variables the movement module will check.
                     ".movement_command = swarm.movement_command;"
                     "copy_vector('swarm.movement_command.*', '.movement_command.');"
@@ -219,6 +220,7 @@ void SMASH::DroneController::compileExpressions (Madara::Knowledge_Engine::Knowl
                 // If there was no swarm command, we check if we were sent and individual command.
                 "( device.{.id}.movement_command => "
                 "(" 
+                    "#print('Individual device command received.\n');"
                     // Pass the swarm command plus its parameters into the local variables the movement module will check.
                     ".movement_command = device.{.id}.movement_command;"
                     "copy_vector('device.{.id}.movement_command.*', '.movement_command.');"

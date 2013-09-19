@@ -191,6 +191,11 @@ void simExtMadaraSystemControllerUpdateStatus(SLuaCallBack* p)
         // Get the number of drones.
         int totalNumberOfDrones = p->inputInt[0];
 
+        // For debugging, print out what we received.
+        std::stringstream sstm; 
+        sstm << "Values received inside simExtMadaraSystemControllerUpdateStatus function: totalNumberOfDrones:" << totalNumberOfDrones << std::endl;
+        simAddStatusbarMessage(sstm.str().c_str());
+
         // Propagate the status information through the network.
         madaraController->updateGeneralParameters(totalNumberOfDrones);
     }

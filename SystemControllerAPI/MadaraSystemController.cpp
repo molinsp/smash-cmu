@@ -51,17 +51,16 @@ MadaraController::~MadaraController()
 void MadaraController::updateGeneralParameters(const int& numberOfDrones)
 {
     // Ask the drones to take off, and wait for a bit.
-    m_knowledge->set(MV_SWARM_MOVE_REQUESTED, MO_TAKEOFF_CMD);
+    m_knowledge->set(MV_SWARM_MOVE_REQUESTED, MO_TAKEOFF_CMD, Madara::Knowledge_Engine::Eval_Settings(true));
 
     // Set up the general parameters from the class into Madara variables.
     m_knowledge->set(MV_COMM_RANGE, m_commRange, Madara::Knowledge_Engine::Eval_Settings(true));
     m_knowledge->set(MV_MIN_ALTITUDE, m_minAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
     m_knowledge->set(MV_AREA_COVERAGE_LINE_WIDTH, m_lineWidth, Madara::Knowledge_Engine::Eval_Settings(true));
     m_knowledge->set(MV_AREA_COVERAGE_HEIGHT_DIFF, m_heightDiff, Madara::Knowledge_Engine::Eval_Settings(true));
-    m_knowledge->set(MV_TOTAL_DEVICES_GLOBAL, (Madara::Knowledge_Record::Integer) numberOfDrones, Madara::Knowledge_Engine::Eval_Settings(true));
-    
+
     // This call will flush all past changes.
-    m_knowledge->apply_modified();
+    m_knowledge->set(MV_TOTAL_DEVICES_GLOBAL, (Madara::Knowledge_Record::Integer) numberOfDrones);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,10 +135,13 @@ void MadaraController::requestAreaCoverage(std::vector<int> droneIds, int search
 		  Madara::Knowledge_Engine::Eval_Settings(true));
 
         // Setup the human detection algorithm we want.
-        m_knowledge->set(MV_HUMAN_DETECTION_REQUESTED(droneIdString), humanDetectionAlgorithm);
+        m_knowledge->set(MV_HUMAN_DETECTION_REQUESTED(droneIdString), humanDetectionAlgorithm,
+		  Madara::Knowledge_Engine::Eval_Settings(true));
 	}
 
-	m_knowledge->apply_modified();
+    // Setting this again is not needed, but it doesn't hurt. It is a hack to wait till this point to disseminate the 
+    // variables set in the previous loop.
+    m_knowledge->set (MV_MIN_ALTITUDE, m_minAltitude);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -168,11 +170,8 @@ void MadaraController::setNewSearchArea(int searchAreaId, SMASH::Utilities::Regi
     m_knowledge->set(MV_REGION_BOTRIGHT_LOC(sourceRegionIdString), botRightLocation,
       Madara::Knowledge_Engine::Eval_Settings(true));
 
-    // Ensure that the min altitude is sent.
-    m_knowledge->set (MV_MIN_ALTITUDE, m_minAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
-
-    // Apply all changes.
-    m_knowledge->apply_modified();
+    // Ensure that the min altitude is sent. Apply all changes.
+    m_knowledge->set (MV_MIN_ALTITUDE, m_minAltitude);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
