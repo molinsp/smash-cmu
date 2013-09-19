@@ -14,5 +14,5 @@
 MADARA_CLIENT_ROOT=$SMASH_ROOT/DroneController/packages/madara_client
 
 cd $SMASH_ROOT/CommandLineSystemController
-g++ -I$MADARA_ROOT/include -I$ACE_ROOT -I$MADARA_CLIENT_ROOT -I$SMASH_ROOT/SystemControllerAPI -L$MADARA_ROOT/lib -L$ACE_ROOT/lib cmd_line_system_controller.cpp $MADARA_CLIENT_ROOT/platforms/comm/kb_setup.cpp $MADARA_CLIENT_ROOT/platforms/comm/multicast/comm_multicast.cpp $MADARA_CLIENT_ROOT/utilities/string_utils.cpp $SMASH_ROOT/SystemControllerAPI/MadaraSystemController.cpp -lMADARA -lACE -o simple_coverage_test
+g++ -I$MADARA_ROOT/include -I$ACE_ROOT -I$MADARA_CLIENT_ROOT -I$SMASH_ROOT/SystemControllerAPI -L$MADARA_ROOT/lib -L$ACE_ROOT/lib cmd_line_system_controller.cpp $MADARA_CLIENT_ROOT/platforms/comm/kb_setup.cpp $MADARA_CLIENT_ROOT/platforms/comm/broadcast/comm_broadcast.cpp $MADARA_CLIENT_ROOT/utilities/string_utils.cpp $SMASH_ROOT/SystemControllerAPI/MadaraSystemController.cpp -lMADARA -lACE -o simple_coverage_test
 
