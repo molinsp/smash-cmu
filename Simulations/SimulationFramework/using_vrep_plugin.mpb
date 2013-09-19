@@ -17,11 +17,11 @@ project {
 
   Source_Files {
     V-RepImports
-    V-RepCommonPluginUtils
+    V-RepPluginUtils
   }
 
   Header_Files {
     V-RepImports
-    V-RepCommonPluginUtils
+    V-RepPluginUtils
   }
 }
