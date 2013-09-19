@@ -225,8 +225,8 @@ int main (int argc, char** argv)
     printf("\nSetting up basic parameters...\n");
     printf("\nSending takeoff command, and waiting for drones to take off...\n");
     madaraController->updateGeneralParameters(numDrones);
-    int takeoffWaitTime = 5;
-    ACE_OS::sleep (takeoffWaitTime);
+    int inBetweenTime = 10;
+    ACE_OS::sleep (inBetweenTime);
 
     // Set area coverage, if requested.
     if(nLat != 0 && wLong != 0 && sLat != 0 && eLong != 0)
@@ -236,7 +236,7 @@ int main (int argc, char** argv)
     }
 
     printf("\nWaiting for area coverage request to kick in....\n");
-    ACE_OS::sleep (5);
+    ACE_OS::sleep (inBetweenTime);
 
     // Set bridge buidling, if requested.
     if(personLat != 0 && personLon != 0 && sinkLat != 0 && sinkLon != 0)
