@@ -1,0 +1,10 @@
+project : using_vrep_plugin {
+
+  Source_Files {
+    V-RepPluginUtils/SimplePluginLuaRegistration.cpp
+  }
+
+  Header_Files {
+    V-RepPluginUtils/SimplePluginInterface.h
+  }
+}

@@ -12,8 +12,6 @@
 
 #pragma once
 
-#include "v_repLib.h"
-
 #ifndef _LUA_FUNCTION_REGISTRATION_H
 #define _LUA_FUNCTION_REGISTRATION_H
 
