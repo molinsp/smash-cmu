@@ -40,6 +40,9 @@ namespace SMASH
 
         // The id of the next bridge request id to send.
         int m_bridgeRequestId;
+
+        // Checks if there is a new command from the UI and executes it.
+        void handleNewCommand();
 	};
 }
 

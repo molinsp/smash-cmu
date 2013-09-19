@@ -16,6 +16,14 @@
 // Id for a controller, a plugin must have this value as its Madara id.
 const int PLUGIN_CONTROLLER_ID = 202;
 
+// The name of the UI with button commands for the System Controller.
+const std::string SYSTEM_CONTROLLER_COMMANDS_UI_NAME = "commandsUI";
+const std::string SYSTEM_CONTROLLER_COMMAND_SETUP_PARAMS = "Setup Network";
+const std::string SYSTEM_CONTROLLER_COMMAND_TAKEOFF = "Take Off";
+const std::string SYSTEM_CONTROLLER_COMMAND_LAND = "Land";
+const std::string SYSTEM_CONTROLLER_COMMAND_START_SEARCH = "Start Search";
+const std::string SYSTEM_CONTROLLER_COMMAND_START_BRIDGE = "Form Bridge";
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // We have to create an actual object of this type so that the plugin DLL entry points will have access to it.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,6 +54,73 @@ double getDoubleParam(std::string paramName)
     }
 
     return paramValue;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+// Check for button presses, and return its text.
+///////////////////////////////////////////////////////////////////////////////////////////////
+std::string getButtonPressedText(std::string uiName)
+{
+    // Get the details of the last button press, if any.
+    int commandsUIHandle = simGetUIHandle(uiName.c_str());
+    int eventDetails[2];
+    int buttonHandle = simGetUIEventButton(commandsUIHandle, eventDetails);
+
+    // If the button handle is valid and the second event detail is 0, it means a button was released.
+    bool buttonEventHappened = (buttonHandle != -1) ;
+    bool buttonWasReleased = (eventDetails[1] == 0);
+    if(buttonEventHappened && buttonWasReleased)
+    {
+        // Get the text of the button that was pressed.
+        char* buttonText = simGetUIButtonLabel(commandsUIHandle, buttonHandle);
+        std::string buttonTextString(buttonText);
+        simReleaseBuffer(buttonText);
+
+        simAddStatusbarMessage(("Button pressed and released! " + buttonTextString).c_str());        
+        return buttonTextString;
+    }
+
+    return "";
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+// Check for button presses.
+///////////////////////////////////////////////////////////////////////////////////////////////
+void SMASH::SystemControllerPlugin::handleNewCommand()
+{
+    std::string buttonPressedText = getButtonPressedText(SYSTEM_CONTROLLER_COMMANDS_UI_NAME);
+    if(buttonPressedText != "")
+    {
+        // Send network-wide parameters (radio range, num drones, min height).
+        if(buttonPressedText == SYSTEM_CONTROLLER_COMMAND_SETUP_PARAMS)
+        {
+            m_madaraController->updateGeneralParameters(m_numDrones);
+        }
+
+        // Send network-wide parameters (radio range, num drones, min height).
+        if(buttonPressedText == SYSTEM_CONTROLLER_COMMAND_TAKEOFF)
+        {
+            m_madaraController->sendTakeoffCommand();
+        }
+
+        // Send network-wide parameters (radio range, num drones, min height).
+        if(buttonPressedText == SYSTEM_CONTROLLER_COMMAND_LAND)
+        {
+            m_madaraController->sendLandCommand();
+        }
+		
+        // Start a search request if that button was pressed.
+        if(buttonPressedText == SYSTEM_CONTROLLER_COMMAND_START_SEARCH)
+        {
+            //sendSearchRequest();
+        }
+		
+        // Start a bridge request if that button was pressed.
+        if(buttonPressedText == SYSTEM_CONTROLLER_COMMAND_START_BRIDGE)
+        {
+            //sendBridgeRequestForLastPersonFound();
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,6 +164,7 @@ void SMASH::SystemControllerPlugin::cleanup()
 void SMASH::SystemControllerPlugin::executeStep()
 {
     //simAddStatusbarMessage("SystemControllerPlugin::executeStep: Executing step.");
+    handleNewCommand();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

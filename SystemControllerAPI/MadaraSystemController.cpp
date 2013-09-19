@@ -30,8 +30,12 @@ MadaraController::MadaraController(int id, double commRange, double minAltitude,
     m_lineWidth = lineWidth;
     m_heightDiff = heightDiff;
 
+    // Setup logging level.
+    MADARA_debug_level = 1;
+    bool enableLogging = true;
+
     // Get a proper simulation knowledge base.
-    m_knowledge = comm_setup_knowledge_base(id, true);
+    m_knowledge = comm_setup_knowledge_base(id, enableLogging);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -50,9 +54,6 @@ MadaraController::~MadaraController()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MadaraController::updateGeneralParameters(const int& numberOfDrones)
 {
-    // Ask the drones to take off, and wait for a bit.
-    m_knowledge->set(MV_SWARM_MOVE_REQUESTED, MO_TAKEOFF_CMD, Madara::Knowledge_Engine::Eval_Settings(true));
-
     // Set up the general parameters from the class into Madara variables.
     m_knowledge->set(MV_COMM_RANGE, m_commRange, Madara::Knowledge_Engine::Eval_Settings(true));
     m_knowledge->set(MV_MIN_ALTITUDE, m_minAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
@@ -61,6 +62,22 @@ void MadaraController::updateGeneralParameters(const int& numberOfDrones)
 
     // This call will flush all past changes.
     m_knowledge->set(MV_TOTAL_DEVICES_GLOBAL, (Madara::Knowledge_Record::Integer) numberOfDrones);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Sends a takeoff command.
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MadaraController::sendTakeoffCommand()
+{
+    m_knowledge->set(MV_SWARM_MOVE_REQUESTED, MO_TAKEOFF_CMD);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Sends a land command.
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MadaraController::sendLandCommand()
+{
+    m_knowledge->set(MV_SWARM_MOVE_REQUESTED, MO_LAND_CMD);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

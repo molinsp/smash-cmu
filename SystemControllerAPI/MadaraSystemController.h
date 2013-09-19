@@ -54,6 +54,10 @@ public:
     MadaraController(int id, double commRange, double minAltitude, double lineWidth, double heightDiff);
     ~MadaraController();
 
+    // Commands to take off and land the swarm.
+    void sendTakeoffCommand();
+    void sendLandCommand();
+
     // Sets general parameters in Madara variables.
     void updateGeneralParameters(const int& numberOfDrones);
 
