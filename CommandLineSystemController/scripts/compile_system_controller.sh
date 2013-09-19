@@ -10,7 +10,7 @@
 # $ACE_ROOT             this is the location of your ACE installation dir
 ################################################################
 
-SMASH_ROOT=~/smash-cmu
+#SMASH_ROOT=~/smash-cmu
 MADARA_CLIENT_ROOT=$SMASH_ROOT/DroneController/packages/madara_client
 
 cd $SMASH_ROOT/CommandLineSystemController

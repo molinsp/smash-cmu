@@ -26,13 +26,13 @@
 # 
 #################################################################
 
-SMASH_ROOT=~/smash-cmu
+#SMASH_ROOT=~/smash-cmu
 
 NORTHERN=40.441155
 SOUTHERN=40.440845
 WESTERN=-79.946861
 EASTERN=-79.946758
-DRONES=1
+DRONES=3
 ID=203
 TYPE=random
 STRIDE=0.00001
