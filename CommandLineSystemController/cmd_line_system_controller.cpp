@@ -221,10 +221,12 @@ int main (int argc, char** argv)
     madaraController = new MadaraController(id, commRange, minHeight, stride, heightDiff);
 
     // Disseminating basic parameters, mandatory and optional ones.
-    // Also send takeoff command.
     printf("\nSetting up basic parameters...\n");
-    printf("\nSending takeoff command, and waiting for drones to take off...\n");
     madaraController->updateGeneralParameters(numDrones);
+
+    // Also send takeoff command.
+    printf("\nSending takeoff command, and waiting for drones to take off...\n");
+    madaraController->sendTakeoffCommand();
     int inBetweenTime = 10;
     ACE_OS::sleep (inBetweenTime);
 
@@ -233,10 +235,10 @@ int main (int argc, char** argv)
     {
         printf("\nSending area coverage request.\n");
         setAreaCoverageRequest(numDrones, nLat, wLong, sLat, eLong, coverage_type, waitForOthers, human_type);
-    }
 
-    printf("\nWaiting for area coverage request to kick in....\n");
-    ACE_OS::sleep (inBetweenTime);
+        printf("\nWaiting for area coverage request to kick in....\n");
+        ACE_OS::sleep (inBetweenTime);
+    }
 
     // Set bridge buidling, if requested.
     if(personLat != 0 && personLon != 0 && sinkLat != 0 && sinkLon != 0)
