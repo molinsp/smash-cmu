@@ -110,7 +110,7 @@ void simExt_PluginExecuteStep(SLuaCallBack* p)
 	simLockInterface(1);
 
     // Call the plugins' step function.
-    plugin->cleanup();
+    plugin->executeStep();
 
 	simLockInterface(0);
 }
