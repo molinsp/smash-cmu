@@ -206,15 +206,15 @@ double platform_get_altitude()
     if(ultrasoundAltitude < ULTRASOUND_LIMIT)
     {
         // If we are below the ultrasound threshold, we can simply get the altitude it provides.
-        currentHeight = ultrasoundAltitude;
+        currentAltitude = ultrasoundAltitude;
     }
     else
     {
         // If we are higher than the ultrasound sensor's limits, this height can't  be
         // trusted, and we should get the GPS-provided altitude instead.
         struct gps gpsData = drk_gps_data();
-        double gpsAltitude = gps.altitude;
-        currentHeight = gpsAltitude;
+        double gpsAltitude = gpsData.altitude;
+        currentAltitude = gpsAltitude;
     }
 
     return currentAltitude;
