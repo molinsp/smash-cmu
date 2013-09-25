@@ -446,17 +446,14 @@ Madara::Knowledge_Record madaraSetNewTarget (Madara::Knowledge_Engine::Function_
     Position nextTarget = m_coverageAlgorithm->getNextTargetLocation();
 
     // Update the drone status for the next target.
-    variables.set(MV_NEXT_TARGET_LAT, (nextTarget.latitude),
-        Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
-    variables.set(MV_NEXT_TARGET_LON, (nextTarget.longitude),
-        Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
+    variables.set(MV_NEXT_TARGET_LAT, (nextTarget.latitude));
+    variables.set(MV_NEXT_TARGET_LON, (nextTarget.longitude));
 
     // Set the movement command for the movement module.
-    variables.set(MV_MOVEMENT_TARGET_LAT, (nextTarget.latitude),
-        Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
-    variables.set(MV_MOVEMENT_TARGET_LON, (nextTarget.longitude),
-        Madara::Knowledge_Engine::Knowledge_Update_Settings(false, false));
+    variables.set(MV_MOVEMENT_TARGET_LAT, (nextTarget.latitude));
+    variables.set(MV_MOVEMENT_TARGET_LON, (nextTarget.longitude));
     variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
+    variables.set(MV_REACHED_GPS_TARGET, Madara::Knowledge_Record::Integer(0));
 
     return Madara::Knowledge_Record(1.0);
 }

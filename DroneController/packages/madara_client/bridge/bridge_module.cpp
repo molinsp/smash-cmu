@@ -289,18 +289,11 @@ Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::F
 		bool iHaveToGoToBridge = myNewPosition != NULL;
 		if(iHaveToGoToBridge)
 		{
-			// Update the drone status now that we are going to build a bridge.
-			variables.set(variables.expand_statement(MV_BUSY("{" MV_MY_ID "}")), 1.0,
-				Madara::Knowledge_Engine::Eval_Settings(true));
-			variables.set(variables.expand_statement(MV_BRIDGE_ID("{" MV_MY_ID "}")), (Madara::Knowledge_Record::Integer) bridgeId,
-				Madara::Knowledge_Engine::Eval_Settings(true));
-
-            // Set all the command parameters.
-            variables.set(MV_MOVEMENT_TARGET_LAT, myNewPosition->latitude,
-				Madara::Knowledge_Engine::Eval_Settings(true));
-			variables.set(MV_MOVEMENT_TARGET_LON, myNewPosition->longitude,
-				Madara::Knowledge_Engine::Eval_Settings(true));
+            // Set all the command parameters, resetting the "reached" variable as we want to move to a new location.
+            variables.set(MV_MOVEMENT_TARGET_LAT, myNewPosition->latitude);
+			variables.set(MV_MOVEMENT_TARGET_LON, myNewPosition->longitude);
 			variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
+            variables.set(MV_REACHED_GPS_TARGET, Madara::Knowledge_Record::Integer(0));
 
             // Locally store our destination.
             variables.set(MV_BRIDGE_LOC_LAT, myNewPosition->latitude);
@@ -308,6 +301,11 @@ Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::F
 
             // Locally note that we are moving towards a bridge.
             variables.set(MV_MOVING_TO_BRIDGE, 1.0);
+
+			// Update the drone status now that we are going to build a bridge.
+			variables.set(variables.expand_statement(MV_BUSY("{" MV_MY_ID "}")), 1.0,
+				Madara::Knowledge_Engine::Eval_Settings(true));
+			variables.set(variables.expand_statement(MV_BRIDGE_ID("{" MV_MY_ID "}")), (Madara::Knowledge_Record::Integer) bridgeId);
 		}
 	}
 

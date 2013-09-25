@@ -118,6 +118,7 @@ static bool hasTargetBeenReached(Madara::Knowledge_Engine::Variables & variables
 
     // Print the current state.
     std::stringstream sstream;
+    sstream << std::setprecision(10);
     sstream << "Lat:      " << currLat   << ", Long:   " << currLon << "\n";
     sstream << "T_Lat:    " << targetLat << ", T_Long: " << targetLon << "\n";
     sstream << "Distance: " << dist      << ", Tolerance: " << reachedAccuracyMeters << "\n";
