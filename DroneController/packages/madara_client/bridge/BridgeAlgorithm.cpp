@@ -15,6 +15,8 @@
 #include <vector>
 #include <map>
 #include "BridgeAlgorithm.h"
+#include "utilities/gps_utils.h"
+#include "utilities/string_utils.h"
 
 #include <iostream>
 #include <fstream>
@@ -48,17 +50,23 @@ Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Posit
 
 	Position* myNewPosition = NULL;
 
-	// Calculate how many drones we need for the bridge. Note that it is assuming the positions are in meters.
-	double bridgeLength = sqrt(pow(sourcePosition.x - sinkPosition.x, 2) + pow(sourcePosition.y - sinkPosition.y, 2));
-	int numberOfRelays = (int) ceil(bridgeLength/commRange + 1);    // +1 to add a relay in each end point.
+    // Calculate the length of the bridge in meters, to compare it to the comm range we got. Note that it is assuming the positions are in degrees.
+	//double bridgeLength = sqrt(pow(sourcePosition.x - sinkPosition.x, 2) + pow(sourcePosition.y - sinkPosition.y, 2));
+    double bridgeLength = gps_coordinates_distance(sourcePosition.latitude, sourcePosition.longitude, 
+                                                   sinkPosition.latitude, sinkPosition.longitude);
+
+	// Calculate how many drones we need for the bridge.
+	int numberOfRelays = (int) ceil(fabs(bridgeLength)/commRange) + 1;    // +1 to add a relay in the sink endpoint.
 
 #if BRIDGE_ALGORITHM_DEBUG
-    outputFile << "Source: (" << std::setprecision(10) << sourcePosition.x << ", " << sourcePosition.y  << "), sink: (" << sinkPosition.x << ", " << sinkPosition.y << ")" << endl;
+    outputFile << "Source lat,lon: (" << std::setprecision(10) << sourcePosition.latitude << ", " << sourcePosition.longitude  << ")";
+    outputFile << ", sink lat,lon: (" << sinkPosition.latitude << ", " << sinkPosition.longitude << ")" << endl;
+    outputFile << "Bridge Length: " << bridgeLength << endl;
 	outputFile << "Num Relays " << numberOfRelays << endl;
 #endif
 
     // If no relays are required, return NULL.
-    if(numberOfRelays < 2)
+    if(numberOfRelays < 1)
     {
         return myNewPosition;
     }
@@ -67,15 +75,25 @@ Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Posit
 	vector<Position> relayList(numberOfRelays);
 	for(int i=0; i<numberOfRelays; i++)
 	{
+        // Get the position of the current relay.
 		Position relayPosition;
-		//relayPosition.x = sinkPosition.x + (sourcePosition.x - sinkPosition.x)/(numberOfRelays + 1)*(i+1);
-		//relayPosition.y = sinkPosition.y + (sourcePosition.y - sinkPosition.y)/(numberOfRelays + 1)*(i+1);
-        relayPosition.x = sinkPosition.x + (sourcePosition.x - sinkPosition.x)/(numberOfRelays - 1)*(i);
-		relayPosition.y = sinkPosition.y + (sourcePosition.y - sinkPosition.y)/(numberOfRelays - 1)*(i);
+        if(numberOfRelays > 1)
+        {
+            // Calculate the position of this relay based on the total number of relays.
+            relayPosition.longitude = sinkPosition.longitude + (sourcePosition.longitude - sinkPosition.longitude)/(numberOfRelays - 1)*(i);
+		    relayPosition.latitude = sinkPosition.latitude + (sourcePosition.latitude - sinkPosition.latitude)/(numberOfRelays - 1)*(i);
+        }
+        else
+        {
+            // If we only need one relay, the above formula won't work. And the relay will have to be in the position of the source, to stream data.
+            relayPosition = sourcePosition;
+        }
+
+        // Just store it in an array for further calculations.
 		relayList[i] = relayPosition;
 
 #if BRIDGE_ALGORITHM_DEBUG
-        outputFile << "Relay " << i << ", pos " << relayPosition.x << ", " << relayPosition.y << ")" << endl;
+        outputFile << "Relay " << i << ", (lat, lon): " << relayPosition.latitude << ", " << relayPosition.longitude << ")" << endl;
 #endif
 	}
 
@@ -96,7 +114,10 @@ Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Posit
 		{
 			// Calculate the distance betwee drone i and location j.
 			Position currentRelayPos = relayList[j];
-			double distanceToLocation = sqrt(pow(currentDronePos.x - currentRelayPos.x,2) + pow(currentDronePos.y - currentRelayPos.y,2));
+            double distanceToLocation = gps_coordinates_distance(currentDronePos.latitude, currentDronePos.longitude, 
+                                                                 currentRelayPos.latitude, currentRelayPos.longitude);
+			//double distanceToLocation = sqrt(pow(currentDronePos.longitude - currentRelayPos.longitude, 2) + 
+            //                                 pow(currentDronePos.latitude - currentRelayPos.latitude, 2));
 
 			// Store the distance and the information about the drone and location in a list to be sorted later.
 			DistanceTuple currentDistanceTuple;
@@ -106,7 +127,8 @@ Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Posit
 			distanceTuples.push_back(currentDistanceTuple);
 
 #if BRIDGE_ALGORITHM_DEBUG
-            outputFile << "Drone " << currentDroneId << ", to loc " << j << ", distance " << distanceToLocation << "" << endl;
+            outputFile << "Drone " << currentDroneId << " at lat,lon: (" << currentDronePos.latitude << ", " << currentDronePos.longitude << ")" << endl;
+            outputFile << "Drone " << currentDroneId << ", to relay loc " << j << ", distance " << distanceToLocation << "" << endl;
 #endif
 		}
 	}
@@ -134,15 +156,15 @@ Position* BridgeAlgorithm::getPositionInBridge(int myId, double commRange, Posit
 			droneAssignedToLocation[currentTuple->relayLocationId] = currentTuple->droneId;
 
 #if BRIDGE_ALGORITHM_DEBUG
-            outputFile << "Loc " << currentTuple->relayLocationId << ", drone " << currentTuple->droneId << std::endl;
+            outputFile << "Relay loc " << currentTuple->relayLocationId << ", drone " << currentTuple->droneId << std::endl;
 #endif
 
 			// Check if this is me to stop search right away?
 			if(currentTuple->droneId == myId)
 			{
 				myNewPosition = new Position();
-				myNewPosition->x = relayList[currentTuple->relayLocationId].x;
-				myNewPosition->y = relayList[currentTuple->relayLocationId].y;
+				myNewPosition->longitude = relayList[currentTuple->relayLocationId].longitude;
+                myNewPosition->latitude = relayList[currentTuple->relayLocationId].latitude;
 
 				// break;
 			}

@@ -14,6 +14,7 @@
 #include <string>
 #include "utilities/CommonMadaraVariables.h"
 #include "utilities/Position.h"
+#include "utilities/string_utils.h"
 #include "human_detection_module.h"
 #include "HumanDetection.h"
 #include "BasicStrategy.h"
@@ -27,13 +28,13 @@ using std::string;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions.
 #define MF_MAIN_LOGIC               "human_detection_doHumanDetection"		    // Function that calls detect human function
-// if the drone isn't already detecting human.
-#define MF_DETECT_HUMAN             "human_detection_detectHuman"             // Function that detects human.
-#define MF_CALCULATE_AMBIENT_TEMP   "human_detection_calculateAmbientTemp"    // Function to calculate ambient temperature.
+                                                                                // if the drone isn't already detecting human.
+#define MF_DETECT_HUMAN             "human_detection_detectHuman"               // Function that detects human.
+#define MF_CALCULATE_AMBIENT_TEMP   "human_detection_calculateAmbientTemp"      // Function to calculate ambient temperature.
 
 // Internal variables.
-#define MV_AMBIENT_TEMP_CALCULATED  ".human_detection_ambientTempCalculated"  // Flag to check if ambient temperature has
-// been initialized.
+#define MV_AMBIENT_TEMP_CALCULATED  ".human_detection_ambientTempCalculated"    // Flag to check if ambient temperature has
+                                                                                // been initialized.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private variables.
@@ -81,12 +82,12 @@ static void on_human_detected();
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SMASH::HumanDetection::HumanDetectionModule::initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 {
-    printf("SMASH::HumanDetection::initialize...\n");
+    knowledge.print("SMASH::HumanDetection::initialize...\n");
 
     // Defines internal and external functions.
     defineFunctions(knowledge);
 
-    printf("leaving SMASH::HumanDetection::initialize...\n");
+    knowledge.print("leaving SMASH::HumanDetection::initialize...\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,7 +124,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                 "(" MV_HUMAN_DETECTION_REQUESTED("{" MV_MY_ID "}") " == '" MO_HUMAN_DETECTION_BASIC "' ) => " 
                 "("
                     // We have to calculate the ambient temperature once we have reached our assigned height, but only once.
-                    "(" MV_IS_AT_ASSIGNED_ALTITUDE " && (" MV_AMBIENT_TEMP_CALCULATED " == 0) ) => "
+                    "(" MV_ASSIGNED_ALTITUDE_REACHED " && (" MV_AMBIENT_TEMP_CALCULATED " == 0) ) => "
                     "("
                         // Calculate the ambient temperature and mark that as done to prevent recalculating it.
                         MF_CALCULATE_AMBIENT_TEMP "();"
@@ -157,7 +158,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 * @param algo  String that determines which human detection algorithm will be selected.
 **/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-HumanDetection* selectHumanDetectionAlgorithm (string algo)
+HumanDetection* selectHumanDetectionAlgorithm (string algo, Madara::Knowledge_Engine::Variables &variables)
 {
     HumanDetection* humanDetectionAlgorithm = NULL;
 
@@ -171,10 +172,12 @@ HumanDetection* selectHumanDetectionAlgorithm (string algo)
     }
     else
     {
-        string err = "selectHumanDetectionAlgorithm(algo = \"";
-        err += algo;
-        err += "\") failed to find match. Using BasicStrategy as default.\n";
-        printf("%s", err.c_str());
+        // Print an error.
+        std::stringstream sstream;
+        sstream << "selectHumanDetectionAlgorithm(algo = \"" << algo << "\") failed to find match\n";
+        variables.print(sstream.str(), MADARA_LOG_NONFATAL_ERROR);
+
+        // Choose the basic one as the default one.
         humanDetectionAlgorithm = new BasicStrategy(ambient_min, ambient_max);
     }
 
@@ -252,9 +255,10 @@ Madara::Knowledge_Record madaraCalculateAmbientTemp (Madara::Knowledge_Engine::F
         ambient_max = env_temp + AMBIENT_RANGE;
     }  
 
-    printf("Final Ambient Min: %6.2f \n", ambient_min);
-    printf("Final Ambient Max: %6.2f \n", ambient_max);
-    printf("\n");
+    std::stringstream sstream;
+    sstream << "Final Ambient Min: " << ambient_min << "!\n";
+    sstream << "Final Ambient Max: " << ambient_max << "!\n\n";
+    variables.print(sstream.str(), 1);
 
     return Madara::Knowledge_Record(1.0);  
 }
@@ -278,7 +282,7 @@ Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Function_A
         if (m_humanDetectionAlgorithm != NULL)
             delete (m_humanDetectionAlgorithm); 
 
-        m_humanDetectionAlgorithm = selectHumanDetectionAlgorithm(algo);
+        m_humanDetectionAlgorithm = selectHumanDetectionAlgorithm(algo, variables);
         prev_algo = algo;
     } 
 
@@ -294,7 +298,9 @@ Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Function_A
 
     if (result > 0)
     {
-        printf("RESULT: %i \n", result);
+        std::stringstream sstream;
+        sstream << "Humans found, count: " << result << "!\n";
+        variables.print(sstream.str(), 1);
 
         // Set the Madara variables to indicate we found thermals, and how many, at our current location.
         std::string lat = variables.get(variables.expand_statement(MV_DEVICE_LAT("{" MV_MY_ID "}"))).to_string();
@@ -302,7 +308,7 @@ Madara::Knowledge_Record madaraDetectHuman (Madara::Knowledge_Engine::Function_A
         variables.set(MV_THERMALS_AT_LOCATION(lat, lon), (Madara::Knowledge_Record::Integer) result);
     }
     else
-        printf("No Human Detected \n");
+        variables.print("No Human Detected \n", 1);
 
     return Madara::Knowledge_Record(1.0);
 }

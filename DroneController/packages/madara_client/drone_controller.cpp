@@ -5,9 +5,10 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
-#include "utilities/CommonMadaraVariables.h"
-
 #include "drone_controller.h"
+
+#include "utilities/CommonMadaraVariables.h"
+#include "utilities/string_utils.h"
 
 #define NUM_TASKS 	3
 #define MAIN_LOGIC 	0
@@ -20,8 +21,6 @@ using namespace SMASH::Movement;
 using namespace SMASH::Sensors;
 using namespace SMASH::Utilities;
 using namespace SMASH::HumanDetection;
-
-#define STRING_ENDS_WITH(str, end) (str.length() >= end.length() ? (0 == str.compare (str.length() - end.length(), end.length(), end)) : false)
 
 // Compiled expressions that we expect to be called frequently
 static Madara::Knowledge_Engine::Compiled_Expression expressions [NUM_TASKS];
@@ -61,6 +60,8 @@ void SMASH::DroneController::cleanup(Madara::Knowledge_Engine::Knowledge_Base* k
 std::string SMASH::DroneController::getStatusSummaryExpression()
 {
     std::string status = 
+        "\n**********************************************************************\n"
+        "Status Report\n\n"
         "Drone:\t\t{" MV_MY_ID "}\n"
         "Total:\t\t{" MV_TOTAL_DEVICES "}\n"
         "Mobile:\t\t{" MV_MOBILE("{.id}") "}\n"
@@ -79,6 +80,7 @@ std::string SMASH::DroneController::getStatusSummaryExpression()
         "Waiting :\t{" ".area_coverage.my_area.waiting" "}\n"
         "\n"
         "Bridge ID:\t{" MV_BRIDGE_ID("{.id}") "}\n"
+        "**********************************************************************\n\n"
         ;
 
     return status;
@@ -209,6 +211,7 @@ void SMASH::DroneController::compileExpressions (Madara::Knowledge_Engine::Knowl
                 // Swarm commands have priority over regular ones.
                 "(( swarm.movement_command => "
                 "("
+                    "#print('Swarm command received.\n');"
                     // Pass the swarm command plus its parameters into the local variables the movement module will check.
                     ".movement_command = swarm.movement_command;"
                     "copy_vector('swarm.movement_command.*', '.movement_command.');"
@@ -217,6 +220,7 @@ void SMASH::DroneController::compileExpressions (Madara::Knowledge_Engine::Knowl
                 // If there was no swarm command, we check if we were sent and individual command.
                 "( device.{.id}.movement_command => "
                 "(" 
+                    "#print('Individual device command received.\n');"
                     // Pass the swarm command plus its parameters into the local variables the movement module will check.
                     ".movement_command = device.{.id}.movement_command;"
                     "copy_vector('device.{.id}.movement_command.*', '.movement_command.');"

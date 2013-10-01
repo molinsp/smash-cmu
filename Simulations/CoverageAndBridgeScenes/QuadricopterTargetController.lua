@@ -11,7 +11,7 @@ require("Utils")
 -- the further the target will move, and the faster the drone will follow. Therefore,
 -- higher values result in higher movement speeds (up to the max speed of the drone model).
 -- This value has to be less than the GPS accuracy of the VRep platform in the simulated Drones.
-TARGET_STEP = 0.1    -- 10 cm.
+TARGET_STEP = 0.05    -- 5 cm.
 
 -- Altitude to reach when taking off.
 TAKEOFF_ALTITUDE = 1.5
@@ -36,8 +36,8 @@ AMBIENT_MAX_TEMP = 60
 function doInitialSetup()   
 	-- Get my name
 	g_mySuffix = simGetNameSuffix(nil)
-    g_myDroneName = getDroneInfoFromSuffix(g_mySuffix)
 	g_myDroneId = g_mySuffix + 1     -- Drone ids start from 0, while suffixes start from -1.
+    g_myDroneName = getDroneInfoFromId(g_myDroneId)	
 
     -- Load the positions of people on the grid, so we will know when we find one.
     loadPeoplePositions()
@@ -91,13 +91,31 @@ function simulateSensors()
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
+-- Returns the name and position (as a 'latitude', 'longitude', 'altitude' table) of a drone with a given id (starting at 0).
+--/////////////////////////////////////////////////////////////////////////////////////////////
+function getDroneInfoFromId(id)
+    local droneObjectName = 'Quadricopter#'
+
+    -- For all drones but the first one (id 0), we have to add the suffix, which starts at 0 (id-1).
+    if(id ~= 0) then
+        droneObjectName = droneObjectName .. (id-1)
+    end
+    
+    -- Get the position from the drone object.
+    local droneHandle = simGetObjectHandle(droneObjectName)
+    local dronePosition = getObjectPositionInDegrees(droneHandle, -1)    
+    
+    return droneObjectName, dronePosition    
+end
+
+--/////////////////////////////////////////////////////////////////////////////////////////////
 -- Updates the position of the drone to the network.
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function updateDronePosition()
 	local droneName, dronePosition = getDroneInfoFromId(g_myDroneId)
 	if(dronePosition ~= nil) then
         --simAddStatusbarMessage('Sending pos ' ..tostring(dronePosition[1])..','.. tostring(dronePosition[2]))
-		simExtMadaraQuadrotorControlUpdateStatus(g_myDroneId, tostring(dronePosition[2]), tostring(dronePosition[1]), tostring(dronePosition[3]))
+		simExtMadaraQuadrotorControlUpdateStatus(g_myDroneId, tostring(dronePosition['latitude']), tostring(dronePosition['longitude']), tostring(dronePosition['altitude']))
 	end
 end
 
@@ -106,12 +124,12 @@ end
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function lookForPersonBelow()
     -- Get my drone position.
-    local droneName, dronePos = getDroneInfoFromSuffix(g_mySuffix)
+    local droneName, dronePos = getDroneInfoFromId(g_myDroneId)
 
     -- Check if we found a person, to stop.
 	local humanFound = false
     for i=1, g_numPeople, 1 do
-		humanFound = isPersonBelow(dronePos, g_personCoordsX[i], g_personCoordsY[i])
+		humanFound = isPersonBelow(dronePos, g_personCoords[i])
         if(humanFound) then
             -- Notify our shared memory that a person was found, and that I was the one to find it.
             local sourceSuffix, sourceName = simGetNameSuffix(nil)
@@ -136,7 +154,7 @@ function lookForPersonBelow()
 			
 			-- If there are humans, we will add them only to one specific location in the buffer.
 			if(humanFound and row == 1 and col == 1) then
-				thermalCellValue = getHumanValue(dronePos[3])			
+				thermalCellValue = getHumanValue(dronePos['altitude'])			
 				--simAddStatusbarMessage('Drone with id ' .. g_myDroneId .. ' at height ' .. dronePos[3] .. ' found a thermal and will set it to' .. thermalCellValue)
 			end
 			
@@ -152,10 +170,10 @@ end
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Check if we have found a person to stop on top of it.
 --/////////////////////////////////////////////////////////////////////////////////////////////
-function isPersonBelow(dronePos, personCoordX, personCoordY)
+function isPersonBelow(dronePos, personCoord)
     local margin = PERSON_FOUND_ERROR_MARGIN
-    if( (dronePos[1] >= personCoordX - margin) and (dronePos[1] <= personCoordX + margin) ) then
-        if((dronePos[2] >= personCoordY - margin) and (dronePos[2] <= personCoordY + margin)) then
+    if( (dronePos['latitude'] >= personCoord['latitude'] - margin) and (dronePos['latitude'] <= personCoord['latitude'] + margin) ) then
+        if((dronePos['longitude'] >= personCoord['longitude'] - margin) and (dronePos['longitude']<= personCoord['longitude'] + margin)) then
             return true
         end
     end
@@ -212,7 +230,7 @@ function simulateMovementCommands()
             
             -- If we have to move to a new location, move our target there so the drone will follow it. Altitude is ignored.
             g_myTargetPositionSetup = true
-            simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') In Lua, target position found: ' .. myNewLon .. ',' .. myNewLat)            
+            simAddStatusbarMessage('(In ' .. g_myDroneName .. ', id=' .. g_myDroneId .. ') In Lua, target position found: ' .. myNewLat .. ',' .. myNewLon)            
             g_myTargetLon = tonumber(myNewLon)
             g_myTargetLat = tonumber(myNewLat)
             
@@ -274,9 +292,9 @@ function setTargetPositionToCurrentPosition()
 	local droneTargetPosition = getObjectPositionInDegrees(droneTargetHandle, -1) 
 
 	-- Set the current lat and long for the target.                
-	g_myTargetLon = droneTargetPosition[1]
-	g_myTargetLat = droneTargetPosition[2]
-	simAddStatusbarMessage("Target lat and long: " .. g_myTargetLon .. "," .. g_myTargetLat)
+	g_myTargetLon = droneTargetPosition['longitude']
+	g_myTargetLat = droneTargetPosition['latitude']
+	simAddStatusbarMessage("Target lat and long: " .. g_myTargetLat .. "," .. g_myTargetLon)
 	
 	g_myTargetPositionSetup = true
 end

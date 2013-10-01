@@ -154,7 +154,8 @@ Windows_Multicast_Transport::setup (void)
     thread_ = new Windows_Multicast_Transport_Read_Thread (
                     settings_, id_, context_, socket_,
                     mc_ipaddr, mc_port, this->send_monitor_,
-                    this->receive_monitor_);
+                    this->receive_monitor_,
+                    this->packet_scheduler_);
   }
 
   // Indicate that the transport has been opened.

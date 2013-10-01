@@ -1,6 +1,6 @@
 project {
   includes +=     V-RepImports
-  includes +=     V-RepCommonPluginUtils
+  includes +=     V-RepPluginUtils
 
   lit_libs += shlwapi
 
@@ -17,11 +17,14 @@ project {
 
   Source_Files {
     V-RepImports
-    V-RepCommonPluginUtils
+    V-RepPluginUtils/LuaExtensionsUtils.cpp
+    V-RepPluginUtils/v_repExtLuaExtenderPlugin.cpp
   }
 
   Header_Files {
     V-RepImports
-    V-RepCommonPluginUtils
+    V-RepPluginUtils/v_repExtPluginInterface.h
+    V-RepPluginUtils/LuaExtensionsUtils.h
+    V-RepPluginUtils/LuaFunctionRegistration.h
   }
 }

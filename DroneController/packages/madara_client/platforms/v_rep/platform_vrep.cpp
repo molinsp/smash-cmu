@@ -249,6 +249,24 @@ void platform_move_to_altitude(double alt)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool platform_location_reached()
+{
+    // TODO: implement this when there is a function for this in the VRep plugin. Currently not being used.
+    return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool platform_altitude_reached()
+{
+    // TODO: implement this when there is a function for this in the VRep plugin. Currently not being used.
+    return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void platform_stop_movement()
 {
 }
@@ -317,7 +335,7 @@ void platform_read_thermal(double buffer[8][8])
     std::string thermalValues = m_sim_knowledge->get(m_sim_knowledge->expand_statement(thermalBufferName.str())).to_string();
 
 	// Parse the thermal values.
-	std::vector<std::string> thermalValueList = stringSplit(thermalValues, ',');
+    std::vector<std::string> thermalValueList = SMASH::Utilities::stringSplit(thermalValues, ',');
 		
     // Get the thermals from the string, if any.
     if(thermalValueList.size() >= (unsigned) numRows*numColumns)
@@ -358,9 +376,9 @@ void platform_read_gps(struct madara_gps * ret)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Gets the altitude from the ultrasound sensor.
+// Gets the altitude.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-double platform_read_ultrasound()
+double platform_get_altitude()
 {
     double currHeight = m_sim_knowledge->get(m_sim_knowledge->expand_statement(MS_SIM_DEVICES_PREFIX "{" MV_MY_ID "}" MV_ALTITUDE)).to_double();
     return currHeight;

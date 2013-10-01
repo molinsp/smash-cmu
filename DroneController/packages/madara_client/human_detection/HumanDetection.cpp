@@ -11,7 +11,6 @@
 
 #include "HumanDetection.h"
 #include "utilities/CommonMadaraVariables.h"
-#include "sensors/platform_sensors.h"
 #include <stdio.h>
 
 using namespace SMASH::HumanDetection;

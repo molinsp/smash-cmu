@@ -87,7 +87,10 @@
 #define MV_DEVICE_LAT(i)                        ".device." + std::string(i) + ".location.latitude"              // The latitude of a device with id i.
 #define MV_DEVICE_LON(i)                        ".device." + std::string(i) + ".location.longitude"             // The longtude of a device with id i.
 #define MV_DEVICE_ALT(i)                        ".device." + std::string(i) + ".location.altitude"              // The longtude of a device with id i.
-#define MV_ASSIGNED_ALTITUDE(deviceId)          ".device." + std::string(deviceId) + ".assigned_alt"            // Indicates the default atitude assigned to this device.
+
+// Variables related to assigned height.
+#define MV_ASSIGNED_ALTITUDE                    ".device.assigned_alt"                 // Indicates the default atitude assigned to this device.
+#define MV_ASSIGNED_ALTITUDE_REACHED            ".device.assigned_alt_reached"         // Variable to check if the initial height has been reached at least once.
 
 // Information about region bounding box.
 #define MV_REGION_TOPLEFT_LAT(regionId)     ".region." + std::string(regionId) + ".top_left.location.latitude"      // Latitude of top left corner of a rectangular region.
@@ -106,26 +109,24 @@
 #define MV_MOVEMENT_TARGET_LON              ".movement_command.1"                   // The longitude of the position the device is headed towards.
 #define MV_LAST_TARGET_LAT                  ".movement.last_movement_command.lat"   // The latitude of the position the device is headed towards.
 #define MV_LAST_TARGET_LON                  ".movement.last_movement_command.lon"   // The longitude of the position the device is headed towards.
+#define MV_REACHED_GPS_TARGET               ".movement.reached_gps_target"          // 1 if drone has reached its last move_to_gps target, 0 otherwise.
 
 // Move to altitude.
-#define MO_MOVE_TO_ALTITUDE_CMD             "move_to_altitude"      // Command used to tell drone to move to a specific altitude.
-#define MV_MOVEMENT_TARGET_ALT              ".movement_command.0"   // The altitude of the position the device is headed towards.
+#define MO_MOVE_TO_ALTITUDE_CMD             "move_to_altitude"                  // Command used to tell drone to move to a specific altitude.
+#define MV_MOVEMENT_TARGET_ALT              ".movement_command.0"               // The altitude of the position the device is headed towards.
+#define MV_LAST_TARGET_ALT                  ".movement.last_movement_command.alt" // The target altitude set by the last command, store separately just in case.
+#define MV_REACHED_ALTITUDE                 ".movement.reached_altitude"        // 1 if drone is at its assigned altitude, 0 otherwise.
 
 // Land and takeoff
 #define MO_LAND_CMD                         "land"                              // Command used to tell drone to land at current location.
 #define MO_TAKEOFF_CMD                      "takeoff"                           // Command used to tell drone to takeoff.
 
-// Variables to indicate if the sensors have detected that a certain movement command has been completed.
-#define MV_REACHED_GPS_TARGET               ".movement.reached_gps_target"       // 1 if drone has reached its last move_to_gps target, 0 otherwise.
-#define MV_IS_LANDED                        ".movement.landed"                   // 1 if drone is landed, 0 otherwise.
-#define MV_IS_AT_ASSIGNED_ALTITUDE          ".movement.at_assigned_altitude"     // 1 if drone is at its assigned altitude, 0 otherwise.
-
 // Sensor variables.
-#define MV_THERMAL_BUFFER(i,j)       ".sensors.thermal." + std::string(i) + "." + std::string(j) + "" // The value of the thermal buffer at i,j.
-#define MV_LOCAL_LOCATION            ".location"            // The location (lat,lon) in a local variable.
-#define MV_LOCAL_ALTITUDE            ".location.altitude"   // The altitude, in a local variable.
-#define MV_GPS_LOCKS                 ".location.gps.locks"  // The amount of GPS locks when the location was taken.
-#define MV_BATTERY                   ".battery"             // The percentage of battery remaining.
+#define MV_THERMAL_BUFFER(i,j)              ".sensors.thermal." + std::string(i) + "." + std::string(j) + "" // The value of the thermal buffer at i,j.
+#define MV_LOCAL_LOCATION                   ".location"            // The location (lat,lon) in a local variable.
+#define MV_LOCAL_ALTITUDE                   ".location.altitude"   // The altitude, in a local variable.
+#define MV_GPS_LOCKS                        ".location.gps.locks"  // The amount of GPS locks when the location was taken.
+#define MV_BATTERY                          ".battery"             // The percentage of battery remaining.
 
 // Human detection variables.
 #define MV_ENVIRONMENT_TEMPERATURE          ".human_detection.environment.temperature"       // Environment temperature used by some algorithms.

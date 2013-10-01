@@ -9,6 +9,8 @@
 #include "platform_sensors.h"
 #include "utilities/CommonMadaraVariables.h"
 #include "utilities/Position.h"
+#include "utilities/gps_utils.h"
+#include "utilities/string_utils.h"
 
 #include <iomanip>		// std::setprecision
 #include <math.h>
@@ -16,17 +18,7 @@
 #define TASK_COUNT		    1
 #define EVALUATE_SENSORS	0
 
-#define HEIGHT_ACCURACY     "0.5"     // How many meters to use to determine that a certain height has been reached.
-#define LAND_ACCURACY       "0.1"     // How many meters to use to determine that a drone has landed.
-#define ULTRASOUND_LIMIT    5.5       // Where to stop using ultrasound readings.
-
-// For Windows compatibility.
-#ifndef M_PI
-    #define M_PI 3.14159265358979323846
-#endif
-
-// Conversion from degrees to radians.
-#define DEG_TO_RAD(x) (x)*M_PI/180.0
+#define HEIGHT_ACCURACY     0.5     // How many meters to use to determine that a certain height has been reached.
 
 static Madara::Knowledge_Engine::Compiled_Expression expressions2 [TASK_COUNT];
 
@@ -35,7 +27,7 @@ static Madara::Knowledge_Engine::Compiled_Expression expressions2 [TASK_COUNT];
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record read_thermal_sensor (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-    printf("Inside read_thermal();\n");
+    variables.print("Inside read_thermal();\n", 2);
     double buffer[8][8];
     platform_read_thermal(buffer);
     int x, y;
@@ -61,18 +53,10 @@ Madara::Knowledge_Record read_gps_sensor (Madara::Knowledge_Engine::Function_Arg
     platform_read_gps(&gps);
 
     // Store the latitude and longitude in our local location variable.
+    // NOTE: we ignore the altitude for now, as this can be obtained from a separate function, and the GPS one may not be the optimal.
     std::stringstream buffer;
     buffer << std::setprecision(10) << gps.latitude << "," << gps.longitude;
     variables.set(MV_LOCAL_LOCATION, buffer.str());
-
-    // Store the altitude obtained by the GPS, but only if we currently were, and the GPS is reporting, an altitude 
-    // higher than the ultrasound limit. Otherwise, we will ignore this altitude in favor of the ultrasound one.
-    double estAlt = variables.get(MV_LOCAL_ALTITUDE).to_double();
-    if(gps.altitude > ULTRASOUND_LIMIT || estAlt > ULTRASOUND_LIMIT)
-    {
-        variables.set(MV_LOCAL_ALTITUDE, gps.altitude);
-        variables.set(variables.expand_statement(MV_DEVICE_ALT("{.id}")), gps.altitude);
-    }
 
     // Set the amount of GPS locks available for these values.
     variables.set(MV_GPS_LOCKS, Madara::Knowledge_Record::Integer(gps.num_sats));
@@ -83,18 +67,12 @@ Madara::Knowledge_Record read_gps_sensor (Madara::Knowledge_Engine::Function_Arg
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Madara::Knowledge_Record read_ultrasound (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
+Madara::Knowledge_Record read_altitude (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
-    // Get the current ultrasound reading from the platform.
-    double ultraAlt = platform_read_ultrasound();
-
-    // Use ultrasound to override any other altitude if we were currently, and the ultrasound reported, a height below a certain limit.
-    double estAlt = variables.get(MV_LOCAL_ALTITUDE).to_double();
-    if(ultraAlt < ULTRASOUND_LIMIT || estAlt < ULTRASOUND_LIMIT)
-    {
-        variables.set(variables.expand_statement(MV_DEVICE_ALT("{.id}")), ultraAlt);
-        variables.set(MV_LOCAL_ALTITUDE, ultraAlt);
-    }
+    // Get the altitude and store it in the knowledge base.
+    double altitude = platform_get_altitude();
+    variables.set(variables.expand_statement(MV_DEVICE_ALT("{.id}")), altitude);
+    variables.set(MV_LOCAL_ALTITUDE, altitude);
 
     return Madara::Knowledge_Record::Integer(1);
 }
@@ -120,32 +98,42 @@ Madara::Knowledge_Record read_sensors (Madara::Knowledge_Engine::Function_Argume
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Calculate the distance between two coordinate pairs.
+// Calculates whether we are close enough to our current target to define we have reached it.
+// * Note: This should be moved into a platform function.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static double gps_coordinates_distance (double lat1, double long1, double lat2, double long2)
+static bool hasTargetBeenReached(Madara::Knowledge_Engine::Variables & variables)
 {
-    const double EARTH_RADIUS = 6371000;
+    // Get all current values.
+    double currLat = variables.get(variables.expand_statement(MV_DEVICE_LAT("{" MV_MY_ID "}"))).to_double();
+    double currLon = variables.get(variables.expand_statement(MV_DEVICE_LON("{" MV_MY_ID "}"))).to_double();
+    double targetLat = variables.get(MV_LAST_TARGET_LAT).to_double();
+    double targetLon = variables.get(MV_LAST_TARGET_LON).to_double();
 
-    // Get the difference between our two points then convert the difference into radians
-    double lat_diff = DEG_TO_RAD(lat2 - lat1);
-    double long_diff = DEG_TO_RAD(long2 - long1);
+    // Calculate the distance we are from the target.
+    double dist = SMASH::Utilities::gps_coordinates_distance(currLat, currLon, targetLat, targetLon);
 
-    lat1 =  DEG_TO_RAD(lat1);
-    lat2 =  DEG_TO_RAD(lat2);
+    // The accuracy of whether a location has been reached depends on the platform. Get the accuracy for the particular platform we are using.
+    // For now we assume the accuracy we want is the same as the GPS accuracy, though we may want to add some more slack.
+    double reachedAccuracyMeters = platform_get_gps_accuracy();
 
-    double a =  pow(sin(lat_diff/2),2)+
-                cos(lat1) * cos(lat2) *
-                pow ( sin(long_diff/2), 2 );
+    // Print the current state.
+    std::stringstream sstream;
+    sstream << std::setprecision(10);
+    sstream << "Lat:      " << currLat   << ", Long:   " << currLon << "\n";
+    sstream << "T_Lat:    " << targetLat << ", T_Long: " << targetLon << "\n";
+    sstream << "Distance: " << dist      << ", Tolerance: " << reachedAccuracyMeters << "\n";
+    variables.print(sstream.str(), 1);
 
-    double c = 2 * atan2( sqrt(a), sqrt( 1 - a));
-    return EARTH_RADIUS * c;
+    // Check if we have reached the target, depending if we are close enough to it.
+    bool targetHasBeenReached = dist < reachedAccuracyMeters;
+    return targetHasBeenReached;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
-* Checks last target set to move to has been reached.
+* Checks if we have reached the last target we were moving towards, and updates a corresponding knowledge base variable.
 * Note: should all this be in the sensors module? Or somewhere else?
-* @return  Returns true (1) if we are, or false (0) if not.
+* @return  Returns true (1) if we updated the value, false (0) if it didn't make sense to calculate this.
 **/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record gpsTargetReached (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
@@ -154,35 +142,74 @@ Madara::Knowledge_Record gpsTargetReached (Madara::Knowledge_Engine::Function_Ar
     std::string lastCommand = variables.get(MV_LAST_MOVEMENT_REQUESTED).to_string();
     if(lastCommand != MO_MOVE_TO_GPS_CMD)
     {
-        //printf("Current command no longer move to GPS, checking for target reached does not make sense.\n");
+        //variables.print("Current command no longer move to GPS, checking for target reached does not make sense.\n", 0);
         return Madara::Knowledge_Record::Integer(0);
     }
 
-    // Get all current values.
-    double currLat = variables.get(variables.expand_statement(MV_DEVICE_LAT("{" MV_MY_ID "}"))).to_double();
-    double currLon = variables.get(variables.expand_statement(MV_DEVICE_LON("{" MV_MY_ID "}"))).to_double();
-    double targetLat = variables.get(MV_LAST_TARGET_LAT).to_double();
-    double targetLon = variables.get(MV_LAST_TARGET_LON).to_double();
-
-    printf("Lat:      %.10f Long:   %.10f\n", currLat, currLon);
-    printf("T_Lat:    %.10f T_Long: %.10f\n", targetLat, targetLon);
-
-    double dist = gps_coordinates_distance(currLat, currLon, targetLat, targetLon);
-    printf("Distance: %.2f\n", dist);
-
-    // The accuracy of whether a location has been reached depends on the platform. Get the accuracy for the particular platform we are using.
-    // For now we assume the accuracy we want is the same as the GPS accuracy, though we may want to add some more slack.
-    double reachedAccuracyMeters = platform_get_gps_accuracy();
-    if(dist < reachedAccuracyMeters)
+    // Calculate if we have reached the target, and return appropriately.
+    bool targetHasBeenReached = hasTargetBeenReached(variables);
+    if(targetHasBeenReached)
     {
-        printf("HAS reached target\n");
-        return Madara::Knowledge_Record::Integer(1);
+        variables.print("HAS reached target\n", 1);
+        variables.set(MV_REACHED_GPS_TARGET, Madara::Knowledge_Record::Integer(1));
     }
     else
     {
-        printf("HAS NOT reached target yet\n");
+        variables.print("HAS NOT reached target yet\n", 1);
+        variables.set(MV_REACHED_GPS_TARGET, Madara::Knowledge_Record::Integer(0));
+    }
+
+    return Madara::Knowledge_Record::Integer(1);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Calculates whether we are close enough to our current target to define we have reached it.
+// * Note: This should be moved into a platform function.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static bool hasAltitudeBeenReached(Madara::Knowledge_Engine::Variables & variables)
+{
+    // Get all current values.
+    double currAlt = variables.get(variables.expand_statement(MV_DEVICE_ALT("{" MV_MY_ID "}"))).to_double();
+    double targetAlt = variables.get(MV_LAST_TARGET_ALT).to_double();
+
+    // Calculate the difference between the altitudes.
+    double altDiff = fabs(targetAlt - currAlt);
+
+    // Check if we have reached the target, depending if we are close enough to it.
+    bool altitudeHasBeenReached = altDiff < HEIGHT_ACCURACY;
+    return altitudeHasBeenReached;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+* Checks to see if we have reached the last altitude we were moving towards, and updates a corresponding knowledge base variable.
+* @return  Returns true (1) if we updated the value, false (0) if it didn't make sense to calculate this.
+**/
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Madara::Knowledge_Record altitudeReached (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
+{
+    // If the current command is not move to altitude, then the parameters can be different, and it doesn't make sense to check this.
+    std::string lastCommand = variables.get(MV_LAST_MOVEMENT_REQUESTED).to_string();
+    if(lastCommand != MO_MOVE_TO_ALTITUDE_CMD)
+    {
+        //variables.print("Current command no longer move to altitude, checking for altitude reached does not make sense.\n", 0);
         return Madara::Knowledge_Record::Integer(0);
     }
+
+    // Calculate if we have reached the altitude, and return appropriately.
+    bool altitudeHasBeenReached = hasAltitudeBeenReached(variables);
+    if(altitudeHasBeenReached)
+    {
+        variables.print("HAS reached altitude\n", 1);
+        variables.set(MV_REACHED_ALTITUDE, Madara::Knowledge_Record::Integer(1));
+    }
+    else
+    {
+        variables.print("HAS NOT reached altitude yet\n", 1);
+        variables.set(MV_REACHED_ALTITUDE, Madara::Knowledge_Record::Integer(1));
+    }
+
+    return Madara::Knowledge_Record::Integer(1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -192,10 +219,11 @@ void define_sensor_functions (Madara::Knowledge_Engine::Knowledge_Base & knowled
 {
       knowledge.define_function ("read_thermal", read_thermal_sensor);
       knowledge.define_function ("read_gps", read_gps_sensor);
-      knowledge.define_function ("read_ultrasound", read_ultrasound);
+      knowledge.define_function ("read_altitude", read_altitude);
       knowledge.define_function ("read_sensors", read_sensors);
       knowledge.define_function ("read_battery", read_battery);
       knowledge.define_function ("sensors_gpsTargetReached", gpsTargetReached);
+      knowledge.define_function ("sensors_altitudeTargetReached", altitudeReached);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -206,38 +234,15 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
     expressions2[EVALUATE_SENSORS] = knowledge.compile
     (
         "read_battery();"
+        "read_gps();"
+        "read_altitude();"
         "read_thermal();"
 
-        // Note: since we are reading the ultrasound after the GPS, the height given by the ultrasound may overwrite the GPS 
-        // depending on our current height and the max height defined to be the ultrasound limit.
-        "read_gps();"
-        "read_ultrasound();"
-
-        // Check if we have reached our assigned altitude.
-        // NOTE: Should this be here or somewhere else?
-        "("
-            MV_IS_AT_ASSIGNED_ALTITUDE " = 0;"
-            "("
-                "(" MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}") " != 0) &&"
-                "(" MV_DEVICE_ALT("{" MV_MY_ID "}") " - " MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}") " < " HEIGHT_ACCURACY " ) && "
-                "(" MV_ASSIGNED_ALTITUDE("{" MV_MY_ID "}") " - " MV_DEVICE_ALT("{" MV_MY_ID "}") " < " HEIGHT_ACCURACY ")"
-            ") => "
-                "(" MV_IS_AT_ASSIGNED_ALTITUDE " = 1);"
-        ");"
-
-        // Check if we have landed.
-        // NOTE: Should this be here or somewhere else?
-        "("
-            MV_IS_LANDED " = 1;"
-            MV_DEVICE_ALT("{" MV_MY_ID "}") " > " LAND_ACCURACY " => " MV_IS_LANDED " = 0;"
-        ");"
+        // Check if we have reached our target altitude.
+        "sensors_altitudeTargetReached();"
 
         // Check if we have reached our GPS target, if any.
-        // NOTE: Should this be here or somewhere else?
-        "("
-            MV_REACHED_GPS_TARGET " = 0;"
-           "sensors_gpsTargetReached()" " => " MV_REACHED_GPS_TARGET " = 1;"
-        ");"
+        "sensors_gpsTargetReached();"
     );
 }
 
@@ -246,12 +251,13 @@ void compile_sensor_function_expressions (Madara::Knowledge_Engine::Knowledge_Ba
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SMASH::Sensors::SensorsModule::initialize(Madara::Knowledge_Engine::Knowledge_Base& knowledge)
 {
-    printf("SMASH::Sensors::initialize...\n");
+    knowledge.print("SMASH::Sensors::initialize...\n");
     platform_init_sensor_functions();
 
     define_sensor_functions(knowledge);
     compile_sensor_function_expressions(knowledge);
-    printf("leaving SMASH::Sensors::initialize...\n");
+
+    knowledge.print("leaving SMASH::Sensors::initialize...\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

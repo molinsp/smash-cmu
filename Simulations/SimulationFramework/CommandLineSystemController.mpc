@@ -3,6 +3,8 @@ project (CommandLineSystemController) : using_ace, using_madara, using_madara_cl
 
   exeout = bin
   exename = CommandLineSystemController
+
+  includes +=  ../../SystemControllerAPI
   
   Build_Files {
     SimulationFramework.mwc
@@ -12,12 +14,15 @@ project (CommandLineSystemController) : using_ace, using_madara, using_madara_cl
 
   Source_Files {
     ../../CommandLineSystemController
+    ../../SystemControllerAPI
     ../../DroneController/packages/madara_client/platforms/comm
     ../../DroneController/packages/madara_client/platforms/comm/multicast
+    ../../DroneController/packages/madara_client/utilities/string_utils.cpp
   }
 
   Header_Files {
     ../../DroneController/packages/madara_client/utilities
+    ../../SystemControllerAPI
     ../../DroneController/packages/madara_client/platforms/comm
     ../../DroneController/packages/madara_client/platforms/comm/multicast
   }

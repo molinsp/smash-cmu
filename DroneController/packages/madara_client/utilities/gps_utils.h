@@ -6,29 +6,18 @@
  *********************************************************************/
 
 /*********************************************************************
- * utilities_module.h - Declares the module for utilities.
+ * gps_utils.h - Declares GPS-related util functions.
  *********************************************************************/
 
-#ifndef _UTILITIES_MODULE_H
-#define _UTILITIES_MODULE_H
-
-#include "module.h"
+#ifndef _GPS_UTILS_H
+#define _GPS_UTILS_H
 
 namespace SMASH
 {
 	namespace Utilities
 	{
-		/**
-		  * Class that implements the IModule interface for utilities.
-		  */
-		class UtilitiesModule: public IModule
-		{
-		public:
-            // Interface functions.
-			virtual void initialize(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
-			virtual void cleanup(Madara::Knowledge_Engine::Knowledge_Base &knowledge);
-			virtual std::string get_core_function();
-		};
+        // Calculates the distance in meters between two sets of coordinates.
+        double gps_coordinates_distance(double lat1, double long1, double lat2, double long2);
 	}
 }
 

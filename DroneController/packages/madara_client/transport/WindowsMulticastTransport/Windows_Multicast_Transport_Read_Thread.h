@@ -48,8 +48,9 @@ public:
     SOCKET & write_socket,
     const char* mc_ipaddr,
     int mc_port,
-    Madara::Knowledge_Engine::Bandwidth_Monitor & send_monitor,
-    Madara::Knowledge_Engine::Bandwidth_Monitor & receive_monitor);
+    Madara::Transport::Bandwidth_Monitor & send_monitor,
+    Madara::Transport::Bandwidth_Monitor & receive_monitor,
+    Madara::Transport::Packet_Scheduler & packet_scheduler);
       
   /**
   * Destructor
@@ -129,10 +130,13 @@ private:
       qos_settings_;
       
     /// monitor for sending bandwidth usage
-    Madara::Knowledge_Engine::Bandwidth_Monitor   &   send_monitor_;
+    Madara::Transport::Bandwidth_Monitor   &   send_monitor_;
       
     /// monitor for receiving bandwidth usage
-    Madara::Knowledge_Engine::Bandwidth_Monitor   &   receive_monitor_;
+    Madara::Transport::Bandwidth_Monitor   &   receive_monitor_;
+
+    /// scheduler for mimicking real-world packet dropping
+    Madara::Transport::Packet_Scheduler &      packet_scheduler_;
 
     /// data received rules, defined in Transport settings
     Madara::Knowledge_Engine::Compiled_Expression  on_data_received_;

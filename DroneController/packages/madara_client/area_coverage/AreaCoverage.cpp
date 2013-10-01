@@ -74,8 +74,10 @@ Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
     }
 
     // Just for debugging purposes, print the grid we are searching in.
-    string out = "Choosing my cell in given grid: NW = " + grid.northWest.toString() + " SE = ";
-    out += grid.southEast.toString();
+    Position northWest = grid.northWest;
+    Position southEast = grid.southEast;
+    string out = "Choosing my cell in given grid: NW = " + northWest.toString() + " SE = ";
+    out += southEast.toString();
     printf("%s\n", out.c_str());
 
     // Get the two divisors of the number of drones that are more similar to one

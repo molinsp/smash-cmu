@@ -11,7 +11,8 @@
 
 #include "madara/utility/Log_Macros.h"
 #include "madara/transport/Reduced_Message_Header.h"
-#include "madara/knowledge_engine/Bandwidth_Monitor.h"
+#include "madara/transport/Bandwidth_Monitor.h"
+#include "madara/transport/Packet_Scheduler.h"
 
 #include <ws2tcpip.h>
 #include <iostream>
@@ -143,15 +144,17 @@ Windows_Multicast_Transport_Read_Thread::Windows_Multicast_Transport_Read_Thread
   SOCKET & write_socket,
   const char* mc_ipaddr,
   int mc_port,
-  Madara::Knowledge_Engine::Bandwidth_Monitor & send_monitor,
-  Madara::Knowledge_Engine::Bandwidth_Monitor & receive_monitor)
+  Madara::Transport::Bandwidth_Monitor & send_monitor,
+  Madara::Transport::Bandwidth_Monitor & receive_monitor,
+  Madara::Transport::Packet_Scheduler & packet_scheduler)
   : settings_ (settings), id_ (id), context_ (context),
     barrier_ (2), 
     terminated_ (false), 
     is_ready_ (false),
     write_socket_ (write_socket),
     send_monitor_ (send_monitor),
-    receive_monitor_ (receive_monitor)
+    receive_monitor_ (receive_monitor),
+    packet_scheduler_ (packet_scheduler)
 {
   mc_ipaddr_ = NULL;
 
@@ -281,7 +284,9 @@ Windows_Multicast_Transport_Read_Thread::rebroadcast (
   int64_t buffer_remaining = (int64_t) settings_.queue_length;
   char * buffer = buffer_.get_ptr ();
   int result = prep_rebroadcast (buffer, buffer_remaining,
-                                 *qos_settings_, print_prefix, header, records);
+                                 *qos_settings_, print_prefix,
+                                 header, records,
+                                 packet_scheduler_);
 
   if (result > 0)
   {

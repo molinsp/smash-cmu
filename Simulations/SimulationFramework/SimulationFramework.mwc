@@ -6,4 +6,5 @@ workspace {
   CommandLineSystemController.mpc
   V-RepMadaraQuadrotorControlPlugin.mpc
   V-RepMadaraSystemControllerPlugin.mpc
+  V-RepMadaraSystemControllerSimplePlugin.mpc
 }

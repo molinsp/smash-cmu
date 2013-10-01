@@ -109,37 +109,42 @@ void simExtMadaraSystemControllerBridgeRequest(SLuaCallBack* p)
 
         // Get the values from the concatenated string with all of them.
         // NOTE: these parameters are sent as strings since there seems to be problems with large double numbers between Lua and C++ in Vrep.
-        std::string sourceTopLeftX(p->inputChar);
-        std::string sourceTopLeftY(p->inputChar+sourceTopLeftX.length()+1);
-        std::string sourceBotRightX(p->inputChar+sourceTopLeftX.length()+sourceTopLeftY.length()+2);
-        std::string sourceBotRightY(p->inputChar+sourceTopLeftX.length()+sourceTopLeftY.length()+sourceBotRightX.length()+3);
+        std::string sourceNorthWestLat(p->inputChar);
+        std::string sourceNorthWestLong(p->inputChar+sourceNorthWestLat.length()+1);
+        std::string sourceSouthEastLat(p->inputChar+sourceNorthWestLat.length()+sourceNorthWestLong.length()+2);
+        std::string sourceSouthEastLong(p->inputChar+sourceNorthWestLat.length()+sourceNorthWestLong.length()+sourceSouthEastLat.length()+3);
 
-        int sinkPosStart = sourceTopLeftX.length()+sourceTopLeftY.length()+sourceBotRightX.length()+sourceBotRightY.length()+4;
-        std::string sinkTopLeftX(p->inputChar+sinkPosStart);
-        std::string sinkTopLeftY(p->inputChar+sinkPosStart+sinkTopLeftX.length()+1);
-        std::string sinkBotRightX(p->inputChar+sinkPosStart+sinkTopLeftX.length()+sinkTopLeftY.length()+2);
-        std::string sinkBotRightY(p->inputChar+sinkPosStart+sinkTopLeftX.length()+sinkTopLeftY.length()+sinkBotRightX.length()+3);
+        int sinkPosStart = sourceNorthWestLong.length()+sourceNorthWestLat.length()+sourceSouthEastLong.length()+sourceSouthEastLat.length()+4;
+        std::string sinkNorthWestLat(p->inputChar+sinkPosStart);
+        std::string sinkNorthWestLong(p->inputChar+sinkPosStart+sinkNorthWestLat.length()+1);
+        std::string sinkSouthEastLat(p->inputChar+sinkPosStart+sinkNorthWestLat.length()+sinkNorthWestLong.length()+2);
+        std::string sinkSouthEastLong(p->inputChar+sinkPosStart+sinkNorthWestLat.length()+sinkNorthWestLong.length()+sinkSouthEastLat.length()+3);
 
         // Create positions based on the received parameters, turning the strings into doubles.
-        Region startRegion;
-        startRegion.topLeftCorner.x = atof(sourceTopLeftX.c_str());
-        startRegion.topLeftCorner.y = atof(sourceTopLeftY.c_str());
-        startRegion.bottomRightCorner.x = atof(sourceBotRightX.c_str());
-        startRegion.bottomRightCorner.y = atof(sourceBotRightY.c_str());
+        Position startNorthWest;
+        Position startSouthEast;
+        startNorthWest.longitude = atof(sourceNorthWestLong.c_str());
+        startNorthWest.latitude = atof(sourceNorthWestLat.c_str());
+        startSouthEast.longitude = atof(sourceSouthEastLong.c_str());
+        startSouthEast.latitude = atof(sourceSouthEastLat.c_str());
+        Region startRegion(startNorthWest, startSouthEast);
 
-        Region endRegion;
-        endRegion.topLeftCorner.x = atof(sinkTopLeftX.c_str());
-        endRegion.topLeftCorner.y = atof(sinkTopLeftY.c_str());
-        endRegion.bottomRightCorner.x = atof(sinkBotRightX.c_str());
-        endRegion.bottomRightCorner.y = atof(sinkBotRightY.c_str());
+        Position endNorthWest;
+        Position endSouthEast;
+        endNorthWest.longitude = atof(sinkNorthWestLong.c_str());
+        endNorthWest.latitude = atof(sinkNorthWestLat.c_str());
+        endSouthEast.longitude = atof(sinkSouthEastLong.c_str());
+        endSouthEast.latitude = atof(sinkSouthEastLat.c_str());
+        Region endRegion(endNorthWest, endSouthEast);
 
         // For debugging, print out what we received.
         std::stringstream sstm; 
         sstm << "Values received inside simExtMadaraSystemControllerBridgeRequest function: bridgeId:" << bridgeId << ", " << std::setprecision(10)
-            << " (" << startRegion.topLeftCorner.x << "," << startRegion.topLeftCorner.y << ")"
-            << " (" << startRegion.bottomRightCorner.x << "," << startRegion.bottomRightCorner.y << ")"
-            << " (" << endRegion.topLeftCorner.x << "," << endRegion.topLeftCorner.y << ")"
-            << " (" << endRegion.bottomRightCorner.x << "," << endRegion.bottomRightCorner.y << ")"
+            << "(lat, lon): "
+            << " (" << startRegion.northWest.latitude << "," << startRegion.northWest.longitude << ")"
+            << " (" << startRegion.southEast.latitude << "," << startRegion.southEast.longitude << ")"
+            << " (" << endRegion.northWest.latitude << "," << endRegion.northWest.longitude << ")"
+            << " (" << endRegion.southEast.latitude << "," << endRegion.southEast.longitude << ")"
             << std::endl;
         simAddStatusbarMessage(sstm.str().c_str());
 
@@ -156,12 +161,12 @@ void registerMadaraSystemControllerBridgeRequestLuaCallback()
     // Register the simExtGetPositionInBridge function.
     simRegisterCustomLuaFunction("simExtMadaraSystemControllerBridgeRequest",                         // The Lua function name.
                                  "simExtMadaraSystemControllerBridgeRequest(int bridgeId, "          // A tooltip to be shown to help the user know how to call it.
-                                                                 "float sourceTopleftX,"
-                                                                 "float sourceTopleftY,"
+                                                                 "float sourceNorthWestLong,"
+                                                                 "float sourceNorthWestLat,"
                                                                  "float sourceBottomrightX,"
                                                                  "float sourceBottomrightY,"
-                                                                 "float sinkTopleftX,"
-                                                                 "float sinkTopleftY,"
+                                                                 "float sinkNorthWestLong,"
+                                                                 "float sinkNorthWestLat,"
                                                                  "float sinkBottomrightX,"
                                                                  "float sinkBottomrightY)",
                                  g_bridgeRequestInArgs,                                                    // The argument types.
@@ -185,6 +190,11 @@ void simExtMadaraSystemControllerUpdateStatus(SLuaCallBack* p)
     { 
         // Get the number of drones.
         int totalNumberOfDrones = p->inputInt[0];
+
+        // For debugging, print out what we received.
+        std::stringstream sstm; 
+        sstm << "Values received inside simExtMadaraSystemControllerUpdateStatus function: totalNumberOfDrones:" << totalNumberOfDrones << std::endl;
+        simAddStatusbarMessage(sstm.str().c_str());
 
         // Propagate the status information through the network.
         madaraController->updateGeneralParameters(totalNumberOfDrones);
@@ -230,23 +240,25 @@ void simExtMadaraSystemControllerSetupSearchArea(SLuaCallBack* p)
 
         // Get the values from the concatenated string with all of them.
         // NOTE: these parameters are sent as strings since there seems to be problems with large double numbers between Lua and C++ in Vrep.
-        std::string topLeftX(p->inputChar);
-        std::string topLeftY(p->inputChar+topLeftX.length()+1);
-        std::string botRightX(p->inputChar+topLeftX.length()+topLeftY.length()+2);
-        std::string botRightY(p->inputChar+topLeftX.length()+topLeftY.length()+botRightX.length()+3);
+        std::string northWestLat(p->inputChar);
+        std::string northWestLong(p->inputChar+northWestLat.length()+1);
+        std::string southEastLat(p->inputChar+northWestLat.length()+northWestLong.length()+2);
+        std::string southEastLong(p->inputChar+northWestLat.length()+northWestLong.length()+southEastLat.length()+3);
 
         // Create a region based on the received parameters, turning the strings into doubles.
-        Region searchAreaRegion;
-        searchAreaRegion.topLeftCorner.x = atof(topLeftX.c_str());
-        searchAreaRegion.topLeftCorner.y = atof(topLeftY.c_str());
-        searchAreaRegion.bottomRightCorner.x = atof(botRightX.c_str());
-        searchAreaRegion.bottomRightCorner.y = atof(botRightY.c_str());
+        Position northWest;
+        Position southEast;
+        northWest.longitude = atof(northWestLong.c_str());
+        northWest.latitude = atof(northWestLat.c_str());
+        southEast.longitude = atof(southEastLong.c_str());
+        southEast.latitude = atof(southEastLat.c_str());
+        Region searchAreaRegion(northWest, southEast);
 
         // For debugging, print out what we received.
         char message[500];
-        sprintf(message, "In SetupSearchArea: %d; (x,y) = %.20f,%.20f, x2,y2 = %.20f,%.20f \n", 
-                searchAreaId,    searchAreaRegion.topLeftCorner.x,searchAreaRegion.topLeftCorner.y, 
-                                searchAreaRegion.bottomRightCorner.x, searchAreaRegion.bottomRightCorner.y);
+        sprintf(message, "In SetupSearchArea: %d; NW(lat,long) = %.20f,%.20f, SE(lat,long) = %.20f,%.20f \n", 
+                searchAreaId,   searchAreaRegion.northWest.latitude, searchAreaRegion.northWest.longitude, 
+                                searchAreaRegion.southEast.latitude, searchAreaRegion.southEast.longitude);
         simAddStatusbarMessage(message);
 
         // Tell the controller to actually set up this area.
@@ -262,8 +274,8 @@ void registerMadaraSystemControllerSetupSearchAreaLuaCallback()
     // Register the simExtGetPositionInBridge function.
     simRegisterCustomLuaFunction("simExtMadaraSystemControllerSetupSearchArea",                       // The Lua function name.
                                  "simExtMadaraSystemControllerSetupSearchArea(int areaId,"
-                                                                  " float x1, float y1,"
-                                                                  " float x2, float y2)",   // A tooltip to be shown to help the user know how to call it.
+                                                                  " float lat1, float long1,"
+                                                                  " float lat2, float long2)",   // A tooltip to be shown to help the user know how to call it.
                                  g_setupSearchAreaInArgs,                                                    // The argument types.
                                  simExtMadaraSystemControllerSetupSearchArea);                        // The C function that will be called by the Lua function.
 }
