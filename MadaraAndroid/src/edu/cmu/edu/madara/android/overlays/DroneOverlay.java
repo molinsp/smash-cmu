@@ -19,7 +19,7 @@ public class DroneOverlay {
 	
 	private HashMap<String, Drone> droneMap;
 	private HashMap<String, Marker> droneMarkers;
-	private BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.asset_marker);
+	private BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.asset_marker2);
 	
 	public DroneOverlay(){
 		droneMap = new HashMap<String, Drone>();

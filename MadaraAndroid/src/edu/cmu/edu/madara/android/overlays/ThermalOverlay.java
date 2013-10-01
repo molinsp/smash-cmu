@@ -16,7 +16,7 @@ public class ThermalOverlay {
 	
 	private HashMap<String, Thermal> thermals;
 	private HashMap<String, Marker> thermalMarkers;
-	private BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.asset_marker_distress);
+	private BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.asset_marker_distress2);
 	
 	public ThermalOverlay(){
 		thermals = new HashMap<String, Thermal>();

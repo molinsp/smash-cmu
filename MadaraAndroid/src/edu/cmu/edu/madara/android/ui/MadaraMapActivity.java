@@ -569,7 +569,7 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 					binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_BOTTOM_RIGHT_LOCATION+"=\""+bottomRight.latitude+","+bottomRight.longitude+"\"");
 					binder.sendMadaraMessage("bridge."+bridgeId+"."+MadaraConstants.BRIDGE_ENDPOINT_1+"="+regionId);
 					
-					marker1.remove();
+					//marker1.remove();
 					marker1 = null;
 				}
 				if(marker2!=null){
@@ -583,10 +583,10 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 					binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_TOP_LEFT_LOCATION+"=\""+topLeft.latitude+","+topLeft.longitude+"\"");
 					binder.sendMadaraMessage("region."+regionId+"."+MadaraConstants.REGION_BOTTOM_RIGHT_LOCATION+"=\""+bottomRight.latitude+","+bottomRight.longitude+"\"");
 					binder.sendMadaraMessage("bridge."+bridgeId+"."+MadaraConstants.BRIDGE_ENDPOINT_2+"="+regionId);
-					binder.sendMadaraMessage("bridges="+bridgeId+1);
+					binder.sendMadaraMessage("bridges="+(bridgeId+1));
 					binder.sendMadaraMessage("bridge."+MadaraConstants.BRIDGE_REUQESTED+"=1");
 					
-					marker2.remove();
+					//marker2.remove();
 					marker2 = null;
 				}
 				
