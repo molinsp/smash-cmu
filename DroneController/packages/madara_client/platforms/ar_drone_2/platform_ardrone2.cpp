@@ -27,6 +27,7 @@ bool platform_init()
 	if (!drk_init_status)
 	{
 		drk_init();
+		drk_calibrate_abs_altitude(0);
 		drk_init_status = true;
 	}
 	return drk_init_status;
@@ -64,8 +65,9 @@ bool platform_init_control_functions()
 void platform_takeoff()
 {
 	printf("In AR_DRDONE_2 execute_takeoff()\n");
-  drk_ar_flat_trim();
 	drk_takeoff();
+	sleep(5000);
+	drk_autonomous_resume();
 }
 void platform_land()
 {
@@ -112,7 +114,7 @@ void platform_move_backward()
 
 void platform_stop_movement()
 {
-    drk_stop_movement();
+    drk_autonomous_pause();
 }
 
 void platform_move_to_location(double lat, double lon, double alt)
@@ -132,7 +134,7 @@ void platform_move_to_altitude(double alt)
 bool platform_location_reached()
 {
     // TODO: implement this when there is a function for this in the DroneRK API. Currently not being used.
-    return false;
+    return drk_target_reached();
 }
 
 bool platform_altitude_reached()
@@ -187,7 +189,7 @@ void platform_read_thermal(double buffer[8][8])
 void platform_read_gps(struct madara_gps * ret)
 {
     printf("entering read_gps\n");
-	struct gps gps = drk_gps_data();
+	gps_t gps = drk_gps_data();
 	ret->latitude = gps.latitude;
 	ret->longitude = gps.longitude;
     ret->altitude = gps.altitude;
@@ -212,7 +214,7 @@ double platform_get_altitude()
     {
         // If we are higher than the ultrasound sensor's limits, this height can't  be
         // trusted, and we should get the GPS-provided altitude instead.
-        struct gps gpsData = drk_gps_data();
+        gps_t gpsData = drk_gps_data();
         double gpsAltitude = gpsData.altitude;
         currentAltitude = gpsAltitude;
     }
