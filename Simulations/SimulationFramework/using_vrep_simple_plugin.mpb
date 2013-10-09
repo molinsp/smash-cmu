@@ -5,6 +5,6 @@ project : using_vrep_plugin {
   }
 
   Header_Files {
-    V-RepPluginUtils/SimplePluginInterface.h
+    V-RepPluginUtils/ISimplePlugin.h
   }
 }

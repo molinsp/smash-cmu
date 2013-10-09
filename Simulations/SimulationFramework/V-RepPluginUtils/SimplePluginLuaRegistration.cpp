@@ -7,7 +7,7 @@
 
 #include "LuaFunctionRegistration.h"
 #include "LuaExtensionsUtils.h"
-#include "SimplePluginInterface.h"
+#include "ISimplePlugin.h"
 
 #include <string>
 #include <sstream>
@@ -18,7 +18,7 @@
  */
 
 // This is the plugin we will use, but it will be defined elsewhere.
-SMASH::ISimplePlugin* plugin;
+VREP::ISimplePlugin* plugin;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Sets up the plugin.

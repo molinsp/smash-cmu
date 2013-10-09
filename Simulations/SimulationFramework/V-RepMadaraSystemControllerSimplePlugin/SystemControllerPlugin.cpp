@@ -11,7 +11,10 @@
 
 #include "SystemControllerPlugin.h"
 #include "v_repLib.h"
+#include "PluginUtils.h"
+#include "utilities/gps_utils.h"
 #include <string>
+#include <vector>
 
 // Id for a controller, a plugin must have this value as its Madara id.
 const int PLUGIN_CONTROLLER_ID = 202;
@@ -27,74 +30,76 @@ const std::string SYSTEM_CONTROLLER_COMMAND_START_BRIDGE = "Form Bridge";
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // We have to create an actual object of this type so that the plugin DLL entry points will have access to it.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-SMASH::ISimplePlugin* createPlugin()
+VREP::ISimplePlugin* createPlugin()
 {
-    SMASH::SystemControllerPlugin* plugin = new SMASH::SystemControllerPlugin();
+    VREP::SystemControllerPlugin* plugin = new VREP::SystemControllerPlugin();
     return plugin;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Gets a param of double type.
+// ISimpleInterface: Called when plugin is initialized.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-double getDoubleParam(std::string paramName)
+void VREP::SystemControllerPlugin::initialize(int suffix)
 {
-    // Buffer to get the parameter as a string.
-    int paramBufferSize = 100;
-    char* paramBuffer;
+    simAddStatusbarMessage("SystemControllerPlugin::initialize: Initializing System Controller.");
 
-    // Get the param as a string.
-    double paramValue = 0;
-	paramBuffer = simGetScriptSimulationParameter(sim_handle_main_script, paramName.c_str(), &paramBufferSize);
+    m_searchRequestId = 0;
+    m_bridgeRequestId = 0;
 
-    // If we got it, try to convert it to double and clear the buffer.
-    if(paramBuffer == NULL)
+    // Setup Madara for communications.
+    m_madaraController = new MadaraController(PLUGIN_CONTROLLER_ID);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ISimpleInterface: Called when plugin is closing.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void VREP::SystemControllerPlugin::cleanup()
+{
+    simAddStatusbarMessage("SystemControllerPlugin::cleanup: Cleaning up System Controller.");
+
+    if(m_madaraController != NULL)
     {
-        paramValue = atof(paramBuffer);
-        simReleaseBuffer(paramBuffer);
+        delete m_madaraController;
+        m_madaraController = NULL;
     }
+}
 
-    return paramValue;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ISimpleInterface: Called in each step of the simulation.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void VREP::SystemControllerPlugin::executeStep()
+{
+    //simAddStatusbarMessage("SystemControllerPlugin::executeStep: Executing step.");
+    handleNewCommand();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ISimpleInterface: Returns a textual ID of this plugin.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string VREP::SystemControllerPlugin::getId()
+{
+    return "SystemController";
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-// Check for button presses, and return its text.
+// Handle button presses.
 ///////////////////////////////////////////////////////////////////////////////////////////////
-std::string getButtonPressedText(std::string uiName)
+void VREP::SystemControllerPlugin::handleNewCommand()
 {
-    // Get the details of the last button press, if any.
-    int commandsUIHandle = simGetUIHandle(uiName.c_str());
-    int eventDetails[2];
-    int buttonHandle = simGetUIEventButton(commandsUIHandle, eventDetails);
-
-    // If the button handle is valid and the second event detail is 0, it means a button was released.
-    bool buttonEventHappened = (buttonHandle != -1) ;
-    bool buttonWasReleased = (eventDetails[1] == 0);
-    if(buttonEventHappened && buttonWasReleased)
-    {
-        // Get the text of the button that was pressed.
-        char* buttonText = simGetUIButtonLabel(commandsUIHandle, buttonHandle);
-        std::string buttonTextString(buttonText);
-        simReleaseBuffer(buttonText);
-
-        simAddStatusbarMessage(("Button pressed and released! " + buttonTextString).c_str());        
-        return buttonTextString;
-    }
-
-    return "";
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-// Check for button presses.
-///////////////////////////////////////////////////////////////////////////////////////////////
-void SMASH::SystemControllerPlugin::handleNewCommand()
-{
-    std::string buttonPressedText = getButtonPressedText(SYSTEM_CONTROLLER_COMMANDS_UI_NAME);
+    std::string buttonPressedText = PluginUtils::getButtonPressedText(SYSTEM_CONTROLLER_COMMANDS_UI_NAME);
     if(buttonPressedText != "")
     {
         // Send network-wide parameters (radio range, num drones, min height).
         if(buttonPressedText == SYSTEM_CONTROLLER_COMMAND_SETUP_PARAMS)
         {
-            m_madaraController->updateGeneralParameters(m_numDrones);
+            // Get the various user setup parameters.
+            double numDrones = (int) PluginUtils::getDoubleParam("numberOfDrones");
+            double radioRange = PluginUtils::getDoubleParam("radioRange");
+            double minAltitude = PluginUtils::getDoubleParam("minimumAltitude");
+            double heightDiff = PluginUtils::getDoubleParam("heightDiff");
+
+            // Send the parameters.
+            m_madaraController->updateGeneralParameters(numDrones, radioRange, minAltitude, heightDiff);
         }
 
         // Send network-wide parameters (radio range, num drones, min height).
@@ -112,7 +117,7 @@ void SMASH::SystemControllerPlugin::handleNewCommand()
         // Start a search request if that button was pressed.
         if(buttonPressedText == SYSTEM_CONTROLLER_COMMAND_START_SEARCH)
         {
-            //sendSearchRequest();
+            sendSearchRequest();
         }
 		
         // Start a bridge request if that button was pressed.
@@ -123,54 +128,70 @@ void SMASH::SystemControllerPlugin::handleNewCommand()
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void SMASH::SystemControllerPlugin::initialize(int suffix)
+///////////////////////////////////////////////////////////////////////////////////////////////
+// Sets all variables to be sent to the drones for a search request.
+///////////////////////////////////////////////////////////////////////////////////////////////
+void VREP::SystemControllerPlugin::sendSearchRequest()
 {
-    simAddStatusbarMessage("SystemControllerPlugin::initialize: Initializing System Controller.");
+    // Setup the search area.
+    int areaId = setupSearchArea();
 
-    m_searchRequestId = 0;
-    m_bridgeRequestId = 0;
-
-    // Get the various user setup parameters.
-    m_numDrones = (int) getDoubleParam("numberOfDrones");
-    double radioRange = getDoubleParam("radioRange");
-    double minAltitude = getDoubleParam("minimumAltitude");
-    double lineWidth = getDoubleParam("searchLineWidth");
-    double heightDiff = getDoubleParam("searchHeightDiff");
-
-    // Setup Madara for communications.
-    m_madaraController = new MadaraController(PLUGIN_CONTROLLER_ID, radioRange, minAltitude, lineWidth, heightDiff);
+    // Add the drones to the search area, and tell them to go search.
+    double numDrones = (int) PluginUtils::getDoubleParam("numberOfDrones");
+    sendSearchRequestToDrones(numDrones, areaId);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void SMASH::SystemControllerPlugin::cleanup()
+///////////////////////////////////////////////////////////////////////////////////////////////
+// Sets up the search area for the whole network.
+///////////////////////////////////////////////////////////////////////////////////////////////
+int VREP::SystemControllerPlugin::setupSearchArea()
 {
-    simAddStatusbarMessage("SystemControllerPlugin::cleanup: Cleaning up System Controller.");
+    // Set up the search area, getting the boundaries from the parameters.
+    double x1 =  PluginUtils::getDoubleParam("x1");
+    double y1 = PluginUtils::getDoubleParam("y1");
+    double x2 = PluginUtils::getDoubleParam("x2");
+    double y2 = PluginUtils::getDoubleParam("y2");
 
-    if(m_madaraController != NULL)
+    // This reference point is chosen to get better latitudes. Now it is at CMU.
+    SMASH::Utilities::Position referencePoint;
+    referencePoint.latitude = 40.44108;
+    referencePoint.longitude = -79.947164;
+
+    // Transform the x and y positions we have into lat and long using the reference point.
+    SMASH::Utilities::Position startPoint = SMASH::Utilities::getLatAndLong(x1, y1, referencePoint);
+    SMASH::Utilities::Position endPoint = SMASH::Utilities::getLatAndLong(x2, y2, referencePoint);
+    simAddStatusbarMessage(std::string("Search area: " + startPoint.toString() + "; " + endPoint.toString()).c_str());
+
+    // Create a region with these endpoints.
+    SMASH::Utilities::Region searchArea(startPoint, endPoint);
+
+    // Set the area in Madara.
+    int searchAreaId = m_searchRequestId++;
+    m_madaraController->setNewSearchArea(searchAreaId, searchArea);
+
+    return searchAreaId;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+// Adds drones to a search area, by requesting that out of each of them.
+///////////////////////////////////////////////////////////////////////////////////////////////
+void VREP::SystemControllerPlugin::sendSearchRequestToDrones(int numDrones, int areaId)
+{
+	// Get configurable parameters for the search.
+	std::string coverageAlgorithm = PluginUtils::getStringParam("coverageAlgorithm");
+	std::string humanDetectionAlgorithm = PluginUtils::getStringParam("humanDetectionAlgorithm");
+    double lineWidth = PluginUtils::getDoubleParam("searchLineWidth");
+	int waitForRest = (int) PluginUtils::getDoubleParam("waitForRest");
+    
+    // Load the drone ids into a vector. We assume that numDrones is equivalent to the max id of the drones in the simulation,
+    // and that all drone ids are sequential starting from 0.
+    std::vector<int> droneIds = std::vector<int>(numDrones);
+    for(int currDroneId = 0; currDroneId < numDrones; currDroneId++)
     {
-        delete m_madaraController;
-        m_madaraController = NULL;
+        droneIds.push_back(currDroneId);
     }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void SMASH::SystemControllerPlugin::executeStep()
-{
-    //simAddStatusbarMessage("SystemControllerPlugin::executeStep: Executing step.");
-    handleNewCommand();
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::string SMASH::SystemControllerPlugin::getId()
-{
-    return "SystemController";
+    simAddStatusbarMessage(std::string("Drone ids size: " +numDrones).c_str());
+    
+    // Ask Madara to send the search request.
+    m_madaraController->requestAreaCoverage(droneIds, areaId, coverageAlgorithm, waitForRest, lineWidth, humanDetectionAlgorithm);
 }
