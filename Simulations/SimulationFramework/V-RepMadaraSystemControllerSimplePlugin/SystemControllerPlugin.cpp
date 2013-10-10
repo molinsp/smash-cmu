@@ -147,10 +147,15 @@ void VREP::SystemControllerPlugin::sendSearchRequest()
 int VREP::SystemControllerPlugin::setupSearchArea()
 {
     // Set up the search area, getting the boundaries from the parameters.
-    double x1 =  PluginUtils::getDoubleParam("x1");
+    double x1 = PluginUtils::getDoubleParam("x1");
     double y1 = PluginUtils::getDoubleParam("y1");
     double x2 = PluginUtils::getDoubleParam("x2");
     double y2 = PluginUtils::getDoubleParam("y2");
+
+    // Print params we got.
+    std::stringstream sstream;
+    sstream << std::setprecision(10) << "Search area in meters: " << x1 << "," << y1 << ";" << x2 << "," << y2;
+    simAddStatusbarMessage(sstream.str().c_str());
 
     // This reference point is chosen to get better latitudes. Now it is at CMU.
     SMASH::Utilities::Position referencePoint;
@@ -185,12 +190,16 @@ void VREP::SystemControllerPlugin::sendSearchRequestToDrones(int numDrones, int 
     
     // Load the drone ids into a vector. We assume that numDrones is equivalent to the max id of the drones in the simulation,
     // and that all drone ids are sequential starting from 0.
-    std::vector<int> droneIds = std::vector<int>(numDrones);
+    std::vector<int> droneIds = std::vector<int>();
     for(int currDroneId = 0; currDroneId < numDrones; currDroneId++)
     {
         droneIds.push_back(currDroneId);
     }
-    simAddStatusbarMessage(std::string("Drone ids size: " +numDrones).c_str());
+
+    // Print info of what we got.
+    std::stringstream sstream;
+    sstream << "Drone ids size: " << droneIds.size();
+    simAddStatusbarMessage(sstream.str().c_str());
     
     // Ask Madara to send the search request.
     m_madaraController->requestAreaCoverage(droneIds, areaId, coverageAlgorithm, waitForRest, lineWidth, humanDetectionAlgorithm);

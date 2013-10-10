@@ -54,9 +54,9 @@ double SMASH::Utilities::gps_coordinates_distance (double lat1, double long1, do
 SMASH::Utilities::Position SMASH::Utilities::getLatAndLong(int x, int y, SMASH::Utilities::Position referencePoint)
 {
     // Get the deltas from reference point.
-    double latitudePerimeter =  EARTH_EQUATORIAL_PERIMETER * cos(DEG_TO_RAD(referencePoint.latitude));
-    double deltaLongitude = x * DEGREES_IN_CIRCUMFERENCE / latitudePerimeter;
-    double deltaLatitude = y * DEGREES_IN_CIRCUMFERENCE / EARTH_POLES_PERIMETER;
+    double perimeterAtRefLatitude =  EARTH_EQUATORIAL_PERIMETER * cos(DEG_TO_RAD(referencePoint.latitude));
+    double deltaLongitude = x * DEGREES_IN_CIRCUMFERENCE / perimeterAtRefLatitude;
+    double deltaLatitude  = y * DEGREES_IN_CIRCUMFERENCE / EARTH_POLES_PERIMETER;
     
     // Get the lat and long.
     double latitude = deltaLatitude + referencePoint.latitude;

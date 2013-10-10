@@ -27,10 +27,14 @@ double PluginUtils::getDoubleParam(std::string paramName)
 	paramBuffer = simGetScriptSimulationParameter(sim_handle_main_script, paramName.c_str(), &paramBufferSize);
 
     // If we got it, try to convert it to double and clear the buffer.
-    if(paramBuffer == NULL)
+    if(paramBuffer != NULL)
     {
         paramValue = atof(paramBuffer);
         simReleaseBuffer(paramBuffer);
+    }
+    else
+    {
+        simAddStatusbarMessage(("Double parameter " + paramName + " not found, returning default value.").c_str());
     }
 
     return paramValue;
@@ -50,10 +54,14 @@ std::string PluginUtils::getStringParam(std::string paramName)
 	paramBuffer = simGetScriptSimulationParameter(sim_handle_main_script, paramName.c_str(), &paramBufferSize);
 
     // If we got it, try to convert it to string and clear the buffer.
-    if(paramBuffer == NULL)
+    if(paramBuffer != NULL)
     {
         paramValue = std::string(paramBuffer);
         simReleaseBuffer(paramBuffer);
+    }
+    else
+    {
+        simAddStatusbarMessage(("String parameter " + paramName + " not found, returning default value.").c_str());
     }
 
     return paramValue;
@@ -79,7 +87,7 @@ std::string PluginUtils::getButtonPressedText(std::string uiName)
         std::string buttonTextString(buttonText);
         simReleaseBuffer(buttonText);
 
-        simAddStatusbarMessage(("Button pressed and released: " + buttonTextString).c_str());        
+        simAddStatusbarMessage(("Button pressed and released: " + buttonTextString).c_str());
         return buttonTextString;
     }
 
