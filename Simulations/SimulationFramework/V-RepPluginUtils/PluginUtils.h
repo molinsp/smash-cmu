@@ -23,9 +23,16 @@ namespace VREP
     class PluginUtils
     {
     public:
+        // Get simulation params setup on the main object, with different types.
+        static int getIntParam(std::string paramName);
         static double getDoubleParam(std::string paramName);
         static std::string getStringParam(std::string paramName);
+
+        // Get the text of a button pressed on this step, if any.
         static std::string getButtonPressedText(std::string uiName);
+
+        // Bla.
+
     };
 }
 

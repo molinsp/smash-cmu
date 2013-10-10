@@ -38,9 +38,6 @@ function doInitialSetup()
 	g_mySuffix = simGetNameSuffix(nil)
 	g_myDroneId = g_mySuffix + 1     -- Drone ids start from 0, while suffixes start from -1.
     g_myDroneName = getDroneInfoFromId(g_myDroneId)	
-
-    -- Load the positions of people on the grid, so we will know when we find one.
-    loadPeoplePositions()
     
     -- Min default altitude.
     g_minAltitude = simGetScriptSimulationParameter(sim_handle_main_script, 'minimumAltitude')
@@ -51,6 +48,8 @@ function doInitialSetup()
     g_myTargetLat = 0
     g_myAssignedAlt = g_minAltitude    
 	g_flying = false
+	
+	g_numPeople = 2
 	
 	-- Setup a random seed for thermals.
 	math.randomseed( os.time() )
@@ -129,11 +128,17 @@ function lookForPersonBelow()
     -- Check if we found a person, to stop.
 	local humanFound = false
     for i=1, g_numPeople, 1 do
-		humanFound = isPersonBelow(dronePos, g_personCoords[i])
+		-- Calculate the name of this person.
+		personName = 'Bill#'
+		if(i~=1) then
+			personName = personName .. (i-2)
+		end
+	
+		humanFound = isPersonBelow(dronePos, personName)
         if(humanFound) then
             -- Notify our shared memory that a person was found, and that I was the one to find it.
             local sourceSuffix, sourceName = simGetNameSuffix(nil)
-            simSetScriptSimulationParameter(sim_handle_main_script, 'personFoundId', i)
+            simSetScriptSimulationParameter(sim_handle_main_script, 'personFoundName', personName)
             simSetScriptSimulationParameter(sim_handle_main_script, 'droneThatFound', sourceSuffix)
             --simAddStatusbarMessage('Drone with id ' .. g_myDroneId .. ' is seeing person ' .. i .. '!')
 			break
@@ -170,7 +175,8 @@ end
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Check if we have found a person to stop on top of it.
 --/////////////////////////////////////////////////////////////////////////////////////////////
-function isPersonBelow(dronePos, personCoord)
+function isPersonBelow(dronePos, personName)
+	personCoord = getPersonPositionInDegrees(personName)
     local margin = PERSON_FOUND_ERROR_MARGIN
     if( (dronePos['latitude'] >= personCoord['latitude'] - margin) and (dronePos['latitude'] <= personCoord['latitude'] + margin) ) then
         if((dronePos['longitude'] >= personCoord['longitude'] - margin) and (dronePos['longitude']<= personCoord['longitude'] + margin)) then

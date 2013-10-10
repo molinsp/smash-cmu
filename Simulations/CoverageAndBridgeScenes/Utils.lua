@@ -16,34 +16,11 @@ g_earthPolesPerimeter = 40008000
 g_earthEquatorialPerimter = 40075160    
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
--- Load the people's locations, so we are able to check when we find one.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function loadPeoplePositions()
-	-- Load all of these in global variables.
-	g_numPeople = simGetScriptSimulationParameter(sim_handle_main_script, 'numberOfPeople')
-	g_personCoords = {}
-    
-	local counter = 1
-	for i=1, g_numPeople, 1 do
-		if(i==1) then
-			personHandle = simGetObjectHandle('Bill#')
-		else
-			personHandle = simGetObjectHandle('Bill#' .. (i-2))
-		end
-
-        local billposition = getObjectPositionInDegrees(personHandle, -1)
-		g_personCoords[i] = billposition
-	end    
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
 -- Returns the position of the source person found as a table with x,y,z.
 --/////////////////////////////////////////////////////////////////////////////////////////////
-function getPersonPositionInDegrees(personFoundId)
-	local personPosition = {}
-	personPosition['latitude'] = g_personCoords[personFoundId]['latitude']
-	personPosition['longitude'] = g_personCoords[personFoundId]['longitude']
-	personPosition['altitude'] = 0
+function getPersonPositionInDegrees(personFoundName)
+	personHandle = simGetObjectHandle(personFoundName)
+	local personPosition = getObjectPositionInDegrees(personHandle, -1)
 	return personPosition
 end
 

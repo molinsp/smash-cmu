@@ -45,6 +45,9 @@ namespace VREP
         void sendSearchRequest();
         int setupSearchArea();
         void sendSearchRequestToDrones(int numDrones, int areaId);
+        void sendBridgeRequestForLastPersonFound();
+
+        SMASH::Utilities::Position getObjectPositionInDegrees(std::string objectName);
 	};
 }
 

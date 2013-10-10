@@ -28,9 +28,6 @@ function doInitialSetup()
     
     -- Array used to ensure that we automatically request a bridge for a certain person only once. Only useful to simplify the simulation.
     g_peopleFound = {}
-	
-	-- To be used for bridge requests.
-	loadPeoplePositions()
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -169,10 +166,10 @@ end
 --/////////////////////////////////////////////////////////////////////////////////////////////
 function sendBridgeRequestForLastPersonFound()
 	-- Only do this if at least one person has been found.
-    local personFoundId = simGetScriptSimulationParameter(sim_handle_main_script, 'personFoundId')
-	if(personFoundId ~= -1) then
+    local personFoundName = simGetScriptSimulationParameter(sim_handle_main_script, 'personFoundName')
+	if(personFoundId ~= "") then
 		-- Get sink and source info.
-		local personPosition = getPersonPositionInDegrees(personFoundId)		
+		local personPosition = getPersonPositionInDegrees(personFoundName)		
 		local controllerPosition = getSystemControllerPositionInDegrees()
 		
 		-- Do the external bridge request.

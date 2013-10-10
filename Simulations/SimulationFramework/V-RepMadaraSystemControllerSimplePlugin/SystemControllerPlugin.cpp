@@ -27,6 +27,12 @@ const std::string SYSTEM_CONTROLLER_COMMAND_LAND = "Land";
 const std::string SYSTEM_CONTROLLER_COMMAND_START_SEARCH = "Start Search";
 const std::string SYSTEM_CONTROLLER_COMMAND_START_BRIDGE = "Form Bridge";
 
+// This reference point is chosen to get better latitudes. Now it is at CMU.
+const SMASH::Utilities::Position REFERENCE_POINT(-79.947164, 40.44108);
+
+// The name of the system controller object in the simulation; the trailing hash is to ensure we don't get any other instances, if any.
+const std::string SYSTEM_CONTROLLER_OBJECT_NAME = "laptop#";
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // We have to create an actual object of this type so that the plugin DLL entry points will have access to it.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +99,7 @@ void VREP::SystemControllerPlugin::handleNewCommand()
         if(buttonPressedText == SYSTEM_CONTROLLER_COMMAND_SETUP_PARAMS)
         {
             // Get the various user setup parameters.
-            double numDrones = (int) PluginUtils::getDoubleParam("numberOfDrones");
+            int numDrones = PluginUtils::getIntParam("numberOfDrones");
             double radioRange = PluginUtils::getDoubleParam("radioRange");
             double minAltitude = PluginUtils::getDoubleParam("minimumAltitude");
             double heightDiff = PluginUtils::getDoubleParam("heightDiff");
@@ -123,7 +129,7 @@ void VREP::SystemControllerPlugin::handleNewCommand()
         // Start a bridge request if that button was pressed.
         if(buttonPressedText == SYSTEM_CONTROLLER_COMMAND_START_BRIDGE)
         {
-            //sendBridgeRequestForLastPersonFound();
+            sendBridgeRequestForLastPersonFound();
         }
     }
 }
@@ -137,7 +143,7 @@ void VREP::SystemControllerPlugin::sendSearchRequest()
     int areaId = setupSearchArea();
 
     // Add the drones to the search area, and tell them to go search.
-    double numDrones = (int) PluginUtils::getDoubleParam("numberOfDrones");
+    double numDrones = PluginUtils::getIntParam("numberOfDrones");
     sendSearchRequestToDrones(numDrones, areaId);
 }
 
@@ -157,14 +163,9 @@ int VREP::SystemControllerPlugin::setupSearchArea()
     sstream << std::setprecision(10) << "Search area in meters: " << x1 << "," << y1 << ";" << x2 << "," << y2;
     simAddStatusbarMessage(sstream.str().c_str());
 
-    // This reference point is chosen to get better latitudes. Now it is at CMU.
-    SMASH::Utilities::Position referencePoint;
-    referencePoint.latitude = 40.44108;
-    referencePoint.longitude = -79.947164;
-
     // Transform the x and y positions we have into lat and long using the reference point.
-    SMASH::Utilities::Position startPoint = SMASH::Utilities::getLatAndLong(x1, y1, referencePoint);
-    SMASH::Utilities::Position endPoint = SMASH::Utilities::getLatAndLong(x2, y2, referencePoint);
+    SMASH::Utilities::Position startPoint = SMASH::Utilities::getLatAndLong(x1, y1, REFERENCE_POINT);
+    SMASH::Utilities::Position endPoint = SMASH::Utilities::getLatAndLong(x2, y2, REFERENCE_POINT);
     simAddStatusbarMessage(std::string("Search area: " + startPoint.toString() + "; " + endPoint.toString()).c_str());
 
     // Create a region with these endpoints.
@@ -186,7 +187,7 @@ void VREP::SystemControllerPlugin::sendSearchRequestToDrones(int numDrones, int 
 	std::string coverageAlgorithm = PluginUtils::getStringParam("coverageAlgorithm");
 	std::string humanDetectionAlgorithm = PluginUtils::getStringParam("humanDetectionAlgorithm");
     double lineWidth = PluginUtils::getDoubleParam("searchLineWidth");
-	int waitForRest = (int) PluginUtils::getDoubleParam("waitForRest");
+	int waitForRest = PluginUtils::getIntParam("waitForRest");
     
     // Load the drone ids into a vector. We assume that numDrones is equivalent to the max id of the drones in the simulation,
     // and that all drone ids are sequential starting from 0.
@@ -203,4 +204,58 @@ void VREP::SystemControllerPlugin::sendSearchRequestToDrones(int numDrones, int 
     
     // Ask Madara to send the search request.
     m_madaraController->requestAreaCoverage(droneIds, areaId, coverageAlgorithm, waitForRest, lineWidth, humanDetectionAlgorithm);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+// Sends a bridge request to the network.
+///////////////////////////////////////////////////////////////////////////////////////////////
+void VREP::SystemControllerPlugin::sendBridgeRequestForLastPersonFound()
+{
+	// Only do this if at least one person has been found.
+    std::string personFoundName = PluginUtils::getStringParam("personFoundName");
+	if(personFoundName != "") 
+    {
+		// Get sink and source info.
+        SMASH::Utilities::Position personPosition = getObjectPositionInDegrees(personFoundName);
+		SMASH::Utilities::Position controllerPosition = getObjectPositionInDegrees(SYSTEM_CONTROLLER_OBJECT_NAME);
+
+        // Create the regions, which will basically be a point each, for now at least.
+        SMASH::Utilities::Region startRegion(personPosition, personPosition);
+        SMASH::Utilities::Region endRegion(controllerPosition, controllerPosition);
+		
+		// Do the external bridge request.
+		simAddStatusbarMessage("Sending bridge request for last person found.");
+        m_madaraController->setupBridgeRequest(m_bridgeRequestId++, startRegion, endRegion);
+    }
+	else
+    {
+		simAddStatusbarMessage("No person found yet!");
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////    
+// Returns the position of a given object in degrees.
+/////////////////////////////////////////////////////////////////////////////////////////////
+SMASH::Utilities::Position VREP::SystemControllerPlugin::getObjectPositionInDegrees(std::string objectName)
+{
+    // Get the handle for the object.
+    int objectHandle = simGetObjectHandle(objectName.c_str());
+    if(objectHandle == -1)
+    {
+        // Not very safe, we return a position with 0,0 as the value if the handle was not found.
+        simAddStatusbarMessage(("Object " + objectName + " not found!").c_str());
+        return SMASH::Utilities::Position(0,0);
+    }
+
+    // Get the cartesian position first.
+    float vrepPosition[3];
+    int relativeTo = -1; // Absolute position.
+    simGetObjectPosition(objectHandle, relativeTo, vrepPosition);
+    SMASH::Utilities::Position cartesianPosition;
+    int x = vrepPosition[0];
+    int y = vrepPosition[1];
+
+    // Get the long and lat now from the cartesian position.
+    SMASH::Utilities::Position latAndLong = SMASH::Utilities::getLatAndLong(x, y, REFERENCE_POINT);
+    return latAndLong;
 }

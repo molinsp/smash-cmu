@@ -32,15 +32,8 @@ function doInitialSetup()
     g_mapOriginX = x2
     g_mapOriginY = y2
 
-    -- Reset the name suffix to its default, just in case.
-	local namesuffix = -1
-	simSetNameSuffix(namesuffix)
-
     -- Initialize variables to hold the list of cells with people found.
 	g_foundCoords = {}
-    
-    -- Load people's position locally for transforming their positions to cells.
-    loadPeoplePositions()
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,10 +49,14 @@ function runMainLogic()
     end
 
     -- Show the drones in the map.
-    local namesuffix = -1
     for i=1, g_numberOfDrones, 1 do
+		-- Calculate the name of this person.
+		quadricopterName = 'Quadricopter#'
+		if(i~=1) then
+			quadricopterName = quadricopterName .. (i-2)
+		end	
         -- Get information about each drone.
-        local droneHandle = simGetObjectHandle('Quadricopter')
+        local droneHandle = simGetObjectHandle(quadricopterName)
         local dronePos = simGetObjectPosition(droneHandle, -1)
 
         -- Calculate the cell corresponding to where the drone currently is, and show it.
@@ -69,22 +66,18 @@ function runMainLogic()
             simSetUIButtonColor(g_minimpUIHandle, buttonnumber, {0,0,0}, {0,0,0}, {1,1,1})
             
             -- Show the id of the drone in the map too.
-            local droneId = "" .. namesuffix + 1
+            local droneId = "" .. i + 1
             simSetUIButtonLabel(g_minimpUIHandle, buttonnumber, droneId, droneId)
         end
-
-        -- Change the suffix to loop into the next drone.
-        namesuffix = namesuffix+1
-        simSetNameSuffix(namesuffix)
     end
     
     -- Check if new people have been found.
-    local personFoundId = simGetScriptSimulationParameter(sim_handle_main_script, 'personFoundId')
-    if(personFoundId ~= -1) then
-        personCoords = {g_personCoordsX[personFoundId], g_personCoordsY[personFoundId]}
+    local personFoundName = simGetScriptSimulationParameter(sim_handle_main_script, 'personFoundName')
+    if(personFoundName ~= "") then
+        --simAddStatusbarMessage('New person found: ' .. personFoundName)
+        personCoords = getPersonPositionInMeters(personFoundName)
         buttonnumber = positionToCell(personCoords)
-        --simAddStatusbarMessage('Maybe Adding new person to persons found list, in cell: ' .. buttonnumber)
-
+		
         -- Store the new found person, if it is not already there.
         if((buttonnumber >= MIN_CELL_ID) and (buttonnumber <= MAX_CELL_ID)) then
             if(g_foundCoords[buttonnumber] == nil) then
@@ -99,33 +92,15 @@ function runMainLogic()
         -- Mark as red.
         simSetUIButtonColor(g_minimpUIHandle, foundCell, {1,0,0}, {1,0,0}, {1,1,1})
     end
-
-    -- Reset the name suffix for this drone, to take it back to its initial value.
-    namesuffix = -1
-    simSetNameSuffix(namesuffix)
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
--- Load the people's locations, so we are able to check when we find one.
+-- Returns the position of the source person found as a table with x,y,z.
 --/////////////////////////////////////////////////////////////////////////////////////////////
-function loadPeoplePositions()
-	g_numPeople = simGetScriptSimulationParameter(sim_handle_main_script, 'numberOfPeople')
-	g_personCoordsX = {}
-    g_personCoordsY = {}
-    
-	local counter = 1
-	for i=1, g_numPeople, 1 do
-		if(i==1) then
-			personHandle = simGetObjectHandle('Bill#')
-		else
-			personHandle = simGetObjectHandle('Bill#' .. (i-2))
-		end
-
-        local billposition = simGetObjectPosition(personHandle, -1)
-		g_personCoordsX[i] = billposition[1]
-		g_personCoordsY[i] = billposition[2]
-		--simAddStatusbarMessage('Person ' .. counter .. ' : ' .. g_personCoords[counter] .. ', ' .. counter+1 .. ' : '..g_personCoords[counter+1])
-	end    
+function getPersonPositionInMeters(personFoundName)
+	personHandle = simGetObjectHandle(personFoundName)
+	local personPosition = simGetObjectPosition(personHandle, -1)
+	return personPosition
 end
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
