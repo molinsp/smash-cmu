@@ -5,6 +5,5 @@ workspace {
   DroneControllerSimulator.mpc
   CommandLineSystemController.mpc
   V-RepMadaraQuadrotorControlPlugin.mpc
-  V-RepMadaraSystemControllerPlugin.mpc
   V-RepMadaraSystemControllerSimplePlugin.mpc
 }

@@ -53,24 +53,6 @@ function getObjectPositionInDegrees(objectHandle, relativeTo)
     return newPosition
 end
 
---/////////////////////////////////////////////////////////////////////////////////////////////    
--- Sets the real cartesian position of an object in the simulation given a latitude and longitude.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function setObjectPositionFromDegrees(objectHandle, relativeTo, latAndLongPosition)
-    -- Turn into a named table.
-    local degreePosition = {}
-    degreePosition['longitude'] = latAndLongPosition[1]
-    degreePosition['latitude'] = latAndLongPosition[2]
-
-    -- Get the cartesian position.
-    local cartesianPosition = getXYpos(degreePosition)
-    
-    -- Return the new coordinates. Note that the height was already in meters.
-    local vrepPosition = {cartesianPosition['x'], cartesianPosition['y'], latAndLongPosition[3]}
-    --simAddStatusbarMessage('Moving to pos in cart: ' .. vrepPosition[1] .. ',' .. vrepPosition[2] .. ',' .. vrepPosition[3])
-    simSetObjectPosition(objectHandle, relativeTo, vrepPosition)
-end    
-
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Calculates X and Y distances in meters.
 --/////////////////////////////////////////////////////////////////////////////////////////////    
