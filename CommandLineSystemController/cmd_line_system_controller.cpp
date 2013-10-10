@@ -117,7 +117,8 @@ void handleArgs(int argc, char** argv, int& id, int& numDrones,
 }
 
 // Sets a search region and sends a coverage request.
-void setAreaCoverageRequest(int& numDrones, double& nLat, double& wLong, double& sLat, double& eLong, std::string& coverage_type, int waitForOthers, std::string& human_type)
+void setAreaCoverageRequest(int& numDrones, double& nLat, double& wLong, double& sLat, double& eLong, 
+                            std::string& coverage_type, int& waitForOthers, double& stride, std::string& human_type)
 {
     // Set area to cover.
     int searchAreaId = 0 ;
@@ -136,7 +137,7 @@ void setAreaCoverageRequest(int& numDrones, double& nLat, double& wLong, double&
     {
         droneIds.push_back(i);
     }
-    madaraController->requestAreaCoverage(droneIds, searchAreaId, coverage_type, waitForOthers, human_type);
+    madaraController->requestAreaCoverage(droneIds, searchAreaId, coverage_type, waitForOthers, stride, human_type);
 }
 
 void setBridgeRequest(double& personLat, double& personLon, double& sinkLat, double& sinkLon)
@@ -218,11 +219,11 @@ int main (int argc, char** argv)
 
     // Setup the knowledge base and basic parameters.
     cout << "Init Knowlege Base..." << endl;
-    madaraController = new MadaraController(id, commRange, minHeight, stride, heightDiff);
+    madaraController = new MadaraController(id);
 
     // Disseminating basic parameters, mandatory and optional ones.
     printf("\nSetting up basic parameters...\n");
-    madaraController->updateGeneralParameters(numDrones);
+    madaraController->updateGeneralParameters(numDrones, commRange, minHeight, heightDiff);
 
     // Also send takeoff command.
     printf("\nSending takeoff command, and waiting for drones to take off...\n");
@@ -234,7 +235,7 @@ int main (int argc, char** argv)
     if(nLat != 0 && wLong != 0 && sLat != 0 && eLong != 0)
     {
         printf("\nSending area coverage request.\n");
-        setAreaCoverageRequest(numDrones, nLat, wLong, sLat, eLong, coverage_type, waitForOthers, human_type);
+        setAreaCoverageRequest(numDrones, nLat, wLong, sLat, eLong, coverage_type, waitForOthers, stride, human_type);
 
         printf("\nWaiting for area coverage request to kick in....\n");
         ACE_OS::sleep (inBetweenTime);
