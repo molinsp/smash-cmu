@@ -8,5 +8,6 @@
 LOCAL_SOURCES += platforms/v_rep/platform_vrep.cpp
 LOCAL_SOURCES += platforms/comm/kb_setup.cpp
 LOCAL_SOURCES += platforms/comm/multicast/comm_multicast.cpp
+LOCAL_SOURCES += platforms/comm/multicast/comm_sim_multicast.cpp
 
 LOCAL_CFLAGS +=
