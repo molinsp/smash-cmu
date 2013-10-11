@@ -2,7 +2,9 @@ project {
   includes +=     V-RepImports
   includes +=     V-RepPluginUtils
 
-  lit_libs += shlwapi
+  specific(prop:microsoft) {
+    lit_libs += shlwapi
+  }
 
   specific(prop:microsoft) {
     Debug::postbuild += <%rm%> "lib<%slash%><%sharedname%>.dll" <%cmdsep%> \
