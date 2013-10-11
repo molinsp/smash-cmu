@@ -10,6 +10,7 @@
  *********************************************************************/
 
 #include "PluginUtils.h"
+#include <cstdlib>
 
 using namespace VREP;
 
