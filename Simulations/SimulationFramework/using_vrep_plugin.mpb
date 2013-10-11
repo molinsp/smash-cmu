@@ -13,7 +13,7 @@ project {
 	Release::postbuild += <%cp%> "lib<%slash%><%sharedname%>.dll" "$(VREP_HOME)"
   }
 
-  verbatim (make, local) {
+  specific(make) {
     postbuild = <%cp%> lib<%slash%><%sharedname%>.so "$(VREP_HOME)"
   }
 
