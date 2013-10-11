@@ -35,7 +35,7 @@ MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
 void MadaraQuadrotorControl::initInternalData(int droneId)
 {
     // Initialize the internal command variable so that we start with no commands.
-    string droneIdString = std::to_string(static_cast<long long>(droneId));
+    string droneIdString = NUM_TO_STR(droneId);
     clearCommand(droneIdString);
 
     // Indicate that we have not received or replied to commands yet.
@@ -115,7 +115,7 @@ void MadaraQuadrotorControl::updateQuadrotorStatus(const Status& s)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(int droneId)
 {
-    string droneIdString = std::to_string(static_cast<long long>(droneId));
+    string droneIdString = NUM_TO_STR(droneId);
 
     // Check if commands have started being received for the requested drone.
     int recievedCommandId = (int) m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MS_SIM_CMD_SENT_ID).to_integer();
