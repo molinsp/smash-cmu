@@ -13,8 +13,8 @@ project {
 	Release::postbuild += <%cp%> "lib<%slash%><%sharedname%>.dll" "$(VREP_HOME)"
   }
 
-  verbatim (gnuace, local) {
-    postbuild = cp lib/<%sharedname%>* "$(VREP_HOME)"
+  verbatim (make, local) {
+    postbuild = <%cp%> lib<%slash%><%sharedname%>.so "$(VREP_HOME)"
   }
 
   Source_Files {
