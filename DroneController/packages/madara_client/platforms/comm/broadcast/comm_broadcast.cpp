@@ -23,8 +23,8 @@ Madara::Knowledge_Engine::Knowledge_Base* comm_setup_knowledge_base(int id, bool
 {
     // Define the transport.
     Madara::Transport::Settings transportSettings;
-    transportSettings.hosts_.resize (1);
-    transportSettings.hosts_[0] = BROADCAST_ADDRESS;
+    transportSettings.hosts.resize (1);
+    transportSettings.hosts[0] = BROADCAST_ADDRESS;
     transportSettings.type = Madara::Transport::BROADCAST;
     transportSettings.queue_length = 1024;                   //Smaller queue len to preserve memory
     transportSettings.delay_launch = true;
