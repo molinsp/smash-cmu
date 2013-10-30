@@ -30,6 +30,7 @@ Madara::Knowledge_Engine::Knowledge_Base* comm_setup_knowledge_base(int id, bool
     Madara::Transport::Settings transportSettings;
     transportSettings.hosts.resize (1);
     transportSettings.hosts[0] = MULTICAST_ADDRESS;
+    transportSettings.queue_length = 512000;
     transportSettings.delay_launch = true;
 
     // Setup the actual transport type.

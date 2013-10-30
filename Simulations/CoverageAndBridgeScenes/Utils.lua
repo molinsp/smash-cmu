@@ -7,8 +7,8 @@
 
 -- This reference point is chosen to get better latitudes. Now it is at CMU.
 g_referencePoint = {}
-g_referencePoint['latitude'] = 40.44108
-g_referencePoint['longitude'] =  -79.947164
+g_referencePoint['latitude'] = simGetScriptSimulationParameter(sim_handle_main_script, 'referenceLat')
+g_referencePoint['longitude'] = simGetScriptSimulationParameter(sim_handle_main_script, 'referenceLong')
 
 -- Real Earth measurements are required to transform between cartesian and lat/long positions.
 g_degressInCircumference = 360

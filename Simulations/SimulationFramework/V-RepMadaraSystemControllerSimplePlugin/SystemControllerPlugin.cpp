@@ -27,9 +27,6 @@ const std::string SYSTEM_CONTROLLER_COMMAND_LAND = "Land";
 const std::string SYSTEM_CONTROLLER_COMMAND_START_SEARCH = "Start Search";
 const std::string SYSTEM_CONTROLLER_COMMAND_START_BRIDGE = "Form Bridge";
 
-// This reference point is chosen to get better latitudes. Now it is at CMU.
-const SMASH::Utilities::Position REFERENCE_POINT(-79.947164, 40.44108);
-
 // The name of the system controller object in the simulation; the trailing hash is to ensure we don't get any other instances, if any.
 const std::string SYSTEM_CONTROLLER_OBJECT_NAME = "laptop#";
 
@@ -164,8 +161,9 @@ int VREP::SystemControllerPlugin::setupSearchArea()
     simAddStatusbarMessage(sstream.str().c_str());
 
     // Transform the x and y positions we have into lat and long using the reference point.
-    SMASH::Utilities::Position startPoint = SMASH::Utilities::getLatAndLong(x1, y1, REFERENCE_POINT);
-    SMASH::Utilities::Position endPoint = SMASH::Utilities::getLatAndLong(x2, y2, REFERENCE_POINT);
+    SMASH::Utilities::Position refPoint = getReferencePoint();
+    SMASH::Utilities::Position startPoint = SMASH::Utilities::getLatAndLong(x1, y1, refPoint);
+    SMASH::Utilities::Position endPoint = SMASH::Utilities::getLatAndLong(x2, y2, refPoint);
     simAddStatusbarMessage(std::string("Search area: " + startPoint.toString() + "; " + endPoint.toString()).c_str());
 
     // Create a region with these endpoints.
@@ -256,6 +254,20 @@ SMASH::Utilities::Position VREP::SystemControllerPlugin::getObjectPositionInDegr
     int y = vrepPosition[1];
 
     // Get the long and lat now from the cartesian position.
-    SMASH::Utilities::Position latAndLong = SMASH::Utilities::getLatAndLong(x, y, REFERENCE_POINT);
+    SMASH::Utilities::Position latAndLong = SMASH::Utilities::getLatAndLong(x, y, getReferencePoint());
     return latAndLong;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////    
+// Gets the reference point for the coordinate translation, from the scene parameters.
+/////////////////////////////////////////////////////////////////////////////////////////////
+SMASH::Utilities::Position VREP::SystemControllerPlugin::getReferencePoint()
+{
+    double refLat = PluginUtils::getDoubleParam("referenceLat");
+    double refLong = PluginUtils::getDoubleParam("referenceLong");
+    SMASH::Utilities::Position refPoint;
+    refPoint.latitude = refLat;
+    refPoint.longitude = refLong;
+
+    return refPoint;
 }

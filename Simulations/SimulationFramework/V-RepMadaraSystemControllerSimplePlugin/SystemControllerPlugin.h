@@ -48,6 +48,7 @@ namespace VREP
         void sendBridgeRequestForLastPersonFound();
 
         SMASH::Utilities::Position getObjectPositionInDegrees(std::string objectName);
+        SMASH::Utilities::Position getReferencePoint();
 	};
 }
 
