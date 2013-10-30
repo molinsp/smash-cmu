@@ -186,6 +186,12 @@ void VREP::SystemControllerPlugin::sendSearchRequestToDrones(int numDrones, int 
 	std::string humanDetectionAlgorithm = PluginUtils::getStringParam("humanDetectionAlgorithm");
     double lineWidth = PluginUtils::getDoubleParam("searchLineWidth");
 	int waitForRest = PluginUtils::getIntParam("waitForRest");
+
+    // Print info of what we got.
+    std::stringstream sstream1;
+    sstream1 << "Search params: coverage: " << coverageAlgorithm << "; human: " << humanDetectionAlgorithm 
+            << "; lineWidth: " << lineWidth << "; waitForRest: " << waitForRest << std::endl;
+    simAddStatusbarMessage(sstream1.str().c_str());
     
     // Load the drone ids into a vector. We assume that numDrones is equivalent to the max id of the drones in the simulation,
     // and that all drone ids are sequential starting from 0.
