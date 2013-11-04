@@ -5,7 +5,9 @@
 # https://code.google.com/p/smash-cmu/wiki/License
 ######################################################################
 
-DRK_ROOT=$(PACKAGES_ROOT)/drone-rk/drone-rk
+DRK_ROOT=./drone-rk/
+INSTALL_ROOT=./../../../DroneController/install
+
 
 #================================
 #BUILD DRK
