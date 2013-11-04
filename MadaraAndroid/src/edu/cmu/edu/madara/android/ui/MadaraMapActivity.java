@@ -532,6 +532,7 @@ public class MadaraMapActivity extends MadaraServiceActivity implements OnClickL
 					for(String droneId: selectedDrones){
 						binder.sendMadaraMessage(droneId+".area_coverage_requested=\""+searchAlgorithm+"\"");
 						binder.sendMadaraMessage(droneId+".search_area_id="+regionId);
+						binder.sendMadaraMessage(droneId+".human_detection_requested=\"basic\"");
 					}
 				}
 				drawRegionMode(false);
