@@ -19,6 +19,7 @@ project (V-RepMadaraSystemControllerSimplePlugin) : using_ace, using_madara, usi
     V-RepMadaraSystemControllerSimplePlugin
     ../../SystemControllerAPI
     ../../DroneController/packages/madara_client/utilities/string_utils.cpp
+    ../../DroneController/packages/madara_client/utilities/gps_utils.cpp
     ../../DroneController/packages/madara_client/platforms/comm
     ../../DroneController/packages/madara_client/platforms/comm/multicast
   }

@@ -7,8 +7,8 @@
 
 -- This reference point is chosen to get better latitudes. Now it is at CMU.
 g_referencePoint = {}
-g_referencePoint['latitude'] = 40.44108
-g_referencePoint['longitude'] =  -79.947164
+g_referencePoint['latitude'] = simGetScriptSimulationParameter(sim_handle_main_script, 'referenceLat')
+g_referencePoint['longitude'] = simGetScriptSimulationParameter(sim_handle_main_script, 'referenceLong')
 
 -- Real Earth measurements are required to transform between cartesian and lat/long positions.
 g_degressInCircumference = 360
@@ -16,34 +16,11 @@ g_earthPolesPerimeter = 40008000
 g_earthEquatorialPerimter = 40075160    
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
--- Load the people's locations, so we are able to check when we find one.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function loadPeoplePositions()
-	-- Load all of these in global variables.
-	g_numPeople = simGetScriptSimulationParameter(sim_handle_main_script, 'numberOfPeople')
-	g_personCoords = {}
-    
-	local counter = 1
-	for i=1, g_numPeople, 1 do
-		if(i==1) then
-			personHandle = simGetObjectHandle('Bill#')
-		else
-			personHandle = simGetObjectHandle('Bill#' .. (i-2))
-		end
-
-        local billposition = getObjectPositionInDegrees(personHandle, -1)
-		g_personCoords[i] = billposition
-	end    
-end
-
---/////////////////////////////////////////////////////////////////////////////////////////////
 -- Returns the position of the source person found as a table with x,y,z.
 --/////////////////////////////////////////////////////////////////////////////////////////////
-function getPersonPositionInDegrees(personFoundId)
-	local personPosition = {}
-	personPosition['latitude'] = g_personCoords[personFoundId]['latitude']
-	personPosition['longitude'] = g_personCoords[personFoundId]['longitude']
-	personPosition['altitude'] = 0
+function getPersonPositionInDegrees(personFoundName)
+	personHandle = simGetObjectHandle(personFoundName)
+	local personPosition = getObjectPositionInDegrees(personHandle, -1)
 	return personPosition
 end
 
@@ -75,24 +52,6 @@ function getObjectPositionInDegrees(objectHandle, relativeTo)
 	newPosition['altitude'] = vrepPosition[3]
     return newPosition
 end
-
---/////////////////////////////////////////////////////////////////////////////////////////////    
--- Sets the real cartesian position of an object in the simulation given a latitude and longitude.
---/////////////////////////////////////////////////////////////////////////////////////////////
-function setObjectPositionFromDegrees(objectHandle, relativeTo, latAndLongPosition)
-    -- Turn into a named table.
-    local degreePosition = {}
-    degreePosition['longitude'] = latAndLongPosition[1]
-    degreePosition['latitude'] = latAndLongPosition[2]
-
-    -- Get the cartesian position.
-    local cartesianPosition = getXYpos(degreePosition)
-    
-    -- Return the new coordinates. Note that the height was already in meters.
-    local vrepPosition = {cartesianPosition['x'], cartesianPosition['y'], latAndLongPosition[3]}
-    --simAddStatusbarMessage('Moving to pos in cart: ' .. vrepPosition[1] .. ',' .. vrepPosition[2] .. ',' .. vrepPosition[3])
-    simSetObjectPosition(objectHandle, relativeTo, vrepPosition)
-end    
 
 --/////////////////////////////////////////////////////////////////////////////////////////////
 -- Calculates X and Y distances in meters.

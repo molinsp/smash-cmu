@@ -30,18 +30,6 @@ private:
     // The controller's id.
     int m_id;
 
-    // The communications range for the network.
-    double m_commRange;
-
-    // The min altitude for the flying devices.
-    double m_minAltitude;
-
-    // The width of a search line.
-    double m_lineWidth;
-
-    // The vertical distance to leave between drones.
-    double m_heightDiff;
-
     // Whether human detection should be on or off: 1 is on, 0 is off.
     int m_humanDetection;
 
@@ -51,7 +39,7 @@ private:
     // A counter for the regions created.
     int m_regionId;
 public:
-    MadaraController(int id, double commRange, double minAltitude, double lineWidth, double heightDiff);
+    MadaraController(int id);
     ~MadaraController();
 
     // Commands to take off and land the swarm.
@@ -59,7 +47,8 @@ public:
     void sendLandCommand();
 
     // Sets general parameters in Madara variables.
-    void updateGeneralParameters(const int& numberOfDrones);
+    void updateGeneralParameters(const int& numberOfDrones, const double& commRange, const double& minAltitude, 
+                                 const double& heightDiff);
 
     // Bridge methods.
     void setupBridgeRequest(int bridgeId, SMASH::Utilities::Region startRegion, 
@@ -67,7 +56,8 @@ public:
 
     // Area coverage methods.
     void setNewSearchArea(int searchAreaId, SMASH::Utilities::Region& areaBoundaries);
-    void requestAreaCoverage(std::vector<int> droneIds, int searchAreaId, string searchAlgorithm, int wait, std::string humanDetectionAlgorithm);
+    void requestAreaCoverage(std::vector<int> droneIds, int searchAreaId, string searchAlgorithm, int wait, double lineWidth, 
+                             std::string humanDetectionAlgorithm);
 
     // Information getter methods.
     std::vector<SMASH::Utilities::Position> getCurrentLocations();

@@ -18,17 +18,13 @@ using namespace SMASH::Utilities;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constructor, sets up a Madara knowledge base and basic values.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-MadaraController::MadaraController(int id, double commRange, double minAltitude, double lineWidth, double heightDiff)
+MadaraController::MadaraController(int id)
 {
     // Start the counter at 0.
     m_regionId = 0;
 
     // Set our state.
     m_id = id;
-    m_commRange = commRange;
-    m_minAltitude = minAltitude;
-    m_lineWidth = lineWidth;
-    m_heightDiff = heightDiff;
 
     // Setup logging level.
     MADARA_debug_level = 1;
@@ -50,15 +46,20 @@ MadaraController::~MadaraController()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Convenience method that updates general parameters of thw swarm.
+// Method that updates general parameters of thw swarm.
+// numberOfDrones: The number of drones in the system.
+// commRange: The communications range for the network.
+// minAltitude: The min altitude for the flying devices.
+// lineWidth: The width of a search line.
+// heightDiff: The vertical distance to leave between drones.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraController::updateGeneralParameters(const int& numberOfDrones)
+void MadaraController::updateGeneralParameters(const int& numberOfDrones, const double& commRange, const double& minAltitude, 
+                                               const double& heightDiff)
 {
     // Set up the general parameters from the class into Madara variables.
-    m_knowledge->set(MV_COMM_RANGE, m_commRange, Madara::Knowledge_Engine::Eval_Settings(true));
-    m_knowledge->set(MV_MIN_ALTITUDE, m_minAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
-    m_knowledge->set(MV_AREA_COVERAGE_LINE_WIDTH, m_lineWidth, Madara::Knowledge_Engine::Eval_Settings(true));
-    m_knowledge->set(MV_AREA_COVERAGE_HEIGHT_DIFF, m_heightDiff, Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set(MV_COMM_RANGE, commRange, Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set(MV_MIN_ALTITUDE, minAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set(MV_AREA_COVERAGE_HEIGHT_DIFF, heightDiff, Madara::Knowledge_Engine::Eval_Settings(true));
 
     // This call will flush all past changes.
     m_knowledge->set(MV_TOTAL_DEVICES_GLOBAL, (Madara::Knowledge_Record::Integer) numberOfDrones);
@@ -136,7 +137,8 @@ void MadaraController::setupBridgeRequest(int bridgeId, Region startRegion, Regi
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Requests a drone to be part of area coverage.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraController::requestAreaCoverage(std::vector<int> droneIds, int searchAreaId, string searchAlgorithm, int wait, string humanDetectionAlgorithm)
+void MadaraController::requestAreaCoverage(std::vector<int> droneIds, int searchAreaId, string searchAlgorithm, int wait, 
+                                           double lineWidth, string humanDetectionAlgorithm)
 {
     // Set the given search area as the area for this drone to search; and tell it to start searching.
 
@@ -151,14 +153,16 @@ void MadaraController::requestAreaCoverage(std::vector<int> droneIds, int search
         m_knowledge->set(MV_SEARCH_WAIT, (Madara::Knowledge_Record::Integer) wait,
 		  Madara::Knowledge_Engine::Eval_Settings(true));
 
+        // This is currently a global value, but it could be different for each search area.
+        m_knowledge->set(MV_AREA_COVERAGE_LINE_WIDTH, lineWidth, Madara::Knowledge_Engine::Eval_Settings(true));
+
         // Setup the human detection algorithm we want.
         m_knowledge->set(MV_HUMAN_DETECTION_REQUESTED(droneIdString), humanDetectionAlgorithm,
 		  Madara::Knowledge_Engine::Eval_Settings(true));
 	}
 
-    // Setting this again is not needed, but it doesn't hurt. It is a hack to wait till this point to disseminate the 
-    // variables set in the previous loop.
-    m_knowledge->set (MV_MIN_ALTITUDE, m_minAltitude);
+    // Wait till this point to disseminate the variables set in the previous loop.
+    m_knowledge->send_modifieds();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -187,8 +191,8 @@ void MadaraController::setNewSearchArea(int searchAreaId, SMASH::Utilities::Regi
     m_knowledge->set(MV_REGION_BOTRIGHT_LOC(sourceRegionIdString), botRightLocation,
       Madara::Knowledge_Engine::Eval_Settings(true));
 
-    // Ensure that the min altitude is sent. Apply all changes.
-    m_knowledge->set (MV_MIN_ALTITUDE, m_minAltitude);
+    // Apply all changes.
+    m_knowledge->send_modifieds();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -18,7 +18,7 @@
 #include <string>
 
 // Interface that a simple plugin must implement.
-namespace SMASH
+namespace VREP
 {
 	class ISimplePlugin
 	{
@@ -47,8 +47,8 @@ namespace SMASH
 	};
 }
 
-// Function to create the actual plugin.
-SMASH::ISimplePlugin* createPlugin();
+// Helper function to create the actual plugin.
+VREP::ISimplePlugin* createPlugin();
 
 
 #endif

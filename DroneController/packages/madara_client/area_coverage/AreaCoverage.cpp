@@ -78,7 +78,7 @@ Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
     Position southEast = grid.southEast;
     string out = "Choosing my cell in given grid: NW = " + northWest.toString() + " SE = ";
     out += southEast.toString();
-    printf("%s\n", out.c_str());
+    fprintf(stderr, "%s\n", out.c_str());
 
     // Get the two divisors of the number of drones that are more similar to one
     // another, to be used as the size of the grid in number of drones. This will
@@ -87,32 +87,32 @@ Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,
     vector<int> divisors = findMiddleDivisors(numDrones);
     int amountOfLines = divisors[0];
     int amountOfColumns = divisors[1];
-    printf("Amounts of lines and columns for %d drones: %d, %d \n", numDrones, amountOfLines, amountOfColumns);
+    fprintf(stderr, "Amounts of lines and columns for %d drones: %d, %d \n", numDrones, amountOfLines, amountOfColumns);
 
     // Calculate the size of each cell by diviging the real size of the grid in
     // the amount of drones that will cover the grid, for both sides. Each drone
     // will end up covering a rectangular cell of this size.
     double cellHeight = fabs((grid.northWest.latitude - grid.southEast.latitude) / amountOfLines);
     double cellWidth = fabs((grid.northWest.longitude - grid.southEast.longitude) / amountOfColumns);
-    printf("Cell size: height: %.10f, width: %.10f \n", cellHeight, cellWidth);
+    fprintf(stderr, "Cell size: height: %.10f, width: %.10f \n", cellHeight, cellWidth);
 
     // Calculate my line and column to find my cell, based on my idx, using module and integer division.
     int deviceLine = (int) floor( ((double) deviceIdx) / ((double) amountOfColumns));
     int deviceColumn = deviceIdx % amountOfColumns;
-    printf("My idx is %d, and my line and column are: %d, %d \n", deviceIdx, deviceLine, deviceColumn);
+    fprintf(stderr, "My idx is %d, and my line and column are: %d, %d \n", deviceIdx, deviceLine, deviceColumn);
 
     // Calculate the starting position based on the cell (line and column) and the
     // cells's size.
     Position deviceCellNorthWestCorner;
     deviceCellNorthWestCorner.latitude = grid.northWest.latitude - (deviceLine*cellHeight);
     deviceCellNorthWestCorner.longitude = grid.northWest.longitude + (deviceColumn*cellWidth);
-    printf("NorthWest lat: %.10f long:%.10f \n", deviceCellNorthWestCorner.latitude, deviceCellNorthWestCorner.longitude);
+    fprintf(stderr, "NorthWest lat: %.10f long:%.10f \n", deviceCellNorthWestCorner.latitude, deviceCellNorthWestCorner.longitude);
 
     // Calculate the ending position based on the starting one and the cell's size.
     SMASH::Utilities::Position deviceCellSouthEastCorner;
     deviceCellSouthEastCorner.latitude = deviceCellNorthWestCorner.latitude - cellHeight;
     deviceCellSouthEastCorner.longitude = deviceCellNorthWestCorner.longitude + cellWidth;
-    printf("SouthEast lat: %.10f long: %.10f \n", deviceCellSouthEastCorner.latitude, deviceCellSouthEastCorner.longitude);
+    fprintf(stderr, "SouthEast lat: %.10f long: %.10f \n", deviceCellSouthEastCorner.latitude, deviceCellSouthEastCorner.longitude);
 
     // Return the cell region (also storing it locally for further reference).
     m_cellToSearch = new Region(deviceCellNorthWestCorner, deviceCellSouthEastCorner);

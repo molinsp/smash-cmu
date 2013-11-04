@@ -111,9 +111,9 @@ Windows_Multicast_Transport::setup (void)
   Base::setup ();
 
   // resize addresses to be the size of the list of hosts
-  if (settings_.hosts_.size () > 0)
+  if (settings_.hosts.size () > 0)
   {
-    std::vector<std::string> parts = split(settings_.hosts_[0], ':');
+    std::vector<std::string> parts = split(settings_.hosts[0], ':');
 
     int mc_port = atoi(parts[1].c_str());
     const char * mc_ipaddr = parts[0].c_str();
@@ -171,7 +171,7 @@ Windows_Multicast_Transport::send_data (
   long result =
     prep_send (updates, "Windows_Multicast_Transport::send_data:");
   
-  if (settings_.hosts_.size () > 0 && result > 0)
+  if (settings_.hosts.size () > 0 && result > 0)
   {
     //int bytes_sent = socket_.send(
     //  buffer, size, addresses_[0]);

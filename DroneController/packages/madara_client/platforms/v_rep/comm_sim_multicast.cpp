@@ -58,8 +58,8 @@ Madara::Knowledge_Engine::Knowledge_Base* sim_comm_setup_knowledge_base(int id, 
 {
     // Define the transport settings.
     Madara::Transport::Settings transportSettings;
-    transportSettings.hosts_.resize(1);
-    transportSettings.hosts_[0] = SIMULATED_HW_MULTICAST_ADDRESS;
+    transportSettings.hosts.resize(1);
+    transportSettings.hosts[0] = SIMULATED_HW_MULTICAST_ADDRESS;
     transportSettings.id = id;
     transportSettings.domains = VREP_DOMAIN;
     transportSettings.queue_length = SIMULATION_TRANSPORT_QUEUE_LENGTH;

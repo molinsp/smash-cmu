@@ -2,7 +2,9 @@ project {
   includes +=     V-RepImports
   includes +=     V-RepPluginUtils
 
-  lit_libs += shlwapi
+  specific(prop:microsoft) {
+    lit_libs += shlwapi
+  }
 
   specific(prop:microsoft) {
     Debug::postbuild += <%rm%> "lib<%slash%><%sharedname%>.dll" <%cmdsep%> \
@@ -11,14 +13,15 @@ project {
 	Release::postbuild += <%cp%> "lib<%slash%><%sharedname%>.dll" "$(VREP_HOME)"
   }
 
-  verbatim (gnuace, local) {
-    postbuild = cp lib/<%sharedname%>* "$(VREP_HOME)"
+  specific(make) {
+    postbuild = <%cp%> lib<%slash%>lib<%sharedname%>.so "$(VREP_HOME)"
   }
 
   Source_Files {
     V-RepImports
     V-RepPluginUtils/LuaExtensionsUtils.cpp
     V-RepPluginUtils/v_repExtLuaExtenderPlugin.cpp
+    V-RepPluginUtils/PluginUtils.cpp
   }
 
   Header_Files {
@@ -26,5 +29,6 @@ project {
     V-RepPluginUtils/v_repExtPluginInterface.h
     V-RepPluginUtils/LuaExtensionsUtils.h
     V-RepPluginUtils/LuaFunctionRegistration.h
+    V-RepPluginUtils/PluginUtils.h
   }
 }

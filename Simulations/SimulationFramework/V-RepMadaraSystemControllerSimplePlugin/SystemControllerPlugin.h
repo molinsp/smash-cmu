@@ -14,16 +14,17 @@
 #ifndef _SYSTEM_CONTROLLER_PLUGIN_H
 #define _SYSTEM_CONTROLLER_PLUGIN_H
 
-#include "SimplePluginInterface.h"
+#include "ISimplePlugin.h"
 #include "MadaraSystemController.h"
 #include <string>
 
 // SystemController plugin that implements the ISimlpePlugin interface.
-namespace SMASH
+namespace VREP
 {
-	class SystemControllerPlugin : public ISimplePlugin
+	class SystemControllerPlugin : public VREP::ISimplePlugin
 	{
 	public:
+        // Interface implementation.
         void initialize(int suffix);
         void cleanup();
         void executeStep();
@@ -31,9 +32,6 @@ namespace SMASH
     private:
         // The controller used to manage the Madara stuff.
         MadaraController* m_madaraController;
-
-        // The number of drones in the system.
-        int m_numDrones;
 
         // The id of the next search request id to send.
         int m_searchRequestId;
@@ -43,6 +41,14 @@ namespace SMASH
 
         // Checks if there is a new command from the UI and executes it.
         void handleNewCommand();
+
+        void sendSearchRequest();
+        int setupSearchArea();
+        void sendSearchRequestToDrones(int numDrones, int areaId);
+        void sendBridgeRequestForLastPersonFound();
+
+        SMASH::Utilities::Position getObjectPositionInDegrees(std::string objectName);
+        SMASH::Utilities::Position getReferencePoint();
 	};
 }
 

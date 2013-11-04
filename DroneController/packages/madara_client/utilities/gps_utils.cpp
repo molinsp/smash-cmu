@@ -22,6 +22,10 @@
 // The radius of the Earth in meters.
 static const double EARTH_RADIUS = 6371000;
 
+static const double DEGREES_IN_CIRCUMFERENCE = 360;
+static const double EARTH_POLES_PERIMETER = 40008000;
+static const double EARTH_EQUATORIAL_PERIMETER = 40075160;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Calculate the distance between two coordinate pairs.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,4 +46,25 @@ double SMASH::Utilities::gps_coordinates_distance (double lat1, double long1, do
 
     // Return the distance.
     return distanceInMeters;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+// Calculates the latitude and longitude of a point given as a distance in meters in x and y from a reference point.
+/////////////////////////////////////////////////////////////////////////////////////////////    
+SMASH::Utilities::Position SMASH::Utilities::getLatAndLong(int x, int y, SMASH::Utilities::Position referencePoint)
+{
+    // Get the deltas from reference point.
+    double perimeterAtRefLatitude =  EARTH_EQUATORIAL_PERIMETER * cos(DEG_TO_RAD(referencePoint.latitude));
+    double deltaLongitude = x * DEGREES_IN_CIRCUMFERENCE / perimeterAtRefLatitude;
+    double deltaLatitude  = y * DEGREES_IN_CIRCUMFERENCE / EARTH_POLES_PERIMETER;
+    
+    // Get the lat and long.
+    double latitude = deltaLatitude + referencePoint.latitude;
+    double longitude = deltaLongitude + referencePoint.longitude;
+    
+    // Turn this into a Position and return it.
+    SMASH::Utilities::Position result;
+    result.latitude = latitude;
+    result.longitude = longitude;
+    return result;
 }
