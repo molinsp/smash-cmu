@@ -13,19 +13,14 @@ between MADARA and the AR.Drone 2.
 Included in DroneController:
 1) Makefile to cross-compile ACE
 2) Makefile to cross-compile MADARA
-3) Makefile to cross-compile OpenCV (Currently Broken)
-4) Makefile to cross-compile OpenSSH
-5) Makefile to cross-compile WPA Supplicant
-6) Code to test OpenCV
-7) madara_client
-
+3) madara_client, where the actual executable will compile
 
 ===========================
-Setup / Installation
+Environment Setup
 ===========================
 
 NOTE: DroneController is intended for use only on Linux, and has only been
-      tested on Ubuntu
+      tested compiled on Ubuntu.
 
 1) Ensure the following packages are installed on your system:
 	cmake
@@ -37,30 +32,35 @@ NOTE: DroneController is intended for use only on Linux, and has only been
    to register):
 http://www.mentor.com/embedded-software/sourcery-tools/sourcery-codebench/editions/lite-edition/request?id=478dff82-62bc-44b2-afe2-4684d83b19b9&downloadlite=scblite2012&fmpath=/embedded-software/sourcery-tools/sourcery-codebench/editions/lite-edition/form
 
-3) Modify the LOCAL_CROSS variable in toolchain.mk to point to the folder you
+3) Modify the LOCAL_CROSS variable in ./toolchain.mk to point to the folder you
    placed the cross compiler in
 
-4) Build a package with the following command executed from the DroneController
-   directory:
-	make <package name>
-
-5) After building a package, you will need to deploy it on the AR.Drone 2:
+===========================
+Compilation and Deployment
+===========================   
+   
+1) Build the DroneController for a particular platform with the following command:
+	make <platform name>
+   The possible platforms are ar_drone_2, v_rep, and linux.
+   
+2) After building a package, you will need to deploy it on the AR.Drone 2:
 	a) Connect to the drone's WiFi network
-	b) Use FTP to push any libraries or binaries to the drone
-	c) Use Telnet to open a shell on the drone.
-	d) Create the /data/lib directory
-	e) Create the /data/bin
-	f) Move any libraries to /data/lib and any executables to /data/bin
-	g) Change the permissions to 755 on all of the libraries and executables
-	h) Link the libraries to the /lib directory with "ln -s"
-	i) Link the executables to the /bin directory with "ln -s"
-
+	b) Use Telnet to open a shell on the drone.
+	c) Create the /data/lib directory
+	d) Create the /data/bin
+	e) Use FTP to move any libraries to /data/lib and any executables to /data/bin
+	f) Change the permissions to 755 on all of the libraries and executables
+	g) Link the libraries to the /lib directory with "ln -s"
+	h) Link the executables to the /bin directory with "ln -s"
 
 ===========================
 Using madara_client
 ===========================
 
-TODO
-
-
-
+Execute madara_client to run the Drone Controller. There are two command line parameters:
+ * -i <id>		: to indicate the id for this drone. <id> has to be an integer. Ids for drones should start at 0,
+				and be continuous (ie, if there are 4 drones, they should be 0,1,2,3, not 0,1,5,10 or whatever else).
+				If omitted, the id for that drone will be 0.
+ * -l <level>	: optional, the level of messages to log. If omitted, no log will be stored. Level 0 means only basic
+                information will be written to a log, and lower levels refer to debug messages. The actual levels 
+				refer to the log levels defined inside Madara.
