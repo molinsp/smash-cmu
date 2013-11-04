@@ -42,11 +42,6 @@ void programSummary(char* arg)
 {
     cerr << arg << endl;
     cerr << "  [-i] id" << endl;
-    cerr << "  [-d] numDrones" << endl;
-    cerr << "  [-n] northern latitude" << endl;
-    cerr << "  [-s] southern latitude" << endl;
-    cerr << "  [-e] eastern longitude" << endl;
-    cerr << "  [-w] western longitude" << endl;
     cerr << "  [-l] MADARA log level" << endl;
     exit(-1);
 }
