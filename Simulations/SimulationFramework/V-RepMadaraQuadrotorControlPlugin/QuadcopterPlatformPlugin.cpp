@@ -13,6 +13,7 @@
 #include "v_repLib.h"
 #include "PluginUtils.h"
 #include "SimUtils.h"
+#include "ThermalSensor.h"
 #include "utilities/gps_utils.h"
 #include "utilities/string_utils.h"
 #include <string>
@@ -91,7 +92,7 @@ std::string QuadcopterPlatformPlugin::getId()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-// Sets up the search area for the whole network.
+// Gets data from the simulated sensors.
 ///////////////////////////////////////////////////////////////////////////////////////////////
 void QuadcopterPlatformPlugin::simulateSensors(int droneId)
 {
@@ -99,7 +100,7 @@ void QuadcopterPlatformPlugin::simulateSensors(int droneId)
   updateDronePosition(droneId);
 
   // "Thermal": Check if we have found a person to stop on top of it (only if we are patrolling).
-  updateThermals(droneId);
+  //updateThermals(droneId);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -121,4 +122,12 @@ void QuadcopterPlatformPlugin::updateThermals(int droneId)
   ThermalSensor tSensor;
   std::string thermalBuffer = tSensor.getThermalBuffer(droneId);
   m_madaraController->setNewThermalScan(droneId, thermalBuffer, ThermalSensor::THERMAL_BUFFER_HEIGHT, ThermalSensor::THERMAL_BUFFER_WIDTH);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+// Moves the drone in the simulation.
+///////////////////////////////////////////////////////////////////////////////////////////////
+void QuadcopterPlatformPlugin::simulateMovement(int droneId)
+{
+
 }

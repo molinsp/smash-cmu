@@ -16,7 +16,6 @@
 
 #include "ISimplePlugin.h"
 #include "MadaraQuadrotorControl.h"
-#include "ThermalSensor.h"
 #include <string>
 #include <vector>
 
@@ -34,9 +33,6 @@ namespace SMASHSim
     private:
         // The controller used to manage the Madara stuff.
         MadaraQuadrotorControl* m_madaraController;
-
-        // List of thermal sensors, one for each drone.
-        std::vector<ThermalSensor> thermalSensors;
 
         // Simulate sensing and movement steps.
         void simulateSensors(int droneId);
