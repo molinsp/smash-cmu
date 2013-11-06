@@ -35,10 +35,10 @@ namespace SMASH
             Position() {}
 
             /** Constructor from data.
-             * @param   newLong    The value for the longitude coordinate.
              * @param   newLat    The value for the latitude coordinate.
+             * @param   newLong    The value for the longitude coordinate.
              **/
-            Position(double newLong, double newLat) 
+            Position(double newLat, double newLong) 
             {
                 longitude = newLong;
                 latitude = newLat;

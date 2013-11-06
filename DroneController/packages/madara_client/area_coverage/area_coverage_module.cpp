@@ -373,7 +373,7 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
     double nwLon = variables.get(MV_REGION_TOPLEFT_LON(myAssignedSearchRegion)).to_double();
     double seLat = variables.get(MV_REGION_BOTRIGHT_LAT(myAssignedSearchRegion)).to_double();
     double seLon = variables.get(MV_REGION_BOTRIGHT_LON(myAssignedSearchRegion)).to_double();
-    Region searchArea = Region(Position(nwLon, nwLat), Position(seLon, seLat));
+    Region searchArea = Region(Position(nwLat, nwLon), Position(seLat, seLon));
 
     // Calculate the actual cell I will be covering.
     string algo = variables.get(variables.expand_statement(MV_AREA_COVERAGE_REQUESTED("{" MV_MY_ID "}"))).to_string();

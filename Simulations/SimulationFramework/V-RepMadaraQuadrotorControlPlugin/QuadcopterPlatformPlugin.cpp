@@ -100,7 +100,7 @@ void QuadcopterPlatformPlugin::simulateSensors(int droneId)
   updateDronePosition(droneId);
 
   // "Thermal": Check if we have found a person to stop on top of it (only if we are patrolling).
-  //updateThermals(droneId);
+  updateThermals(droneId);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

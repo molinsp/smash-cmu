@@ -24,6 +24,8 @@ using namespace SMASHSim;
 ///////////////////////////////////////////////////////////////////////////////
 std::string ThermalSensor::getThermalBuffer(int droneId)
 {
+  //simAddStatusbarMessage("Getting thermal buffer.");
+
   // Seed the random generator.
   srand (time(NULL) + droneId);
 
@@ -76,7 +78,7 @@ bool ThermalSensor::findPeopleBelow(std::string droneName)
   // Check if we found a person, to stop.
   int humanFound = false;
   bool allPersonsChecked = false;
-  for(int currPersonSuffix = 0; !allPersonsChecked; currPersonSuffix++)
+  for(int currPersonSuffix = 0; currPersonSuffix<2; currPersonSuffix++)
   {
     // Build the name of this person.
     std::string personName = "Bill#";
