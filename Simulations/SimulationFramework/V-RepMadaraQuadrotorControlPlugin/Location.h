@@ -12,17 +12,21 @@
  * Simple struct that stores lat/long/alt
  */
 
+#include "utilities/Position.h"
+
 #ifndef _LOCATION_H_
 #define _LOCATION_H_
 
-struct Location
+namespace SMASHSim
 {
-  double m_lat;
-  double m_long;
-  double m_alt; // meters
+    struct Location
+    {
+      SMASH::Utilities::Position latAndLong;    // degrees.
+      double altitude;                          // meters.
 
-  Location(const double& lat = 0, const double& lon = 0, const double& alt = 0) :
-    m_lat(lat), m_long(lon), m_alt(alt) {}
-};
+      Location(const double& lat = 0, const double& lon = 0, const double& alt = 0) :
+        latAndLong(lat, lon), altitude(alt) {}
+    };
+}
 
 #endif // _LOCATION_H_

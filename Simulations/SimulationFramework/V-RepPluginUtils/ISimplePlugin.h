@@ -31,13 +31,15 @@ namespace VREP
 
 		/**
 		 * Cleans up the plugin.
+         * @param suffix the suffix of the script that called this plugin.
 		 **/
-		virtual void cleanup() = 0;
+		virtual void cleanup(int suffix) = 0;
 
 	   /**
 		 * Executed in every step of the simulation.
+         * @param suffix the suffix of the script that called this plugin.
 		 **/
-		virtual void executeStep() = 0;
+		virtual void executeStep(int suffix) = 0;
 
 	   /**
 		 * Returns a short text id of the plugin, used for registering Lua functions.

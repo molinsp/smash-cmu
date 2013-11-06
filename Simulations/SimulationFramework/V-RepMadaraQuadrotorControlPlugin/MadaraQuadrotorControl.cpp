@@ -13,6 +13,7 @@
 
 using std::vector;
 using std::string;
+using namespace SMASHSim;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constructor, sets up a Madara knowledge base and basic values.
@@ -84,30 +85,21 @@ bool MadaraQuadrotorControl::terminate()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const double& lat,
-    const double& lon, const double& z) // need to update for altitude
+void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const Location& location)
 {
     // update the location of this drone (this would be done by its sensors).
     string droneIdString = NUM_TO_STR(id);
     if(m_knowledge != NULL)
     {
-        m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_LATITUDE, (lat),
+        m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_LATITUDE, (location.latAndLong.latitude),
             Madara::Knowledge_Engine::Eval_Settings(true));
-        m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_LONGITUDE, (lon),
+        m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_LONGITUDE, (location.latAndLong.longitude),
             Madara::Knowledge_Engine::Eval_Settings(true));
-        m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_ALTITUDE, (z));
+        m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_ALTITUDE, (location.altitude),
+            Madara::Knowledge_Engine::Eval_Settings(true));
 
-        m_knowledge->print_knowledge(1);
+        m_knowledge->send_modifieds();
     }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Updates the status of the drones in Madara.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraQuadrotorControl::updateQuadrotorStatus(const Status& s)
-{
-    // Need to update for altitude.
-    updateQuadrotorPosition(s.m_id, s.m_loc.m_lat, s.m_loc.m_long, s.m_loc.m_alt);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////

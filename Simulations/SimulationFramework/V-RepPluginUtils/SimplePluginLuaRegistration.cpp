@@ -69,15 +69,22 @@ void registerPluginSetup()
 // Cleans up the g_plugin.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define the LUA function input parameters.
-static int g_cleanupInArgs[] = {0};
+static int g_cleanupInArgs[] = {1, sim_lua_arg_int};    // The suffix of the script.
 
 // The actual callback function.
 void simExt_PluginCleanup(SLuaCallBack* p)
 {
 	simLockInterface(1);
 
-    // Call the plugins' cleanup function.
-    g_plugin->cleanup();
+	// Check we have to correct amount of parameters.
+	bool paramsOk = checkInputArguments(p, g_cleanupInArgs, "simExt_PluginCleanup");
+	if(paramsOk)
+	{
+		int suffix = p->inputInt[0];
+
+        // Call the plugins' cleanup function.
+        g_plugin->cleanup(suffix);
+    }
 
 	simLockInterface(0);
 }
@@ -102,15 +109,22 @@ void registerPluginCleanup()
 // Executes a simulation step in the g_plugin.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define the LUA function input parameters.
-static int g_executeStepInArgs[] = {0};
+static int g_executeStepInArgs[] = {1, sim_lua_arg_int};    // The suffix of the script.
 
 // The actual callback function.
 void simExt_PluginExecuteStep(SLuaCallBack* p)
 {
 	simLockInterface(1);
 
-    // Call the plugins' step function.
-    g_plugin->executeStep();
+	// Check we have to correct amount of parameters.
+	bool paramsOk = checkInputArguments(p, g_cleanupInArgs, "simExt_PluginCleanup");
+	if(paramsOk)
+	{
+		int suffix = p->inputInt[0];
+
+        // Call the plugins' step function.
+        g_plugin->executeStep(suffix);
+    }
 
 	simLockInterface(0);
 }

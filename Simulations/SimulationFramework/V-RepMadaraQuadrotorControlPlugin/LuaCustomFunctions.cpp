@@ -22,7 +22,7 @@ using std::stringstream;
  */
 
 // The controller used to manage the Madara stuff.
-static MadaraQuadrotorControl* control = NULL;
+static SMASHSim::MadaraQuadrotorControl* control = NULL;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Callback of the Lua simExtMadaraQuadrotorControlSetup command.
@@ -48,7 +48,7 @@ void simExtMadaraQuadrotorControlSetup(SLuaCallBack* p)
         // Only set this up once (this has to be checked since this function will be called by many drones.
         if(control == NULL)
         {
-		    control = new MadaraQuadrotorControl(droneId);
+		    control = new SMASHSim::MadaraQuadrotorControl(droneId);
             sstm << " + control initialized.";
         }
 		else
@@ -102,12 +102,12 @@ void simExtMadaraQuadrotorControlUpdateStatus(SLuaCallBack* p)
 		std::string alt(p->inputChar+lat.length()+lon.length()+2);
 
 		// Propagate the status information through the network.
-		MadaraQuadrotorControl::Status status;
-		status.m_id = p->inputInt[0];
-		status.m_loc.m_lat = atof(lat.c_str());
-		status.m_loc.m_long = atof(lon.c_str());
-		status.m_loc.m_alt = atof(alt.c_str());
-		control->updateQuadrotorStatus(status);
+		SMASHSim::Location location;
+		int droneId = p->inputInt[0];
+        location.latAndLong.latitude = atof(lat.c_str());
+		location.latAndLong.longitude = atof(lon.c_str());
+        location.altitude = atof(alt.c_str());
+		control->updateQuadrotorPosition(droneId, location);
 
 		// For debugging, print out what we received.
 		//std::stringstream sstm; 
@@ -154,7 +154,7 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 {
 	simLockInterface(1);
 
-	MadaraQuadrotorControl::Command *newCommand = NULL;
+	SMASHSim::MadaraQuadrotorControl::Command *newCommand = NULL;
 
 	// Check we have to correct amount of parameters.
 	bool paramsOk = checkInputArguments(p, g_getNewCmdInArgs, "simExtMadaraQuadrotorControlGetNewCmd");
@@ -180,7 +180,8 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 		if(strcmp(MO_MOVE_TO_GPS_CMD, newCommand->m_command.c_str()) == 0)
 		{
 			// For debugging, print out what we received.
-			sstm << "Values received inside simExtMadaraQuadrotorControlGetNewCmd function: (" << std::setprecision(10) << newCommand->m_loc.m_lat << "," << newCommand->m_loc.m_long << ")"
+			sstm << "Values received inside simExtMadaraQuadrotorControlGetNewCmd function: (" << std::setprecision(10) 
+                << newCommand->m_loc.latAndLong.latitude << "," << newCommand->m_loc.latAndLong.longitude << ")"
 				<< std::endl;
 
 			// All commands will have at least the command name, though they may have different parameters.
@@ -191,8 +192,8 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 			p->outputArgTypeAndSize[2*2+0] = sim_lua_arg_string; // long
 
 			// Turn floats into strings to avoid losing precision when transfering back to Lua.
-			std::string lat(NUM_TO_STR(newCommand->m_loc.m_lat));
-			std::string lon(NUM_TO_STR(newCommand->m_loc.m_long));
+			std::string lat(NUM_TO_STR(newCommand->m_loc.latAndLong.latitude));
+			std::string lon(NUM_TO_STR(newCommand->m_loc.latAndLong.longitude));
 
 			// Put the values in the char output buffer.
 			int numOutputs = 3;
@@ -205,7 +206,8 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 		else if(strcmp(MO_MOVE_TO_ALTITUDE_CMD, newCommand->m_command.c_str()) == 0)
 		{
 			// For debugging, print out what we received.
-			sstm << "Values received inside simExtMadaraQuadrotorControlGetNewCmd function: (" << std::setprecision(10) << newCommand->m_loc.m_alt << ")" << std::endl;
+			sstm << "Values received inside simExtMadaraQuadrotorControlGetNewCmd function: (" << std::setprecision(10) 
+                << newCommand->m_loc.altitude << ")" << std::endl;
 
 			// All commands will have at least the command name, though they may have different parameters.
 			p->outputArgTypeAndSize[0] = sim_lua_arg_string; // cmd
@@ -214,7 +216,7 @@ void simExtMadaraQuadrotorControlGetNewCmd(SLuaCallBack* p)
 			p->outputArgTypeAndSize[2*1+0] = sim_lua_arg_string; // altitude
 
 			// Turn floats into strings to avoid losing precision when transfering back to Lua.
-			std::string alt(NUM_TO_STR(newCommand->m_loc.m_alt));
+			std::string alt(NUM_TO_STR(newCommand->m_loc.altitude));
 
 			// Put the values in the char output buffer.
 			int numOutputs = 2;

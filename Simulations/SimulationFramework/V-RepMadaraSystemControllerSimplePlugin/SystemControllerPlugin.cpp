@@ -16,6 +16,9 @@
 #include <string>
 #include <vector>
 
+using namespace SMASHSim;
+using namespace VREP;
+
 // Id for a controller, a plugin must have this value as its Madara id.
 const int PLUGIN_CONTROLLER_ID = 202;
 
@@ -35,14 +38,14 @@ const std::string SYSTEM_CONTROLLER_OBJECT_NAME = "laptop#";
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 VREP::ISimplePlugin* createPlugin()
 {
-    VREP::SystemControllerPlugin* plugin = new VREP::SystemControllerPlugin();
+    SystemControllerPlugin* plugin = new SystemControllerPlugin();
     return plugin;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ISimpleInterface: Called when plugin is initialized.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void VREP::SystemControllerPlugin::initialize(int suffix)
+void SystemControllerPlugin::initialize(int suffix)
 {
     simAddStatusbarMessage("SystemControllerPlugin::initialize: Initializing System Controller.");
 
@@ -56,7 +59,7 @@ void VREP::SystemControllerPlugin::initialize(int suffix)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ISimpleInterface: Called when plugin is closing.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void VREP::SystemControllerPlugin::cleanup()
+void SystemControllerPlugin::cleanup(int suffix)
 {
     simAddStatusbarMessage("SystemControllerPlugin::cleanup: Cleaning up System Controller.");
 
@@ -70,7 +73,7 @@ void VREP::SystemControllerPlugin::cleanup()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ISimpleInterface: Called in each step of the simulation.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void VREP::SystemControllerPlugin::executeStep()
+void SystemControllerPlugin::executeStep(int suffix)
 {
     //simAddStatusbarMessage("SystemControllerPlugin::executeStep: Executing step.");
     handleNewCommand();
@@ -79,7 +82,7 @@ void VREP::SystemControllerPlugin::executeStep()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ISimpleInterface: Returns a textual ID of this plugin.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::string VREP::SystemControllerPlugin::getId()
+std::string SystemControllerPlugin::getId()
 {
     return "SystemController";
 }
@@ -87,7 +90,7 @@ std::string VREP::SystemControllerPlugin::getId()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // Handle button presses.
 ///////////////////////////////////////////////////////////////////////////////////////////////
-void VREP::SystemControllerPlugin::handleNewCommand()
+void SystemControllerPlugin::handleNewCommand()
 {
     std::string buttonPressedText = PluginUtils::getButtonPressedText(SYSTEM_CONTROLLER_COMMANDS_UI_NAME);
     if(buttonPressedText != "")
@@ -134,7 +137,7 @@ void VREP::SystemControllerPlugin::handleNewCommand()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // Sets all variables to be sent to the drones for a search request.
 ///////////////////////////////////////////////////////////////////////////////////////////////
-void VREP::SystemControllerPlugin::sendSearchRequest()
+void SystemControllerPlugin::sendSearchRequest()
 {
     // Setup the search area.
     int areaId = setupSearchArea();
@@ -147,7 +150,7 @@ void VREP::SystemControllerPlugin::sendSearchRequest()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // Sets up the search area for the whole network.
 ///////////////////////////////////////////////////////////////////////////////////////////////
-int VREP::SystemControllerPlugin::setupSearchArea()
+int SystemControllerPlugin::setupSearchArea()
 {
     // Set up the search area, getting the boundaries from the parameters.
     double x1 = PluginUtils::getDoubleParam("x1");
@@ -179,7 +182,7 @@ int VREP::SystemControllerPlugin::setupSearchArea()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // Adds drones to a search area, by requesting that out of each of them.
 ///////////////////////////////////////////////////////////////////////////////////////////////
-void VREP::SystemControllerPlugin::sendSearchRequestToDrones(int numDrones, int areaId)
+void SystemControllerPlugin::sendSearchRequestToDrones(int numDrones, int areaId)
 {
 	// Get configurable parameters for the search.
 	std::string coverageAlgorithm = PluginUtils::getStringParam("coverageAlgorithm");
@@ -213,7 +216,7 @@ void VREP::SystemControllerPlugin::sendSearchRequestToDrones(int numDrones, int 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // Sends a bridge request to the network.
 ///////////////////////////////////////////////////////////////////////////////////////////////
-void VREP::SystemControllerPlugin::sendBridgeRequestForLastPersonFound()
+void SystemControllerPlugin::sendBridgeRequestForLastPersonFound()
 {
 	// Only do this if at least one person has been found.
     std::string personFoundName = PluginUtils::getStringParam("personFoundName");
@@ -240,7 +243,7 @@ void VREP::SystemControllerPlugin::sendBridgeRequestForLastPersonFound()
 /////////////////////////////////////////////////////////////////////////////////////////////    
 // Returns the position of a given object in degrees.
 /////////////////////////////////////////////////////////////////////////////////////////////
-SMASH::Utilities::Position VREP::SystemControllerPlugin::getObjectPositionInDegrees(std::string objectName)
+SMASH::Utilities::Position SystemControllerPlugin::getObjectPositionInDegrees(std::string objectName)
 {
     // Get the handle for the object.
     int objectHandle = simGetObjectHandle(objectName.c_str());
@@ -267,7 +270,7 @@ SMASH::Utilities::Position VREP::SystemControllerPlugin::getObjectPositionInDegr
 /////////////////////////////////////////////////////////////////////////////////////////////    
 // Gets the reference point for the coordinate translation, from the scene parameters.
 /////////////////////////////////////////////////////////////////////////////////////////////
-SMASH::Utilities::Position VREP::SystemControllerPlugin::getReferencePoint()
+SMASH::Utilities::Position SystemControllerPlugin::getReferencePoint()
 {
     double refLat = PluginUtils::getDoubleParam("referenceLat");
     double refLong = PluginUtils::getDoubleParam("referenceLong");
