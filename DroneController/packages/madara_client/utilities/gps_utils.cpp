@@ -20,11 +20,11 @@
 #define HAVERSIN(x) pow(sin((x)/2), 2)
 
 // The radius of the Earth in meters.
-static const double EARTH_RADIUS = 6371000;
+static const double EARTH_RADIUS = 6371000.0;
 
-static const double DEGREES_IN_CIRCUMFERENCE = 360;
-static const double EARTH_POLES_PERIMETER = 40008000;
-static const double EARTH_EQUATORIAL_PERIMETER = 40075160;
+static const double DEGREES_IN_CIRCUMFERENCE = 360.0;
+static const double EARTH_POLES_PERIMETER = 40008000.0;
+static const double EARTH_EQUATORIAL_PERIMETER = 40075160.0;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Calculate the distance between two coordinate pairs.
@@ -33,8 +33,8 @@ double SMASH::Utilities::gps_coordinates_distance (double lat1, double long1,
   double lat2, double long2)
 {
   // Turn the latitudes into radians.
-  lat1 =  DEG_TO_RAD(lat1);
-  lat2 =  DEG_TO_RAD(lat2);
+  lat1 = DEG_TO_RAD(lat1);
+  lat2 = DEG_TO_RAD(lat2);
 
   // Get the difference between our two points then convert the difference into 
   // radians.
@@ -88,9 +88,9 @@ SMASH::Utilities::CartesianPosition SMASH::Utilities::getCartesianCoordinates(
   double deltaLongitude = coordinates.longitude - referencePoint.longitude;
     
   // Actually do the conversion.
-  double latitudePerimeter = EARTH_EQUATORIAL_PERIMETER * 
+  double perimeterAtRefLatitude = EARTH_EQUATORIAL_PERIMETER * 
     cos(DEG_TO_RAD(referencePoint.latitude));
-  double resultX = latitudePerimeter*deltaLongitude/DEGREES_IN_CIRCUMFERENCE;
+  double resultX = perimeterAtRefLatitude*deltaLongitude/DEGREES_IN_CIRCUMFERENCE;
   double resultY = EARTH_POLES_PERIMETER*deltaLatitude/DEGREES_IN_CIRCUMFERENCE;
 
   // Return it as a pair.

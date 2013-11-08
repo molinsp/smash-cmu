@@ -22,7 +22,7 @@ using namespace SMASHSim;
 
 // We define the values for the coordinates here since we can't do it in the 
 // header file.
-const double MovementActuator::TARGET_STEP = 0.05 ;
+const double MovementActuator::TARGET_STEP = 0.05;
 const double MovementActuator::TAKEOFF_ALTITUDE = 1.5;
 const double MovementActuator::LAND_ALTITUDE = 1.0;
 
@@ -44,7 +44,6 @@ MovementActuator::MovementActuator(int droneId)
 void MovementActuator::goToAltitude(double altitude)
 {
   m_nextDroneLocation.altitude = altitude;
-  moveTargetObjectTowardsNextDroneLocation();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,8 +52,6 @@ void MovementActuator::goToAltitude(double altitude)
 void MovementActuator::goToPosition(SMASH::Utilities::Position targetPosition)
 {
   m_nextDroneLocation.latAndLong = targetPosition;
-  simAddStatusbarMessage((NUM_TO_STR(m_nextDroneLocation.altitude)).c_str());
-  moveTargetObjectTowardsNextDroneLocation();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -63,7 +60,6 @@ void MovementActuator::goToPosition(SMASH::Utilities::Position targetPosition)
 void MovementActuator::takeOff()
 {
   m_nextDroneLocation.altitude = TAKEOFF_ALTITUDE;
-  moveTargetObjectTowardsNextDroneLocation();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -72,7 +68,6 @@ void MovementActuator::takeOff()
 void MovementActuator::land()
 {
   m_nextDroneLocation.altitude = LAND_ALTITUDE;
-  moveTargetObjectTowardsNextDroneLocation();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -88,6 +83,9 @@ void MovementActuator::goToLocation(SMASHSim::Location targetLocation)
 ///////////////////////////////////////////////////////////////////////////////
 void MovementActuator::moveTargetObjectTowardsNextDroneLocation()
 {
+  simAddStatusbarMessage(("Next drone location: " + 
+    m_nextDroneLocation.toString()).c_str());
+
   // Turn the next location into cartesian coords for simpler handling.
   SMASH::Utilities::Position referencePoint = 
     SMASHSim::SimUtils::getReferencePoint();
@@ -99,15 +97,28 @@ void MovementActuator::moveTargetObjectTowardsNextDroneLocation()
   // Get the current position of the target object.
   float currPos[3];
   VREP::PluginUtils::getObjectPosition(m_droneTargetName, currPos);
-  SMASH::Utilities::CartesianPosition currentTargetPosition(currPos[0], currPos[1]);
+  SMASH::Utilities::CartesianPosition currentTargetPosition(currPos[0], 
+    currPos[1]);
+  SMASHSim::Location droneTargetPos = SMASHSim::SimUtils::getObjectPositionInDegrees(m_droneTargetName);
+  SMASHSim::Location dronePos = SMASHSim::SimUtils::getObjectPositionInDegrees(m_droneTargetName);
+  simAddStatusbarMessage(("Current target position: " + 
+    currentTargetPosition.toString()).c_str());
+  simAddStatusbarMessage(("Current coord target position: " + 
+    dronePos.toString()).c_str());
 
   // Calculate the distance between the current and new position of the target
   // object as the diagonal distance between these two points.
   // Note that they are both in meters, and so is the distance.
   double distanceInX = nextDroneCartesianPosition.x - currentTargetPosition.x;
   double distanceInY = nextDroneCartesianPosition.y - currentTargetPosition.y;
-  double distanceToNewPosition = sqrt(pow(distanceInX, 2) + 
-    pow(distanceInY, 2));
+  double distanceToNewPosition = SMASH::Utilities::gps_coordinates_distance(
+    m_nextDroneLocation.latAndLong.latitude, 
+    m_nextDroneLocation.latAndLong.longitude,
+    dronePos.latAndLong.latitude,
+    dronePos.latAndLong.longitude
+    );
+  simAddStatusbarMessage(("Distance to new position: " + 
+      NUM_TO_STR(distanceToNewPosition)).c_str());
 
   // Check if the distance to the new position is less than the steps that the 
   // target uses when moving.
@@ -136,7 +147,11 @@ void MovementActuator::moveTargetObjectTowardsNextDroneLocation()
   nextTargetObjectPosition.z = nextDroneCartesianPosition.z;
 
   // Physically move the target object to its new location.
-  simAddStatusbarMessage(nextTargetObjectPosition.toString().c_str());
+  simAddStatusbarMessage(("New target position: " + 
+    nextTargetObjectPosition.toString()).c_str());
+  simAddStatusbarMessage(("New target coord position: " + 
+    SMASH::Utilities::getLatAndLong(nextTargetObjectPosition.x, nextTargetObjectPosition.y, referencePoint).toString()).c_str());
+
   VREP::PluginUtils::setObjectPosition(m_droneTargetName, 
     nextTargetObjectPosition.x, nextTargetObjectPosition.y, 
     nextTargetObjectPosition.z); 

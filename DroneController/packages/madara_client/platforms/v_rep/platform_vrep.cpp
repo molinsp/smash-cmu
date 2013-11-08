@@ -390,6 +390,6 @@ double platform_get_altitude()
 double platform_get_gps_accuracy()
 {
     // Note that this has to match the value used in VRep to determine how close to a location the drone is.
-    double gpsAccuracy = 0.3;
+    double gpsAccuracy = 0.5;
     return gpsAccuracy;
 }

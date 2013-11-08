@@ -48,6 +48,9 @@ namespace SMASHSim
     void goToLocation(SMASHSim::Location targetLocation);
     void takeOff();
     void land();
+
+    // Moves the target one step closer to the drone's destination.
+    void moveTargetObjectTowardsNextDroneLocation();
   private:
     // Information about the drone we belong to.
     int m_droneId;
@@ -58,9 +61,6 @@ namespace SMASHSim
 
     // Stores the next location the drone wants to eventually get to.
     SMASHSim::Location m_nextDroneLocation;
-
-    // Checks if there is a person currently below the sensor.
-    void moveTargetObjectTowardsNextDroneLocation();
   };
 }
 

@@ -159,11 +159,11 @@ void QuadcopterPlatformPlugin::simulateMovement(int droneId)
 
   // Set the actual return values depending on whether we found a position or 
   // not.
+  SMASHSim::MovementActuator mover = m_droneMovementActuators[droneId];
   if(newCommand != NULL)
   {
     VREP::PluginUtils::addStatusbarMessage("Received command: " + 
       newCommand->m_command);
-    SMASHSim::MovementActuator mover = m_droneMovementActuators[droneId];
 
     // Check the command and call the corresponding function.
     if(strcmp(newCommand->m_command.c_str(), MO_MOVE_TO_GPS_CMD) == 0)
@@ -182,7 +182,9 @@ void QuadcopterPlatformPlugin::simulateMovement(int droneId)
     {
       mover.land();
     }
-
-    m_droneMovementActuators[droneId] = mover;
   }
+
+  // Update the target.
+  mover.moveTargetObjectTowardsNextDroneLocation();
+  m_droneMovementActuators[droneId] = mover;
 }

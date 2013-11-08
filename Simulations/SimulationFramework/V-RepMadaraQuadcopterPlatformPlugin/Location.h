@@ -14,6 +14,9 @@
 
 #include "utilities/Position.h"
 
+#include <sstream>        // std::ostringstream
+#include <iomanip>        // std::setprecision
+
 #ifndef _LOCATION_H_
 #define _LOCATION_H_
 
@@ -24,8 +27,19 @@ namespace SMASHSim
       SMASH::Utilities::Position latAndLong;    // degrees.
       double altitude;                          // meters.
 
-      Location(const double& lat = 0, const double& lon = 0, const double& alt = 0) :
+      Location(const double& lat=0, const double& lon=0, const double& alt=0) :
         latAndLong(lat, lon), altitude(alt) {}
+
+      /** Turns a location into a string.
+        * @return a string of the form "lat,lon,alt".
+        **/
+      std::string toString()
+      {
+          std::stringstream sstream;
+          sstream << std::setprecision(10) << latAndLong.latitude << "," << 
+            latAndLong.longitude << "," << altitude;
+          return sstream.str();
+      }
     };
 }
 
