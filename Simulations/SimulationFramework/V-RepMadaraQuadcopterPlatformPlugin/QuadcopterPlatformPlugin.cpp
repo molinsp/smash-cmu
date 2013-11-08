@@ -45,6 +45,7 @@ QuadcopterPlatformPlugin::QuadcopterPlatformPlugin()
 
 ///////////////////////////////////////////////////////////////////////////////
 // ISimpleInterface: Called when plugin is initialized.
+// Note that this will be called once per object using this plugin.
 ///////////////////////////////////////////////////////////////////////////////
 void QuadcopterPlatformPlugin::initialize(int suffix)
 {
@@ -66,13 +67,9 @@ void QuadcopterPlatformPlugin::initialize(int suffix)
     m_madaraController->incrementNumDrones();
   }
 
-  // Setup the movement actuators.
-  int numDrones = VREP::PluginUtils::getIntParam("numberOfDrones");
-  for(int i=0; i<numDrones; i++)
-  {
-    SMASHSim::MovementActuator mover(i);
-    m_droneMovementActuators.push_back(mover);
-  }
+  // Add a movement actuators.
+  SMASHSim::MovementActuator mover(droneId);
+  m_droneMovementActuators.push_back(mover);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -166,7 +163,7 @@ void QuadcopterPlatformPlugin::simulateMovement(int droneId)
   {
     VREP::PluginUtils::addStatusbarMessage("Received command: " + 
       newCommand->m_command);
-    SMASHSim::MovementActuator mover = m_droneMovementActuators.at(droneId);
+    SMASHSim::MovementActuator mover = m_droneMovementActuators[droneId];
 
     // Check the command and call the corresponding function.
     if(strcmp(newCommand->m_command.c_str(), MO_MOVE_TO_GPS_CMD) == 0)
@@ -185,5 +182,7 @@ void QuadcopterPlatformPlugin::simulateMovement(int droneId)
     {
       mover.land();
     }
+
+    m_droneMovementActuators[droneId] = mover;
   }
 }

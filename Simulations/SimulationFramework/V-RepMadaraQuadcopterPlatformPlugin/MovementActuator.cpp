@@ -53,6 +53,7 @@ void MovementActuator::goToAltitude(double altitude)
 void MovementActuator::goToPosition(SMASH::Utilities::Position targetPosition)
 {
   m_nextDroneLocation.latAndLong = targetPosition;
+  simAddStatusbarMessage((NUM_TO_STR(m_nextDroneLocation.altitude)).c_str());
   moveTargetObjectTowardsNextDroneLocation();
 }
 
@@ -90,10 +91,10 @@ void MovementActuator::moveTargetObjectTowardsNextDroneLocation()
   // Turn the next location into cartesian coords for simpler handling.
   SMASH::Utilities::Position referencePoint = 
     SMASHSim::SimUtils::getReferencePoint();
-  SMASH::Utilities::CartesianPosition nextDronePositionCoords = 
+  SMASH::Utilities::CartesianPosition nextDroneCartesianPosition = 
     SMASH::Utilities::getCartesianCoordinates(m_nextDroneLocation.latAndLong, 
     referencePoint);
-  nextDronePositionCoords.z = m_nextDroneLocation.altitude;
+  nextDroneCartesianPosition.z = m_nextDroneLocation.altitude;
 
   // Get the current position of the target object.
   float currPos[3];
@@ -103,8 +104,8 @@ void MovementActuator::moveTargetObjectTowardsNextDroneLocation()
   // Calculate the distance between the current and new position of the target
   // object as the diagonal distance between these two points.
   // Note that they are both in meters, and so is the distance.
-  double distanceInX = nextDronePositionCoords.x - currentTargetPosition.x;
-  double distanceInY = nextDronePositionCoords.y - currentTargetPosition.y;
+  double distanceInX = nextDroneCartesianPosition.x - currentTargetPosition.x;
+  double distanceInY = nextDroneCartesianPosition.y - currentTargetPosition.y;
   double distanceToNewPosition = sqrt(pow(distanceInX, 2) + 
     pow(distanceInY, 2));
 
@@ -115,8 +116,8 @@ void MovementActuator::moveTargetObjectTowardsNextDroneLocation()
   {
     // If so, we just move the target to the new position, since it will be 
     // less or equal than a regular step anyway.
-    nextTargetObjectPosition.x = nextDronePositionCoords.x;
-    nextTargetObjectPosition.y = nextDronePositionCoords.y;
+    nextTargetObjectPosition.x = nextDroneCartesianPosition.x;
+    nextTargetObjectPosition.y = nextDroneCartesianPosition.y;
   }
   else
   {
@@ -132,7 +133,7 @@ void MovementActuator::moveTargetObjectTowardsNextDroneLocation()
 
   // The altitude will be the next altitude right away (this will always make
   // us move fast in the z plane).
-  nextTargetObjectPosition.z = nextDronePositionCoords.z;
+  nextTargetObjectPosition.z = nextDroneCartesianPosition.z;
 
   // Physically move the target object to its new location.
   simAddStatusbarMessage(nextTargetObjectPosition.toString().c_str());
