@@ -121,3 +121,20 @@ void PluginUtils::getObjectPosition(std::string objectName, float position[3])
   // Get the cartesian position.
   simGetObjectPosition(objectHandle, -1, position);
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// Moves an object to the given position.
+///////////////////////////////////////////////////////////////////////////////
+void PluginUtils::setObjectPosition(std::string objectName, double x, double y, 
+  double z)
+{
+  // Get the handle of the object.
+  int objectHandle = simGetObjectHandle(objectName.c_str());
+
+  // Set the cartesian position.
+  float position[3];
+  position[0] = x;
+  position[1] = y;
+  position[2] = z;
+  simSetObjectPosition(objectHandle, -1, position);
+}

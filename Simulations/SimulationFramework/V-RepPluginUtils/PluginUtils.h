@@ -33,6 +33,9 @@ namespace VREP
 
     // Get the position of an object.
     static void getObjectPosition(std::string objectName, float position[3]);
+
+    // Move an object to the given position.
+    static void setObjectPosition(std::string objectName, double x, double y, double z);
   };
 }
 
