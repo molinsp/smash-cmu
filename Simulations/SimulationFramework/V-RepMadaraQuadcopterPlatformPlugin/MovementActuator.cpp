@@ -20,6 +20,12 @@
 
 using namespace SMASHSim;
 
+// We define the values for the coordinates here since we can't do it in the 
+// header file.
+const double MovementActuator::TARGET_STEP = 0.05 ;
+const double MovementActuator::TAKEOFF_ALTITUDE = 1.5;
+const double MovementActuator::LAND_ALTITUDE = 1.0;
+
 ///////////////////////////////////////////////////////////////////////////////
 // Default constructor.
 ///////////////////////////////////////////////////////////////////////////////
@@ -120,11 +126,16 @@ void MovementActuator::moveTargetObjectTowardsNextDroneLocation()
     double targetStepY = TARGET_STEP * (distanceInY / distanceToNewPosition);
 
     // Set the new position of the target.
-    nextTargetObjectPosition.x = nextTargetObjectPosition.x + targetStepX;
-    nextTargetObjectPosition.y = nextTargetObjectPosition.y + targetStepY;
+    nextTargetObjectPosition.x = currentTargetPosition.x + targetStepX;
+    nextTargetObjectPosition.y = currentTargetPosition.y + targetStepY;
   }
 
+  // The altitude will be the next altitude right away (this will always make
+  // us move fast in the z plane).
+  nextTargetObjectPosition.z = nextDronePositionCoords.z;
+
   // Physically move the target object to its new location.
+  simAddStatusbarMessage(nextTargetObjectPosition.toString().c_str());
   VREP::PluginUtils::setObjectPosition(m_droneTargetName, 
     nextTargetObjectPosition.x, nextTargetObjectPosition.y, 
     nextTargetObjectPosition.z); 

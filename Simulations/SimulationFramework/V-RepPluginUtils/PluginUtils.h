@@ -35,7 +35,11 @@ namespace VREP
     static void getObjectPosition(std::string objectName, float position[3]);
 
     // Move an object to the given position.
-    static void setObjectPosition(std::string objectName, double x, double y, double z);
+    static void setObjectPosition(std::string objectName, double x, double y, 
+      double z);
+
+    // Wrapper to send status messages with std::strings instead of char*.
+    static void addStatusbarMessage(std::string message);
   };
 }
 

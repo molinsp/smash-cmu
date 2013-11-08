@@ -26,6 +26,9 @@ namespace SMASHSim
     class QuadcopterPlatformPlugin : public VREP::ISimplePlugin
     {
     public:
+        // Default constructor.
+        QuadcopterPlatformPlugin();
+
         // Interface implementation.
         void initialize(int suffix);
         void cleanup(int suffix);

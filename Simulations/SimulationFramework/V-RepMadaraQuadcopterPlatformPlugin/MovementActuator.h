@@ -30,14 +30,14 @@ namespace SMASHSim
     // movement speeds (up to the max speed of the drone model). This value has 
     // to be less than the GPS accuracy of the VRep platform in the simulated 
     // drones.
-    static const int TARGET_STEP = 0.05 ;
+    static const double TARGET_STEP;
 
     // Altitude to reach when taking off (and hovering at that height).
-    static const int TAKEOFF_ALTITUDE = 1.5;
+    static const double TAKEOFF_ALTITUDE;
 
     // Altitude to reach when landing (they don't really land to prevent 
     // collisions with the floor).
-    static const int LAND_ALTITUDE = 1.0;
+    static const double LAND_ALTITUDE;
 
     // Default constructor.
     MovementActuator(int droneId);

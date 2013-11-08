@@ -138,3 +138,11 @@ void PluginUtils::setObjectPosition(std::string objectName, double x, double y,
   position[2] = z;
   simSetObjectPosition(objectHandle, -1, position);
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// Wrapper to send status messages with std::strings instead of char*.
+///////////////////////////////////////////////////////////////////////////////
+void PluginUtils::addStatusbarMessage(std::string message)
+{
+  simAddStatusbarMessage(message.c_str());
+}

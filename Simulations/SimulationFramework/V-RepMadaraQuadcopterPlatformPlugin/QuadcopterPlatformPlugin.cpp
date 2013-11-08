@@ -36,6 +36,14 @@ VREP::ISimplePlugin* createPlugin()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Default constructor.
+///////////////////////////////////////////////////////////////////////////////
+QuadcopterPlatformPlugin::QuadcopterPlatformPlugin()
+{
+  m_madaraController = NULL;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // ISimpleInterface: Called when plugin is initialized.
 ///////////////////////////////////////////////////////////////////////////////
 void QuadcopterPlatformPlugin::initialize(int suffix)
@@ -152,9 +160,12 @@ void QuadcopterPlatformPlugin::simulateMovement(int droneId)
   SMASHSim::MadaraQuadrotorControl::Command* newCommand = 
     m_madaraController->getNewCommand(droneId);
 
-  // Set the actual return values depending on whether we found a position or not.
+  // Set the actual return values depending on whether we found a position or 
+  // not.
   if(newCommand != NULL)
   {
+    VREP::PluginUtils::addStatusbarMessage("Received command: " + 
+      newCommand->m_command);
     SMASHSim::MovementActuator mover = m_droneMovementActuators.at(droneId);
 
     // Check the command and call the corresponding function.

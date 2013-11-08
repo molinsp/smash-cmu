@@ -5,29 +5,29 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
+#ifdef _WIN32
+  #define _WIN32_WINNT     0x0601
+  #include <afxwin.h>         // MFC core and standard components
+  #include <winsock2.h>
+  #include <Mmsystem.h>
+  #pragma message("-----------------------> Adding library: Winmm.lib") 
+  #pragma comment(lib,"Winmm.lib")
+#endif /* _WIN32 */
+
+#ifdef _WIN32
+    #include <shlwapi.h> // required for PathRemoveFileSpec function
+    #define WIN_AFX_MANAGE_STATE AFX_MANAGE_STATE(AfxGetStaticModuleState())
+#endif /* _WIN32 */
+#if defined (__linux) || defined (__APPLE__)
+    #define WIN_AFX_MANAGE_STATE
+#endif /* __linux || __APPLE__ */
+
 // Includes the declaration of the function that will be used to register all new Lua functions.
 #include "LuaFunctionRegistration.h"
 
 #include "v_repExtPluginInterface.h"
 #include "v_repLib.h"
 #include <iostream>
-#include <sstream>
-
-//#ifdef _WIN32
-//	#include <afxwin.h>         // MFC core and standard components
-//	#include <winsock2.h>
-//	#include <Mmsystem.h>
-//	#pragma message("-----------------------> Adding library: Winmm.lib") 
-//	#pragma comment(lib,"Winmm.lib")
-//#endif /* _WIN32 */
-
-#ifdef _WIN32
-    #include <shlwapi.h> // required for PathRemoveFileSpec function
-    //#define WIN_AFX_MANAGE_STATE AFX_MANAGE_STATE(AfxGetStaticModuleState())
-#endif /* _WIN32 */
-#if defined (__linux) || defined (__APPLE__)
-    #define WIN_AFX_MANAGE_STATE
-#endif /* __linux || __APPLE__ */
 
 #ifdef __linux
 // perform a string comparison while ignoring case
