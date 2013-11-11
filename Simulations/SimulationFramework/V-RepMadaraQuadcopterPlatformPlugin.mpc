@@ -1,5 +1,5 @@
 
-project (V-RepMadaraQuadcopterPlatformPlugin) : using_ace, using_madara, using_vrep_simple_plugin, using_madara_client, windows_multicast, vrep_hw_sim {
+project (V-RepMadaraQuadcopterPlatformPlugin) : using_ace, using_madara, using_vrep_simple_plugin, windows_multicast, using_madara_client, vrep_hw_sim {
 
   sharedname = v_repExtMadaraQuadcopterPlatformPlugin
   libout = lib

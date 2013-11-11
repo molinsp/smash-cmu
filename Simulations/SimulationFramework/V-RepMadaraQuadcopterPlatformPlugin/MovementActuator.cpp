@@ -105,38 +105,38 @@ void MovementActuator::goToLocation(SMASHSim::Location targetLocation)
 ///////////////////////////////////////////////////////////////////////////////
 void MovementActuator::moveTargetObjectTowardsNextDroneLocation()
 {
-  simAddStatusbarMessage("***************************");
-  simAddStatusbarMessage(("Drone: " + NUM_TO_STR(m_droneId)).c_str());
+  //simAddStatusbarMessage("***************************");
+  //simAddStatusbarMessage(("Drone: " + NUM_TO_STR(m_droneId)).c_str());
 
-  simAddStatusbarMessage(("Next drone position: " + 
-    m_nextDroneLocation.toString()).c_str());
+  //simAddStatusbarMessage(("Next drone position: " + 
+  //  m_nextDroneLocation.toString()).c_str());
 
   // Transform the next drone location into cartesian coordinates for VRep.
   Position referencePoint = SMASHSim::SimUtils::getReferencePoint();
   CartesianPosition nextDroneCartesianPos = Utilities::getCartesianCoordinates(
     m_nextDroneLocation.latAndLong, 
     referencePoint);
-  simAddStatusbarMessage(("Next drone cartesian position: " + 
-    nextDroneCartesianPos.toString()).c_str());
+  //simAddStatusbarMessage(("Next drone cartesian position: " + 
+  //  nextDroneCartesianPos.toString()).c_str());
 
   // Get the current position of the target object in cartesian coordinates.
   float currPos[3];
   VREP::PluginUtils::getObjectPosition(m_droneTargetName, currPos);
   CartesianPosition currentTargetCartPosition(currPos[0], currPos[1]);
-  simAddStatusbarMessage(("Curr target cartesian position: " + 
-    nextDroneCartesianPos.toString()).c_str());
+  //simAddStatusbarMessage(("Curr target cartesian position: " + 
+  //  nextDroneCartesianPos.toString()).c_str());
 
   SMASH::Utilities::Position currTargetCoords = SMASH::Utilities::getLatAndLong(currPos[0], currPos[1], referencePoint);
   //Location currTargetCoords = SimUtils::getObjectPositionInDegrees(m_droneTargetName);
-  simAddStatusbarMessage(("Curr target position: " + 
-    currTargetCoords.toString()).c_str());
+  //simAddStatusbarMessage(("Curr target position: " + 
+  //  currTargetCoords.toString()).c_str());
 
   // Calculate the distance between the current and final position of the target.
   double distanceInX = nextDroneCartesianPos.x - currentTargetCartPosition.x;
   double distanceInY = nextDroneCartesianPos.y - currentTargetCartPosition.y;
   double targetDistToNextLocation = sqrt(pow(distanceInX,2)) + sqrt(pow(distanceInY,2));
-  simAddStatusbarMessage(("Distance from target to pos: " + 
-    NUM_TO_STR(targetDistToNextLocation)).c_str());
+  //simAddStatusbarMessage(("Distance from target to pos: " + 
+  //  NUM_TO_STR(targetDistToNextLocation)).c_str());
 
   // Check if we are close enough to the final position to avoid jitter with
   // the target moving slightly around the final position.
@@ -144,7 +144,7 @@ void MovementActuator::moveTargetObjectTowardsNextDroneLocation()
   if(targetDistToNextLocation < TARGET_STEP)
   {
     // Just move the target to the drone's objective, we are close enough.
-    simAddStatusbarMessage("Moving target directly to next drone pos.");
+    //simAddStatusbarMessage("Moving target directly to next drone pos.");
     nextTargetObjectPosition.x = nextDroneCartesianPos.x;
     nextTargetObjectPosition.y = nextDroneCartesianPos.y;
   }
@@ -168,10 +168,10 @@ void MovementActuator::moveTargetObjectTowardsNextDroneLocation()
   nextTargetObjectPosition.z = m_nextDroneLocation.altitude;
 
   // Physically move the target object to its new location.
-  simAddStatusbarMessage(("New target position: " + 
-    nextTargetObjectPosition.toString()).c_str());
-  simAddStatusbarMessage(("New target coord position: " + 
-    SMASH::Utilities::getLatAndLong(nextTargetObjectPosition.x, nextTargetObjectPosition.y, referencePoint).toString()).c_str());
+  //simAddStatusbarMessage(("New target position: " + 
+  //  nextTargetObjectPosition.toString()).c_str());
+  //simAddStatusbarMessage(("New target coord position: " + 
+  //  SMASH::Utilities::getLatAndLong(nextTargetObjectPosition.x, nextTargetObjectPosition.y, referencePoint).toString()).c_str());
   VREP::PluginUtils::setObjectPosition(m_droneTargetName, 
     nextTargetObjectPosition.x, nextTargetObjectPosition.y, 
     nextTargetObjectPosition.z); 
