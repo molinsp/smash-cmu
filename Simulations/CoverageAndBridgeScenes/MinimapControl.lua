@@ -66,7 +66,7 @@ function runMainLogic()
             simSetUIButtonColor(g_minimpUIHandle, buttonnumber, {0,0,0}, {0,0,0}, {1,1,1})
             
             -- Show the id of the drone in the map too.
-            local droneId = "" .. i + 1
+            local droneId = "" .. i - 1
             simSetUIButtonLabel(g_minimpUIHandle, buttonnumber, droneId, droneId)
         end
     end

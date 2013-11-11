@@ -54,6 +54,7 @@ namespace SMASHSim
   private:
     // Information about the drone we belong to.
     int m_droneId;
+    std::string m_droneName;
     std::string m_droneTargetName;
 
     // Flag to check whether we are flying or not.

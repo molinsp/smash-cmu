@@ -19,6 +19,9 @@
 #define THERMAL_BUFFER_HEIGHT 8
 #define THERMAL_BUFFER_WIDTH 8
 
+// For GPS simulation, in meters.
+#define VREP_DRONE_GPS_ACCURACY 0.5
+
 // My id.
 #define MV_MY_ID ".id"
 
