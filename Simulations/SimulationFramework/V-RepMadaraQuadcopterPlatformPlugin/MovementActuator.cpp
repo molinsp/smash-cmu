@@ -63,7 +63,16 @@ void MovementActuator::goToPosition(SMASH::Utilities::Position targetPosition)
 ///////////////////////////////////////////////////////////////////////////////
 void MovementActuator::takeOff()
 {
-  m_nextDroneLocation.altitude = TAKEOFF_ALTITUDE;
+  // Only take off if we were not flying.
+  if(!m_flying)
+  {
+    m_nextDroneLocation.altitude = TAKEOFF_ALTITUDE;
+    m_flying = true;
+  }
+  else
+  {
+    simAddStatusbarMessage("Ignoring takeoff command since drone is already flying.");
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -71,7 +80,16 @@ void MovementActuator::takeOff()
 ///////////////////////////////////////////////////////////////////////////////
 void MovementActuator::land()
 {
-  m_nextDroneLocation.altitude = LAND_ALTITUDE;
+  // Only land if we were flying.
+  if(m_flying)
+  {
+    m_nextDroneLocation.altitude = LAND_ALTITUDE;
+    m_flying = false;
+  }
+  else
+  {
+    simAddStatusbarMessage("Ignoring land command since drone is already landed.");
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

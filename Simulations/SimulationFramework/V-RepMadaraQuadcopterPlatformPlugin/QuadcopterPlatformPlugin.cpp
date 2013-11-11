@@ -41,6 +41,7 @@ VREP::ISimplePlugin* createPlugin()
 QuadcopterPlatformPlugin::QuadcopterPlatformPlugin()
 {
   m_madaraController = NULL;
+  m_droneMovementActuators.clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -91,6 +92,9 @@ void QuadcopterPlatformPlugin::cleanup(int suffix)
       simAddStatusbarMessage("QuadcopterPlatformPlugin: removing controller");
       delete m_madaraController;
       m_madaraController = NULL;
+
+      // Clear up the actuators.
+      m_droneMovementActuators.clear();
     }
   }
 }
