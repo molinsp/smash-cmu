@@ -1,5 +1,5 @@
 
-project (V-RepMadaraSystemControllerSimplePlugin) : using_ace, using_madara, using_vrep_simple_plugin, using_madara_client, windows_multicast {
+project (V-RepMadaraSystemControllerSimplePlugin) : using_ace, using_madara, using_vrep_simple_plugin, windows_multicast, using_madara_client {
 
   sharedname = v_repExtMadaraSystemControllerSimplePlugin
   libout = lib

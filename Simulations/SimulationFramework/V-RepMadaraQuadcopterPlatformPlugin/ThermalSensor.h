@@ -23,8 +23,8 @@ namespace SMASHSim
   {
   public:
     // The size of the thermal buffer.
-    static const int THERMAL_BUFFER_HEIGHT = 8;
-    static const int THERMAL_BUFFER_WIDTH = 8;
+    static const int BUFFER_HEIGHT = 8;
+    static const int BUFFER_WIDTH = 8;
 
     // Gets a string with the thermal buffer information.
     std::string ThermalSensor::getThermalBuffer(int droneId);

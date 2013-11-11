@@ -38,9 +38,9 @@ std::string ThermalSensor::getThermalBuffer(int droneId)
 
   // Simulate the thermal buffer, filling it with random low values.
   std::stringstream bufferString;
-  for (int row=0; row<THERMAL_BUFFER_HEIGHT; row++) 
+  for (int row=0; row<BUFFER_HEIGHT; row++) 
   {
-    for (int col=0; col<THERMAL_BUFFER_WIDTH; col++)
+    for (int col=0; col<BUFFER_WIDTH; col++)
     {
       // Add a comma to every but the first value.
       if(!(row == 0 && col == 0)) 

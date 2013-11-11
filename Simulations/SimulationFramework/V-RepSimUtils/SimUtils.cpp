@@ -47,6 +47,22 @@ std::string SimUtils::getDroneName(int id)
     return droneObjectName;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Returns the name of the target that a drone follows for its movements.
+///////////////////////////////////////////////////////////////////////////////
+std::string SimUtils::getDroneTargetName(int id)
+{
+    // For all drones but the first one (id 0), we have to add the suffix, 
+    // which starts at 0 (id-1).
+    std::string droneTargetObjectName = "Quadricopter_target#";
+    if(id != 0)
+    {
+        droneTargetObjectName = droneTargetObjectName + NUM_TO_STR(id-1);
+    }
+
+    return droneTargetObjectName;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // Returns the position in degrees.
 ///////////////////////////////////////////////////////////////////////////////////////////////

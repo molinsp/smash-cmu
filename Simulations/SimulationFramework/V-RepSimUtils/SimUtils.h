@@ -28,8 +28,9 @@ namespace SMASHSim
     // scene parameters.
     static SMASH::Utilities::Position getReferencePoint();
 
-    // Gets the name of a drone object given its id.
+    // Gets the name of a drone object (or its target object) given its id.
     static std::string getDroneName(int id);
+    static std::string getDroneTargetName(int id);
 
     // Returns the position in degrees.
     static Location getObjectPositionInDegrees(std::string objectName);

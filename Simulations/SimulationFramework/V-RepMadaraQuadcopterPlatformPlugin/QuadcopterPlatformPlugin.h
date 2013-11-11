@@ -16,6 +16,7 @@
 
 #include "ISimplePlugin.h"
 #include "MadaraQuadrotorControl.h"
+#include "MovementActuator.h"
 #include <string>
 #include <vector>
 
@@ -25,6 +26,9 @@ namespace SMASHSim
     class QuadcopterPlatformPlugin : public VREP::ISimplePlugin
     {
     public:
+        // Default constructor.
+        QuadcopterPlatformPlugin();
+
         // Interface implementation.
         void initialize(int suffix);
         void cleanup(int suffix);
@@ -33,6 +37,9 @@ namespace SMASHSim
     private:
         // The controller used to manage the Madara stuff.
         MadaraQuadrotorControl* m_madaraController;
+
+        // Movement actuators.
+        std::vector<SMASHSim::MovementActuator> m_droneMovementActuators;
 
         // Simulate sensing and movement steps.
         void simulateSensors(int droneId);
