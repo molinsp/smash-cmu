@@ -14,7 +14,7 @@
 #endif
 
 // Conversion from degrees to radians.
-#define DEG_TO_RAD(x) (x)*M_PI/180.0
+#define DEG_TO_RAD(x) ((x)*M_PI/180.0)
 
 // Haversin function.
 #define HAVERSIN(x) pow(sin((x)/2), 2)
@@ -41,10 +41,35 @@ double SMASH::Utilities::gps_coordinates_distance (double lat1, double long1,
   double lat_diff = DEG_TO_RAD(lat2 - lat1);
   double long_diff = DEG_TO_RAD(long2 - long1);
 
+  // Calculate the distance in meters via trigonometry, using the cosines law 
+  // formula.
+  double distanceInMeters = acos(sin(lat1)*sin(lat2) + 
+                                 cos(lat1)*cos(lat2) *
+                                 cos(long_diff)) * EARTH_RADIUS;
+
+  // Return the distance.
+  return distanceInMeters;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Calculate the distance between two coordinate pairs.
+///////////////////////////////////////////////////////////////////////////////
+double gps_coordinates_distanceHarv (double lat1, double long1, 
+  double lat2, double long2)
+{
+  // Turn the latitudes into radians.
+  lat1 = DEG_TO_RAD(lat1);
+  lat2 = DEG_TO_RAD(lat2);
+
+  // Get the difference between our two points then convert the difference into 
+  // radians.
+  double lat_diff = DEG_TO_RAD(lat2 - lat1);
+  double long_diff = DEG_TO_RAD(long2 - long1);
+
   // Calculate the distance in meters via trigonometry, using the haversine 
   // formula.
-  double pointsHaversin = HAVERSIN(lat_diff) + (cos(lat1) * cos(lat2) *
-    HAVERSIN(long_diff));
+  double pointsHaversin = HAVERSIN(lat_diff) + 
+                          (HAVERSIN(long_diff) * cos(lat1) * cos(lat2));
   double c = 2 * atan2(sqrt(pointsHaversin), sqrt(1 - pointsHaversin));
   double distanceInMeters = EARTH_RADIUS * c;
 
