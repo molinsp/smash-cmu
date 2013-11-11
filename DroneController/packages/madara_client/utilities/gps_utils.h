@@ -26,7 +26,7 @@ namespace SMASH
 
     // Calculates the latitude and longitude of a point given as a distance 
     // in meters in x and y from a reference point.
-    SMASH::Utilities::Position getLatAndLong(int x, int y, 
+    SMASH::Utilities::Position getLatAndLong(double x, double y, 
       SMASH::Utilities::Position referencePoint);
 
     // Turns coordinates into cartesian values.

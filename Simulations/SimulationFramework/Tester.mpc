@@ -1,0 +1,27 @@
+
+project (Tester) : using_ace, using_madara, using_madara_client {
+  exeout = bin
+  exename = Tester
+  
+  Build_Files {
+    SimulationFramework.mwc
+    Tester.mpc
+    using_madara_client.mpb
+  }
+
+  Inline_Files {
+  }
+
+  Template_Files {
+  }
+
+  Source_Files {
+    ./Tester/Tester.cpp
+    ../../DroneController/packages/madara_client/utilities
+  }
+
+  Header_Files {
+    ../../DroneController/packages/madara_client/utilities
+  }
+}
+

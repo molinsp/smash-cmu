@@ -56,7 +56,7 @@ double SMASH::Utilities::gps_coordinates_distance (double lat1, double long1,
 // Calculates the latitude and longitude of a point given as a distance in 
 // meters in x and y from a reference point.
 ///////////////////////////////////////////////////////////////////////////////
-SMASH::Utilities::Position SMASH::Utilities::getLatAndLong(int x, int y, 
+SMASH::Utilities::Position SMASH::Utilities::getLatAndLong(double x, double y, 
   SMASH::Utilities::Position referencePoint)
 {
   // Get the deltas from reference point.

@@ -63,7 +63,7 @@ namespace SMASH
             std::string toString()
             {
                 std::stringstream sstream;
-                sstream << std::setprecision(10) << latitude << "," << longitude;
+                sstream << std::setprecision(12) << latitude << "," << longitude;
                 return sstream.str();
             }
         };

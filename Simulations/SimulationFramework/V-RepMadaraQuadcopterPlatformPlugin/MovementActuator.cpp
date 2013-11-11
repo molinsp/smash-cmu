@@ -105,6 +105,9 @@ void MovementActuator::goToLocation(SMASHSim::Location targetLocation)
 ///////////////////////////////////////////////////////////////////////////////
 void MovementActuator::moveTargetObjectTowardsNextDroneLocation()
 {
+  simAddStatusbarMessage("***************************");
+  simAddStatusbarMessage(("Drone: " + NUM_TO_STR(m_droneId)).c_str());
+
   simAddStatusbarMessage(("Next drone position: " + 
     m_nextDroneLocation.toString()).c_str());
 
@@ -113,11 +116,20 @@ void MovementActuator::moveTargetObjectTowardsNextDroneLocation()
   CartesianPosition nextDroneCartesianPos = Utilities::getCartesianCoordinates(
     m_nextDroneLocation.latAndLong, 
     referencePoint);
+  simAddStatusbarMessage(("Next drone cartesian position: " + 
+    nextDroneCartesianPos.toString()).c_str());
 
   // Get the current position of the target object in cartesian coordinates.
   float currPos[3];
   VREP::PluginUtils::getObjectPosition(m_droneTargetName, currPos);
   CartesianPosition currentTargetCartPosition(currPos[0], currPos[1]);
+  simAddStatusbarMessage(("Curr target cartesian position: " + 
+    nextDroneCartesianPos.toString()).c_str());
+
+  SMASH::Utilities::Position currTargetCoords = SMASH::Utilities::getLatAndLong(currPos[0], currPos[1], referencePoint);
+  //Location currTargetCoords = SimUtils::getObjectPositionInDegrees(m_droneTargetName);
+  simAddStatusbarMessage(("Curr target position: " + 
+    currTargetCoords.toString()).c_str());
 
   // Calculate the distance between the current and final position of the target.
   double distanceInX = nextDroneCartesianPos.x - currentTargetCartPosition.x;
@@ -132,6 +144,7 @@ void MovementActuator::moveTargetObjectTowardsNextDroneLocation()
   if(targetDistToNextLocation < TARGET_STEP)
   {
     // Just move the target to the drone's objective, we are close enough.
+    simAddStatusbarMessage("Moving target directly to next drone pos.");
     nextTargetObjectPosition.x = nextDroneCartesianPos.x;
     nextTargetObjectPosition.y = nextDroneCartesianPos.y;
   }
