@@ -26,7 +26,7 @@ bool platform_init()
 {
 	if (!drk_init_status)
 	{
-		drk_init();
+		drk_init(0);
 		drk_calibrate_abs_altitude(0);
 		drk_init_status = true;
 	}
