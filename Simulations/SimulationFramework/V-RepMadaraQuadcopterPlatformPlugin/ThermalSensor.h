@@ -27,17 +27,17 @@ namespace SMASHSim
     static const int BUFFER_WIDTH = 8;
 
     // Gets a string with the thermal buffer information.
-    std::string ThermalSensor::getThermalBuffer(int droneId);
+    std::string ThermalSensor::getThermalBuffer(int droneId, int totalNumPeople);
   private:
     // How many meters the sensor can see around its center.
-    static const int SENSOR_VIEW_RADIUS = 0.5;
+    static const double SENSOR_VIEW_RADIUS;
 
     // Ambient border temperatures for generation of the thermal buffer.
     static const int AMBIENT_MAX_TEMP = 60;
     static const int AMBIENT_MIN_TEMP = 10;
 
     // Checks if there is a person currently below the sensor.
-    bool findPeopleBelow(std::string droneName);
+    bool findPeopleBelow(std::string droneName, int totalNumPeople);
 
     // Gets a simulated value that will be recognized as a person for the given
     // height.

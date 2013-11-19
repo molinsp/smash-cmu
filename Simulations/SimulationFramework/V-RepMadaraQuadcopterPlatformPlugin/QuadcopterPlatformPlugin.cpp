@@ -146,8 +146,9 @@ void QuadcopterPlatformPlugin::updateDronePosition(int droneId)
 void QuadcopterPlatformPlugin::updateThermals(int droneId)
 {
   // Set the thermal buffer.
+  int totalNumPeople = VREP::PluginUtils::getIntParam("numberOfPeople");
   ThermalSensor tSensor;
-  std::string thermalBuffer = tSensor.getThermalBuffer(droneId);
+  std::string thermalBuffer = tSensor.getThermalBuffer(droneId,totalNumPeople);
   m_madaraController->setNewThermalScan(droneId, thermalBuffer, 
     ThermalSensor::BUFFER_HEIGHT, ThermalSensor::BUFFER_WIDTH);
 }

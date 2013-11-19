@@ -19,10 +19,14 @@
 
 using namespace SMASHSim;
 
+// We define the values for the coordinates here since we can't do it in the 
+// header file.
+const double ThermalSensor::SENSOR_VIEW_RADIUS = 0.5;
+
 ///////////////////////////////////////////////////////////////////////////////
 // Sets up the search area for the whole network.
 ///////////////////////////////////////////////////////////////////////////////
-std::string ThermalSensor::getThermalBuffer(int droneId)
+std::string ThermalSensor::getThermalBuffer(int droneId, int totalNumPeople)
 {
   //simAddStatusbarMessage("Getting thermal buffer.");
 
@@ -33,8 +37,8 @@ std::string ThermalSensor::getThermalBuffer(int droneId)
   std::string droneName = SimUtils::getDroneName(droneId);
   Location dronePos = SimUtils::getObjectPositionInDegrees(droneName);
 
-  // Check if we found a person, to stop.
-  bool humanFound = findPeopleBelow(droneName);
+  // Check if we found a person below, to add it to the simulated buffer.
+  bool humanFound = findPeopleBelow(droneName, totalNumPeople);
 
   // Simulate the thermal buffer, filling it with random low values.
   std::stringstream bufferString;
@@ -69,16 +73,16 @@ std::string ThermalSensor::getThermalBuffer(int droneId)
 // Tries to find one person below the drone. One is enough; we won't make a 
 // difference if two of them are really close together.
 ///////////////////////////////////////////////////////////////////////////////
-bool ThermalSensor::findPeopleBelow(std::string droneName)
+bool ThermalSensor::findPeopleBelow(std::string droneName, int totalNumPeople)
 {
   // Get the position of the sensor (which is the position of the drone).
   float dronePos[3];
   VREP::PluginUtils::getObjectPosition(droneName, dronePos);
 
-  // Check if we found a person, to stop.
+  // Check if we found a person.
   int humanFound = false;
   bool allPersonsChecked = false;
-  for(int currPersonSuffix = 0; currPersonSuffix<2; currPersonSuffix++)
+  for(int currPersonSuffix = 0; currPersonSuffix<totalNumPeople; currPersonSuffix++)
   {
     // Build the name of this person.
     std::string personName = "Bill#";
@@ -88,7 +92,7 @@ bool ThermalSensor::findPeopleBelow(std::string droneName)
     }
 
     // Try to get a handle for this person. If we don't get one, there are no
-    // more people.
+    // more people to check.
     int handle = simGetObjectHandle(personName.c_str());
     if(handle == -1)
     {
@@ -102,6 +106,7 @@ bool ThermalSensor::findPeopleBelow(std::string droneName)
 
     // Check if the person is within a square of side 2*SENSOR_VIEW_RADIUS, 
     // centered on the drone's position.
+    // VREP::PluginUtils::addStatusbarMessage("Diff: " + NUM_TO_STR(fabs(personPos[0] - dronePos[0])) + " and ");
     double margin = ThermalSensor::SENSOR_VIEW_RADIUS;
     if((fabs(personPos[0] - dronePos[0]) <= margin) &&  
        (fabs(personPos[1] - dronePos[1]) <= margin)) 
@@ -109,6 +114,7 @@ bool ThermalSensor::findPeopleBelow(std::string droneName)
       // Notify our shared memory that a person was found.
       simSetScriptSimulationParameter(sim_handle_main_script, "personFoundName", 
         personName.c_str(), personName.length()+1);
+      //VREP::PluginUtils::addStatusbarMessage("Person found: " + personName);
 
       // Return indicating that there is at least one person below.
       return true;
