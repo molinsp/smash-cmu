@@ -1,5 +1,5 @@
 
-project (DroneControllerSimulator) : using_ace, using_madara, using_madara_client, vrep_hw_sim {
+project (DroneControllerSimulator) : using_ace, using_madara, using_madara_client {
   exeout = bin
   exename = DroneControllerSimulator
   
@@ -7,7 +7,6 @@ project (DroneControllerSimulator) : using_ace, using_madara, using_madara_clien
     SimulationFramework.mwc
     DroneControllerSimulator.mpc
     using_madara_client.mpb
-    vrep_hw_sim.mpb
   }
 
   Inline_Files {
@@ -25,7 +24,7 @@ project (DroneControllerSimulator) : using_ace, using_madara, using_madara_clien
     ../../DroneController/packages/madara_client/platforms
     ../../DroneController/packages/madara_client/platforms/comm
     ../../DroneController/packages/madara_client/platforms/comm/multicast
-    ../../DroneController/packages/madara_client/platforms/v_rep/platform_vrep.cpp
+    ../../DroneController/packages/madara_client/platforms/v_rep
     ../../DroneController/packages/madara_client/sensors
     ../../DroneController/packages/madara_client/utilities
   }

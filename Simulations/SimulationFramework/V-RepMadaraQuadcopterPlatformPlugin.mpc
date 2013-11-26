@@ -1,5 +1,5 @@
 
-project (V-RepMadaraQuadcopterPlatformPlugin) : using_ace, using_madara, using_vrep_plugin, using_madara_client, vrep_hw_sim {
+project (V-RepMadaraQuadcopterPlatformPlugin) : using_ace, using_madara, using_vrep_plugin, using_madara_client, using_sim_kb {
 
   sharedname = v_repExtMadaraQuadcopterPlatformPlugin
   libout = lib
@@ -12,7 +12,7 @@ project (V-RepMadaraQuadcopterPlatformPlugin) : using_ace, using_madara, using_v
     V-RepMadaraQuadcopterPlatformPlugin.mpc
     using_madara_client.mpb
     using_vrep_plugin.mpb
-    vrep_hw_sim.mpb
+    using_sim_kb.mpb
   }
   
   Source_Files {

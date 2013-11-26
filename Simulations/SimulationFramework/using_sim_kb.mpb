@@ -6,6 +6,6 @@ project {
   }
 
   Header_Files {
-    ../../DroneController/packages/madara_client/platforms/v_rep
+    ../../DroneController/packages/madara_client/platforms/v_rep/sim_kb.h
   }
 }

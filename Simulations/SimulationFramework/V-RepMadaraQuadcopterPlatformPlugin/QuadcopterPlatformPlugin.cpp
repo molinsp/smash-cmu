@@ -173,10 +173,15 @@ void QuadcopterPlatformPlugin::simulateMovement(int droneId)
     // Check the command and call the corresponding function.
     if(strcmp(newCommand->m_command.c_str(), MO_MOVE_TO_GPS_CMD) == 0)
     {
+      VREP::PluginUtils::addStatusbarMessage("Lat: " + 
+        NUM_TO_STR(newCommand->m_loc.latAndLong.latitude) + ", Long: " + 
+        NUM_TO_STR(newCommand->m_loc.latAndLong.longitude));
       mover.goToPosition(newCommand->m_loc.latAndLong);
     }
     else if(strcmp(newCommand->m_command.c_str(), MO_MOVE_TO_ALTITUDE_CMD) == 0)
     {
+      VREP::PluginUtils::addStatusbarMessage("Alt: " + 
+        NUM_TO_STR(newCommand->m_loc.altitude));
       mover.goToAltitude(newCommand->m_loc.altitude);
     }
     else if(strcmp(newCommand->m_command.c_str(), MO_TAKEOFF_CMD) == 0)
