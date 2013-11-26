@@ -2,7 +2,7 @@ project {
   includes += ../../DroneController/packages/madara_client/platforms/v_rep
 
   Source_Files {
-    ../../DroneController/packages/madara_client/platforms/v_rep/sim_kb_setup.cpp
+    ../../DroneController/packages/madara_client/platforms/v_rep/sim_kb.cpp
   }
 
   Header_Files {

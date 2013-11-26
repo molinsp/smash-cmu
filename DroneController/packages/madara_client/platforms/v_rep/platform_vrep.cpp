@@ -14,8 +14,7 @@
 #include "sensors/platform_sensors.h"
 
 // Includes for HW simulation through VRep.
-#include "platforms/v_rep/platform_vrep_madara_variables.h"
-#include "platforms/v_rep/sim_kb_setup.h"
+#include "platforms/v_rep/sim_kb.h"
 
 #include "utilities/Position.h"
 #include "utilities/string_utils.h"

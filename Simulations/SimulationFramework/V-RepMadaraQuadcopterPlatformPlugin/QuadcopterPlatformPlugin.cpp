@@ -19,7 +19,7 @@
 
 #include "utilities/gps_utils.h"
 #include "utilities/string_utils.h"
-#include "platforms/v_rep/platform_vrep_madara_variables.h"
+#include "platforms/v_rep/sim_kb.h"
 #include <string>
 #include <vector>
 
