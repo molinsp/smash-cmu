@@ -27,7 +27,7 @@ namespace SMASHSim
     static const int BUFFER_WIDTH = 8;
 
     // Gets a string with the thermal buffer information.
-    std::string ThermalSensor::getThermalBuffer(int droneId, int totalNumPeople);
+    std::string getThermalBuffer(int droneId, int totalNumPeople);
   private:
     // How many meters the sensor can see around its center.
     static const double SENSOR_VIEW_RADIUS;
