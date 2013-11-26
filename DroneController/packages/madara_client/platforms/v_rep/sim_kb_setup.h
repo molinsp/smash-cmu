@@ -16,9 +16,9 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 
 // Sets up a knowledge base with a transport that is appropriate for HW simulation.
-Madara::Knowledge_Engine::Knowledge_Base* sim_comm_setup_knowledge_base(int id, bool enableLog);
+Madara::Knowledge_Engine::Knowledge_Base* sim_setup_knowledge_base(int id, bool enableLog);
 
 // Cleans up a sim knowledge base.
-void sim_comm_cleanup_knowledge_base(Madara::Knowledge_Engine::Knowledge_Base* knowledge);
+void sim_cleanup_knowledge_base(Madara::Knowledge_Engine::Knowledge_Base* knowledge);
 
 #endif

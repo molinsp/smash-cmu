@@ -1,3 +1,4 @@
+#!/bin/bash
 rm *log.txt
 cp *.lua $VREP_HOME
 

@@ -1,5 +1,5 @@
 
-project (V-RepMadaraQuadcopterPlatformPlugin) : using_ace, using_madara, using_vrep_simple_plugin, windows_multicast, using_madara_client, vrep_hw_sim {
+project (V-RepMadaraQuadcopterPlatformPlugin) : using_ace, using_madara, using_vrep_plugin, using_madara_client, vrep_hw_sim {
 
   sharedname = v_repExtMadaraQuadcopterPlatformPlugin
   libout = lib
@@ -11,15 +11,15 @@ project (V-RepMadaraQuadcopterPlatformPlugin) : using_ace, using_madara, using_v
     SimulationFramework.mwc
     V-RepMadaraQuadcopterPlatformPlugin.mpc
     using_madara_client.mpb
-    using_vrep_simple_plugin.mpb
+    using_vrep_plugin.mpb
     vrep_hw_sim.mpb
-    windows_multicast.mpb
   }
   
   Source_Files {
     V-RepMadaraQuadcopterPlatformPlugin
     V-RepSimUtils
-    ../../DroneController/packages/madara_client/utilities
+    ../../DroneController/packages/madara_client/utilities/string_utils.cpp
+    ../../DroneController/packages/madara_client/utilities/gps_utils.cpp
   }
 
   Header_Files {

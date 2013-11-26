@@ -6,8 +6,8 @@
 *********************************************************************/
 
 #include "MadaraQuadrotorControl.h"
-#include "platforms/v_rep/comm_sim.h"
-#include "platforms/v_rep/v-rep_sim_madara_variables.h"
+#include "platforms/v_rep/sim_kb_setup.h"
+#include "platforms/v_rep/platform_vrep_madara_variables.h"
 #include "utilities/Position.h"
 #include "utilities/string_utils.h"
 
@@ -27,7 +27,7 @@ MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
     int transportId = droneId + 100;
 
     // Get a proper simulation knowledge base.
-    m_knowledge = sim_comm_setup_knowledge_base(transportId, true);
+    m_knowledge = sim_setup_knowledge_base(transportId, true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,7 +51,7 @@ void MadaraQuadrotorControl::initInternalData(int droneId)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 MadaraQuadrotorControl::~MadaraQuadrotorControl()
 {    
-    sim_comm_cleanup_knowledge_base(m_knowledge);
+    sim_cleanup_knowledge_base(m_knowledge);
     m_knowledge = NULL;
 }
 
@@ -72,7 +72,7 @@ bool MadaraQuadrotorControl::terminate()
         }
         else
         {
-            sim_comm_cleanup_knowledge_base(m_knowledge);
+            sim_cleanup_knowledge_base(m_knowledge);
             m_knowledge = NULL;
             return true;
         }

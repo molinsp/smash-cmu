@@ -8,9 +8,9 @@ project {
 
   specific(prop:microsoft) {
     Debug::postbuild += <%rm%> "lib<%slash%><%sharedname%>.dll" <%cmdsep%> \
-						<%mv%> "lib<%slash%><%sharedname%>d.dll" "lib<%slash%><%sharedname%>.dll" <%cmdsep%> \
-						<%cp%> "lib<%slash%><%sharedname%>.dll" "$(VREP_HOME)"
-	Release::postbuild += <%cp%> "lib<%slash%><%sharedname%>.dll" "$(VREP_HOME)"
+            <%mv%> "lib<%slash%><%sharedname%>d.dll" "lib<%slash%><%sharedname%>.dll" <%cmdsep%> \
+            <%cp%> "lib<%slash%><%sharedname%>.dll" "$(VREP_HOME)"
+  Release::postbuild += <%cp%> "lib<%slash%><%sharedname%>.dll" "$(VREP_HOME)"
   }
 
   specific(make) {
@@ -19,16 +19,11 @@ project {
 
   Source_Files {
     V-RepImports
-    V-RepPluginUtils/LuaExtensionsUtils.cpp
-    V-RepPluginUtils/v_repExtLuaExtenderPlugin.cpp
-    V-RepPluginUtils/PluginUtils.cpp
+    V-RepPluginUtils
   }
 
   Header_Files {
     V-RepImports
-    V-RepPluginUtils/v_repExtPluginInterface.h
-    V-RepPluginUtils/LuaExtensionsUtils.h
-    V-RepPluginUtils/LuaFunctionRegistration.h
-    V-RepPluginUtils/PluginUtils.h
+    V-RepPluginUtils
   }
 }

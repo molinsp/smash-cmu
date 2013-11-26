@@ -14,8 +14,8 @@
 #include "sensors/platform_sensors.h"
 
 // Includes for HW simulation through VRep.
-#include "platforms/v_rep/v-rep_sim_madara_variables.h"
-#include "platforms/v_rep/comm_sim.h"
+#include "platforms/v_rep/platform_vrep_madara_variables.h"
+#include "platforms/v_rep/sim_kb_setup.h"
 
 #include "utilities/Position.h"
 #include "utilities/string_utils.h"
@@ -96,7 +96,7 @@ bool platform_cleanup()
 static void setupInternalHardwareKnowledgeBase(int id)
 {
   // Create the knowledge base.
-  m_sim_knowledge = sim_comm_setup_knowledge_base(id, false);
+  m_sim_knowledge = sim_setup_knowledge_base(id, false);
 
   // Define Madara functions.
   compileExpressions(m_sim_knowledge);
