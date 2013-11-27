@@ -11,8 +11,8 @@
 
 #include "SimUtils.h"
 #include "PluginUtils.h"
-#include "utilities/gps_utils.h"
-#include "utilities/string_utils.h"
+#include "gps_utils.h"
+#include "string_utils.h"
 #include <string>
 
 using namespace SMASHSim;

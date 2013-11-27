@@ -1,44 +1,62 @@
 
-project (DroneControllerSimulator) : using_ace, using_madara, using_madara_client {
+project : using_ace, using_madara, using_drone_controller {
   exeout = bin
   exename = DroneControllerSimulator
   
   Build_Files {
     SimulationFramework.mwc
     DroneControllerSimulator.mpc
-    using_madara_client.mpb
-  }
-
-  Inline_Files {
-  }
-
-  Template_Files {
   }
 
   Source_Files {
-    ../../DroneController/packages/madara_client
-    ../../DroneController/packages/madara_client/area_coverage
-    ../../DroneController/packages/madara_client/bridge
-    ../../DroneController/packages/madara_client/human_detection
-    ../../DroneController/packages/madara_client/movement
-    ../../DroneController/packages/madara_client/platforms
-    ../../DroneController/packages/madara_client/platforms/comm
-    ../../DroneController/packages/madara_client/platforms/comm/multicast
-    ../../DroneController/packages/madara_client/platforms/v_rep
-    ../../DroneController/packages/madara_client/sensors
-    ../../DroneController/packages/madara_client/utilities
+    Main {
+      ../../DroneController/packages/madara_client
+    }
+    Area_Coverage {
+      ../../DroneController/packages/madara_client/area_coverage
+    }
+    Bridge_Building {
+      ../../DroneController/packages/madara_client/bridge
+    }
+    Human_Detection {
+      ../../DroneController/packages/madara_client/human_detection
+    }
+    Movement_and_Sensors {
+      ../../DroneController/packages/madara_client/movement
+      ../../DroneController/packages/madara_client/sensors
+    }
+    Platforms_and_Comm {
+      ../../DroneController/packages/madara_client/platforms
+      ../../DroneController/packages/madara_client/platforms/v_rep
+    }
+    Utilities {
+      ../../DroneController/packages/madara_client/utilities
+    }
   }
 
   Header_Files {
-    ../../DroneController/packages/madara_client
-    ../../DroneController/packages/madara_client/area_coverage
-    ../../DroneController/packages/madara_client/bridge
-    ../../DroneController/packages/madara_client/human_detection
-    ../../DroneController/packages/madara_client/movement
-    ../../DroneController/packages/madara_client/platforms
-    ../../DroneController/packages/madara_client/platforms/comm
-    ../../DroneController/packages/madara_client/sensors
-    ../../DroneController/packages/madara_client/utilities
+    Main {
+      ../../DroneController/packages/madara_client
+    }
+    Area_Coverage {
+      ../../DroneController/packages/madara_client/area_coverage
+    }
+    Bridge_Building {
+      ../../DroneController/packages/madara_client/bridge
+    }
+    Human_Detection {
+      ../../DroneController/packages/madara_client/human_detection
+    }
+    Movement_and_Sensors {
+      ../../DroneController/packages/madara_client/movement
+      ../../DroneController/packages/madara_client/sensors
+    }
+    Platforms_and_Comm {
+      ../../DroneController/packages/madara_client/platforms
+    }
+    Utilities {
+      ../../DroneController/packages/madara_client/utilities     
+    }
   }
 }
 

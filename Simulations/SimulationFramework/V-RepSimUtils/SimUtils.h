@@ -14,7 +14,7 @@
 #ifndef _SIM_UTILS_H
 #define _SIM_UTILS_H
 
-#include "utilities/Position.h"
+#include "Position.h"
 #include "MadaraQuadrotorControl.h"
 #include <string>
 

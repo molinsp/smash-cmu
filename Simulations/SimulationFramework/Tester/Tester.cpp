@@ -1,7 +1,7 @@
 // Tester.cpp : Defines the entry point for the console application.
 //
 
-#include "utilities/gps_utils.h"
+#include "gps_utils.h"
 #include <iostream>
 #include <math.h>
 

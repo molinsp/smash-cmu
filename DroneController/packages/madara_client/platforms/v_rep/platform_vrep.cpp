@@ -8,7 +8,7 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 
 // Platform-specific includes.
-#include "platforms/comm/comm.h"
+#include "platforms/kb_setup.h"
 #include "platforms/platform.h"
 #include "movement/platform_movement.h"
 #include "sensors/platform_sensors.h"
@@ -41,7 +41,7 @@ Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id, 
   sim_setup(id);
 
   // Create the knowledge base.
-  Madara::Knowledge_Engine::Knowledge_Base* knowledge = comm_setup_knowledge_base(id, enableLogging);
+  Madara::Knowledge_Engine::Knowledge_Base* knowledge = setup_knowledge_base(id, enableLogging, Madara::Transport::MULTICAST);
   return knowledge;
 }
 

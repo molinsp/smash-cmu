@@ -12,7 +12,7 @@
  * Simple struct that stores lat/long/alt
  */
 
-#include "utilities/Position.h"
+#include "Position.h"
 
 #include <sstream>        // std::ostringstream
 #include <iomanip>        // std::setprecision

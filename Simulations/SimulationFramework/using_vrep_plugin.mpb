@@ -16,14 +16,26 @@ project {
   specific(make) {
     postbuild = <%cp%> lib<%slash%>lib<%sharedname%>.so "$(VREP_HOME)"
   }
+  
+  Build_Files {
+    using_vrep_plugin.mpb
+  }  
 
   Source_Files {
-    V-RepImports
-    V-RepPluginUtils
+    VREP_Imports {
+      V-RepImports
+    }
+    VREP_Utils {
+      V-RepPluginUtils
+    }
   }
 
   Header_Files {
-    V-RepImports
-    V-RepPluginUtils
+    VREP_Imports {
+      V-RepImports
+    }
+    VREP_Utils {
+      V-RepPluginUtils
+    }
   }
 }

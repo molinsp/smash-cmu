@@ -6,15 +6,17 @@
  *********************************************************************/
 
 /*********************************************************************
- * comm.h - Sets up a communication platform thorugh a Knowledge Base.
+ * kb_setup.h - Defines an interface to setup a knowledge base.
  *********************************************************************/
 
-#ifndef _COMM_H
-#define _COMM_H
+#ifndef _KB_SETUP_H
+#define _KB_SETUP_H
 
 #include "madara/knowledge_engine/Knowledge_Base.h"
 
-// Sets up a knowledge base with a transport that is appropriate for this platform.
-Madara::Knowledge_Engine::Knowledge_Base* comm_setup_knowledge_base(int id, bool enableLog);
+// Sets up a knowledge base with a transport that is appropriate for this 
+// platform.
+Madara::Knowledge_Engine::Knowledge_Base* setup_knowledge_base(int id, 
+  bool enableLog, Madara::Transport::Types transportTypes);
 
 #endif

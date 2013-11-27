@@ -17,9 +17,9 @@
 #include "ThermalSensor.h"
 #include "MovementActuator.h"
 
-#include "utilities/gps_utils.h"
-#include "utilities/string_utils.h"
-#include "platforms/v_rep/sim_kb.h"
+#include "gps_utils.h"
+#include "string_utils.h"
+#include "sim_kb.h"
 #include <string>
 #include <vector>
 

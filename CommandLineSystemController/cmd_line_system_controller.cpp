@@ -20,10 +20,10 @@ using std::endl;
 #include "madara/utility/Log_Macros.h"
 #include "ace/Signal.h"
 
-#include "utilities/CommonMadaraVariables.h"
-#include "utilities/Position.h"
-#include "utilities/string_utils.h"
-#include "platforms/comm/comm.h"
+#include "CommonMadaraVariables.h"
+#include "Position.h"
+#include "string_utils.h"
+#include "kb_setup.h"
 #include "MadaraSystemController.h"
 
 #include <sstream>
@@ -46,6 +46,7 @@ void programSummary(char* arg)
     // General parameters.
     cerr << "  [-l] MADARA log level" << endl;
     cerr << "  [-d] numDrones" << endl;
+    cerr << "  [-t] transport" << endl;
     cerr << "  [-hm] min height" << endl;
     cerr << "  [-hd] height diff" << endl;
     cerr << "  [-r] comm range" << endl;
@@ -55,7 +56,7 @@ void programSummary(char* arg)
     cerr << "  [-s] southern latitude" << endl;
     cerr << "  [-e] eastern longitude" << endl;
     cerr << "  [-w] western longitude" << endl;
-    cerr << "  [-t] coverage type" << endl;
+    cerr << "  [-c] coverage type" << endl;
     cerr << "  [-st] search stride" << endl;
 
     // Bridge request parameters.
@@ -68,7 +69,7 @@ void programSummary(char* arg)
 }
 
 // Loads all available input parameters.
-void handleArgs(int argc, char** argv, int& id, int& numDrones,
+void handleArgs(int argc, char** argv, int& id, int& numDrones, std::string& transport,
     double& nLat, double& wLong, double& sLat, double& eLong,
     int& logLevel, std::string& coverage_type, double& stride, double& minHeight, double& heightDiff,
     double& commRange, double& personLat, double& personLon, double& sinkLat, double& sinkLon)
@@ -92,6 +93,8 @@ void handleArgs(int argc, char** argv, int& id, int& numDrones,
         else if(arg == "-l" && i + 1 < argc)
             sscanf(argv[++i], "%d", &logLevel);
         else if(arg == "-t" && i + 1 < argc)
+            transport = argv[++i];
+        else if(arg == "-c" && i + 1 < argc)
             coverage_type = argv[++i];
         else if(arg == "-st" && i + 1 < argc)
             sscanf(argv[++i], "%lf", &stride);
@@ -165,6 +168,7 @@ int main (int argc, char** argv)
     int local_debug_level = -1;
     int id = 0;
     int numDrones = 0;
+    std::string transport = "";
 
     // Default parameters.
     double stride = 0.00001;
@@ -189,10 +193,12 @@ int main (int argc, char** argv)
 
     // Load arguments and show them.
     cout << "Parse args..." << endl;
-    handleArgs(argc, argv, id, numDrones, nLat, wLong, sLat, eLong, local_debug_level, coverage_type, stride, minHeight, heightDiff, commRange,
-               personLat, personLon, sinkLat, sinkLon);
+    handleArgs(argc, argv, id, numDrones, transport, nLat, wLong, sLat, eLong, 
+      local_debug_level, coverage_type, stride, minHeight, heightDiff, commRange,
+      personLat, personLon, sinkLat, sinkLon);
     cout << "  id:           " << id << endl;
     cout << "  numDrones:    " << numDrones << endl;
+    cout << "  transport:    " << transport << endl;
     cout << "  northern lat: " << nLat << endl;
     cout << "  southern lat: " << sLat << endl;
     cout << "  western lon:  " << wLong << endl;
@@ -217,9 +223,16 @@ int main (int argc, char** argv)
         enableLogging = true;
     }
 
+    // Select a transport type.
+    Madara::Transport::Types transportType = Madara::Transport::MULTICAST;
+    if(transport == "broadcast")
+    {
+      transportType = Madara::Transport::BROADCAST;
+    }
+
     // Setup the knowledge base and basic parameters.
     cout << "Init Knowlege Base..." << endl;
-    madaraController = new MadaraController(id);
+    madaraController = new MadaraController(id, transportType);
 
     // Disseminating basic parameters, mandatory and optional ones.
     printf("\nSetting up basic parameters...\n");

@@ -15,7 +15,7 @@
 #define _MOVEMENT_ACTUATOR_PLUGIN_H
 
 #include "Location.h"
-#include "utilities/Position.h"
+#include "Position.h"
 #include <string>
 
 // Simulates a movement actuator or controller that reacts to remote commands.

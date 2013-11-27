@@ -12,7 +12,7 @@
 #include "ThermalSensor.h"
 #include "SimUtils.h"
 #include "PluginUtils.h"
-#include "utilities/string_utils.h"
+#include "string_utils.h"
 #include "v_repLib.h"
 #include <math.h>
 #include <time.h>

@@ -12,7 +12,7 @@
 #include "SystemControllerPlugin.h"
 #include "v_repLib.h"
 #include "PluginUtils.h"
-#include "utilities/gps_utils.h"
+#include "gps_utils.h"
 #include <string>
 #include <vector>
 
@@ -53,7 +53,7 @@ void SystemControllerPlugin::initialize(int suffix)
     m_bridgeRequestId = 0;
 
     // Setup Madara for communications.
-    m_madaraController = new MadaraController(PLUGIN_CONTROLLER_ID);
+    m_madaraController = new MadaraController(PLUGIN_CONTROLLER_ID, Madara::Transport::MULTICAST);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

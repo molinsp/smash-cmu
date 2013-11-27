@@ -15,7 +15,7 @@
 #define _MADARA_SYSTEM_CONTROLLER_H
 
 #include "madara/knowledge_engine/Knowledge_Base.h"
-#include "utilities/Position.h"
+#include "Position.h"
 
 #include <vector>
 #include <string>
@@ -39,7 +39,7 @@ private:
     // A counter for the regions created.
     int m_regionId;
 public:
-    MadaraController(int id);
+    MadaraController(int id, Madara::Transport::Types transportType);
     ~MadaraController();
 
     // Commands to take off and land the swarm.

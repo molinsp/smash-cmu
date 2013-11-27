@@ -6,11 +6,11 @@
  *********************************************************************/
 
 #include "MadaraSystemController.h"
-#include "utilities/CommonMadaraVariables.h"
 
-#include "platforms/comm/comm.h"
+#include "kb_setup.h"
+#include "CommonMadaraVariables.h"
+#include "string_utils.h"
 
-#include "utilities/string_utils.h"
 #include <map>
 
 using namespace SMASH::Utilities;
@@ -18,7 +18,7 @@ using namespace SMASH::Utilities;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constructor, sets up a Madara knowledge base and basic values.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-MadaraController::MadaraController(int id)
+MadaraController::MadaraController(int id, Madara::Transport::Types transportType)
 {
     // Start the counter at 0.
     m_regionId = 0;
@@ -31,7 +31,7 @@ MadaraController::MadaraController(int id)
     bool enableLogging = true;
 
     // Get a proper simulation knowledge base.
-    m_knowledge = comm_setup_knowledge_base(id, enableLogging);
+    m_knowledge = setup_knowledge_base(id, enableLogging, transportType);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -6,9 +6,9 @@
 *********************************************************************/
 
 #include "MadaraQuadrotorControl.h"
-#include "platforms/v_rep/sim_kb.h"
-#include "utilities/Position.h"
-#include "utilities/string_utils.h"
+#include "sim_kb.h"
+#include "Position.h"
+#include "string_utils.h"
 
 using std::vector;
 using std::string;

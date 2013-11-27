@@ -5,8 +5,5 @@
 # https://code.google.com/p/smash-cmu/wiki/License
 ######################################################################
 
-
 LOCAL_SOURCES += platforms/soft/platform_soft_stubs.cpp
-LOCAL_SOURCES += platforms/comm/kb_setup.cpp
-LOCAL_SOURCES += platforms/comm/multicast/comm_multicast.cpp
-
+LOCAL_SOURCES += platforms/kb_setup.cpp
