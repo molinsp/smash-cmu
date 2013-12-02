@@ -78,6 +78,7 @@ std::string SMASH::DroneController::getStatusSummaryExpression()
         "Search end:\t{.area_coverage.cell.bottom_right.location.latitude},{.area_coverage.cell.bottom_right.location.longitude}\n"
         "Last targ:\t{" MV_CURRENT_COVERAGE_TARGET("{.id}") "}\n"
         "Waiting :\t{" ".area_coverage.my_area.waiting" "}\n"
+        "Coverage:\t{.coverage.grid.covered} percent\n"
         "\n"
         "Bridge ID:\t{" MV_BRIDGE_ID("{.id}") "}\n"
         "**********************************************************************\n\n"
@@ -156,19 +157,19 @@ static Madara::Knowledge_Record process_state_movement_commands (Madara::Knowled
 static Madara::Knowledge_Record calculateNumDevices (Madara::Knowledge_Engine::Function_Arguments & args, Madara::Knowledge_Engine::Variables & variables)
 {
     // Get all the variables with the "device" prefix.
-	std::map<std::string, Madara::Knowledge_Record> map;
-	variables.to_map("device.*", map);
-	
+  std::map<std::string, Madara::Knowledge_Record> map;
+  variables.to_map("device.*", map);
+  
     // Iterate over the map, and find the ones that correspond to location, just to choose one common variable.
     int numDevicesISee = 0;
-	std::map<std::string, Madara::Knowledge_Record>::iterator iter;
-	for (iter = map.begin(); iter != map.end(); ++iter)
-	{
-		if (STRING_ENDS_WITH(iter->first, std::string(".location")))
-		{
+  std::map<std::string, Madara::Knowledge_Record>::iterator iter;
+  for (iter = map.begin(); iter != map.end(); ++iter)
+  {
+    if (STRING_ENDS_WITH(iter->first, std::string(".location")))
+    {
             numDevicesISee++;
-		}		
-	}
+    }		
+  }
 
     // Set the number of devices, locally.
     variables.set(MV_TOTAL_DEVICES_I_SEE, Madara::Knowledge_Record::Integer(numDevicesISee),
@@ -189,7 +190,7 @@ static Madara::Knowledge_Record calculateNumDevices (Madara::Knowledge_Engine::F
                       Madara::Knowledge_Engine::Eval_Settings(true, true));
     }
 
-	return Madara::Knowledge_Record::Integer(1);
+  return Madara::Knowledge_Record::Integer(1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
