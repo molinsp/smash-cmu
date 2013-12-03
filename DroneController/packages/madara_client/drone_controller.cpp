@@ -79,7 +79,7 @@ std::string SMASH::DroneController::getStatusSummaryExpression()
         "Last targ:\t{" MV_CURRENT_COVERAGE_TARGET("{.id}") "}\n"
         "Waiting :\t{" ".area_coverage.my_area.waiting" "}\n"
         "Coverage:\t{.coverage.grid.covered} percent\n"
-        "Time:\t\t{.coverage.time_passed} ms\n"
+        "Time:\t\t{.coverage.time_passed_s} s\n"
         "\n"
         "Bridge ID:\t{" MV_BRIDGE_ID("{.id}") "}\n"
         "**********************************************************************\n\n"

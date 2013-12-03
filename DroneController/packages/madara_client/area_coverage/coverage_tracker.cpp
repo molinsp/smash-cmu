@@ -16,6 +16,8 @@
 
 #include <math.h>
 #include <string>
+#include <iostream>
+#include <fstream>
 
 using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
@@ -26,8 +28,8 @@ using std::string;
 #define DEGREES_PER_METER 0.000009062 
 
 // The size in degrees of the view zone for the drone.
-#define APERTURE_WIDTH  (2.0 * DEGREES_PER_METER)
-#define APERTURE_HEIGHT (2.0 * DEGREES_PER_METER)
+#define APERTURE_WIDTH  (1.0 * DEGREES_PER_METER)
+#define APERTURE_HEIGHT (1.0 * DEGREES_PER_METER)
 
 // The size of a cell in the grid which we will use to discretize coverage, in
 // degrees.
@@ -40,6 +42,9 @@ using std::string;
 #define MV_GRID_SIZE        ".coverage.grid.size"
 #define MV_GRID_CELL(i)     "coverage.grid.cell." + std::string(i) + ".covered"
 #define MV_PERCENT_COVERED  ".coverage.grid.covered"
+
+// File to store the data in an easy to process form.
+ofstream outputFile;
 
 ///////////////////////////////////////////////////////////////////////////////
 /**
@@ -81,6 +86,11 @@ Madara::Knowledge_Record SMASH::AreaCoverage::madaraSetupCoverageTracking(
   variables.set(MV_GRID_HEIGHT, gridHeight);
   variables.set(MV_GRID_SIZE, gridSize);
 
+  // Create a file to store data easily.
+  int id = variables.get(MV_MY_ID).to_integer();
+  std::string outputFileName = "coveragedata_id" + NUM_TO_STR(id) + ".csv";
+  outputFile.open(outputFileName);
+
   return Madara::Knowledge_Record(1.0);
 }
 
@@ -98,7 +108,9 @@ Madara::Knowledge_Record SMASH::AreaCoverage::madaraUpdateTracking(
   variables.evaluate("(.coverage.init_time == 0) => (.coverage.init_time = #get_time());");
 
   // Set the time that has passed so far.
-  variables.evaluate(".coverage.curr_time = #get_time(); .coverage.time_passed = (.coverage.curr_time - .coverage.init_time)/1000.0;");
+  variables.evaluate(".coverage.curr_time = #get_time();");
+  variables.evaluate(".coverage.time_passed = (.coverage.curr_time - .coverage.init_time);");
+  variables.evaluate(".coverage.time_passed_s = .coverage.time_passed/1000000000.0;");
 
   // Get the coordinates of the search area.
   std::string myAssignedSearchArea = variables.get(
@@ -110,6 +122,7 @@ Madara::Knowledge_Record SMASH::AreaCoverage::madaraUpdateTracking(
     MV_REGION_TOPLEFT_LAT(myAssignedSearchRegion)).to_double();
   double topLeftLon = variables.get(
     MV_REGION_TOPLEFT_LON(myAssignedSearchRegion)).to_double();
+  printf("Top left lon: %0.10f, top left lat: %0.10f\n", topLeftLon, topLeftLat);
 
   // Get grid information.
   double gridWidth = variables.get(MV_GRID_WIDTH).to_double();
@@ -136,10 +149,19 @@ Madara::Knowledge_Record SMASH::AreaCoverage::madaraUpdateTracking(
     for(double lon = viewInitLon; lon <= viewEndLon; lon += GRID_CELL_WIDTH)
     {
       // Convert this coordinate into a grid cell.
-      int cellX = fabs(ceil((lon - topLeftLon) / GRID_CELL_WIDTH));
-      int cellY = fabs(ceil((topLeftLat - lat) / GRID_CELL_HEIGHT));
-      int cellNumber = cellX * gridWidth + cellY;
-      //printf("Curr cell: %d\n", cellNumber);
+      int cellX = (ceil((lon - topLeftLon) / GRID_CELL_WIDTH));
+      int cellY = (ceil((topLeftLat - lat) / GRID_CELL_HEIGHT));
+
+      // Ignore cells outside of our area (since the view area can see things
+      // outside of our search area if we are in borders).
+      if(cellX < 0 || cellY < 0)
+      {
+        //printf("Ignoring current cell as it is outside our search area (%d, %d)\n", cellX, cellY);
+        continue;
+      }
+
+      int cellNumber = cellY * gridWidth + cellX;
+      printf("Marking cell: %d, coords %0.10f,%0.10f, parts x=%d, y=%d\n", cellNumber, lat, lon, cellX, cellY);
 
       // Mark this cell as covered in the knowledge base.
       std::string cellNumberString = NUM_TO_STR(cellNumber);
@@ -179,8 +201,12 @@ Madara::Knowledge_Record SMASH::AreaCoverage::madaraUpdateCoveragePercentage(
 
   // Store the percentage in the knowledge base.
   printf("Grid size: %f, total covered: %d\n", gridSize, totalCellsCovered);
-  double percentage = totalCellsCovered / gridSize * 100;
-  variables.set(MV_PERCENT_COVERED, percentage);
+  double percentageCovered = totalCellsCovered / gridSize * 100;
+  variables.set(MV_PERCENT_COVERED, percentageCovered);
+
+  // Store in file.
+  double timePassedInSeconds = variables.get(".coverage.time_passed_s").to_double();
+  outputFile << timePassedInSeconds << "," << percentageCovered << std::endl;
 
   return Madara::Knowledge_Record(1.0);
 }
