@@ -22,8 +22,8 @@ using namespace SMASH::Utilities;
 using std::string;
 
 // To translate between degrees and meters.
-// Assumes latitude +49 degrees.
-#define DEGREES_PER_METER 0.00000899
+// Assumes latitude +40 degrees.
+#define DEGREES_PER_METER 0.000009062 
 
 // The size in degrees of the view zone for the drone.
 #define APERTURE_WIDTH  (2.0 * DEGREES_PER_METER)
@@ -40,7 +40,6 @@ using std::string;
 #define MV_GRID_SIZE        ".coverage.grid.size"
 #define MV_GRID_CELL(i)     "coverage.grid.cell." + std::string(i) + ".covered"
 #define MV_PERCENT_COVERED  ".coverage.grid.covered"
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /**
@@ -95,6 +94,12 @@ Madara::Knowledge_Record SMASH::AreaCoverage::madaraUpdateTracking(
   Madara::Knowledge_Engine::Function_Arguments &args,
   Madara::Knowledge_Engine::Variables &variables)
 {
+  // Set the starting time, if this is the first time we are called.
+  variables.evaluate("(.coverage.init_time == 0) => (.coverage.init_time = #get_time());");
+
+  // Set the time that has passed so far.
+  variables.evaluate(".coverage.curr_time = #get_time(); .coverage.time_passed = (.coverage.curr_time - .coverage.init_time)/1000.0;");
+
   // Get the coordinates of the search area.
   std::string myAssignedSearchArea = variables.get(
     variables.expand_statement(MV_ASSIGNED_SEARCH_AREA("{" MV_MY_ID "}")))
