@@ -105,9 +105,12 @@ void SystemControllerPlugin::handleNewCommand()
             double heightDiff = PluginUtils::getDoubleParam("heightDiff");
             double coverageTrackingEnabled = PluginUtils::getIntParam("coverageTracking");
             double coverageTrackingFileEnabled = PluginUtils::getIntParam("coverageTrackingFile");
+            double sensorAngle = PluginUtils::getDoubleParam("sensorAngle");
 
             // Send the parameters.
-            m_madaraController->updateGeneralParameters(numDrones, radioRange, minAltitude, heightDiff, coverageTrackingEnabled, coverageTrackingFileEnabled);
+            m_madaraController->updateGeneralParameters(numDrones, radioRange, 
+              minAltitude, heightDiff, coverageTrackingEnabled, 
+              coverageTrackingFileEnabled, sensorAngle);
         }
 
         // Send network-wide parameters (radio range, num drones, min height).

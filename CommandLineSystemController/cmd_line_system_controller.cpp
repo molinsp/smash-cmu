@@ -238,7 +238,7 @@ int main (int argc, char** argv)
     // NOTE: coverage tracking is disabled here by default withe the 0,0 passed
     // as final arguments. This could be added as a command line parameter.
     printf("\nSetting up basic parameters...\n");
-    madaraController->updateGeneralParameters(numDrones, commRange, minHeight, heightDiff, 0, 0);
+    madaraController->updateGeneralParameters(numDrones, commRange, minHeight, heightDiff, 0, 0, 0);
 
     // Also send takeoff command.
     printf("\nSending takeoff command, and waiting for drones to take off...\n");

@@ -54,7 +54,8 @@ MadaraController::~MadaraController()
 // heightDiff: The vertical distance to leave between drones.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MadaraController::updateGeneralParameters(const int& numberOfDrones, const double& commRange, const double& minAltitude, 
-                                               const double& heightDiff, const int& coverageTrackingEnabled, const int& coverageTrackingFileEnabled)
+                                               const double& heightDiff, const int& coverageTrackingEnabled, const int& coverageTrackingFileEnabled,
+                                               const double& thermalSensorAngle)
 {
     // Set up the general parameters from the class into Madara variables.
     m_knowledge->set(MV_COMM_RANGE, commRange, Madara::Knowledge_Engine::Eval_Settings(true));
@@ -63,6 +64,7 @@ void MadaraController::updateGeneralParameters(const int& numberOfDrones, const 
     m_knowledge->set(MV_TOTAL_DEVICES_GLOBAL, (Madara::Knowledge_Record::Integer) numberOfDrones, Madara::Knowledge_Engine::Eval_Settings(true));
     m_knowledge->set(MV_COVERAGE_TRACKING_ENABLED, (Madara::Knowledge_Record::Integer) coverageTrackingEnabled, Madara::Knowledge_Engine::Eval_Settings(true));
     m_knowledge->set(MV_COVERAGE_TRACKING_FILE_ENABLED, (Madara::Knowledge_Record::Integer) coverageTrackingFileEnabled, Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set(MV_THERMAL_SENSOR_ANGLE, thermalSensorAngle, Madara::Knowledge_Engine::Eval_Settings(true));
 
     // This call will flush all past changes.
     m_knowledge->send_modifieds();

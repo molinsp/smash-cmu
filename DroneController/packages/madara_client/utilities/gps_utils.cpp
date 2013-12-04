@@ -8,14 +8,6 @@
 #include "gps_utils.h"
 #include <math.h>
 
-// For Windows compatibility.
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
-// Conversion from degrees to radians.
-#define DEG_TO_RAD(x) ((x)*M_PI/180.0)
-
 // Haversin function.
 #define HAVERSIN(x) pow(sin((x)/2), 2)
 

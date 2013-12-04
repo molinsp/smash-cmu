@@ -23,9 +23,8 @@ using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
 using std::string;
 
-// The size in degrees of the view zone for the drone.
-#define APERTURE_WIDTH  (1.0 * DEGREES_PER_METER)
-#define APERTURE_HEIGHT (1.0 * DEGREES_PER_METER)
+// The angle the sensor has when covering the area.
+#define DEFAULT_THERMAL_SENSOR_ANGLE 60.0
 
 // The size of a cell in the grid which we will use to discretize coverage, in
 // degrees.
@@ -149,6 +148,14 @@ Madara::Knowledge_Record SMASH::AreaCoverage::madaraUpdateCoverageTracking(
   variables.evaluate(".coverage_tracking.time_passed = (.coverage_tracking.curr_time - .coverage_tracking.init_time);");
   variables.evaluate(".coverage_tracking.time_passed_s = .coverage_tracking.time_passed/1000000000.0;");
 
+  // Set up the default value for the aperture, locally, if there is none yet.
+  double currApertureAngle = variables.get(MV_THERMAL_SENSOR_ANGLE).to_double();
+  if(currApertureAngle == 0)
+  {
+    variables.set(MV_THERMAL_SENSOR_ANGLE, DEFAULT_THERMAL_SENSOR_ANGLE, 
+      Madara::Knowledge_Engine::Eval_Settings(true, true));
+  }
+
   // Get the coordinates of the search area.
   std::string myAssignedSearchArea = variables.get(
     variables.expand_statement(MV_ASSIGNED_SEARCH_AREA("{" MV_MY_ID "}")))
@@ -172,15 +179,31 @@ Madara::Knowledge_Record SMASH::AreaCoverage::madaraUpdateCoverageTracking(
   double myLon = variables.get(variables.expand_statement(
     MV_DEVICE_LON("{" MV_MY_ID "}"))).to_double();
 
+  // Calculate the aperture, how far we can see.
+  // This is done by using the aperture angle from the sensor that is covering
+  // the area. Since we have the height, with half that angle we can form an
+  // renctangular triangle and calculate the radius of the circle that the
+  // sensor can see through trigonometry. We then inscribe a square in that
+  // circle (to simplify we will represent our view area as a square).
+  double apertureDegrees = variables.get(MV_THERMAL_SENSOR_ANGLE).to_double();
+  double currentHeight = variables.get(MV_LOCAL_ALTITUDE).to_double();
+  double apertureDiameter = tan(DEG_TO_RAD(apertureDegrees/2.0))*currentHeight*2;
+  double squareAreaSide = apertureDiameter / sqrt(2.0);
+  printf("View area side size: %f m\n", squareAreaSide);
+
+  // Calculate the borders of the square centered on our current location, with
+  // a side size calculated above.
+  double degreesFromCenter = squareAreaSide/2.0 * DEGREES_PER_METER;
+  double viewInitLat = myLat + degreesFromCenter;
+  double viewEndLat = myLat - degreesFromCenter;
+  double viewInitLon = myLon - degreesFromCenter;
+  double viewEndLon = myLon + degreesFromCenter;
+  //printf("Init lat: %0.10f, end lat: %0.10f\n", viewInitLat, viewEndLat);
+  //printf("Init lon: %0.10f, end lon: %0.10f\n", viewInitLon, viewEndLon);
+
   // Mark everything the drone is currently seeing as covered.
   // Loop over the area we view with the aperture, advancing one grid cell
   // at a time, and marking it as covered.
-  double viewInitLat = myLat + APERTURE_HEIGHT;
-  double viewEndLat = myLat - APERTURE_HEIGHT;
-  double viewInitLon = myLon - APERTURE_WIDTH;
-  double viewEndLon = myLon + APERTURE_WIDTH;
-  //printf("Init lat: %0.10f, end lat: %0.10f\n", viewInitLat, viewEndLat);
-  //printf("Init lon: %0.10f, end lon: %0.10f\n", viewInitLon, viewEndLon);
   for(double lat = viewInitLat; lat >= viewEndLat; lat -= GRID_CELL_HEIGHT)
   {
     for(double lon = viewInitLon; lon <= viewEndLon; lon += GRID_CELL_WIDTH)
