@@ -14,18 +14,18 @@
 
 #include "madara/knowledge_engine/Knowledge_Base.h"
 
+// Used to indicate if tracking variables have to be set or reset (when it is 1).
+#define MV_START_COVERAGE_TRACKING ".area_coverage.start_tracking"
+
+// Function to update the current coverage value.
+#define MF_UPDATE_COVERAGE_TRACKING "area_coverage_updateCoverageTracking"
+
 namespace SMASH
 {
   namespace AreaCoverage
   {
-      Madara::Knowledge_Record madaraSetupCoverageTracking(
-        Madara::Knowledge_Engine::Variables &variables);
-
-      Madara::Knowledge_Record madaraUpdateTracking(
+      Madara::Knowledge_Record madaraUpdateCoverageTracking(
         Madara::Knowledge_Engine::Function_Arguments &args, 
-        Madara::Knowledge_Engine::Variables &variables);
-      
-      Madara::Knowledge_Record madaraUpdateCoveragePercentage(
         Madara::Knowledge_Engine::Variables &variables);
   }
 }

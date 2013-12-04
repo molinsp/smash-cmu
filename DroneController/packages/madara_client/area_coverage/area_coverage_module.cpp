@@ -46,8 +46,6 @@ using std::string;
 #define MF_SET_NEW_COVERAGE             "area_coverage_setNewCoverage"              // Sets the new coverage to use when a coverage reaches its final target
 #define MF_ALL_DRONES_READY             "area_coverage_checkAllDronesReady"         // Function that checks if all drones in my area are ready for the next target/waypoint.
 
-#define MF_UPDATE_COVERAGE_TRACKING     "area_coverage_updateCoverageTracking"
-
 // Internal variables.
 #define MV_CELL_INITIALIZED             ".area_coverage.cell.initialized"                       // Flag to check if we have initialized our cell in the search area.
 #define MV_NEXT_TARGET_LAT              ".area_coverage.target.location.latitude"               // The latitude of the next target location in our search pattern.
@@ -136,7 +134,7 @@ void SMASH::AreaCoverage::AreaCoverageModule::initialize(Madara::Knowledge_Engin
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SMASH::AreaCoverage::AreaCoverageModule::cleanup(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 {
-    // should only need to delete the coverage algorithm
+    // Should only need to delete the coverage algorithm.
     delete m_coverageAlgorithm;
 }
 
@@ -179,9 +177,6 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                                         "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
                                 ");"
 
-                                // Update our coverage.
-                                "(" MF_UPDATE_COVERAGE_TRACKING"());"
-
                                 // Check if we have reached our next target.
                                 "("
                                     "(" MV_FIRST_TARGET_SELECTED " && " MV_REACHED_GPS_TARGET ")"
@@ -220,8 +215,15 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                                             "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
                                             "(" MF_SET_NEW_TARGET "());" 
                                             "(" MV_WAITING " = 0);"
+
+                                            // Indicate that we want to set/reset coverage tracking.
+                                            "(" MV_START_COVERAGE_TRACKING " = 1);"
                                         ")"
                                 ");"
+
+                                // Update our coverage tracking values.
+                                "(" MF_UPDATE_COVERAGE_TRACKING"());"
+
                             ");" // End MV_ASSIGNED_ALTITUDE_REACHED
                     ");" // End MV_CELL_INITIALIZED
 
@@ -306,7 +308,7 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
     knowledge.define_function(MF_SET_NEW_TARGET, madaraSetNewTarget);
 
     // Updates the current coverage status.
-    knowledge.define_function(MF_UPDATE_COVERAGE_TRACKING, madaraUpdateTracking);
+    knowledge.define_function(MF_UPDATE_COVERAGE_TRACKING, madaraUpdateCoverageTracking);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -404,9 +406,6 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
 
             // Store our current search algorithm locally.
             variables.set(MV_CURR_COVERAGE_ALGORITHM, algo);
-
-            // Setup the coverage tracker.
-            madaraSetupCoverageTracking(variables);
     
             return Madara::Knowledge_Record(1.0);
         }
