@@ -218,11 +218,7 @@ Madara::Knowledge_Record madaraTurnOffBridgeRequest (Madara::Knowledge_Engine::F
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/**
- * Method that invocates the functionality of finding our position in a bridge, which will be called from Madara when required.
- * Will be called from an external Madara function.
- * @return  Returns true (1) if it can calculate the bridge, or false (0) if it couldn't find all required data.
- **/
+// Sets internally information about the sink and source for a particular bridge.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record madaraSetupBridgeRequest (Madara::Knowledge_Engine::Function_Arguments &args,
   Madara::Knowledge_Engine::Variables &variables)
@@ -259,9 +255,20 @@ Madara::Knowledge_Record madaraSetupBridgeRequest (Madara::Knowledge_Engine::Fun
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Calls the corresponding algorithm to find our potential position in the bridge,
+ * and sets the corresponding variables to actually move there.
+ * Will be called from an external Madara function.
+ * @return  Returns true (1) if it can calculate the bridge, or false (0) if it couldn't find all required data.
+ **/
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::Function_Arguments &args,
   Madara::Knowledge_Engine::Variables &variables)
 {
+  // Setup the basic variables (NOTE: this will have to be removed from here once the
+  // algorithms are flexibilized).
+  madaraSetupBridgeRequest(args, variables);
+
   // Get the positions of all available drones.
   std::map<int, Position> availableDronePositions = getAvailableDronesPositions(variables);
 
@@ -304,7 +311,7 @@ Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::F
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Test method used to setup drones in certain locations and issue a bridging request.
+// Obtains the positions of all the drones available to be part of the bridge.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::map<int, Position> getAvailableDronesPositions(Madara::Knowledge_Engine::Variables &variables)
 {
