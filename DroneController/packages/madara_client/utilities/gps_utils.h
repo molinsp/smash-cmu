@@ -16,6 +16,10 @@
 #include "CartesianPosition.h"
 #include <utility>
 
+// To translate between degrees and meters.
+// Assumes latitude +40 degrees.
+#define DEGREES_PER_METER 0.000009062 
+
 namespace SMASH
 {
   namespace Utilities

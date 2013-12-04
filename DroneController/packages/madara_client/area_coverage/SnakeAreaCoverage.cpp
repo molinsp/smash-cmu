@@ -13,6 +13,7 @@
 #include "SnakeAreaCoverage.h"
 
 #include "utilities/CommonMadaraVariables.h"
+#include "utilities/gps_utils.h"
 
 #include <cmath>
 
@@ -21,7 +22,10 @@ using namespace SMASH::Utilities;
 
 // Constructors
 SnakeAreaCoverage::SnakeAreaCoverage(const Region::Corner& start, const double& width) :
-    AreaCoverage(), m_startCorner(start), m_searchColumnWidth(width) {}
+    AreaCoverage(), m_startCorner(start)  
+    {
+      m_searchColumnWidth = width * DEGREES_PER_METER;
+    }
 
 // Destructor
 SnakeAreaCoverage::~SnakeAreaCoverage() {}

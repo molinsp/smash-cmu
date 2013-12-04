@@ -14,6 +14,7 @@
 
 #include "utilities/Position.h"
 #include "utilities/CommonMadaraVariables.h"
+#include "utilities/gps_utils.h"
 
 #include <iostream>
 using std::cerr;
@@ -24,8 +25,11 @@ using namespace SMASH::AreaCoverage;
 
 // Constructor
 InsideOutAreaCoverage::InsideOutAreaCoverage(double delta, direction_t heading,
-    bool clockwise) : AreaCoverage(), m_delta(delta), m_iteration(2), m_clockwise(clockwise),
-    m_heading(heading), m_nsMultiplier(1.0), m_ewMultiplier(1.0) {}
+    bool clockwise) : AreaCoverage(), m_iteration(2), m_clockwise(clockwise),
+    m_heading(heading), m_nsMultiplier(1.0), m_ewMultiplier(1.0)
+{
+   m_delta = delta * DEGREES_PER_METER;
+}
 
 // Destructor
 InsideOutAreaCoverage::~InsideOutAreaCoverage() {}
@@ -56,11 +60,11 @@ Region* InsideOutAreaCoverage::initialize(const Region& grid, int deviceIdx,
             m_heading = m_clockwise ? WEST : EAST;
     }
 
-	// find search region
-	if(numDrones == 1)
-		m_cellToSearch = new Region(grid);
-	else
-		m_cellToSearch = calculateCellToSearch(deviceIdx, grid, numDrones);
+  // find search region
+  if(numDrones == 1)
+    m_cellToSearch = new Region(grid);
+  else
+    m_cellToSearch = calculateCellToSearch(deviceIdx, grid, numDrones);
 
     // set multipliers
     double deltaLong = m_cellToSearch->southEast.longitude - m_cellToSearch->northWest.longitude;
@@ -70,7 +74,7 @@ Region* InsideOutAreaCoverage::initialize(const Region& grid, int deviceIdx,
     else
         m_nsMultiplier = deltaLat / deltaLong;
 
-	return m_cellToSearch;
+  return m_cellToSearch;
 }
 
 // Calculates the next location to move to, assuming we have reached our

@@ -27,9 +27,9 @@ using namespace SMASH::Utilities;
 using std::string;
 
 // Default values for various parameters, loaded only when the module is loaded, and locally. They will be overriden if a System Controller changes them.
-#define DEFAULT_SEARCH_LINE_OFFSET_DEGREES      0.0000100   // Margin (in degrees) to use when moving to another column or line of search. Should be similar to the view range of a drone.
-#define DEFAULT_ALTITUDE_DIFFERENCE             0.8         // The amount of vertical space (in meters) to leave between drones.
-#define DEFAULT_MIN_HEIGHT                      1.5         // The default minimum height (in meters) to use when choosing heights for search coverage.
+#define DEFAULT_SEARCH_LINE_OFFSET_DEGREES      0.8   // Margin (in meters) to use when moving to another column or line of search. Should be similar to the view range of a drone.
+#define DEFAULT_ALTITUDE_DIFFERENCE             0.8   // The amount of vertical space (in meters) to leave between drones.
+#define DEFAULT_MIN_HEIGHT                      1.5   // The default minimum height (in meters) to use when choosing heights for search coverage.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Madara Variable Definitions

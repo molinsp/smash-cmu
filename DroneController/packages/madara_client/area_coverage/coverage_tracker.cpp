@@ -23,10 +23,6 @@ using namespace SMASH::AreaCoverage;
 using namespace SMASH::Utilities;
 using std::string;
 
-// To translate between degrees and meters.
-// Assumes latitude +40 degrees.
-#define DEGREES_PER_METER 0.000009062 
-
 // The size in degrees of the view zone for the drone.
 #define APERTURE_WIDTH  (1.0 * DEGREES_PER_METER)
 #define APERTURE_HEIGHT (1.0 * DEGREES_PER_METER)

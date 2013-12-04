@@ -75,9 +75,10 @@ namespace SMASH { namespace AreaCoverage {
 		// Start corner
 		const Region::Corner m_startCorner;
 
-		// The width of each column the device will move over when searching the area.
-		// It will roughly have the same width as the device.
-		const double m_searchColumnWidth;
+		// The width, in degrees, of each column the device will move over when 
+    // searching the area. It is a little less than the size of the view area
+    // the drone has.
+		double m_searchColumnWidth;
 
 		// Flag to check whether we are moving north south (to know whether we
 		// have to turn or not).
