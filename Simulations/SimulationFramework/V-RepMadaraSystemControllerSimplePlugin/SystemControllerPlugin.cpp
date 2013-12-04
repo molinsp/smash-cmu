@@ -103,9 +103,11 @@ void SystemControllerPlugin::handleNewCommand()
             double radioRange = PluginUtils::getDoubleParam("radioRange");
             double minAltitude = PluginUtils::getDoubleParam("minimumAltitude");
             double heightDiff = PluginUtils::getDoubleParam("heightDiff");
+            double coverageTrackingEnabled = PluginUtils::getIntParam("coverageTracking");
+            double coverageTrackingFileEnabled = PluginUtils::getIntParam("coverageTrackingFile");
 
             // Send the parameters.
-            m_madaraController->updateGeneralParameters(numDrones, radioRange, minAltitude, heightDiff);
+            m_madaraController->updateGeneralParameters(numDrones, radioRange, minAltitude, heightDiff, coverageTrackingEnabled, coverageTrackingFileEnabled);
         }
 
         // Send network-wide parameters (radio range, num drones, min height).
@@ -119,13 +121,13 @@ void SystemControllerPlugin::handleNewCommand()
         {
             m_madaraController->sendLandCommand();
         }
-		
+    
         // Start a search request if that button was pressed.
         if(buttonPressedText == SYSTEM_CONTROLLER_COMMAND_START_SEARCH)
         {
             sendSearchRequest();
         }
-		
+    
         // Start a bridge request if that button was pressed.
         if(buttonPressedText == SYSTEM_CONTROLLER_COMMAND_START_BRIDGE)
         {
@@ -184,11 +186,11 @@ int SystemControllerPlugin::setupSearchArea()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 void SystemControllerPlugin::sendSearchRequestToDrones(int numDrones, int areaId)
 {
-	// Get configurable parameters for the search.
-	std::string coverageAlgorithm = PluginUtils::getStringParam("coverageAlgorithm");
-	std::string humanDetectionAlgorithm = PluginUtils::getStringParam("humanDetectionAlgorithm");
+  // Get configurable parameters for the search.
+  std::string coverageAlgorithm = PluginUtils::getStringParam("coverageAlgorithm");
+  std::string humanDetectionAlgorithm = PluginUtils::getStringParam("humanDetectionAlgorithm");
     double lineWidth = PluginUtils::getDoubleParam("searchLineWidth");
-	int waitForRest = PluginUtils::getIntParam("waitForRest");
+  int waitForRest = PluginUtils::getIntParam("waitForRest");
 
     // Print info of what we got.
     std::stringstream sstream1;
@@ -218,26 +220,26 @@ void SystemControllerPlugin::sendSearchRequestToDrones(int numDrones, int areaId
 ///////////////////////////////////////////////////////////////////////////////////////////////
 void SystemControllerPlugin::sendBridgeRequestForLastPersonFound()
 {
-	// Only do this if at least one person has been found.
+  // Only do this if at least one person has been found.
     std::string personFoundName = PluginUtils::getStringParam("personFoundName");
-	if(personFoundName != "") 
+  if(personFoundName != "") 
     {
-		// Get sink and source info.
+    // Get sink and source info.
         SMASH::Utilities::Position personPosition = getObjectPositionInDegrees(personFoundName);
-		SMASH::Utilities::Position controllerPosition = getObjectPositionInDegrees(SYSTEM_CONTROLLER_OBJECT_NAME);
+    SMASH::Utilities::Position controllerPosition = getObjectPositionInDegrees(SYSTEM_CONTROLLER_OBJECT_NAME);
 
         // Create the regions, which will basically be a point each, for now at least.
         SMASH::Utilities::Region startRegion(personPosition, personPosition);
         SMASH::Utilities::Region endRegion(controllerPosition, controllerPosition);
-		
-		// Do the external bridge request.
-		simAddStatusbarMessage("Sending bridge request for last person found.");
+    
+    // Do the external bridge request.
+    simAddStatusbarMessage("Sending bridge request for last person found.");
         m_madaraController->setupBridgeRequest(m_bridgeRequestId++, startRegion, endRegion);
     }
-	else
+  else
     {
-		simAddStatusbarMessage("No person found yet!");
-	}
+    simAddStatusbarMessage("No person found yet!");
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////    

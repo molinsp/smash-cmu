@@ -235,8 +235,10 @@ int main (int argc, char** argv)
     madaraController = new MadaraController(id, transportType);
 
     // Disseminating basic parameters, mandatory and optional ones.
+    // NOTE: coverage tracking is disabled here by default withe the 0,0 passed
+    // as final arguments. This could be added as a command line parameter.
     printf("\nSetting up basic parameters...\n");
-    madaraController->updateGeneralParameters(numDrones, commRange, minHeight, heightDiff);
+    madaraController->updateGeneralParameters(numDrones, commRange, minHeight, heightDiff, 0, 0);
 
     // Also send takeoff command.
     printf("\nSending takeoff command, and waiting for drones to take off...\n");

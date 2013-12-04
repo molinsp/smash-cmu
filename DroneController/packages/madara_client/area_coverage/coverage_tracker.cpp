@@ -96,7 +96,8 @@ void setupCoverageTracking(
   variables.set(MV_GRID_SIZE, gridSize);
 
   // Create a file to store data to parse it later easily.
-  bool useFile = true;
+  int fileEnabled = variables.get(MV_COVERAGE_TRACKING_FILE_ENABLED).to_integer();
+  bool useFile = (fileEnabled == 1);
   if(useFile)
   {
     int id = variables.get(MV_MY_ID).to_integer();
@@ -116,13 +117,21 @@ void setupCoverageTracking(
 ///////////////////////////////////////////////////////////////////////////////
 /**
  * Updates the tracking variables.
- * @return  Returns true (1) always.
+ * @return  Returns true (1) if it tracks, or false (0) if it was disabled.
  */
 ///////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record SMASH::AreaCoverage::madaraUpdateCoverageTracking(
   Madara::Knowledge_Engine::Function_Arguments &args,
   Madara::Knowledge_Engine::Variables &variables)
 {
+  // Only do something if tracking is enabled.
+  int trackingEnabled = variables.get(MV_COVERAGE_TRACKING_ENABLED).to_integer();
+  if(trackingEnabled == 0)
+  {
+    // If we are not enabled, just return saying so.
+    return Madara::Knowledge_Record(0.0);
+  }
+
   // Setup the overal tracking variables, if they have not been setup yet.
   int resetCoverage = variables.get(MV_START_COVERAGE_TRACKING).to_integer();
   if(resetCoverage == 1)
@@ -232,7 +241,8 @@ void updateCoveragePercentage(
   variables.set(MV_PERCENT_COVERED, percentageCovered);
 
   // Store in file.
-  bool useFile = true;
+  int fileEnabled = variables.get(MV_COVERAGE_TRACKING_FILE_ENABLED).to_integer();
+  bool useFile = (fileEnabled == 1);
   if(useFile)
   {
     double timePassedInSeconds = variables.get(".coverage_tracking.time_passed_s").to_double();

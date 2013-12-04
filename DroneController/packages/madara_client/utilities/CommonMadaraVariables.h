@@ -131,4 +131,9 @@
 // Human detection variables.
 #define MV_ENVIRONMENT_TEMPERATURE          ".human_detection.environment.temperature"       // Environment temperature used by some algorithms.
 
+// Area coverage tracking variables.
+#define MV_COVERAGE_TRACKING_ENABLED       "area_coverage.tracking.enabled"         // 1 for enabled, 0 to disable.
+#define MV_COVERAGE_TRACKING_FILE_ENABLED  "area_coverage.tracking_file.enabled"    // 1 for enabled, 0 to disable.
+#define MV_APERTURE_DIAMETER               "area_coverage.tracking.aperture_diameter" // The diameter of the area seen by the drone
+
 #endif
