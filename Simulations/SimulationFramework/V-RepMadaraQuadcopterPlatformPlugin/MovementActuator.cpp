@@ -75,10 +75,10 @@ void MovementActuator::jumpToLocation(SMASHSim::Location targetLocation)
   // Now teleport the drone, and also move the target over there.
   VREP::PluginUtils::teleportDynamicObject(m_droneName, 
     nextDroneCartesianPos.x, nextDroneCartesianPos.y, 
-    nextDroneCartesianPos.z); 
+    targetLocation.altitude); 
   VREP::PluginUtils::setObjectPosition(m_droneTargetName, 
     nextDroneCartesianPos.x, nextDroneCartesianPos.y, 
-    nextDroneCartesianPos.z);
+    targetLocation.altitude);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
