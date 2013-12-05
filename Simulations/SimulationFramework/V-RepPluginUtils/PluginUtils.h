@@ -40,6 +40,9 @@ namespace VREP
 
     // Wrapper to send status messages with std::strings instead of char*.
     static void addStatusbarMessage(std::string message);
+
+    // Teleport a dynamic object.
+    static void teleportDynamicObject(std::string objectName, double x, double y, double z);
   };
 }
 

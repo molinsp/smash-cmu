@@ -59,6 +59,29 @@ void MovementActuator::goToPosition(SMASH::Utilities::Position targetPosition)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Teleports to a particular position (lat, long, alt).
+///////////////////////////////////////////////////////////////////////////////
+void MovementActuator::jumpToLocation(SMASHSim::Location targetLocation)
+{
+  m_nextDroneLocation = targetLocation;
+
+  // For this particular teleportation case, we move right away.
+  // Get the cartesian coordinates first.
+  Position referencePoint = SMASHSim::SimUtils::getReferencePoint();
+  CartesianPosition nextDroneCartesianPos = Utilities::getCartesianCoordinates(
+    m_nextDroneLocation.latAndLong, 
+    referencePoint);
+
+  // Now teleport the drone, and also move the target over there.
+  VREP::PluginUtils::teleportDynamicObject(m_droneName, 
+    nextDroneCartesianPos.x, nextDroneCartesianPos.y, 
+    nextDroneCartesianPos.z); 
+  VREP::PluginUtils::setObjectPosition(m_droneTargetName, 
+    nextDroneCartesianPos.x, nextDroneCartesianPos.y, 
+    nextDroneCartesianPos.z);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Makes the drone take off.
 ///////////////////////////////////////////////////////////////////////////////
 void MovementActuator::takeOff()

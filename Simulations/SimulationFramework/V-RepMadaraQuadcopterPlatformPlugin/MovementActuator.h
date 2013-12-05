@@ -48,6 +48,7 @@ namespace SMASHSim
     void goToLocation(SMASHSim::Location targetLocation);
     void takeOff();
     void land();
+    void jumpToLocation(SMASHSim::Location targetLocation);
 
     // Moves the target one step closer to the drone's destination.
     void moveTargetObjectTowardsNextDroneLocation();

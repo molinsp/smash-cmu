@@ -141,6 +141,16 @@ MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(int drone
         Location targetLocation = Location(0, 0, targetAltitude);
         command->m_loc = targetLocation;
     }
+    if(commandStr == MO_JUMP_TO_GPS_CMD)
+    {
+        // Jump to certain location command; teleports the drone to that location.
+        double targetPosLat = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_CMD_ARG("0")).to_double();
+        double targetPosLon = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_CMD_ARG("1")).to_double();
+        double targetPosAlt = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_CMD_ARG("2")).to_double();
+
+        Location targetLocation = Location(targetPosLat, targetPosLon, targetPosAlt);
+        command->m_loc = targetLocation;
+    }
 
     // Set the command as 0 locally, to indicate that we already read it.
     clearCommand(droneIdString);

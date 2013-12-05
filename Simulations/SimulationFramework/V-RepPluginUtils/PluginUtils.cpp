@@ -11,6 +11,7 @@
 
 #include "PluginUtils.h"
 #include <cstdlib>
+#include <vector>
 
 using namespace VREP;
 
@@ -145,4 +146,51 @@ void PluginUtils::setObjectPosition(std::string objectName, double x, double y,
 void PluginUtils::addStatusbarMessage(std::string message)
 {
   simAddStatusbarMessage(message.c_str());
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Dynamic objects can't be moved to a unreal locations without first calling
+// particular functions. This function allows for "teleporting" a dynamic
+// object transparently.
+///////////////////////////////////////////////////////////////////////////////
+void PluginUtils::teleportDynamicObject(std::string objectName, double x, 
+  double y, double z)
+{
+  // First get the handles of all objects involved, the children of the 
+  // base object.
+  int baseObjectHandle = simGetObjectHandle(objectName.c_str());
+  std::vector<int> objectHandlesExceptBase;
+  std::vector<int> toExplore;
+  toExplore.push_back(baseObjectHandle);
+  while(toExplore.size() > 0)
+  {
+    int currentObject = toExplore[0];
+    toExplore.erase(toExplore.begin());
+    for(int index=0; ;index++)
+    {
+      int childHandle = simGetObjectChild(currentObject, index);
+      if(childHandle == -1)
+      {
+        // This means we have no more children.
+        break;
+      }
+      else
+      {
+        // We add the children to the list of children, and to the list of
+        // objects for which we have to check their children too.
+        objectHandlesExceptBase.push_back(childHandle);
+        toExplore.push_back(childHandle);
+      }
+    }
+  }
+
+  // Now reorient the base object by dynamically reseting all child objects.
+  simResetDynamicObject(baseObjectHandle);
+  for(unsigned int i=0; i < objectHandlesExceptBase.size(); i++)
+  {
+     simResetDynamicObject(objectHandlesExceptBase[i]);
+  }
+
+  // Now we can simply move the object.
+  PluginUtils::setObjectPosition(objectName, x, y, z); 
 }
