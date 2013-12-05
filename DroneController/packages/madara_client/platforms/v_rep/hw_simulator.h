@@ -34,4 +34,4 @@ std::map<std::string, double> sim_platform_read_gps();
 double sim_platform_get_altitude();
 double sim_platform_get_gps_accuracy();
 
-#endif _SIMULATOR_H
+#endif

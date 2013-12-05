@@ -109,7 +109,7 @@ void setupCoverageTracking(
     }
 
     // Open the file, overwriting the previous one if there was one.
-    outputFile.open(outputFileName);
+    outputFile.open(outputFileName.c_str());
   }
 }
 
