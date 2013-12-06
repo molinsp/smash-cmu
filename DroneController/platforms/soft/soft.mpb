@@ -1,0 +1,13 @@
+feature (soft) {
+
+  requires += soft
+
+  Source_Files {
+    platforms/soft
+  }
+  
+  Header_Files {
+    platforms/soft
+  }
+
+}

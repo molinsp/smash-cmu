@@ -1,0 +1,15 @@
+feature (ar_drone_2) {
+
+  requires += ar_drone_2
+
+  includes += $(DRK_HOME)/include
+
+  Source_Files {
+    platforms/ar_drone_2
+  }
+  
+  Header_Files {
+    platforms/ar_drone_2
+  }
+
+}

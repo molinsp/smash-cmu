@@ -1,0 +1,4 @@
+
+workspace {
+  cmdline += -feature_file $SMASH_ROOT/default.features
+}
