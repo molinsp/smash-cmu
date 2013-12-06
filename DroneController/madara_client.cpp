@@ -6,12 +6,12 @@
  *********************************************************************/
  
 #include <string>
-using std::string;
 #include <vector>
 #include <iostream>
 #include <sstream>
 #include <assert.h>
 #include <stdlib.h>
+#include <sstream>
 
 #include "madara/knowledge_engine/Knowledge_Base.h"
 #include "madara/utility/Log_Macros.h"
@@ -23,10 +23,9 @@ using std::string;
 // The implementation to be used is included in the compilation depending on a flag.
 #include "platforms/platform.h"
 
+#include "comm/kb_setup.h"
 #include "drone_controller.h"
 
-#include <sstream>
-using std::stringstream;
 
 // Interupt handling.
 volatile bool g_terminated = false;
@@ -53,7 +52,7 @@ void handleArgs(int argc, char** argv, int& id, int& logLevel)
 {
     for(int i = 1; i < argc; ++i)
     {
-        string arg(argv[i]);
+        std::string arg(argv[i]);
 
         if(arg == "-i" && i + 1 < argc)
         {
@@ -102,13 +101,21 @@ int main (int argc, char** argv)
     }
 
     // Create the knowledge base.
-    Madara::Knowledge_Engine::Knowledge_Base* knowledge = platform_setup_knowledge_base(id, enableLogging);
- 
-	// Setup the drone controller.
+    Madara::Knowledge_Engine::Knowledge_Base* knowledge = 
+      new Madara::Knowledge_Engine::Knowledge_Base();
+
+    // Get the transport(s).
+    std::vector<Madara::Transport::Base*> transports = 
+      platform_get_transports(id, knowledge);
+
+    // Setup the knowledge base.
+    setup_knowledge_base(knowledge, transports, id, enableLogging);
+
+    // Setup the drone controller.
     SMASH::DroneController controller;
     controller.initialize(id, knowledge);
 
-	// Main loop.
+    // Main loop.
     Madara::Knowledge_Engine::Compiled_Expression mainExpression = controller.get_main_expression();
     Madara::Knowledge_Engine::Eval_Settings eval_settings;
     eval_settings.pre_print_statement = controller.getStatusSummaryExpression();
@@ -127,7 +134,7 @@ int main (int argc, char** argv)
 
     controller.cleanup(knowledge);
 
-	platform_cleanup();
+    platform_cleanup();
 
     delete knowledge;
 

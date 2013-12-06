@@ -1,5 +1,5 @@
 project {
-  includes += ../../DroneController/packages/madara_client/utilities
+  includes += ../../DroneController/utilities
 
   Build_Files {
     using_utilities.mpb
@@ -7,14 +7,14 @@ project {
   
   Source_Files {
     Utilities {
-      ../../DroneController/packages/madara_client/utilities/string_utils.cpp
-      ../../DroneController/packages/madara_client/utilities/gps_utils.cpp
+      ../../DroneController/utilities/string_utils.cpp
+      ../../DroneController/utilities/gps_utils.cpp
     }
   }
 
   Header_Files {
     Utilities {
-      ../../DroneController/packages/madara_client/utilities
+      ../../DroneController/utilities
     }
   }
 }

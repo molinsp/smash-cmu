@@ -6,12 +6,8 @@
  *********************************************************************/
  
 #include <string>
-using std::string;
 #include <vector>
 #include <iostream>
-using std::cerr;
-using std::cout;
-using std::endl;
 #include <sstream>
 #include <assert.h>
 #include <stdlib.h>
@@ -24,6 +20,7 @@ using std::endl;
 #include "Position.h"
 #include "string_utils.h"
 #include "kb_setup.h"
+#include "platform/vrep/transport_vrep.h"
 #include "MadaraSystemController.h"
 
 #include <sstream>

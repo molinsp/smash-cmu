@@ -16,7 +16,7 @@
 
 // Sets up a knowledge base with a transport that is appropriate for this 
 // platform.
-Madara::Knowledge_Engine::Knowledge_Base* setup_knowledge_base(int id, 
-  bool enableLog, Madara::Transport::Types transportTypes);
+void setup_knowledge_base(Madara::Knowledge_Engine::Knowledge_Base* knowledge, 
+  std::vector<Madara::Transport::Base*> transports, int id, bool enableLog);
 
 #endif

@@ -30,8 +30,16 @@ MadaraController::MadaraController(int id, Madara::Transport::Types transportTyp
     MADARA_debug_level = 1;
     bool enableLogging = true;
 
-    // Get a proper simulation knowledge base.
-    m_knowledge = setup_knowledge_base(id, enableLogging, transportType);
+    // Create the knowledge base.
+    Madara::Knowledge_Engine::Knowledge_Base* knowledge = 
+      new Madara::Knowledge_Engine::Knowledge_Base();
+
+    // Get the transport(s).
+    std::vector<Madara::Transport::Base*> transports = 
+      platform_get_transports(id, knowledge);
+
+    // Setup the knowledge base.
+    setup_knowledge_base(knowledge, transports, id, enableLogging);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -9,12 +9,14 @@
 #define _PLATFORM_H
 
 #include "madara/knowledge_engine/Knowledge_Base.h"
+#include <vector>
 
 // Initializes whatever is required for the platform to be ready to work.
 bool platform_init();
 
-// Sets up a knowledge base with a transport that is appropriate for this platform.
-Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id, bool enableLogging);
+// Return the transport(s) for this platform.
+std::vector<Madara::Transport::Base*> platform_get_transports(int id, 
+  Madara::Knowledge_Engine::Knowledge_Base* kb);
 
 // Cleans up any resources that are particular to this platform.
 bool platform_cleanup();

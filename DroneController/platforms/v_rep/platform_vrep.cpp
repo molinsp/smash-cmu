@@ -8,13 +8,13 @@
 #include "madara/knowledge_engine/Knowledge_Base.h"
 
 // Platform-specific includes.
-#include "platforms/kb_setup.h"
 #include "platforms/platform.h"
 #include "movement/platform_movement.h"
 #include "sensors/platform_sensors.h"
 
 // Includes for HW simulation through VRep.
 #include "hw_simulator.h"
+#include "transport_vrep.h"
 
 #include "utilities/Position.h"
 #include "utilities/string_utils.h"
@@ -32,17 +32,21 @@ bool platform_init()
   return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // Overrides: setup_knowledge_base().
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id, bool enableLogging)
+///////////////////////////////////////////////////////////////////////////////
+std::vector<Madara::Transport::Base*> platform_get_transports(int id, 
+  Madara::Knowledge_Engine::Knowledge_Base* kb)
 {
-  // Setup the internal simulator.
-  sim_setup(id);
+  // Create the actual transport.
+  Madara::Transport::Multicast_Transport* transport = 
+    get_vrep_multicast_transport(id, kb);
 
-  // Create the knowledge base.
-  Madara::Knowledge_Engine::Knowledge_Base* knowledge = setup_knowledge_base(id, enableLogging, Madara::Transport::MULTICAST);
-  return knowledge;
+  // Return the transport, only one.
+  std::vector<Madara::Transport::Base*> transports;
+  transports.push_back(transport);
+
+  return transports;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////

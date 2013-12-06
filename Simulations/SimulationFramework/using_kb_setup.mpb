@@ -1,5 +1,5 @@
 project {
-  includes += ../../DroneController/packages/madara_client/platforms
+  includes += ../../DroneController/comm
 
   Build_Files {
     using_kb_setup.mpb
@@ -7,13 +7,13 @@ project {
   
   Source_Files {
     KB_Setup {
-      ../../DroneController/packages/madara_client/platforms/kb_setup.cpp
+      ../../DroneController/comm/kb_setup.cpp
     }
   }
 
   Header_Files {
     KB_Setup {
-      ../../DroneController/packages/madara_client/platforms/kb_setup.h
+      ../../DroneController/comm/kb_setup.h
     }
   }
 }

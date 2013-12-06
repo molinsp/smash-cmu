@@ -10,52 +10,59 @@ project : using_ace, using_madara, using_drone_controller {
 
   Source_Files {
     Main {
-      ../../DroneController/packages/madara_client
+      ../../DroneController
     }
     Area_Coverage {
-      ../../DroneController/packages/madara_client/area_coverage
+      ../../DroneController/area_coverage
     }
     Bridge_Building {
-      ../../DroneController/packages/madara_client/bridge
+      ../../DroneController/bridge
+    }
+    Comm {
+      ../../DroneController/comm
     }
     Human_Detection {
-      ../../DroneController/packages/madara_client/human_detection
+      ../../DroneController/human_detection
     }
     Movement_and_Sensors {
-      ../../DroneController/packages/madara_client/movement
-      ../../DroneController/packages/madara_client/sensors
+      ../../DroneController/movement
+      ../../DroneController/sensors
     }
-    Platforms_and_Comm {
-      ../../DroneController/packages/madara_client/platforms
-      ../../DroneController/packages/madara_client/platforms/v_rep
+    Platforms {
+      ../../DroneController/platforms
+      ../../DroneController/platforms/v_rep
     }
     Utilities {
-      ../../DroneController/packages/madara_client/utilities
+      ../../DroneController/utilities
     }
   }
 
   Header_Files {
     Main {
-      ../../DroneController/packages/madara_client
+      ../../DroneController
     }
     Area_Coverage {
-      ../../DroneController/packages/madara_client/area_coverage
+      ../../DroneController/area_coverage
     }
     Bridge_Building {
-      ../../DroneController/packages/madara_client/bridge
+      ../../DroneController/bridge
+    }
+    Comm {
+      ../../DroneController/comm
     }
     Human_Detection {
-      ../../DroneController/packages/madara_client/human_detection
+      ../../DroneController/human_detection
     }
     Movement_and_Sensors {
-      ../../DroneController/packages/madara_client/movement
-      ../../DroneController/packages/madara_client/sensors
+      ../../DroneController/movement
+      ../../DroneController/sensors
     }
-    Platforms_and_Comm {
-      ../../DroneController/packages/madara_client/platforms
+    Platforms {
+      ../../DroneController/platforms
+      ../../DroneController/platforms/v_rep
     }
     Utilities {
-      ../../DroneController/packages/madara_client/utilities     
+      ../../DroneController/utilities     
     }
   }
 }
