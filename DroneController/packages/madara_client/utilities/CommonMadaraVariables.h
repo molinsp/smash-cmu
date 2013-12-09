@@ -50,6 +50,7 @@
 #define MO_AREA_COVERAGE_RANDOM                 "random"                                                            // selects RandomAreaCoverage
 #define MO_AREA_COVERAGE_SNAKE                  "snake"                                                             // selects SnakeAreaCoverage
 #define MO_AREA_COVERAGE_INSIDEOUT              "inside_out"                                                        // selects InsideOutAreaCoverage
+#define MO_AREA_COVERAGE_PRIORITY               "priority"                                                          // selects PriorityAreaCoverage
 #define MV_NEXT_AREA_COVERAGE_REQUEST(deviceId) "device." + std::string(deviceId) + ".next_area_coverage_requested" // next area coverage to be used
 #define MV_ASSIGNED_SEARCH_AREA(deviceId)       "device." + std::string(deviceId) + ".search_area_id"               // The id of the area that I have been assigned to search.
 #define MV_TOTAL_SEARCH_AREAS                   "search_areas"                                                      // The total number of search areas requested so far.
@@ -59,6 +60,9 @@
 #define MV_AREA_COVERAGE_HEIGHT_DIFF            "area_coverage.height_diff"                                         // The vertical space to leave between drones in a search area, in meters.
 #define MV_SEARCH_WAIT                          "area_coverage.wait_for_swarm"                                      // 1 means wait for all drones in the area to reach their targets, 0 just move on.
 #define MV_MIN_ALTITUDE                         "device.min_alt"                                                    // The minimum altitude to set a device to.
+
+// Priority area coverage information.
+#define MV_MATRIX_COUNTER			"matrixCounter"	
 
 // Bridge information.
 #define MV_BRIDGE_REQUESTED                     "bridge.bridge_requested"                          // Tells if a bridge was requested.

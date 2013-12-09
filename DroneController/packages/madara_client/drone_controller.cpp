@@ -189,7 +189,7 @@ static Madara::Knowledge_Record calculateNumDevices (Madara::Knowledge_Engine::F
                       Madara::Knowledge_Engine::Eval_Settings(true, true));
     }
 
-	return Madara::Knowledge_Record::Integer(1);
+    return Madara::Knowledge_Record::Integer(1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////

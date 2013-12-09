@@ -73,16 +73,6 @@ namespace SMASH { namespace AreaCoverage {
          */
         const Region* getSearchRegion();
 
-        /**
-         * Resets the area coverage in a "pleasing" way
-         */
-        static AreaCoverage* continueCoverage(AreaCoverage* coverage, const string& next = "");
-
-        /**
-         * Determines the next area coverage that should be used
-         */
-        virtual AreaCoverage* getNextCoverage() = 0;
-
     protected:
         /**
         * Flag to indicate if we started searching or not.

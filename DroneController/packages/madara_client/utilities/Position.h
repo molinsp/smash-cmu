@@ -82,11 +82,13 @@ namespace SMASH
             Position northWest;
             Position southEast;
 
+	    int priorityValue;
+
             /** Constructor from data.
              * @param   newTopLeftCorner        The Position for the top left corner.
              * @param   newBottomRightCorner    The Position for the bottom right corner.
              **/
-            Region(Position newNorthWestCorner, Position newSouthEastCorner)
+            Region(Position newNorthWestCorner, Position newSouthEastCorner, int priority = 0)
             {
                 northWest = newNorthWestCorner;
                 southEast = newSouthEastCorner;
@@ -97,6 +99,7 @@ namespace SMASH
             {
                 northWest = copy.northWest;
                 southEast = copy.southEast;
+		priorityValue = copy.priorityValue;
                 invertRegionIfRequired();
             }
 
@@ -104,6 +107,7 @@ namespace SMASH
             {
                 northWest = copy.northWest;
                 southEast = copy.southEast;
+		priorityValue = copy.priorityValue;
                 invertRegionIfRequired();
                 return *this;
             }

@@ -15,6 +15,7 @@
 #include "SnakeAreaCoverage.h"
 #include "RandomAreaCoverage.h"
 #include "InsideOutAreaCoverage.h"
+#include "PriorityAreaCoverage.h"
 
 #include <vector>
 #include <map>
@@ -337,6 +338,40 @@ AreaCoverage* selectAreaCoverageAlgorithm(string algorithm, Madara::Knowledge_En
         double searchLineOffset = variables.get(MV_AREA_COVERAGE_LINE_WIDTH).to_double();
         coverageAlgorithm = new InsideOutAreaCoverage(searchLineOffset);
     }
+    else if(algorithm == MO_AREA_COVERAGE_PRIORITY)
+    {
+        double searchLineOffset = variables.get(MV_AREA_COVERAGE_LINE_WIDTH).to_double();		// use width and height of a box
+
+ 	// Find all the available drones, called here to ensure atomicity and we have the most up to date data.
+    	variables.evaluate(m_expressions[ACE_FIND_AVAILABLE_DRONES_POSITIONS],
+        Madara::Knowledge_Engine::Knowledge_Update_Settings(true, false));
+
+    	// Obtain drone information
+  	int availableDrones = (int) variables.get(MV_AVAILABLE_DRONES_IN_MY_AREA).to_integer();
+        int myIndexInList = (int) variables.get(MV_MY_POS_IN_MY_AREA).to_integer();
+    	std::string myAssignedSearchArea = variables.get(variables.expand_statement(MV_ASSIGNED_SEARCH_AREA("{" MV_MY_ID "}"))).to_string();
+    	std::string myAssignedSearchRegion = variables.get(MV_SEARCH_AREA_REGION(myAssignedSearchArea)).to_string();
+
+	int fakeNumRegions = 4;
+	std::vector<Region> regions;	
+	double nwLat = variables.get(MV_REGION_TOPLEFT_LAT(myAssignedSearchRegion)).to_double();
+	double nwLon = variables.get(MV_REGION_TOPLEFT_LON(myAssignedSearchRegion)).to_double();
+	double seLat = variables.get(MV_REGION_BOTRIGHT_LAT(myAssignedSearchRegion)).to_double();
+	double seLon = variables.get(MV_REGION_BOTRIGHT_LON(myAssignedSearchRegion)).to_double();
+	Region searchArea = Region(Position(nwLon, nwLat), Position(seLon, seLat));
+	searchArea.priorityValue = 1;
+        regions.push_back(searchArea);
+	
+	for (int nextRegion = 0; nextRegion < nextRegion; nextRegion++) {
+	//	nwLat = variables.get(MV_REGION_TOPLEFT_LAT(nextRegion)).to_double();
+    	//	nwLon = variables.get(MV_REGION_TOPLEFT_LON(nextRegion)).to_double();
+    	//	seLat = variables.get(MV_REGION_BOTRIGHT_LAT(nextRegion)).to_double();
+    	//	seLon = variables.get(MV_REGION_BOTRIGHT_LON(nextRegion)).to_double();
+    	//	subRegions.push_back( Region(Position(nwLon, nwLat), Position(seLon, seLat)) );
+        }
+	
+        coverageAlgorithm = new PriorityAreaCoverage(variables, regions, searchArea, searchLineOffset);
+    }
     else
     {
         // Print an error.
@@ -489,7 +524,7 @@ Madara::Knowledge_Record madaraSetNewCoverage(Madara::Knowledge_Engine::Function
     string next = variables.get(variables.expand_statement(MV_NEXT_AREA_COVERAGE_REQUEST("{" MV_MY_ID "}"))).to_string();
     AreaCoverage* temp = m_coverageAlgorithm;
     Region searchArea(*(m_coverageAlgorithm->getSearchRegion()));
-    m_coverageAlgorithm = AreaCoverage::continueCoverage(m_coverageAlgorithm, next);
+    m_coverageAlgorithm = selectAreaCoverageAlgorithm(next, variables);
     delete temp;
     if(m_coverageAlgorithm != NULL)
     {

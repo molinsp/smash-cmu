@@ -13,6 +13,7 @@
 #include "RandomAreaCoverage.h"
 #include "SnakeAreaCoverage.h"
 #include "InsideOutAreaCoverage.h"
+#include "PriorityAreaCoverage.h"
 
 #include "utilities/CommonMadaraVariables.h"
 
@@ -40,21 +41,6 @@ AreaCoverage::~AreaCoverage()
 const Region* AreaCoverage::getSearchRegion()
 {
     return m_cellToSearch;
-}
-
-// Resets the area coverage in a "pleasing" way
-AreaCoverage* AreaCoverage::continueCoverage(AreaCoverage* coverage, const string& next)
-{
-    AreaCoverage* retVal;
-    if(next == MO_AREA_COVERAGE_RANDOM)
-        retVal = new RandomAreaCoverage();
-    else if(next == MO_AREA_COVERAGE_SNAKE)
-        retVal = new SnakeAreaCoverage();
-    else if(next == MO_AREA_COVERAGE_INSIDEOUT)
-        retVal = new InsideOutAreaCoverage();
-    else // default to repeat current coverage beginning from current location
-        retVal = coverage->getNextCoverage();
-    return retVal;
 }
 
 // Calculates the grid that will be used for area coverage, and returns the
