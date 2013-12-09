@@ -84,9 +84,9 @@ void platform_stop_movement()
     printf("Executing stop_movement()\n");
 }
 
-void platform_move_to_location(double lat, double lon)
+void platform_move_to_location(double lat, double lon, double distance)
 {
-  printf("Executing move_to_location(%02f, %02f)\n", lat, lon);
+  printf("Executing move_to_location(%02f, %02f, %02f)\n", lat, lon, distance);
 }
 
 void platform_move_to_altitude(double alt)

@@ -1,72 +1,71 @@
 
-project (SMASH) : madara, ace, platforms/soft/soft {
+project (SMASH) : using_madara, using_ace, platforms/soft/soft {
 
   exeout = $(SMASH_ROOT)
   exename = smashController
+
+  includes += $(SMASH_ROOT)
 
   verbatim (gnuace, local) {
     CPPFLAGS += -w
   }
 
   Build_Files {
-    $(SMASH_ROOT)/Madara.mwc
+    $(SMASH_ROOT)/SMASH.mwc
     $(SMASH_ROOT)/default.features
-    SMASH.mpc
+    $(SMASH_ROOT)/SMASH.mpc
   }
 
   Source_Files {
-    /area_coverage/area_coverage_module.cpp
-    /area_coverage/AreaCoverage.cpp
-    /area_coverage/coverage_tracker.cpp
-    /area_coverage/InsideOutAreaCoverage.cpp
-    /area_coverage/RandomAreaCoverage.cpp
-    /area_coverage/SnakeAreaCoverage.cpp
-    /bridge/bridge_module.cpp
-    /bridge/BridgeAlgorithm.cpp
-    /drone_controller.cpp
-    /human_detection/BasicStrategy.cpp
-    /human_detection/human_detection_module.cpp
-    /human_detection/HumanDetection.cpp
-    /human_detection/SlidingWindowStrategy.cpp
-    /madara_client.cpp
-    /movement/movement_module.cpp
-    /sensors/sensors_module.cpp
-    /transport/DroneRKTransport/DroneRK_Transport.cpp
-    /transport/DroneRKTransport/DroneRK_Transport_Read_Thread.cpp
-    /utilities/gps_utils.cpp
-    /utilities/string_utils.cpp
-    /utilities/utilities_module.cpp
+    area_coverage/area_coverage_module.cpp
+    area_coverage/AreaCoverage.cpp
+    area_coverage/coverage_tracker.cpp
+    area_coverage/InsideOutAreaCoverage.cpp
+    area_coverage/RandomAreaCoverage.cpp
+    area_coverage/SnakeAreaCoverage.cpp
+    bridge/bridge_module.cpp
+    bridge/BridgeAlgorithm.cpp
+    drone_controller.cpp
+    human_detection/BasicStrategy.cpp
+    human_detection/human_detection_module.cpp
+    human_detection/HumanDetection.cpp
+    human_detection/SlidingWindowStrategy.cpp
+    madara_client.cpp
+    movement/movement_module.cpp
+    sensors/sensors_module.cpp
+    utilities/gps_utils.cpp
+    utilities/string_utils.cpp
+    utilities/utilities_module.cpp
+    platforms/kb_setup.cpp
   }
 
   Header_Files {
-    /area_coverage/area_coverage_module.h
-    /area_coverage/AreaCoverage.h
-    /area_coverage/coverage_tracker.h
-    /area_coverage/InsideOutAreaCoverage.h
-    /area_coverage/RandomAreaCoverage.h
-    /area_coverage/SnakeAreaCoverage.h
-    /bridge/bridge_module.h
-    /bridge/BridgeAlgorithm.h
-    /drone_controller.h
-    /human_detection/BasicStrategy.h
-    /human_detection/human_detection_module.h
-    /human_detection/HumanDetection.h
-    /human_detection/SlidingWindowStrategy.h
-    /module.h
-    /movement/movement_module.h
-    /movement/platform_movement.h
-    /sensors/platform_sensors.h
-    /sensors/sensors_module.h
-    /tools/swarmSetup.sh
-    /transport/DroneRKTransport/DroneRK_Transport.h
-    /transport/DroneRKTransport/DroneRK_Transport_Read_Thread.h
-    /utilities/CartesianPosition.h
-    /utilities/CommonMadaraVariables.h
-    /utilities/gps_utils.h
-    /utilities/Position.h
-    /utilities/string_utils.h
-    /utilities/utilities_module.h
-    /platforms/kb_setup.h
-    /platforms/platform.h
+    area_coverage/area_coverage_module.h
+    area_coverage/AreaCoverage.h
+    area_coverage/coverage_tracker.h
+    area_coverage/InsideOutAreaCoverage.h
+    area_coverage/RandomAreaCoverage.h
+    area_coverage/SnakeAreaCoverage.h
+    bridge/bridge_module.h
+    bridge/BridgeAlgorithm.h
+    drone_controller.h
+    human_detection/BasicStrategy.h
+    human_detection/human_detection_module.h
+    human_detection/HumanDetection.h
+    human_detection/SlidingWindowStrategy.h
+    module.h
+    movement/movement_module.h
+    movement/platform_movement.h
+    sensors/platform_sensors.h
+    sensors/sensors_module.h
+    tools/swarmSetup.sh
+    utilities/CartesianPosition.h
+    utilities/CommonMadaraVariables.h
+    utilities/gps_utils.h
+    utilities/Position.h
+    utilities/string_utils.h
+    utilities/utilities_module.h
+    platforms/kb_setup.h
+    platforms/platform.h
   }
 }

@@ -1,4 +1,5 @@
 
 workspace {
   cmdline += -feature_file $SMASH_ROOT/default.features
+  SMASH.mpc
 }
