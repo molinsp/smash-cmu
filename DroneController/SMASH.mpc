@@ -1,5 +1,5 @@
 
-project (SMASH) : using_madara, using_ace, platforms/soft/soft {
+project (SMASH) : using_madara, using_ace, platforms/soft/soft, platforms/ar_drone_2/ar_drone_2 {
 
   exeout = $(SMASH_ROOT)
   exename = smashController
