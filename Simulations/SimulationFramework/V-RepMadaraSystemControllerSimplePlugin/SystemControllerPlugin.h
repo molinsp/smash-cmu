@@ -19,15 +19,15 @@
 #include <string>
 
 // SystemController plugin that implements the ISimlpePlugin interface.
-namespace VREP
+namespace SMASHSim
 {
 	class SystemControllerPlugin : public VREP::ISimplePlugin
 	{
 	public:
         // Interface implementation.
         void initialize(int suffix);
-        void cleanup();
-        void executeStep();
+        void cleanup(int suffix);
+        void executeStep(int suffix);
         std::string getId();
     private:
         // The controller used to manage the Madara stuff.

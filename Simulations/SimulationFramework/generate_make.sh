@@ -1,1 +1,2 @@
-mwc.pl -type make -features windows_multicast=0 SimulationFramework.mwc
+#!/bin/bash
+mwc.pl -type make SimulationFramework.mwc

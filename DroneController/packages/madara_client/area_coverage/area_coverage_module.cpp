@@ -17,6 +17,8 @@
 #include "InsideOutAreaCoverage.h"
 #include "PriorityAreaCoverage.h"
 
+#include "coverage_tracker.h"
+
 #include <vector>
 #include <map>
 #include <string>
@@ -26,9 +28,9 @@ using namespace SMASH::Utilities;
 using std::string;
 
 // Default values for various parameters, loaded only when the module is loaded, and locally. They will be overriden if a System Controller changes them.
-#define DEFAULT_SEARCH_LINE_OFFSET_DEGREES      0.0000100   // Margin (in degrees) to use when moving to another column or line of search. Should be similar to the view range of a drone.
-#define DEFAULT_ALTITUDE_DIFFERENCE             0.8         // The amount of vertical space (in meters) to leave between drones.
-#define DEFAULT_MIN_HEIGHT                      1.5         // The default minimum height (in meters) to use when choosing heights for search coverage.
+#define DEFAULT_SEARCH_LINE_OFFSET_DEGREES      0.8   // Margin (in meters) to use when moving to another column or line of search. Should be similar to the view range of a drone.
+#define DEFAULT_ALTITUDE_DIFFERENCE             0.8   // The amount of vertical space (in meters) to leave between drones.
+#define DEFAULT_MIN_HEIGHT                      1.5   // The default minimum height (in meters) to use when choosing heights for search coverage.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Madara Variable Definitions
@@ -57,6 +59,7 @@ using std::string;
 #define MV_MY_CELL_BOT_RIGHT_LON        ".area_coverage.cell.bottom_right.location.longitude"   // The longitude of the bottom right corner of the cell I am searching.
 
 #define MV_FIRST_TARGET_SELECTED        ".area_coverage.first_target_selected"                  // Variable to check if the first target has been selected.
+#define MV_CURR_COVERAGE_ALGORITHM      ".area_coverage.curr_coverage_algo"                     // Stores the current coverage, useful to check if it changes.
 
 #define MV_READY_DRONES_AMOUNT          ".area_coverage.my_area.devices.waiting"                // The amount of drones in my area in waiting  state.
 #define MV_LAST_REACHED_TARGET          ".area_coverage.my_area.current_target"                 // The number of the current target, just goes up as new targets are chosen.
@@ -132,7 +135,7 @@ void SMASH::AreaCoverage::AreaCoverageModule::initialize(Madara::Knowledge_Engin
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SMASH::AreaCoverage::AreaCoverageModule::cleanup(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 {
-    // should only need to delete the coverage algorithm
+    // Should only need to delete the coverage algorithm.
     delete m_coverageAlgorithm;
 }
 
@@ -156,8 +159,8 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
         "(" MV_AREA_COVERAGE_REQUESTED("{" MV_MY_ID "}") " && " MV_MOBILE("{" MV_MY_ID "}") " && (!" MV_BUSY("{" MV_MY_ID "}") "))" 
         " => "
             "("
-                // Only do the following if the cell we will be searching in has alerady been set up.
-                "(" MV_CELL_INITIALIZED ")" 
+                // Only do the following if the cell we will be searching in has alerady been set up, and the algorithm has not changed.
+                "(" MV_CELL_INITIALIZED " && (" MV_CURR_COVERAGE_ALGORITHM " == "  MV_AREA_COVERAGE_REQUESTED("{" MV_MY_ID "}")  "))" 
                 " => " 
                     "("
                         // We only need to wait for the assigned altitude to be reached the first time; we don't care here if it changes its altitude later.
@@ -213,13 +216,20 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                                             "(" MV_CURRENT_COVERAGE_TARGET("{" MV_MY_ID "}") " = " MV_LAST_REACHED_TARGET ");"
                                             "(" MF_SET_NEW_TARGET "());" 
                                             "(" MV_WAITING " = 0);"
+
+                                            // Indicate that we want to set/reset coverage tracking.
+                                            "(" MV_START_COVERAGE_TRACKING " = 1);"
                                         ")"
                                 ");"
+
+                                // Update our coverage tracking values.
+                                "(" MF_UPDATE_COVERAGE_TRACKING"());"
+
                             ");" // End MV_ASSIGNED_ALTITUDE_REACHED
                     ");" // End MV_CELL_INITIALIZED
 
-                // If we haven't defined our cell yet, do it. 
-                "(!" MV_CELL_INITIALIZED ")"
+                // If we haven't defined our cell yet, or we have a new search type request, do it. 
+                "(!" MV_CELL_INITIALIZED " || (" MV_CURR_COVERAGE_ALGORITHM " != "  MV_AREA_COVERAGE_REQUESTED("{" MV_MY_ID "}") "))"
                 " => "
                     "(" MF_INIT_SEARCH_CELL "() ) " 
                     " => "
@@ -297,6 +307,9 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
 
     // Function that can be included in main loop of another method to introduce area coverage.
     knowledge.define_function(MF_SET_NEW_TARGET, madaraSetNewTarget);
+
+    // Updates the current coverage status.
+    knowledge.define_function(MF_UPDATE_COVERAGE_TRACKING, madaraUpdateCoverageTracking);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -408,7 +421,7 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
     double nwLon = variables.get(MV_REGION_TOPLEFT_LON(myAssignedSearchRegion)).to_double();
     double seLat = variables.get(MV_REGION_BOTRIGHT_LAT(myAssignedSearchRegion)).to_double();
     double seLon = variables.get(MV_REGION_BOTRIGHT_LON(myAssignedSearchRegion)).to_double();
-    Region searchArea = Region(Position(nwLon, nwLat), Position(seLon, seLat));
+    Region searchArea = Region(Position(nwLat, nwLon), Position(seLat, seLon));
 
     // Calculate the actual cell I will be covering.
     string algo = variables.get(variables.expand_statement(MV_AREA_COVERAGE_REQUESTED("{" MV_MY_ID "}"))).to_string();
@@ -425,6 +438,9 @@ Madara::Knowledge_Record madaraInitSearchCell (Madara::Knowledge_Engine::Functio
             variables.set(MV_MY_CELL_TOP_LEFT_LON, (myCell->northWest.longitude));
             variables.set(MV_MY_CELL_BOT_RIGHT_LAT, (myCell->southEast.latitude));
             variables.set(MV_MY_CELL_BOT_RIGHT_LON, (myCell->southEast.longitude));
+
+            // Store our current search algorithm locally.
+            variables.set(MV_CURR_COVERAGE_ALGORITHM, algo);
     
             return Madara::Knowledge_Record(1.0);
         }

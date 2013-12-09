@@ -1,0 +1,33 @@
+
+project (V-RepMadaraQuadcopterPlatformPlugin) : using_ace, using_madara, using_vrep_plugin, using_sim_kb, using_utilities {
+
+  sharedname = v_repExtMadaraQuadcopterPlatformPlugin
+  libout = lib
+  
+  includes += V-RepMadaraQuadcopterPlatformPlugin
+  includes += V-RepSimUtils
+
+  Build_Files {
+    SimulationFramework.mwc
+    V-RepMadaraQuadcopterPlatformPlugin.mpc
+  }
+  
+  Source_Files {
+    QuadcopterPlatformPlugin {
+      V-RepMadaraQuadcopterPlatformPlugin
+    }
+    VREP_Sim_Utils {
+      V-RepSimUtils
+    }
+  }
+
+  Header_Files {
+    QuadcopterPlatformPlugin {
+      V-RepMadaraQuadcopterPlatformPlugin
+    }
+    VREP_Sim_Utils {
+      V-RepSimUtils
+    }
+  }
+}
+

@@ -25,18 +25,18 @@ using namespace SMASH::Utilities;
 // Madara Variable Definitions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions.
-#define MF_MAIN_LOGIC				"bridge_doBridgeBuilding"					// Function that checks if there is bridge building to be done, and does it.
+#define MF_MAIN_LOGIC				        "bridge_doBridgeBuilding"					// Function that checks if there is bridge building to be done, and does it.
 #define MF_UPDATE_AVAILABLE_DRONES	"bridge_updateAvailableDrones"				// Function that checks the amount and positions of drones ready for bridging.
-#define MF_FIND_POS_IN_BRIDGE		"bridge_findPositionInBridge"				// Function that finds and sets the position in the bridge for this drone, if any.
+#define MF_FIND_NEXT_POS_FOR_BRIDGE "bridge_findPositionInBridge"				// Function that finds and sets the position in the bridge for this drone, if any.
 #define MF_TURN_OFF_BRIDGE_REQUEST	"bridge_turnOffBridgeRequest"				// Function to turn off a bridge request locally.
 #define MF_BRIDGE_LOCATION_REACHED  "bridge_bridgeLocationReached"              // Function to check if the bridge location we are assigned to has been reached.
 
 // Internal variables.
 #define MV_AVAILABLE_DRONES_AMOUNT	".bridge.devices.available.total"			    // The amount of available drones.
-#define MV_AVAILABLE_DRONES_IDS		".bridge.devices.available.ids"			        // Array of the ids of the available drones.
+#define MV_AVAILABLE_DRONES_IDS		  ".bridge.devices.available.ids"			        // Array of the ids of the available drones.
 #define MV_AVAILABLE_DRONES_LAT	    ".bridge.devices.available.latitudes"		    // Array of the lat part of the position of the drones indicated by MV_AVAILABLE_DRONES_IDS.
 #define MV_AVAILABLE_DRONES_LON	    ".bridge.devices.available.longitudes"		    // Array of the long part of the position of the drones indicated by MV_AVAILABLE_DRONES_IDS.
-#define MV_CURR_BRIDGE_ID	        ".bridge.curr_bridge_id"		                // Indicates the id of the bridge we are currently part of.
+#define MV_CURR_BRIDGE_ID	          ".bridge.curr_bridge_id"		                // Indicates the id of the bridge we are currently part of.
 #define MV_BRIDGE_CHECKED(bridgeId) ".bridge." + std::string(bridgeId) + ".checked" // Indicates that we already checked if we had to be part of this bridge.
 #define MV_MOVING_TO_BRIDGE         ".bridge.moving_to_bridge"                      // 1 if we are moving towards a bridge.
 #define MV_BRIDGE_LOC_LAT           ".bridge.location.latitude"
@@ -50,11 +50,15 @@ using namespace SMASH::Utilities;
 enum BridgeMadaraExpressionId 
 {
     // Expression to call function to update the positions of the drones available for a bridge.
-	BE_FIND_AVAILABLE_DRONES_POSITIONS,
+  BE_FIND_AVAILABLE_DRONES_POSITIONS,
 };
 
 // Map of Madara expressions used in bridge building.
 static std::map<BridgeMadaraExpressionId, Madara::Knowledge_Engine::Compiled_Expression> m_expressions;
+
+// Positions used for the bridge.
+static Position* m_sinkPosition;
+static Position* m_sourcePosition;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private function declarations.
@@ -66,6 +70,7 @@ static Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_En
 static Madara::Knowledge_Record madaraTurnOffBridgeRequest (Madara::Knowledge_Engine::Function_Arguments &args,
              Madara::Knowledge_Engine::Variables &variables);
 static Position* calculateMiddlePoint(Madara::Knowledge_Engine::Variables &variables, std::string regionId);
+static std::map<int, Position> getAvailableDronesPositions(Madara::Knowledge_Engine::Variables &variables);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Initializer, gets the refence to the knowledge base and compiles expressions.
@@ -81,6 +86,10 @@ void SMASH::Bridge::BridgeModule::initialize(Madara::Knowledge_Engine::Knowledge
 
     // Registers all default expressions, to have them compiled for faster access.
     compileExpressions(knowledge);
+
+    // Initializations.
+    m_sourcePosition = NULL;
+    m_sinkPosition = NULL;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -120,8 +129,11 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                 "(" MV_MOBILE("{" MV_MY_ID "}") " && (!" MV_BUSY("{" MV_MY_ID "}") ") && (" MV_TOTAL_BRIDGES " > 0)" ")"
                 " => " 
                     "("
+                        // Find out if we have to move somewhere to build the bridge.
+                        // The position may be a step towards the bridge, or
+                        // the final bridge location, depending on the algorithm.
                         "#print('Checking bridge request.\n');"
-                        MF_FIND_POS_IN_BRIDGE "();"
+                        MF_FIND_NEXT_POS_FOR_BRIDGE "();"
                     ");"
             ");"
             // Only used when we are in the process of moving towards a bridge.
@@ -130,17 +142,24 @@ void defineFunctions(Madara::Knowledge_Engine::Knowledge_Base &knowledge)
                 "#print('Moving to location in bridge.\n');"
                 // If we reached our bridge location, record that and land.
                 MV_REACHED_GPS_TARGET " => " 
-                    "("
-                        "#print('Location in bridge reached.\n');"
-                        MV_MOVING_TO_BRIDGE "= 0;"
-                        "(" MV_MOVEMENT_REQUESTED "='" MO_LAND_CMD "');"
-                    ")"
+                "("
+                    "#print('Location in bridge reached.\n');"
+                    MV_MOVING_TO_BRIDGE "= 0;"
+                    "(" MV_MOVEMENT_REQUESTED "='" MO_LAND_CMD "');"
+                ");"
+
+                // If not, check if we have to recalculate (depending on the
+                // algorith, this may or may not be necessary).
+                "(!"MV_REACHED_GPS_TARGET") =>"
+                "("
+                    MF_FIND_NEXT_POS_FOR_BRIDGE "();"
+                ")"
             ");"
         ")"
     );
 
     // Function that actually performs bridge building for this drone.
-    knowledge.define_function(MF_FIND_POS_IN_BRIDGE, madaraFindPositionInBridge);
+    knowledge.define_function(MF_FIND_NEXT_POS_FOR_BRIDGE, madaraFindPositionInBridge);
 
     // Function that actually performs bridge building for this drone.
     knowledge.define_function(MF_TURN_OFF_BRIDGE_REQUEST, madaraTurnOffBridgeRequest);
@@ -199,127 +218,131 @@ Madara::Knowledge_Record madaraTurnOffBridgeRequest (Madara::Knowledge_Engine::F
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Sets internally information about the sink and source for a particular bridge.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Madara::Knowledge_Record madaraSetupBridgeRequest (Madara::Knowledge_Engine::Function_Arguments &args,
+  Madara::Knowledge_Engine::Variables &variables)
+{
+  // Store the current bridge ID in the base to be used by the next evaluations.
+  variables.evaluate(MV_CURR_BRIDGE_ID " = " MV_BRIDGE_REQUESTED);
+
+  // Cleanup, if needed.
+  if(m_sourcePosition != NULL)
+  {
+    delete m_sourcePosition;
+  }
+
+  if(m_sinkPosition != NULL)
+  {
+    delete m_sinkPosition;
+  }
+
+  // Simplify the source region for now, treating it as a point by calculating the middle point.
+  std::string bridgeSourceRegionId = variables.get(variables.expand_statement(MV_BRIDGE_SOURCE_REGION_ID("{" MV_CURR_BRIDGE_ID "}"))).to_string();
+  m_sourcePosition = calculateMiddlePoint(variables, bridgeSourceRegionId);
+
+  // Simplify the sink region for now, treating it as a point by calculating the middle point.
+  std::string bridgeSinkRegionId = variables.get(variables.expand_statement(MV_BRIDGE_SINK_REGION_ID("{" MV_CURR_BRIDGE_ID "}"))).to_string();
+  m_sinkPosition = calculateMiddlePoint(variables, bridgeSinkRegionId);
+
+  // Check if we couldn't find the required positions, returning immediately with false.
+  if(m_sourcePosition == NULL || m_sinkPosition == NULL)
+  {
+    return Madara::Knowledge_Record(0.0);
+  }
+
+  return Madara::Knowledge_Record(1.0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
- * Method that invocates the functionality of finding our position in a bridge, which will be called from Madara when required.
+ * Calls the corresponding algorithm to find our potential position in the bridge,
+ * and sets the corresponding variables to actually move there.
  * Will be called from an external Madara function.
  * @return  Returns true (1) if it can calculate the bridge, or false (0) if it couldn't find all required data.
  **/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Madara::Knowledge_Record madaraFindPositionInBridge (Madara::Knowledge_Engine::Function_Arguments &args,
-	Madara::Knowledge_Engine::Variables &variables)
+  Madara::Knowledge_Engine::Variables &variables)
 {
-	// Get the basic info: local id, range, and bridge id.
-	int myId = (int) variables.get(MV_MY_ID).to_integer();
-	double commRange = variables.get(MV_COMM_RANGE).to_double();
-	int numBridges = (int) variables.get(MV_TOTAL_BRIDGES).to_integer();
+  // Setup the basic variables (NOTE: this will have to be removed from here once the
+  // algorithms are flexibilized).
+  madaraSetupBridgeRequest(args, variables);
 
-	// Loop over all potential bridges to find one we can help with.
-	Position* myNewPosition = NULL;
-	BridgeAlgorithm algorithm;
-	for(int bridgeId = 0; bridgeId < numBridges; bridgeId++)
-	{
-		// Store the current bridge ID in the base to be used by the next evaluations.
-		variables.set(MV_CURR_BRIDGE_ID, (Madara::Knowledge_Record::Integer) bridgeId);
+  // Get the positions of all available drones.
+  std::map<int, Position> availableDronePositions = getAvailableDronesPositions(variables);
 
-		// Check if we have already checked if we belonged to this bridge, and if so skip it.
-        int currBridgeChecked = (int) variables.get(variables.expand_statement(MV_BRIDGE_CHECKED("{" MV_CURR_BRIDGE_ID "}"))).to_integer();
-		if(currBridgeChecked == 1)
-		{
-			continue;
-		}
+  // Call the bridge algorithm to find out if I have to move to help witht the bridge.
+  BridgeAlgorithm algorithm;
+  int myId = (int) variables.get(MV_MY_ID).to_integer();
+  double commRange = variables.get(MV_COMM_RANGE).to_double();
+  Position* myNewPosition = algorithm.getPositionInBridge(myId, commRange, *m_sourcePosition, *m_sinkPosition, availableDronePositions);
 
-		// Simplify the source region for now, treating it as a point by calculating the middle point.
-		std::string bridgeSourceRegionId = variables.get(variables.expand_statement(MV_BRIDGE_SOURCE_REGION_ID("{" MV_CURR_BRIDGE_ID "}"))).to_string();
-		Position* sourcePosition = calculateMiddlePoint(variables, bridgeSourceRegionId);
+  // If I have to move, tell Madara that I am in bridging mode, and set my final destination.
+  bool iHaveToGoToBridge = myNewPosition != NULL;
+  if(iHaveToGoToBridge)
+  {
+    // Set all the command parameters, resetting the "reached" variable as we want to move to a new location.
+    variables.set(MV_MOVEMENT_TARGET_LAT, myNewPosition->latitude);
+    variables.set(MV_MOVEMENT_TARGET_LON, myNewPosition->longitude);
+    variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
+    variables.set(MV_REACHED_GPS_TARGET, Madara::Knowledge_Record::Integer(0));
 
-		// Simplify the sink region for now, treating it as a point by calculating the middle point.
-		std::string bridgeSinkRegionId = variables.get(variables.expand_statement(MV_BRIDGE_SINK_REGION_ID("{" MV_CURR_BRIDGE_ID "}"))).to_string();
-		Position* sinkPosition = calculateMiddlePoint(variables, bridgeSinkRegionId);
+    // Locally store our destination.
+    variables.set(MV_BRIDGE_LOC_LAT, myNewPosition->latitude);
+    variables.set(MV_BRIDGE_LOC_LON, myNewPosition->longitude);
 
-		// Check if we couldn't find the required positions, returning immediately with false.
-		if(sourcePosition == NULL || sinkPosition == NULL)
-		{
-			if(sourcePosition != NULL)
-			{
-				delete sourcePosition;
-			}
+    // Locally note that we are moving towards a bridge.
+    variables.set(MV_MOVING_TO_BRIDGE, 1.0);
 
-			if(sinkPosition != NULL)
-			{
-				delete sinkPosition;
-			}
+    // Update the drone status now that we are going to build a bridge.
+    variables.set(variables.expand_statement(MV_BUSY("{" MV_MY_ID "}")), 1.0,
+    Madara::Knowledge_Engine::Eval_Settings(true));
+    variables.evaluate(variables.expand_statement(MV_BRIDGE_ID("{" MV_MY_ID "}  = " MV_BRIDGE_REQUESTED)));
+  }
 
-			return Madara::Knowledge_Record(0.0);
-		}
+  // Cleanup.
+  if(myNewPosition != NULL)
+  {
+    delete myNewPosition;
+  }
 
-		// Find all the available drones and their positions, called here to ensure atomicity and we have the most up to date data.
-		variables.evaluate(m_expressions[BE_FIND_AVAILABLE_DRONES_POSITIONS], Madara::Knowledge_Engine::Eval_Settings(true, true));
-
-		// Obtain the ids, and x and y parts of the available drone's positions from Madara.
-		int availableDrones = (int) variables.get(MV_AVAILABLE_DRONES_AMOUNT).to_integer();
-		std::vector<Madara::Knowledge_Record> availableDronesIds;
-		std::vector<Madara::Knowledge_Record> availableDronesLats;
-		std::vector<Madara::Knowledge_Record> availableDronesLongs;
-		variables.to_vector(MV_AVAILABLE_DRONES_IDS, 0, availableDrones, availableDronesIds);
-		variables.to_vector(MV_AVAILABLE_DRONES_LAT, 0, availableDrones, availableDronesLats);
-		variables.to_vector(MV_AVAILABLE_DRONES_LON, 0, availableDrones, availableDronesLongs);
-
-		// Move the ids and position coordinates from the three arrays into a combined map.
-		std::map<int, Position> availableDronePositions;
-		for(int i=0; i < availableDrones; i++)
-		{
-            Position currDronePos;
-			int currDroneId = (int) availableDronesIds[i].to_integer();
-            currDronePos.latitude = availableDronesLats[i].to_double();
-            currDronePos.longitude = availableDronesLongs[i].to_double();
-			availableDronePositions[currDroneId] = currDronePos;
-		}
-
-		// Call the bridge algorithm to find out if I have to move to help witht the bridge.
-		myNewPosition = algorithm.getPositionInBridge(myId, commRange, *sourcePosition, *sinkPosition, availableDronePositions);
-
-		// Indicate that we have checked this bridge.
-		variables.set(variables.expand_statement(MV_BRIDGE_CHECKED("{" MV_CURR_BRIDGE_ID "}")), 1.0, Madara::Knowledge_Engine::Eval_Settings(true));
-
-		// Cleanup.
-		delete sourcePosition;
-		delete sinkPosition;
-
-		// If I have to move, tell Madara that I am in bridging mode, and set my final destination.
-		bool iHaveToGoToBridge = myNewPosition != NULL;
-		if(iHaveToGoToBridge)
-		{
-            // Set all the command parameters, resetting the "reached" variable as we want to move to a new location.
-            variables.set(MV_MOVEMENT_TARGET_LAT, myNewPosition->latitude);
-			variables.set(MV_MOVEMENT_TARGET_LON, myNewPosition->longitude);
-			variables.set(MV_MOVEMENT_REQUESTED, std::string(MO_MOVE_TO_GPS_CMD));
-            variables.set(MV_REACHED_GPS_TARGET, Madara::Knowledge_Record::Integer(0));
-
-            // Locally store our destination.
-            variables.set(MV_BRIDGE_LOC_LAT, myNewPosition->latitude);
-			variables.set(MV_BRIDGE_LOC_LON, myNewPosition->longitude);
-
-            // Locally note that we are moving towards a bridge.
-            variables.set(MV_MOVING_TO_BRIDGE, 1.0);
-
-			// Update the drone status now that we are going to build a bridge.
-			variables.set(variables.expand_statement(MV_BUSY("{" MV_MY_ID "}")), 1.0,
-				Madara::Knowledge_Engine::Eval_Settings(true));
-			variables.set(variables.expand_statement(MV_BRIDGE_ID("{" MV_MY_ID "}")), (Madara::Knowledge_Record::Integer) bridgeId);
-		}
-	}
-
-	// Cleanup.
-	if(myNewPosition != NULL)
-	{
-		delete myNewPosition;
-	}
-
-	return Madara::Knowledge_Record(1.0);
+  return Madara::Knowledge_Record(1.0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Test method used to setup drones in certain locations and issue a bridging request.
+// Obtains the positions of all the drones available to be part of the bridge.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::map<int, Position> getAvailableDronesPositions(Madara::Knowledge_Engine::Variables &variables)
+{
+    // Find all the available drones and their positions, called here to ensure atomicity and we have the most up to date data.
+    variables.evaluate(m_expressions[BE_FIND_AVAILABLE_DRONES_POSITIONS], Madara::Knowledge_Engine::Eval_Settings(true, true));
+
+    // Obtain the ids, and x and y parts of the available drone's positions from Madara.
+    int availableDrones = (int) variables.get(MV_AVAILABLE_DRONES_AMOUNT).to_integer();
+    std::vector<Madara::Knowledge_Record> availableDronesIds;
+    std::vector<Madara::Knowledge_Record> availableDronesLats;
+    std::vector<Madara::Knowledge_Record> availableDronesLongs;
+    variables.to_vector(MV_AVAILABLE_DRONES_IDS, 0, availableDrones, availableDronesIds);
+    variables.to_vector(MV_AVAILABLE_DRONES_LAT, 0, availableDrones, availableDronesLats);
+    variables.to_vector(MV_AVAILABLE_DRONES_LON, 0, availableDrones, availableDronesLongs);
+
+    // Move the ids and position coordinates from the three arrays into a combined map.
+    std::map<int, Position> availableDronePositions;
+    for(int i=0; i < availableDrones; i++)
+    {
+      Position currDronePos;
+      int currDroneId = (int) availableDronesIds[i].to_integer();
+      currDronePos.latitude = availableDronesLats[i].to_double();
+      currDronePos.longitude = availableDronesLongs[i].to_double();
+      availableDronePositions[currDroneId] = currDronePos;
+    }
+
+    return availableDronePositions;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Calculates the middle point of a given region.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Position* calculateMiddlePoint(Madara::Knowledge_Engine::Variables &variables, std::string regionId)
 {

@@ -1,0 +1,20 @@
+project {
+
+  includes +=  ../../SystemControllerAPI
+
+  Build_Files {
+    using_sc_api.mpb
+  }
+  
+  Source_Files {
+    SystemControllerAPI {
+        ../../SystemControllerAPI
+    }
+  }
+
+  Header_Files {
+    SystemControllerAPI {    
+        ../../SystemControllerAPI
+    }
+  }
+}

@@ -1,30 +1,21 @@
 
-project (CommandLineSystemController) : using_ace, using_madara, using_madara_client {
+project : using_ace, using_madara, using_kb_setup, using_sc_api, using_utilities {
 
   exeout = bin
   exename = CommandLineSystemController
-
-  includes +=  ../../SystemControllerAPI
   
   Build_Files {
     SimulationFramework.mwc
     CommandLineSystemController.mpc
-    using_madara_client.mpb
   }
 
   Source_Files {
-    ../../CommandLineSystemController
-    ../../SystemControllerAPI
-    ../../DroneController/packages/madara_client/platforms/comm
-    ../../DroneController/packages/madara_client/platforms/comm/multicast
-    ../../DroneController/packages/madara_client/utilities/string_utils.cpp
+    Main {
+        ../../CommandLineSystemController
+    }
   }
 
   Header_Files {
-    ../../DroneController/packages/madara_client/utilities
-    ../../SystemControllerAPI
-    ../../DroneController/packages/madara_client/platforms/comm
-    ../../DroneController/packages/madara_client/platforms/comm/multicast
   }
 }
 

@@ -1,0 +1,20 @@
+
+project (Tester) : using_ace, using_madara, using_utilities {
+  exeout = bin
+  exename = Tester
+  
+  Build_Files {
+    SimulationFramework.mwc
+    Tester.mpc
+  }
+
+  Source_Files {
+    Main {
+        ./Tester/Tester.cpp
+    }
+  }
+
+  Header_Files {
+  }
+}
+

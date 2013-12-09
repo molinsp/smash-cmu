@@ -1,3 +1,7 @@
 project {
   includes += ../../DroneController/packages/madara_client
+
+  Build_Files {
+    using_drone_controller.mpb
+  }  
 }

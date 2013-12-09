@@ -1,0 +1,19 @@
+project {
+  includes += ../../DroneController/packages/madara_client/platforms/v_rep
+
+  Build_Files {
+    using_sim_kb.mpb
+  }   
+  
+  Source_Files {
+    Sim_Knowledge {
+      ../../DroneController/packages/madara_client/platforms/v_rep/sim_kb.cpp
+    }
+  }
+
+  Header_Files {
+    Sim_Knowledge {
+      ../../DroneController/packages/madara_client/platforms/v_rep/sim_kb.h
+    }
+  }
+}

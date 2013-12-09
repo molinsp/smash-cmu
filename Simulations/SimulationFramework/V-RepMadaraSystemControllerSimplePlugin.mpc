@@ -1,35 +1,24 @@
 
-project (V-RepMadaraSystemControllerSimplePlugin) : using_ace, using_madara, using_vrep_simple_plugin, using_madara_client, windows_multicast {
+project (V-RepMadaraSystemControllerSimplePlugin) : using_ace, using_madara, using_vrep_plugin, using_kb_setup, using_utilities, using_sc_api {
 
   sharedname = v_repExtMadaraSystemControllerSimplePlugin
   libout = lib
 
-  includes +=  ../../SystemControllerAPI
-
   Build_Files {
     SimulationFramework.mwc
     V-RepMadaraSystemControllerSimplePlugin.mpc
-    using_madara_client.mpb
-    using_vrep_plugin.mpb
-    using_vrep_simple_plugin.mpb
-    windows_multicast.mpb
   }
   
   Source_Files {
-    V-RepMadaraSystemControllerSimplePlugin
-    ../../SystemControllerAPI
-    ../../DroneController/packages/madara_client/utilities/string_utils.cpp
-    ../../DroneController/packages/madara_client/utilities/gps_utils.cpp
-    ../../DroneController/packages/madara_client/platforms/comm
-    ../../DroneController/packages/madara_client/platforms/comm/multicast
+    SystemControllerSimplePlugin {
+        V-RepMadaraSystemControllerSimplePlugin
+    }
   }
 
   Header_Files {
-    V-RepMadaraSystemControllerSimplePlugin
-    ../../SystemControllerAPI
-    ../../DroneController/packages/madara_client/utilities
-    ../../DroneController/packages/madara_client/platforms/comm
-    ../../DroneController/packages/madara_client/platforms/comm/multicast
+    SystemControllerSimplePlugin {
+        V-RepMadaraSystemControllerSimplePlugin
+    }
   }
 }
 

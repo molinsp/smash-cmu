@@ -6,13 +6,13 @@
 *********************************************************************/
 
 #include "MadaraQuadrotorControl.h"
-#include "platforms/v_rep/comm_sim.h"
-#include "platforms/v_rep/v-rep_sim_madara_variables.h"
-#include "utilities/Position.h"
-#include "utilities/string_utils.h"
+#include "sim_kb.h"
+#include "Position.h"
+#include "string_utils.h"
 
 using std::vector;
 using std::string;
+using namespace SMASHSim;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constructor, sets up a Madara knowledge base and basic values.
@@ -26,7 +26,7 @@ MadaraQuadrotorControl::MadaraQuadrotorControl(int droneId)
     int transportId = droneId + 100;
 
     // Get a proper simulation knowledge base.
-    m_knowledge = sim_comm_setup_knowledge_base(transportId, true);
+    m_knowledge = sim_setup_knowledge_base(transportId, true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@ void MadaraQuadrotorControl::initInternalData(int droneId)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 MadaraQuadrotorControl::~MadaraQuadrotorControl()
 {    
-    sim_comm_cleanup_knowledge_base(m_knowledge);
+    sim_cleanup_knowledge_base(m_knowledge);
     m_knowledge = NULL;
 }
 
@@ -71,7 +71,7 @@ bool MadaraQuadrotorControl::terminate()
         }
         else
         {
-            sim_comm_cleanup_knowledge_base(m_knowledge);
+            sim_cleanup_knowledge_base(m_knowledge);
             m_knowledge = NULL;
             return true;
         }
@@ -84,30 +84,21 @@ bool MadaraQuadrotorControl::terminate()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const double& lat,
-    const double& lon, const double& z) // need to update for altitude
+void MadaraQuadrotorControl::updateQuadrotorPosition(const int& id, const Location& location)
 {
     // update the location of this drone (this would be done by its sensors).
     string droneIdString = NUM_TO_STR(id);
     if(m_knowledge != NULL)
     {
-        m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_LATITUDE, (lat),
+        m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_LATITUDE, (location.latAndLong.latitude),
             Madara::Knowledge_Engine::Eval_Settings(true));
-        m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_LONGITUDE, (lon),
+        m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_LONGITUDE, (location.latAndLong.longitude),
             Madara::Knowledge_Engine::Eval_Settings(true));
-        m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_ALTITUDE, (z));
+        m_knowledge->set(MS_SIM_DEVICES_PREFIX + droneIdString + MV_ALTITUDE, (location.altitude),
+            Madara::Knowledge_Engine::Eval_Settings(true));
 
-        m_knowledge->print_knowledge(1);
+        m_knowledge->send_modifieds();
     }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Updates the status of the drones in Madara.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MadaraQuadrotorControl::updateQuadrotorStatus(const Status& s)
-{
-    // Need to update for altitude.
-    updateQuadrotorPosition(s.m_id, s.m_loc.m_lat, s.m_loc.m_long, s.m_loc.m_alt);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -148,6 +139,16 @@ MadaraQuadrotorControl::Command* MadaraQuadrotorControl::getNewCommand(int drone
 
         // We don't care about lat and long here.
         Location targetLocation = Location(0, 0, targetAltitude);
+        command->m_loc = targetLocation;
+    }
+    if(commandStr == MO_JUMP_TO_GPS_CMD)
+    {
+        // Jump to certain location command; teleports the drone to that location.
+        double targetPosLat = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_CMD_ARG("0")).to_double();
+        double targetPosLon = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_CMD_ARG("1")).to_double();
+        double targetPosAlt = m_knowledge->get(MS_SIM_DEVICES_PREFIX + droneIdString + MV_MOVEMENT_CMD_ARG("2")).to_double();
+
+        Location targetLocation = Location(targetPosLat, targetPosLon, targetPosAlt);
         command->m_loc = targetLocation;
     }
 

@@ -12,7 +12,7 @@
 #include "drk.h"
 
 #include "platforms/platform.h"
-#include "platforms/comm/comm.h"
+#include "platforms/kb_setup.h"
 #include "movement/platform_movement.h"
 #include "sensors/platform_sensors.h"
 
@@ -26,7 +26,7 @@ bool platform_init()
 {
 	if (!drk_init_status)
 	{
-		drk_init();
+		drk_init(0);
 		drk_calibrate_abs_altitude(0);
 		drk_init_status = true;
 	}
@@ -36,7 +36,7 @@ bool platform_init()
 Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id, bool enableLogging)
 {
     // Create the knowledge base.
-    Madara::Knowledge_Engine::Knowledge_Base* knowledge = comm_setup_knowledge_base(id, enableLogging);
+    Madara::Knowledge_Engine::Knowledge_Base* knowledge = setup_knowledge_base(id, enableLogging, Madara::Transport::BROADCAST);
     return knowledge;
 }
 

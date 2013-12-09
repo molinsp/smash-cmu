@@ -5,12 +5,12 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
  
-#include "utilities/utilities_module.h"
+#include "utilities_module.h"
 #include <iomanip>		// std::setprecision
 
 #include "Position.h"
-#include "utilities/CommonMadaraVariables.h"
-#include "utilities/string_utils.h"
+#include "CommonMadaraVariables.h"
+#include "string_utils.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //

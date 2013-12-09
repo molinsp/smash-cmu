@@ -6,11 +6,11 @@
  *********************************************************************/
 
 #include "MadaraSystemController.h"
-#include "utilities/CommonMadaraVariables.h"
 
-#include "platforms/comm/comm.h"
+#include "kb_setup.h"
+#include "CommonMadaraVariables.h"
+#include "string_utils.h"
 
-#include "utilities/string_utils.h"
 #include <map>
 
 using namespace SMASH::Utilities;
@@ -18,7 +18,7 @@ using namespace SMASH::Utilities;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constructor, sets up a Madara knowledge base and basic values.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-MadaraController::MadaraController(int id)
+MadaraController::MadaraController(int id, Madara::Transport::Types transportType)
 {
     // Start the counter at 0.
     m_regionId = 0;
@@ -31,7 +31,7 @@ MadaraController::MadaraController(int id)
     bool enableLogging = true;
 
     // Get a proper simulation knowledge base.
-    m_knowledge = comm_setup_knowledge_base(id, enableLogging);
+    m_knowledge = setup_knowledge_base(id, enableLogging, transportType);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,15 +54,20 @@ MadaraController::~MadaraController()
 // heightDiff: The vertical distance to leave between drones.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MadaraController::updateGeneralParameters(const int& numberOfDrones, const double& commRange, const double& minAltitude, 
-                                               const double& heightDiff)
+                                               const double& heightDiff, const int& coverageTrackingEnabled, const int& coverageTrackingFileEnabled,
+                                               const double& thermalSensorAngle)
 {
     // Set up the general parameters from the class into Madara variables.
     m_knowledge->set(MV_COMM_RANGE, commRange, Madara::Knowledge_Engine::Eval_Settings(true));
     m_knowledge->set(MV_MIN_ALTITUDE, minAltitude, Madara::Knowledge_Engine::Eval_Settings(true));
     m_knowledge->set(MV_AREA_COVERAGE_HEIGHT_DIFF, heightDiff, Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set(MV_TOTAL_DEVICES_GLOBAL, (Madara::Knowledge_Record::Integer) numberOfDrones, Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set(MV_COVERAGE_TRACKING_ENABLED, (Madara::Knowledge_Record::Integer) coverageTrackingEnabled, Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set(MV_COVERAGE_TRACKING_FILE_ENABLED, (Madara::Knowledge_Record::Integer) coverageTrackingFileEnabled, Madara::Knowledge_Engine::Eval_Settings(true));
+    m_knowledge->set(MV_THERMAL_SENSOR_ANGLE, thermalSensorAngle, Madara::Knowledge_Engine::Eval_Settings(true));
 
     // This call will flush all past changes.
-    m_knowledge->set(MV_TOTAL_DEVICES_GLOBAL, (Madara::Knowledge_Record::Integer) numberOfDrones);
+    m_knowledge->send_modifieds();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -142,24 +147,24 @@ void MadaraController::requestAreaCoverage(std::vector<int> droneIds, int search
 {
     // Set the given search area as the area for this drone to search; and tell it to start searching.
 
-	// Set the values for each drone.
-	for(unsigned int i=0; i<droneIds.size(); i++)
-	{
-		std::string droneIdString = NUM_TO_STR(droneIds[i]);
-		m_knowledge->set(MV_ASSIGNED_SEARCH_AREA(droneIdString), (Madara::Knowledge_Record::Integer) searchAreaId,
-		  Madara::Knowledge_Engine::Eval_Settings(true)); 
-		m_knowledge->set(MV_AREA_COVERAGE_REQUESTED(droneIdString), searchAlgorithm,
-		  Madara::Knowledge_Engine::Eval_Settings(true));
+  // Set the values for each drone.
+  for(unsigned int i=0; i<droneIds.size(); i++)
+  {
+    std::string droneIdString = NUM_TO_STR(droneIds[i]);
+    m_knowledge->set(MV_ASSIGNED_SEARCH_AREA(droneIdString), (Madara::Knowledge_Record::Integer) searchAreaId,
+      Madara::Knowledge_Engine::Eval_Settings(true)); 
+    m_knowledge->set(MV_AREA_COVERAGE_REQUESTED(droneIdString), searchAlgorithm,
+      Madara::Knowledge_Engine::Eval_Settings(true));
         m_knowledge->set(MV_SEARCH_WAIT, (Madara::Knowledge_Record::Integer) wait,
-		  Madara::Knowledge_Engine::Eval_Settings(true));
+      Madara::Knowledge_Engine::Eval_Settings(true));
 
         // This is currently a global value, but it could be different for each search area.
         m_knowledge->set(MV_AREA_COVERAGE_LINE_WIDTH, lineWidth, Madara::Knowledge_Engine::Eval_Settings(true));
 
         // Setup the human detection algorithm we want.
         m_knowledge->set(MV_HUMAN_DETECTION_REQUESTED(droneIdString), humanDetectionAlgorithm,
-		  Madara::Knowledge_Engine::Eval_Settings(true));
-	}
+      Madara::Knowledge_Engine::Eval_Settings(true));
+  }
 
     // Wait till this point to disseminate the variables set in the previous loop.
     m_knowledge->send_modifieds();
