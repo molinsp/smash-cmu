@@ -53,7 +53,8 @@ void SystemControllerPlugin::initialize(int suffix)
     m_bridgeRequestId = 0;
 
     // Setup Madara for communications.
-    m_madaraController = new MadaraController(PLUGIN_CONTROLLER_ID, Madara::Transport::MULTICAST);
+    std::string platform = "vrep";
+    m_madaraController = new MadaraController(PLUGIN_CONTROLLER_ID, platform);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

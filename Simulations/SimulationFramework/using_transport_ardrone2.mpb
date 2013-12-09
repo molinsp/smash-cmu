@@ -1,0 +1,13 @@
+project {
+  includes += ../../DroneController/platforms/ar_drone_2
+
+  Build_Files {
+    using_transport_ardrone2.mpb
+  }   
+  
+  Header_Files {
+    ARDRONE2 {
+      ../../DroneController/platforms/ar_drone_2/transport_ardrone2.h
+    }
+  }
+}

@@ -16,6 +16,8 @@
 #include "movement/platform_movement.h"
 #include "sensors/platform_sensors.h"
 
+#include "transport_ardrone2.h"
+
 static bool drk_init_status = false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,20 +26,30 @@ static bool drk_init_status = false;
 
 bool platform_init()
 {
-	if (!drk_init_status)
-	{
-		drk_init(0);
-		drk_calibrate_abs_altitude(0);
-		drk_init_status = true;
-	}
-	return drk_init_status;
+  if (!drk_init_status)
+  {
+    drk_init(0);
+    drk_calibrate_abs_altitude(0);
+    drk_init_status = true;
+  }
+  return drk_init_status;
 }
 
-Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id, bool enableLogging)
+///////////////////////////////////////////////////////////////////////////////
+// Returns a list of transports for this platform.
+///////////////////////////////////////////////////////////////////////////////
+std::vector<Madara::Transport::Base*> platform_get_transports(int id, 
+  Madara::Knowledge_Engine::Knowledge_Base* kb)
 {
-    // Create the knowledge base.
-    Madara::Knowledge_Engine::Knowledge_Base* knowledge = setup_knowledge_base(id, enableLogging, Madara::Transport::BROADCAST);
-    return knowledge;
+  // Create the actual transport.
+  Madara::Transport::Broadcast_Transport* transport = 
+    get_ardrone2_broadcast_transport(id, kb);
+
+  // Return the transport, only one.
+  std::vector<Madara::Transport::Base*> transports;
+  transports.push_back(transport);
+
+  return transports;
 }
 
 bool platform_cleanup()
@@ -59,21 +71,21 @@ bool platform_cleanup()
 
 bool platform_init_control_functions()
 {
-	return drk_init_status;
+  return drk_init_status;
 }
 
 void platform_takeoff()
 {
-	printf("In AR_DRDONE_2 execute_takeoff()\n");
-	drk_takeoff();
-	sleep(5000);
-	drk_autonomous_resume();
+  printf("In AR_DRDONE_2 execute_takeoff()\n");
+  drk_takeoff();
+  sleep(5000);
+  drk_autonomous_resume();
 }
 void platform_land()
 {
-	printf("In AR_DRDONE_2 execute_land()\n");
+  printf("In AR_DRDONE_2 execute_land()\n");
     drk_hover(0);
-	drk_land();
+  drk_land();
 }
 
 void platform_move_up()
@@ -84,32 +96,32 @@ void platform_move_up()
 
 void platform_move_down()
 {
-	printf("In AR_DRDONE_2 move_down()\n");
-	drk_move_down(RATE_TO_MOVE_DRONE, TIME_TO_MOVE_DRONE, DRK_HOVER);
+  printf("In AR_DRDONE_2 move_down()\n");
+  drk_move_down(RATE_TO_MOVE_DRONE, TIME_TO_MOVE_DRONE, DRK_HOVER);
 }
 
 void platform_move_left()
 {
-	printf("In AR_DRDONE_2 move_left()\n");
-	drk_move_left(RATE_TO_MOVE_DRONE, TIME_TO_MOVE_DRONE, DRK_HOVER);
+  printf("In AR_DRDONE_2 move_left()\n");
+  drk_move_left(RATE_TO_MOVE_DRONE, TIME_TO_MOVE_DRONE, DRK_HOVER);
 }
 
 void platform_move_right()
 {
-	printf("In AR_DRDONE_2 move_right()\n");
-	drk_move_right(RATE_TO_MOVE_DRONE, TIME_TO_MOVE_DRONE, DRK_HOVER);
+  printf("In AR_DRDONE_2 move_right()\n");
+  drk_move_right(RATE_TO_MOVE_DRONE, TIME_TO_MOVE_DRONE, DRK_HOVER);
 }
 
 void platform_move_forward()
 {
-	printf("In AR_DRDONE_2 move_forward()\n");
-	drk_move_forward(RATE_TO_MOVE_DRONE, TIME_TO_MOVE_DRONE, DRK_HOVER);
+  printf("In AR_DRDONE_2 move_forward()\n");
+  drk_move_forward(RATE_TO_MOVE_DRONE, TIME_TO_MOVE_DRONE, DRK_HOVER);
 }
 
 void platform_move_backward()
 {
-	printf("In AR_DRDONE_2 move_backward()\n");
-	drk_move_backward(RATE_TO_MOVE_DRONE, TIME_TO_MOVE_DRONE, DRK_HOVER);
+  printf("In AR_DRDONE_2 move_backward()\n");
+  drk_move_backward(RATE_TO_MOVE_DRONE, TIME_TO_MOVE_DRONE, DRK_HOVER);
 }
 
 void platform_stop_movement()
@@ -127,7 +139,7 @@ void platform_move_to_location(double lat, double lon, double alt)
 
 void platform_move_to_altitude(double alt)
 {
-	printf("In platform move_to_altitude(%02f)\n", alt);
+  printf("In platform move_to_altitude(%02f)\n", alt);
     drk_goto_altitude(alt);
 }
 
@@ -152,7 +164,7 @@ bool platform_altitude_reached()
 
 bool platform_init_sensor_functions()
 {
-	return drk_init_status;
+  return drk_init_status;
 }
 
 double platform_get_battery_remaining()
@@ -169,31 +181,31 @@ void platform_read_thermal(double buffer[8][8])
   //memcpy(&buffer, &((serial_buf->grideye_buf).temperature), sizeof(buffer));
   for (row = 0; row < 8; row++)
   {
-		for (col = 0; col < 8; col++)
-			buffer[row][col] = serial_buf->grideye_buf.temperature[row][col];
-	}
+    for (col = 0; col < 8; col++)
+      buffer[row][col] = serial_buf->grideye_buf.temperature[row][col];
+  }
   sem_post(serial_buf->semaphore);
   printf("done copying\n");
     
   /*int x, y;
   for (y = 0; y < 8; y++)
   {
-		for (x = 0; x < 8; x++)
-		{
-			printf("in loop %d, %d\n", x, y);
-			printf("%02f ", buffer[x][y]);
-		}
-	}*/
+    for (x = 0; x < 8; x++)
+    {
+      printf("in loop %d, %d\n", x, y);
+      printf("%02f ", buffer[x][y]);
+    }
+  }*/
 }
 
 void platform_read_gps(struct madara_gps * ret)
 {
     printf("entering read_gps\n");
-	gps_t gps = drk_gps_data();
-	ret->latitude = gps.latitude;
-	ret->longitude = gps.longitude;
+  gps_t gps = drk_gps_data();
+  ret->latitude = gps.latitude;
+  ret->longitude = gps.longitude;
     ret->altitude = gps.altitude;
-	ret->num_sats = gps.num_sats;
+  ret->num_sats = gps.num_sats;
     printf("leaving read_gps\n");
 }
 

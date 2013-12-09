@@ -39,7 +39,7 @@ private:
     // A counter for the regions created.
     int m_regionId;
 public:
-    MadaraController(int id, Madara::Transport::Types transportType);
+    MadaraController(int id, std::string platform);
     ~MadaraController();
 
     // Commands to take off and land the swarm.

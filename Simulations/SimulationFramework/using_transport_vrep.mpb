@@ -1,0 +1,13 @@
+project {
+  includes += ../../DroneController/platforms/v_rep
+
+  Build_Files {
+    using_transport_vrep.mpb
+  }   
+  
+  Header_Files {
+    VREP {
+      ../../DroneController/platforms/v_rep/transport_vrep.h
+    }
+  }
+}

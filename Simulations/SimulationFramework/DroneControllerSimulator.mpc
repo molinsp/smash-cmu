@@ -31,6 +31,7 @@ project : using_ace, using_madara, using_drone_controller {
     Platforms {
       ../../DroneController/platforms
       ../../DroneController/platforms/v_rep
+      ../../DroneController/platforms/v_rep/simulation_client
     }
     Utilities {
       ../../DroneController/utilities
@@ -60,6 +61,7 @@ project : using_ace, using_madara, using_drone_controller {
     Platforms {
       ../../DroneController/platforms
       ../../DroneController/platforms/v_rep
+      ../../DroneController/platforms/v_rep/simulation_client
     }
     Utilities {
       ../../DroneController/utilities     

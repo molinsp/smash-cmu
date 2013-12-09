@@ -13,7 +13,7 @@
 #include "sensors/platform_sensors.h"
 
 // Includes for HW simulation through VRep.
-#include "hw_simulator.h"
+#include "simulation_client/hw_simulator.h"
 #include "transport_vrep.h"
 
 #include "utilities/Position.h"

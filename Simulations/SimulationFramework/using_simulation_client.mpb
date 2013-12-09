@@ -1,0 +1,19 @@
+project {
+  includes += ../../DroneController/platforms/v_rep/simulation_client
+
+  Build_Files {
+    using_simulation_client.mpb
+  }   
+  
+  Source_Files {
+    Sim_Knowledge {
+      ../../DroneController/platforms/v_rep/simulation_client
+    }
+  }
+
+  Header_Files {
+    Sim_Knowledge {
+      ../../DroneController/platforms/v_rep/simulation_client
+    }
+  }
+}
