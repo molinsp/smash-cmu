@@ -16,6 +16,7 @@
 #include "movement/platform_movement.h"
 #include "sensors/platform_sensors.h"
 
+#include "madara/transport/broadcast/Broadcast_Transport.h"
 #include "transport_ardrone2.h"
 
 static bool drk_init_status = false;

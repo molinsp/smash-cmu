@@ -1,8 +1,8 @@
 
 workspace {
-  cmdline += -feature_file default.features
+  cmdline += -feature_file $SMASH_ROOT/DroneController/default.features
 
-  DroneControllerSimulator.mpc
+  $(SMASH_ROOT)/DroneController/DroneController.mpc
   CommandLineSystemController.mpc
   Tester.mpc
   V-RepMadaraQuadcopterPlatformPlugin.mpc
