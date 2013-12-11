@@ -2,7 +2,11 @@ feature (ar_drone_2) {
 
   requires += ar_drone_2
 
-  includes += $(DRK_HOME)/include
+  includes += $(DRK_ROOT)/src/include
+  includes += $(DRK_ROOT)/src/libs/drk-api
+  includes += $(DRK_ROOT)/src/libs/drk_sched
+  libpaths += $(DRK_ROOT)/src/include
+  libs     += drk
 
   Source_Files {
     platforms/ar_drone_2

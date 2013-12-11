@@ -1,2 +1,4 @@
-install/
-toolchain/
+.depend.SMASH
+GNUmakefile
+GNUmakefile.SMASH
+smashController

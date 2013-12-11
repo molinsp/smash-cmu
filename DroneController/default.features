@@ -42,3 +42,5 @@
 /// Enable this feature if you want to generate tutorial applications
 /// tutorials               = 0
 
+soft       = 0
+ar_drone_2 = 0
