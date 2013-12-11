@@ -105,7 +105,7 @@ int main (int argc, char** argv)
       new Madara::Knowledge_Engine::Knowledge_Base();
 
     // Get the transport(s).
-    std::vector<Madara::Transport::Base*> transports = 
+    std::vector<Madara::Transport::Base*> transports =
       platform_get_transports(id, knowledge);
 
     // Setup the knowledge base.

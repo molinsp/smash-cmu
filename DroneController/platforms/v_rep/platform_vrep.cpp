@@ -38,6 +38,9 @@ bool platform_init()
 std::vector<Madara::Transport::Base*> platform_get_transports(int id, 
   Madara::Knowledge_Engine::Knowledge_Base* kb)
 {
+  // Setup the simulation client.
+  sim_setup(id);
+
   // Create the actual transport.
   Madara::Transport::Multicast_Transport* transport = 
     get_vrep_multicast_transport(id, kb);
@@ -45,7 +48,6 @@ std::vector<Madara::Transport::Base*> platform_get_transports(int id,
   // Return the transport, only one.
   std::vector<Madara::Transport::Base*> transports;
   transports.push_back(transport);
-
   return transports;
 }
 

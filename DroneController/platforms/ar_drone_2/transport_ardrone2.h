@@ -26,9 +26,12 @@ static int BROADCAST_QUEUE_LENGTH = 1024;
 Madara::Transport::Broadcast_Transport* get_ardrone2_broadcast_transport(int id, 
   Madara::Knowledge_Engine::Knowledge_Base* kb)
 {
+  // Generate a unique host id.
+  std::string hostId = kb->setup_unique_hostport();
+
   // Define basic transport settings.
   Madara::Transport::Settings transportSettings;
-  transportSettings.hosts.resize (1);
+  transportSettings.hosts.resize(1);
   transportSettings.delay_launch = true;
   transportSettings.id = id;
 
@@ -38,7 +41,7 @@ Madara::Transport::Broadcast_Transport* get_ardrone2_broadcast_transport(int id,
 
   // Create the actual transport.
   Madara::Transport::Broadcast_Transport* transport = 
-    new Madara::Transport::Broadcast_Transport(kb->get_id(),
+    new Madara::Transport::Broadcast_Transport(hostId,
     kb->get_context(), transportSettings, true);
 
   return transport;

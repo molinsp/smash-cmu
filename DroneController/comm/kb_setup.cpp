@@ -42,5 +42,4 @@ void setup_knowledge_base(Madara::Knowledge_Engine::Knowledge_Base* knowledge,
     {
       knowledge->attach_transport(transports[i]);
     }
-    knowledge->activate_transport();
 }

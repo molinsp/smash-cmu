@@ -1,5 +1,5 @@
 
-project : using_ace, using_madara, using_kb_setup, using_sc_api, using_utilities, using_transport_vrep, using_transport_ardrone2 {
+project : using_ace, using_madara, using_kb_setup, using_sc_api, using_utilities {
 
   exeout = bin
   exename = CommandLineSystemController

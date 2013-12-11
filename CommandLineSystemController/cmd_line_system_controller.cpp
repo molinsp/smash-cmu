@@ -8,23 +8,14 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <sstream>
-#include <assert.h>
-#include <stdlib.h>
 
-#include "madara/knowledge_engine/Knowledge_Base.h"
-#include "madara/utility/Log_Macros.h"
 #include "ace/Signal.h"
 
-#include "CommonMadaraVariables.h"
 #include "Position.h"
-#include "string_utils.h"
-#include "kb_setup.h"
 #include "MadaraSystemController.h"
 
-#include <sstream>
-
-MadaraController* madaraController;
+// The global object that will be controlling communications through 
+MadaraController* g_madaraController;
 
 // Interupt handling.
 volatile bool g_terminated = false;
@@ -127,7 +118,7 @@ void setAreaCoverageRequest(int& numDrones, double& nLat, double& wLong, double&
     southEast.latitude = sLat;
     southEast.longitude = eLong;
     SMASH::Utilities::Region searchRegion(northWest, southEast);
-    madaraController->setNewSearchArea(searchAreaId, searchRegion);
+    g_madaraController->setNewSearchArea(searchAreaId, searchRegion);
 
     // Request the area coverage.
     std::vector<int> droneIds;
@@ -135,7 +126,7 @@ void setAreaCoverageRequest(int& numDrones, double& nLat, double& wLong, double&
     {
         droneIds.push_back(i);
     }
-    madaraController->requestAreaCoverage(droneIds, searchAreaId, coverage_type, waitForOthers, stride, human_type);
+    g_madaraController->requestAreaCoverage(droneIds, searchAreaId, coverage_type, waitForOthers, stride, human_type);
 }
 
 void setBridgeRequest(double& personLat, double& personLon, double& sinkLat, double& sinkLon)
@@ -150,7 +141,7 @@ void setBridgeRequest(double& personLat, double& personLon, double& sinkLat, dou
     sinkPos.longitude = sinkLon;
     SMASH::Utilities::Region startRegion(sourcePos, sourcePos);
     SMASH::Utilities::Region endRegion(sinkPos, sinkPos);
-    madaraController->setupBridgeRequest(bridgeId, startRegion, endRegion);
+    g_madaraController->setupBridgeRequest(bridgeId, startRegion, endRegion);
 }
 
 // Main entry point.
@@ -220,17 +211,17 @@ int main (int argc, char** argv)
 
     // Setup the knowledge base and basic parameters.
     cout << "Init Knowlege Base..." << endl;
-    madaraController = new MadaraController(id, platform);
+    g_madaraController = new MadaraController(id, platform);
 
     // Disseminating basic parameters, mandatory and optional ones.
     // NOTE: coverage tracking is disabled here by default withe the 0,0 passed
     // as final arguments. This could be added as a command line parameter.
     printf("\nSetting up basic parameters...\n");
-    madaraController->updateGeneralParameters(numDrones, commRange, minHeight, heightDiff, 0, 0, 0);
+    g_madaraController->updateGeneralParameters(numDrones, commRange, minHeight, heightDiff, 0, 0, 0);
 
     // Also send takeoff command.
     printf("\nSending takeoff command, and waiting for drones to take off...\n");
-    madaraController->sendTakeoffCommand();
+    g_madaraController->sendTakeoffCommand();
     int inBetweenTime = 10;
     ACE_OS::sleep (inBetweenTime);
 
@@ -254,11 +245,11 @@ int main (int argc, char** argv)
     printf("\nCommands sent, entering loop to show status of knowledge base.\n");
     while(!g_terminated)
     {
-        madaraController->printKnowledge();
+        g_madaraController->printKnowledge();
         ACE_OS::sleep (1);
     }
 
     // Simply delete the knowledge base when the program terminates.
-    delete madaraController;
+    delete g_madaraController;
     return 0;
 }

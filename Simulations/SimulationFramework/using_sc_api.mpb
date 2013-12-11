@@ -1,4 +1,4 @@
-project {
+project : using_transport_vrep, using_transport_ardrone2 {
 
   includes +=  ../../SystemControllerAPI
 
