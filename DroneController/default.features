@@ -4,43 +4,12 @@
 ///
 /// @brief      Defines features that control project builds.
 ///
-/// @author     James Edmondson
+/// @author     James Root
 ///
 ///============================================================================
 
-
-/// @feature old
-/// Enable this feature if you would like to generate the CID heuristic
-/// cid                     = 0
-
-/// @feature deprecated
-/// Enable this feature if you want to generate deprecated test applications
-/// deprecated              = 0
-
-/// @feature docs
-/// Enable this feature if you want to generate Doxygen library documentation
-/// docs                    = 0
-
-/// @feature kats
-/// Enable this feature if you would like to build the 
-/// KaRL Automated Testing System
-/// kats                    = 0
-
-/// @feature ndds
-/// Enable this feature if you would like to generate NDDS Transports
-/// ndds                    = 0
-
-/// @feature opensplice
-/// Enable this feature if you would like to generate OpenSplice Transports
-/// opensplice              = 0
-
-/// @feature tests
-/// Enable this feature if you want to generate test applications
-/// tests                   = 1
-
-/// @feature tutorials
-/// Enable this feature if you want to generate tutorial applications
-/// tutorials               = 0
-
+/// Only one of the options below can be 1. This would select the target 
+/// platform to compile to.
 soft       = 0
 ar_drone_2 = 0
+v_rep	   = 0

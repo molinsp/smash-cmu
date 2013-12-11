@@ -1,4 +1,16 @@
 .depend.SMASH
 GNUmakefile
 GNUmakefile.SMASH
-smashController
+*.suo
+*.sdf
+*.user
+*.opensdf
+Debug/
+Release/
+ipch/
+bin/
+lib/
+*.filters
+*.vcxproj
+*.sln
+Make*

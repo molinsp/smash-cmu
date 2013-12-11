@@ -7,13 +7,21 @@ feature (ar_drone_2) {
   includes += $(DRK_ROOT)/src/libs/drk_sched
   libpaths += $(DRK_ROOT)/src/include
   libs     += drk
+  
+  Build_Files {
+    platforms/soft/ar_drone_2.mpb
+  }       
 
   Source_Files {
-    platforms/ar_drone_2
+	platform_ar_drone_2 {
+		platforms/ar_drone_2
+	}
   }
   
   Header_Files {
-    platforms/ar_drone_2
+	platform_ar_drone_2 {
+		platforms/ar_drone_2
+	}
   }
 
 }

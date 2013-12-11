@@ -1,0 +1,23 @@
+feature (v_rep) {
+
+  requires += v_rep
+  
+  Build_Files {
+    platforms/v_rep/v_rep.mpb
+  }       
+
+  Source_Files {
+	platform_v_rep {
+		platforms/v_rep
+		platforms/v_rep/simulation_client
+	}
+  }
+  
+  Header_Files {
+	platform_v_rep {  
+		platforms/v_rep
+		platforms/v_rep/simulation_client
+	}
+  }
+
+}

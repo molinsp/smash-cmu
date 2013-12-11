@@ -1,13 +1,21 @@
 feature (soft) {
 
   requires += soft
+  
+  Build_Files {
+    platforms/soft/soft.mpb
+  }     
 
   Source_Files {
-    platforms/soft
+	platform_soft {	
+		platforms/soft
+	}
   }
   
   Header_Files {
-    platforms/soft
+	platform_soft {	
+		platforms/soft
+	}
   }
 
 }

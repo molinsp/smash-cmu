@@ -7,9 +7,14 @@
 #include <stdio.h>
 
 #include "platforms/platform.h"
-#include "platforms/kb_setup.h"
+#include "comm/kb_setup.h"
 #include "movement/platform_movement.h"
 #include "sensors/platform_sensors.h"
+#include "madara/transport/multicast/Multicast_Transport.h"
+
+// Defines the communication parameters for Multicast.
+static std::string MULTICAST_ADDRESS = "239.255.0.1:4150";
+static int MULTICAST_QUEUE_LENGTH = 512000;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Platform.h interface implementations.
@@ -20,10 +25,31 @@ bool platform_init()
   return true;
 }
 
-Madara::Knowledge_Engine::Knowledge_Base* platform_setup_knowledge_base(int id, bool enableLogging)
+std::vector<Madara::Transport::Base*> platform_get_transports(int id, 
+  Madara::Knowledge_Engine::Knowledge_Base* kb)
 {    
-    Madara::Knowledge_Engine::Knowledge_Base* knowledge = setup_knowledge_base(id, enableLogging, Madara::Transport::MULTICAST);
-    return knowledge;
+  // Generate a unique host id.
+  std::string hostId = kb->setup_unique_hostport();
+
+  // Define basic transport settings.
+  Madara::Transport::Settings transportSettings;
+  transportSettings.hosts.resize(1);
+  transportSettings.delay_launch = true;
+  transportSettings.id = id;
+
+  // Set particular transport settings.
+  transportSettings.hosts[0] = MULTICAST_ADDRESS;
+  transportSettings.queue_length = MULTICAST_QUEUE_LENGTH;
+
+  // Create the actual transport.
+  Madara::Transport::Multicast_Transport* transport = 
+    new Madara::Transport::Multicast_Transport(hostId,
+    kb->get_context(), transportSettings, true);
+
+  // Return the transport, only one.
+  std::vector<Madara::Transport::Base*> transports;
+  transports.push_back(transport);
+  return transports;
 }
 
 bool platform_cleanup()
