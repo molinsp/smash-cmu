@@ -73,6 +73,10 @@ namespace SMASH { namespace AreaCoverage {
          */
         const Region* getSearchRegion();
 
+	std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems);
+
+	std::vector<std::string> split(const std::string &s, char delim);
+
     protected:
         /**
         * Flag to indicate if we started searching or not.
@@ -109,6 +113,7 @@ namespace SMASH { namespace AreaCoverage {
         * to one another).
         */
         vector<int> findMiddleDivisors(int numberToEvaluate);
+
     }; // class AreaCoverage
 }} // namespace SMASH::AreaCoverage
 

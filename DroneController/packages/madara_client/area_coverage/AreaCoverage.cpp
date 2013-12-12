@@ -43,6 +43,21 @@ const Region* AreaCoverage::getSearchRegion()
     return m_cellToSearch;
 }
 
+std::vector<std::string> &AreaCoverage::split(const std::string &s, char delim, std::vector<std::string> &elems) {
+    std::stringstream ss(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        elems.push_back(item);
+    }
+    return elems;
+}
+
+std::vector<std::string> AreaCoverage::split(const std::string &s, char delim) {
+    std::vector<std::string> elems;
+    split(s, delim, elems);
+    return elems;
+}
+
 // Calculates the grid that will be used for area coverage, and returns the
 // boundaries of the cell for the given device to cover.
 Region* AreaCoverage::calculateCellToSearch(int deviceIdx, const Region& grid,

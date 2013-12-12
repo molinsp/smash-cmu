@@ -14,6 +14,7 @@
 
 #include "utilities/Position.h"
 #include "utilities/CommonMadaraVariables.h"
+#include "utilities/gps_utils.h"
 
 #include <iostream>
 #include <vector>
@@ -27,6 +28,7 @@
 #include <queue>
 #include <set>
 #include <utility>
+#include <iomanip>
 
 #include "QueueObject.h"
 
@@ -54,6 +56,11 @@ PriorityAreaCoverage::PriorityAreaCoverage(Madara::Knowledge_Engine::Variables &
     std::cout << "Algorithm:" << variables.get("device.0.area_coverage_requested").to_string() << "\n";
 }
 
+double PriorityAreaCoverage::degreesToRadians(double degrees)
+{
+    return degrees * DEGREES_PER_METER;
+}
+
 // Destructor
 PriorityAreaCoverage::~PriorityAreaCoverage() {}
 
@@ -61,74 +68,41 @@ PriorityAreaCoverage::~PriorityAreaCoverage() {}
 Region* PriorityAreaCoverage::initialize(const Region& grid, int deviceIdx, 
     int numDrones)
 {
-    printf("Initializing priority area coverage algorithm.\n");
-    m_cellToSearch = new Region(grid);
-    
-    m_id = deviceIdx;
-    m_width  = std::ceil( std::abs(grid.northWest.latitude - grid.southEast.latitude) / m_delta );
-    m_height = std::ceil( std::abs(grid.northWest.longitude - grid.southEast.longitude) / m_delta );
+	m_delta = degreesToRadians(m_delta);
+	printf("Initializing priority area coverage algorithm.\n");
+	m_cellToSearch = new Region(grid);
 
-    std::cout << "nw lat:  " << grid.northWest.latitude  << "\n";
-    std::cout << "se lat:  " << grid.southEast.latitude  << "\n";
-    std::cout << "nw long: " << grid.northWest.longitude << "\n";
-    std::cout << "se long: " << grid.southEast.longitude << "\n";
+	m_id = deviceIdx;
 
-    std::cout << "m_delta: " << m_delta << "\n";
+	// Calculate matrix size.
+	m_width  = std::ceil( std::abs(grid.northWest.latitude - grid.southEast.latitude) / m_delta );
+	m_height = std::ceil( std::abs(grid.northWest.longitude - grid.southEast.longitude) / m_delta );
+	m_ref_lat = grid.southEast.latitude;
+	m_ref_long = grid.northWest.longitude;
 
-    std::cout << "matrix width:  " << m_width  << "\n";
-    std::cout << "matrix height: " << m_height << "\n";
+	std::cout << "nw lat:  " << std::setprecision(8) << grid.northWest.latitude  << "\n";
+	std::cout << "se lat:  " << std::setprecision(8) << grid.southEast.latitude  << "\n";
+	std::cout << "nw long: " << std::setprecision(8) << grid.northWest.longitude << "\n";
+	std::cout << "se long: " << std::setprecision(8) << grid.southEast.longitude << "\n";
 
-    std::cout << "Algorithm:" << m_variables.get("device.0.area_coverage_requested").to_string() << "\n";
-    
-    std::cout << "increment counter:\n";
-    m_variables.evaluate("++matrixCount");
-    std::cout << "matrix counter: " << m_variables.get("matrixCount").to_integer() << "\n";
+	std::cout << "m_delta: " << m_delta << "\n";
 
-    // Have the first drone create the search matrix
-    if (deviceIdx >= 0)
-    {
+	std::cout << "matrix width:  " << m_width  << "\n";
+	std::cout << "matrix height: " << m_height << "\n";
+
+	std::cout << "Algorithm:" << m_variables.get("device.0.area_coverage_requested").to_string() << "\n";
+
+
+	// Create Search matrix
 	m_matrix = std::vector<std::vector<int> > (m_height, std::vector<int>(m_width));
 	init(m_matrix);
-//	m_variables.set("matrix.0.0", Madara::Knowledge_Record::Integer(m_matrix[0][0]) ) ;
-	
-	std::string madvar;	
-	for (int r = 0; r < m_width; r++)
-	{
-	    for (int c = 0; c < m_height; c++)
-	    {
-		madvar = "matrix." + r;
-		madvar += ".";
-		madvar += c;	
-		m_variables.set(madvar, Madara::Knowledge_Record::Integer(m_matrix[r][c]) ) ;
-	    }
-	}
-	
-	m_variables.set("matrixIsSet", Madara::Knowledge_Record::Integer(1));
-        print(m_matrix, -1, -1);
-        solveMatrix(m_matrix, numDrones, m_id);
-    }
-    else
-    {
-        while(m_variables.get("matrixIsSet").to_integer() == 0) {
-		std::cout << "waiting\n";
-	}	
 
-	std::string madvar;
- 	for (int r = 0; r < m_width; r++)
-	{
-	    for (int c = 0; c < m_height; c++)
-	    {
-		madvar = "matrix." + r;
-		madvar += ".";
-		madvar += c;	
-		m_matrix[r][c] = m_variables.get(madvar).to_integer();
-	    }
-	}
+	solveMatrix(m_matrix, numDrones, m_id);
 
-	print(m_matrix, -1, -1);  
-    }
-
-    return m_cellToSearch;
+	// Wait - time to look at data
+	sleep(10);
+   
+	return m_cellToSearch;
 }
 
 void PriorityAreaCoverage::solveMatrix(std::vector<std::vector<int> > &matrix, int numDrones, int myId)
@@ -137,7 +111,7 @@ void PriorityAreaCoverage::solveMatrix(std::vector<std::vector<int> > &matrix, i
 
     for (int i = 0; i < numDrones; i++)
     {
-	// initalize future move trakcer
+	// initalize future move tracker
 	std::vector<std::pair<int, int> > temp;
 	temp.push_back(std::make_pair(0, 0));
 	futureMoves.push_back(temp);
@@ -154,44 +128,15 @@ void PriorityAreaCoverage::solveMatrix(std::vector<std::vector<int> > &matrix, i
     QueueObject temp = dronePositions.front();
 
     int turn = 0;
-    // loop through positions until matrix is searched
+    // Loop through positions until matrix is searched
     while (sumMatrix(matrix) > 0) 
     {
-	// grab the next drone
-//	std::cout << "1. Queue size: " << dronePositions.size() << endl;
-//	std::cout << "1. Front id: " << dronePositions.front().id << ", Distance: " << dronePositions.front().totalDistance << endl;
-
-//  	temp.id = dronePositions.front().id;
-//  	temp.x = dronePositions.front().x;
-//  	temp.y = dronePositions.front().y;
-//  	temp.totalDistance = dronePositions.front().totalDistance;
-	
-//	std::pop_heap(dronePositions.begin(), dronePositions.end());
-//	dronePositions.pop_back();
-
-//	std::cout << "2. Queue size: " << dronePositions.size() << endl;
-//	std::cout << "2. Front id: " << dronePositions.front().id << ", Distance: " << dronePositions.front().totalDistance << endl;
-
         std::pair<int, int> nextPosition = nextMove(matrix, temp.x, temp.y);
 	futureMoves[turn % numDrones].push_back(std::make_pair(nextPosition.first, nextPosition.second));	
 	turn++;
-	// save the next move	
-//	std::cout << "Adding move for drone " << temp.id << " to [" << nextPosition.first << ", " << nextPosition.second << "]\n";
-//	futureMoves[temp.id].push_back(std::make_pair(nextPosition.first, nextPosition.second));
-        
-	// update the current position
-//	temp.totalDistance += distance(temp.x, temp.y, nextPosition.first, nextPosition.second);
-//	temp.x = nextPosition.first;
-//	temp.y = nextPosition.second;
-//	dronePositions.push_back(QueueObject(temp.id, temp.x, temp.y, distance(temp.x, temp.y, nextPosition.first, nextPosition.second)));
-
-
-//        std::cout << "\nNow at " << temp.x << ", " << temp.y << std::endl;
-
-	// resort array
-//	std::sort_heap (dronePositions.begin(), dronePositions.end());
     }
 
+    // Display future moves
     std::cout << "future moves:\n";
     for (int j = 0; j < numDrones; j++) {
       for (int i = 0; i < futureMoves[j].size(); i++) {
@@ -254,14 +199,15 @@ Position PriorityAreaCoverage::getNextTargetLocation()
 double PriorityAreaCoverage::xToLat(int x) 
 {
     double startLat = 40.44108;
- //   double myLat = MV_DEVICE_LAT;
-    return startLat + (x * m_delta);
+//    return startLat + (x * m_delta);    
+    return m_ref_lat + (x * m_delta);
 }
 
 double PriorityAreaCoverage::yToLong(int y)
 {
     double startLong = -79.947164;
-    return startLong + (y * m_delta);
+//    return startLong + (y * m_delta);	
+    return m_ref_long + (y * m_delta);
 }
 
 
@@ -269,7 +215,8 @@ double PriorityAreaCoverage::yToLong(int y)
 // @return    false, default to algorithm never finishes
 bool PriorityAreaCoverage::isTargetingFinalWaypoint()
 {
-    if (m_turn == futureMoves[m_id].size()) {
+    if (m_turn == futureMoves[m_id].size()) 
+    {
       return true;
     }
     return false;
@@ -279,10 +226,13 @@ bool PriorityAreaCoverage::isTargetingFinalWaypoint()
 /**
  *  Initialized a matrix of size SIZE with random values from 0-9 priorities.
  **/
-void PriorityAreaCoverage::init(std::vector<std::vector<int> > &matrix) {
-  for (int j = 0; j < m_width; j++) {
-    for (int i = 0; i < m_height; i++) {
-      matrix[i][j] = i+1;
+void PriorityAreaCoverage::init(std::vector<std::vector<int> > &matrix) 
+{
+  for (int j = 0; j < m_width; j++) 
+  {
+    for (int i = 0; i < m_height; i++) 
+    {
+      matrix[i][j] = m_searchRegion.priorityValue;
     }
   }
 }

@@ -106,11 +106,13 @@ void SystemControllerPlugin::handleNewCommand()
             double coverageTrackingEnabled = PluginUtils::getIntParam("coverageTracking");
             double coverageTrackingFileEnabled = PluginUtils::getIntParam("coverageTrackingFile");
             double sensorAngle = PluginUtils::getDoubleParam("sensorAngle");
+            double defaultPriority = PluginUtils::getDoubleParam("defaultPriority");
+	    std::string prioritizedAreas = PluginUtils::getStringParam("prioritizedAreas");
 
             // Send the parameters.
             m_madaraController->updateGeneralParameters(numDrones, radioRange, 
               minAltitude, heightDiff, coverageTrackingEnabled, 
-              coverageTrackingFileEnabled, sensorAngle);
+              coverageTrackingFileEnabled, sensorAngle, defaultPriority, prioritizedAreas);
         }
 
         // Send network-wide parameters (radio range, num drones, min height).

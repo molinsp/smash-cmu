@@ -49,7 +49,7 @@ public:
     // Sets general parameters in Madara variables.
     void updateGeneralParameters(const int& numberOfDrones, const double& commRange, const double& minAltitude, 
                                  const double& heightDiff, const int& coverageTrackingEnabled, const int& coverageTrackingFileEnabled,
-                                 const double& thermalSensorAngle);
+                                 const double& thermalSensorAngle, const double& defaultPriority, const std::string& prioritizedAreas);
 
     // Bridge methods.
     void setupBridgeRequest(int bridgeId, SMASH::Utilities::Region startRegion, 

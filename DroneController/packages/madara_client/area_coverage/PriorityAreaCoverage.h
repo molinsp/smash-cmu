@@ -102,6 +102,8 @@ public:
 
     std::pair<int, int> stupidSearch(std::vector<std::vector<int> > matrix, int x, int y);
 
+    double degreesToRadians(double degrees);
+
 int valueOfDirection(std::vector<std::vector<int> > &matrix, int &x, int &y, int direction);
 void move(std::vector<std::vector<int> > &matrix, int &x, int &y, int direction);
 int highestNeighbor(std::vector<std::vector<int> > matrix, int x, int y);
@@ -122,6 +124,10 @@ protected:
     double m_id;
 
     double m_turn;
+
+    double m_ref_lat;
+
+    double m_ref_long;
 
     std::vector<std::vector<int> > m_matrix;
 

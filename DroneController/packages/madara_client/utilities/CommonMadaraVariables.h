@@ -139,5 +139,7 @@
 #define MV_COVERAGE_TRACKING_ENABLED       "area_coverage.tracking.enabled"       // 1 for enabled, 0 to disable.
 #define MV_COVERAGE_TRACKING_FILE_ENABLED  "area_coverage.tracking_file.enabled"  // 1 for enabled, 0 to disable.
 #define MV_THERMAL_SENSOR_ANGLE            "area_coverage.tracking.sensor_angle"  // The aperture of the sensor capturing ground information, in degrees.
+#define MV_DEFAULT_PRIORITY		   "area_coverage.tracking.default_priority"	// The level of priority that will be set for areas inside the search area that are not specified.
+#define MV_PRIORITIZED_AREAS		   "area_coverage.tracking.prioritized_areas"
 
 #endif
