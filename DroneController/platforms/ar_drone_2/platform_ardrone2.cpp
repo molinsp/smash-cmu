@@ -5,14 +5,12 @@
  * https://code.google.com/p/smash-cmu/wiki/License
  *********************************************************************/
 
-#ifdef AR_DRONE_2
-
 #include <stdio.h>
 
 #include "drk.h"
 
 #include "platforms/platform.h"
-#include "platforms/kb_setup.h"
+#include "comm/kb_setup.h"
 #include "movement/platform_movement.h"
 #include "sensors/platform_sensors.h"
 
@@ -135,19 +133,18 @@ void platform_move_to_location(double lat, double lon, double alt)
     printf("entering platform::move_to_location(%08f, %08f, %f)...\n", lat, lon, alt);
     double speed = 0.1;
     double tolerance = platform_get_gps_accuracy();
-    drk_goto_gps(lat, lon, alt, speed, tolerance);
+    drk_autonomous_goto_gps(lat, lon, alt, speed, tolerance);
 }
 
 void platform_move_to_altitude(double alt)
 {
-  printf("In platform move_to_altitude(%02f)\n", alt);
-    drk_goto_altitude(alt);
+    printf("In platform move_to_altitude(%02f)\n", alt);
+    //drk_goto_altitude(alt);
 }
 
 bool platform_location_reached()
 {
-    // TODO: implement this when there is a function for this in the DroneRK API. Currently not being used.
-    return drk_target_reached();
+    return drk_autonomous_target_reached();
 }
 
 bool platform_altitude_reached()
@@ -240,5 +237,3 @@ double platform_get_gps_accuracy()
 {
     return 7.5;
 }
-
-#endif

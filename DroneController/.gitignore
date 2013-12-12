@@ -1,6 +1,6 @@
-.depend.SMASH
-GNUmakefile
-GNUmakefile.SMASH
+.depend.DroneController
+GNUmakefile*
+droneController
 *.suo
 *.sdf
 *.user
