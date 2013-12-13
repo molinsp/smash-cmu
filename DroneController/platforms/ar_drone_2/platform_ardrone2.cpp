@@ -77,8 +77,9 @@ void platform_takeoff()
 {
   printf("In AR_DRDONE_2 execute_takeoff()\n");
   drk_takeoff();
-  sleep(5000);
-  drk_autonomous_resume();
+  printf("Done in takeoff()\n");
+  //drk_autonomous_resume();
+  //printf("Done in drk_autonomous_resume()");
 }
 void platform_land()
 {
@@ -134,6 +135,8 @@ void platform_move_to_location(double lat, double lon, double alt)
     double speed = 0.1;
     double tolerance = platform_get_gps_accuracy();
     drk_autonomous_goto_gps(lat, lon, alt, speed, tolerance);
+    //After we pass it some coords, we have to tell it to resume
+    drk_autonomous_resume();
 }
 
 void platform_move_to_altitude(double alt)
