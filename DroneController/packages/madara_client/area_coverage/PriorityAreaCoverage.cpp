@@ -21,7 +21,6 @@
 #include <cstdlib>
 #include <ctime> 
 #include <string>
-#include <unistd.h>
 #include <algorithm>
 #include <sstream>
 #include <cmath>
@@ -96,7 +95,7 @@ Region* PriorityAreaCoverage::initialize(const Region& grid, int deviceIdx,
 	// Create Search matrix
 	m_matrix = std::vector<std::vector<int> > (m_height, std::vector<int>(m_width));
 	init(m_matrix);
-
+        print(m_matrix, -1, -1);
 	solveMatrix(m_matrix, numDrones, m_id);
 
 	// Wait - time to look at data
@@ -140,7 +139,7 @@ void PriorityAreaCoverage::solveMatrix(std::vector<std::vector<int> > &matrix, i
     std::cout << "future moves:\n";
     for (int j = 0; j < numDrones; j++) {
       for (int i = 0; i < futureMoves[j].size(); i++) {
-	std::cout << "[" << futureMoves[j][i].first << ", " << futureMoves[j][i].second << "]  ";
+//	std::cout << "[" << futureMoves[j][i].first << ", " << futureMoves[j][i].second << "]  ";
       }
       std::cout << "\n";
     }
@@ -232,7 +231,8 @@ void PriorityAreaCoverage::init(std::vector<std::vector<int> > &matrix)
   {
     for (int i = 0; i < m_height; i++) 
     {
-      matrix[i][j] = m_searchRegion.priorityValue;
+	matrix[i][j] = m_searchRegion.priorityValue;
+//      matrix[i][j] = i;
     }
   }
 }
