@@ -68,32 +68,47 @@ The source code for the plugins is in smash-cmu\Simulations\SimulationFramework.
 
 - Scene Simulation Parameters
 
+	The buttons in the SystemControllerGUI are:
+	 - Setup Network: sends some basic parameters to all drones (see parameters below).
+	 - Take Off: sends the command to all drones to lift from the ground and hover.
+	 - Start Search: request all drones to search the area according to the search
+	 parameters (see below).
+	 - Form Brige: requests drones to form a bridge for the last person that has been found.
+	 - Land: sends the command to all drones to land (get to a lower altitude, they won't actually
+	 land since the floor is too uneven).
+
     There are some simulation parameters that have to match the physical objects in
     the scene. They have to be changed if these objects are changed. The parameters are:
      - numberOfDrones: the number of drones in the simulation
      - numberOfPeople: the number of people in the simulation
      - (x1,y1) to (x2,y2): bounding box of area being covered.
 
+	There are also parameters used to translate between VRep cartesian model and a lat/long model: 
+	 - referenceLat and referenceLong: the latitude and longitude (in degrees) of the reference point 
+	   used to translate VRep x-y coordinates into lat,long coordinates.
+	 
     The following are parameters that can be used to play with the simulation:
+	
+	Bridge Forming Parameters:
      - radioRange: the range (radius) of the Wi-Fi radio on the drones (in meters),
        required to calculate how many drones are needed for the bridge. 
-	- minimumAltitude: height (in meters) that the drones have to reach before they start an area
+
+	Area Coverage Search Parameters:
+ 	 - minimumAltitude: height (in meters) that the drones have to reach before they start an area
 	   coverage pattern. In reality, drones will choose different heights to avoid
 	   crashing onto each other, but this will be the absolute minimum one.
+     - heightDiff: the amount of vertical distance (in meters) to leave between drones searching
+	   the same area, to avoid collisions.
 	 - coverageAlgorithm: can be "random", "snake" or "inside_out" (without quotes), and determines
 	   which algorithm will be used for the area coverage.
 	 - searchLineWidth: the width (in meters) of each search "line" a drone will follow, for the 
 	   algorithms that follow lines (such as snake and inside_out). Determines how far
 	   the drone would move to its side for the next "line".
-	 - heightDiff: the amount of vertical distance (in meters) to leave between drones searching
-	   the same area, to avoid collisions.
 	 - waitForRest: 1 means that after reaching each of its search targets, each drone will wait for the
 	   rest to reach their corresponding target too. Only then it will start moving towards its next
 	   target. 0 means move to your next target right after you get to your current one.
 	 - humanDetectionAlgorithm: currently can only be "basic" (without quotes) to enable the basic
 	   human detection. Can be set to 0 to disable human detection.
-	 - referenceLat and referenceLong: the latitude and longitude (in degrees) of the reference point 
-	   used to translate VRep x-y coordinates into lat,long coordinates.
 	 - coverageTracking: 1 to enable tracking % of area covered in each iteration of the main loop,
 	   0 to disable.
 	 - coverageTrackingFile: 1 to enable outputting the & of area covered in each iteration of the main
@@ -106,13 +121,3 @@ The source code for the plugins is in smash-cmu\Simulations\SimulationFramework.
 	
     Moving the locations of the laptop and the people on the scene can also be useful
     to check different behaviours.   
-
-- NOTES
-
- * This simulation relies on external .lua files which are present in this folder,
-   the same one where the main scene file is. However, V-Rep needs to find these .lua files, 
-   and will only look in the current folder or its internal folders. These external .lua files 
-   will only be loaded correctly in one of two cases:
-   > The simulation is started by double-clicking on the .ttt file, having this extension
-   associated with V-Rep (in Windows), or
-   > The .lua files are copied over to the main folder of V-Rep, or to its \lua subfolder.

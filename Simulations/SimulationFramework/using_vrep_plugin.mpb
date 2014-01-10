@@ -1,5 +1,5 @@
 project {
-  includes +=     V-RepImports
+  includes +=      $(VREP_HOME)\programming\include
   includes +=     V-RepPluginUtils
 
   specific(prop:microsoft) {
@@ -21,9 +21,13 @@ project {
     using_vrep_plugin.mpb
   }  
 
+  expand(VREP_HOME_VAR) {
+    $VREP_HOME
+  }  
+  
   Source_Files {
     VREP_Imports {
-      V-RepImports
+      $(VREP_HOME_VAR)\programming\common
     }
     VREP_Utils {
       V-RepPluginUtils
@@ -32,7 +36,7 @@ project {
 
   Header_Files {
     VREP_Imports {
-      V-RepImports
+      $(VREP_HOME_VAR)\programming\include
     }
     VREP_Utils {
       V-RepPluginUtils

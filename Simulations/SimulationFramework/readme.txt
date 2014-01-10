@@ -5,8 +5,8 @@
 # https://code.google.com/p/smash-cmu/wiki/License
 ######################################################################
 
-This folder contains the code to simulate drones using the actual code
-they will have and and plugins to simulate parts of it in V-Rep. The projects are:
+This folder contains a framework used to simulate drones using almost all of the
+code they will use on a real drone, and and plugins to simulate parts of it in V-Rep.
 
  - Initial Setup
 
@@ -14,8 +14,9 @@ they will have and and plugins to simulate parts of it in V-Rep. The projects ar
 	V-REP has to be installed in order to be able to use the plugins. 
 	* V-REP can be obtained from http://www.v-rep.eu/downloads.html. 
 	* Set the environment variable VREP_HOME to the root directory of your V-REP installation 
-	(where the V-REP executable that starts the simulator is housed). This directory will be 
-	where all build	processes copy plugins to.
+	(where the V-REP executable that starts the simulator is housed). This variable is not used 
+	by V-REP, but by this framework when compiling code. This directory will also be where all 
+	compiled plugins will be copied to.
 
 	2) MADARA
 	All components use Madara to communicate with each other. The installers for Madara can be used
@@ -30,11 +31,11 @@ they will have and and plugins to simulate parts of it in V-Rep. The projects ar
 	For MPC to work, Perl also has to be installed in the computer. For Windows, ActivePerl can be used 	
 	for Perl execution (http://www.activestate.com/activeperl) .	
 
-	Once Perl and ACE are setup, the following scripts can generate the projects:\
-		- Visual Studio 2010: generate_vs2010.bat
-		- G++ Makefile		: generate_make.sh
+	Once Perl and ACE are setup, the following scripts can be used to generate the projects:
+		- For Visual Studio 2010: generate_vs2010.bat
+		- For G++ Makefile		: generate_make.sh
 
- - DroneControllerSimulator
+ 1. DroneControllerSimulator
  
      This program acts as a simulated drone, containing all current code and logic for the drones
      except for the hardware layer. Instead of the actual hardware layer, it uses a V-Rep layer
@@ -42,13 +43,10 @@ they will have and and plugins to simulate parts of it in V-Rep. The projects ar
      to V-Rep to, to move the simulated drones on a V-Rep scene. It uses the actual algorithms
      for Area Coverage and Bridge building that will be included on the drone. Since there is 
      an interface for the hardware layer, the use of V-Rep instead is (almost) transparent. 
-     This is supposed to be used with the V-RepMadaraQuadcopterPlatformPlugin installed in the V-Rep main 
-     executable folder, as they communicate with each other through Madara. It is assumed that a 
-     V-Rep scene will act as the System Controller, as well as the sensors and actuators for each drone.
      
-     The communication with V-Rep could be done through TCP or other methods, but it is actually
-     handled through Madara as well, using some particular prefixes to get sensor information
-     or send movement commands to V-Rep through Madara.
+	 This is supposed to be used with the V-RepMadaraQuadcopterPlatformPlugin installed in the V-Rep main 
+     executable folder. The communication with V-Rep is handled through a separate Madara knowledge base, and it consists
+     mainly of requests to get sensor information or movement commands sent to V-Rep through Madara.
  
      Most of the code is actually located in the DroneController/packages/madara_client 
      folder or the repository, and is only referenced from this project.     
@@ -56,18 +54,27 @@ they will have and and plugins to simulate parts of it in V-Rep. The projects ar
      
      To execute, add the "-i" option, followed by an integer number starting from 0. 
      This indicates the id that this pseudo-drone will have. Running this in multiple
-     consoles with different ids allows to simluate multiple pseudo-drones.
+     consoles with different ids allows to simulate multiple pseudo-drones.
+	 
+	 The "-l" parameter, followed by a number, indicates the log level to use. 0 means off, 1 is basic logging, etc.
+	 
+	 The script "start_simulated_drones.vbs" (Windows) and "start_simulated_drones.sh" (Linux) can be used 
+	 to start several simulated drones in several command windows with only one commnad/double click.
     
- - V-RepMadaraSystemControllerPlugin
+ 2. V-RepMadaraSystemControllerPlugin
 
-    A plugin that acts as the Controller of the network, as well as receiving commands to move the drones to certain locations. 
+    This plugin  acts as the Controller of the network, as well as sending commands to move the drones to certain locations. 
     This is done through Madara to communicate with simulated pseudo-drones running with the DroneControllerSimulator 
-    project described above. It defines several Lua functions that can be used by a simulation to setup 
-    and cleanup the Madara interface, as well as send and receive the state of different variables in the Knowledge Base, 
-    including area coverage and bridge requests, and functions to handle sensor and movement requests from the drones.
-    
+    project described above. It is accessed through a simple GUI present in the V-REP Scene used in the simulation being
+	executed. There are also other SystemControllers, but the purpose of this plugin is to enable a simple one for easy testing
+	of the simulation.
+	
+	For information on the buttons of the GUI and the parameters used by the plugin, see the documentation in the CoverageAndBridgeScenes
+	folder.   
 
- - V-RepMadaraQuadcopterPlatformPlugin
+ 3. V-RepMadaraQuadcopterPlatformPlugin
 
-    This plugin allows quadrotors in VREP to respond to go to commands issued from a simulated drone, as well
-	as reporting information back to them. This is done through a Madara knowledge base.
+    This plugin allows quadcopters in VREP to respond to go to commands issued from a simulated drone, as well
+	as reporting information back to them. This is done through a dedicated Madara knowledge base. This works in conjunction
+	with the code in smash-root\DroneController\platforms\v_rep\simulation_client. The code there and the plugin can be used
+	independently of the rest of the project (that is, without any systemcontroller, and with any other Drone controller).
