@@ -99,7 +99,7 @@ Region* PriorityAreaCoverage::initialize(const Region& grid, int deviceIdx,
 	solveMatrix(m_matrix, numDrones, m_id);
 
 	// Wait - time to look at data
-	sleep(10);
+//	sleep(5);
    
 	return m_cellToSearch;
 }
@@ -136,13 +136,13 @@ void PriorityAreaCoverage::solveMatrix(std::vector<std::vector<int> > &matrix, i
     }
 
     // Display future moves
-    std::cout << "future moves:\n";
-    for (int j = 0; j < numDrones; j++) {
-      for (int i = 0; i < futureMoves[j].size(); i++) {
+//    std::cout << "future moves:\n";
+//    for (int j = 0; j < numDrones; j++) {
+//      for (int i = 0; i < futureMoves[j].size(); i++) {
 //	std::cout << "[" << futureMoves[j][i].first << ", " << futureMoves[j][i].second << "]  ";
-      }
-      std::cout << "\n";
-    }
+//      }
+//      std::cout << "\n";
+//    }
 }
 
 /**
@@ -197,14 +197,14 @@ Position PriorityAreaCoverage::getNextTargetLocation()
 
 double PriorityAreaCoverage::xToLat(int x) 
 {
-    double startLat = 40.44108;
+//    double startLat = 40.44108;
 //    return startLat + (x * m_delta);    
     return m_ref_lat + (x * m_delta);
 }
 
 double PriorityAreaCoverage::yToLong(int y)
 {
-    double startLong = -79.947164;
+//    double startLong = -79.947164;
 //    return startLong + (y * m_delta);	
     return m_ref_long + (y * m_delta);
 }

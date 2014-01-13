@@ -378,21 +378,21 @@ AreaCoverage* selectAreaCoverageAlgorithm(string algorithm, Madara::Knowledge_En
         
 	// sub regions
 	std::vector<Region> regions;
-//	regions.push_back(searchArea);
+	regions.push_back(searchArea);
 	std::string prioritizedAreas = MV_PRIORITIZED_AREAS;
-	std::vector<std::string> subAreas = m_coverageAlgorithm->split(prioritizedAreas, ';');
+//	std::vector<std::string> subAreas = m_coverageAlgorithm->split(prioritizedAreas, ';');
 
 	// convert strings of sub regions into Region objects.
-	for (int i = 0; i < subAreas.size(); i++)
-	{
-		std::vector<std::string> piecesOfArea = m_coverageAlgorithm->split(prioritizedAreas, ',');	
-		nwLat = std::atof( piecesOfArea[0].c_str() );
-		nwLon = std::atof( piecesOfArea[1].c_str() );
-		seLat = std::atof( piecesOfArea[2].c_str() );
-		seLon = std::atof( piecesOfArea[3].c_str() );
-		priorityValue = std::atof( piecesOfArea[4].c_str() );
-    		regions.push_back( Region(Position(nwLon, nwLat), Position(seLon, seLat), priorityValue) );
-	}
+//	for (int i = 0; i < subAreas.size(); i++)
+//	{
+//		std::vector<std::string> piecesOfArea = m_coverageAlgorithm->split(prioritizedAreas, ',');	
+//		nwLat = std::atof( piecesOfArea[0].c_str() );
+//		nwLon = std::atof( piecesOfArea[1].c_str() );
+//		seLat = std::atof( piecesOfArea[2].c_str() );
+//		seLon = std::atof( piecesOfArea[3].c_str() );
+//		priorityValue = std::atof( piecesOfArea[4].c_str() );
+//    		regions.push_back( Region(Position(nwLon, nwLat), Position(seLon, seLat), priorityValue) );
+//	}
 	
         coverageAlgorithm = new PriorityAreaCoverage(variables, regions, searchArea, searchLineOffset);
     }
