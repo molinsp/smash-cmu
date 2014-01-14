@@ -9,7 +9,7 @@ feature (ar_drone_2) {
   libs     += drk
   
   Build_Files {
-    platforms/soft/ar_drone_2.mpb
+    platforms/ar_drone_2/ar_drone_2.mpb
   }       
 
   Source_Files {
